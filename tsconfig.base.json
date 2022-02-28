@@ -19,5 +19,8 @@
       "@polkadot/extension-ui/*": ["extension-ui/src/*"]
     },
     "skipLibCheck": true
-	}
+	},
+  "include": [// added for plus
+    "packages/extension-plus/*"
+  ]
  }

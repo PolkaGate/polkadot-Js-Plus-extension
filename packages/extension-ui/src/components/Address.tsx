@@ -18,6 +18,7 @@ import styled from 'styled-components';
 
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
+import { Plus } from '../../../extension-plus/src/components'; // added for Plus
 import details from '../assets/details.svg';
 import useMetadata from '../hooks/useMetadata';
 import useOutsideClick from '../hooks/useOutsideClick';
@@ -45,6 +46,7 @@ export interface Props {
   suri?: string;
   toggleActions?: number;
   type?: KeypairType;
+  showBalance?: boolean;// added for plus
 }
 
 interface Recoded {
@@ -95,7 +97,9 @@ function recodeAddress (address: string, accounts: AccountWithChildren[], chain:
 const ACCOUNTS_SCREEN_HEIGHT = 550;
 const defaultRecoded = { account: null, formatted: null, prefix: 42, type: DEFAULT_TYPE };
 
-function Address ({ actions, address, children, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, suri, toggleActions, type: givenType }: Props): React.ReactElement<Props> {
+// added for plus, 'showBalance' as props
+
+function Address ({ actions, address, children, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, showBalance, suri, toggleActions, type: givenType }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
@@ -298,6 +302,17 @@ function Address ({ actions, address, children, className, genesisHash, isExtern
           </>
         )}
       </div>
+      {/* // added for plus */}
+      {
+        (formatted || address) && showBalance &&
+        <Plus
+          address={address}
+          chain={chain}
+          formattedAddress={formatted || address}
+          givenType={givenType}
+          name={name || account?.name || t('<unknown>')}
+        />
+      }
       {children}
     </div>
   );

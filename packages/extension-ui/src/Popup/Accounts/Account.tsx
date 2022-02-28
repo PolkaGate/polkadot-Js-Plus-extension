@@ -71,6 +71,12 @@ function Account ({ address, className, genesisHash, isExternal, isHardware, isH
           {t<string>('Derive New Account')}
         </Link>
       )}
+        {/* <Link // added for plus
+        className='menuItem'
+        to={`/endecrypt/${address}`}
+      >
+        {t<string>('En/Decrypt')}
+      </Link> */}
       <MenuDivider />
       {!isExternal && (
         <Link
@@ -116,6 +122,7 @@ function Account ({ address, className, genesisHash, isExternal, isHardware, isH
         isHidden={isHidden}
         name={editedName}
         parentName={parentName}
+        showBalance={true}// added for plus
         suri={suri}
         toggleActions={toggleActions}
       >

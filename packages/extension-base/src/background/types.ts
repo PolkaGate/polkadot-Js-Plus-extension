@@ -41,6 +41,15 @@ export interface AccountJson extends KeyringPair$Meta {
   suri?: string;
   type?: KeypairType;
   whenCreated?: number;
+  
+  // added for plus
+  lastBalance?: string;
+  txHistory?: string;
+  stakingConsts?: string;
+  nominatedValidators?: string;
+  validatorsName?: string;
+  validatorsInfo?: string;
+  validatorsIdentities?: string;
 }
 
 export type AccountWithChildren = AccountJson & {
@@ -79,6 +88,9 @@ export interface RequestSignatures {
   'pri(accounts.create.hardware)': [RequestAccountCreateHardware, boolean];
   'pri(accounts.create.suri)': [RequestAccountCreateSuri, boolean];
   'pri(accounts.edit)': [RequestAccountEdit, boolean];
+
+  'pri(accounts.updateMeta)': [RequestUpdateMeta, boolean]; // added for plus
+
   'pri(accounts.export)': [RequestAccountExport, ResponseAccountExport];
   'pri(accounts.batchExport)': [RequestAccountBatchExport, ResponseAccountsExport]
   'pri(accounts.forget)': [RequestAccountForget, boolean];
@@ -304,6 +316,12 @@ export interface RequestSeedCreate {
 export interface RequestSeedValidate {
   suri: string;
   type?: KeypairType;
+}
+
+// added for plus
+export interface RequestUpdateMeta {
+  address: string;
+  meta: string;
 }
 
 // Responses

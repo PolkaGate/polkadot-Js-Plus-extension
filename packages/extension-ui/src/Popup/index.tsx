@@ -11,6 +11,10 @@ import { PHISHING_PAGE_REDIRECT } from '@polkadot/extension-base/defaults';
 import { canDerive } from '@polkadot/extension-base/utils';
 import uiSettings from '@polkadot/ui-settings';
 
+import CrowdLoans from '../../../extension-plus/src/Popup/CrowdLoans';// added for plus
+import EnDecrypt from '../../../extension-plus/src/Popup/Encryption';// added for plus
+import Governance from '../../../extension-plus/src/Popup/Governance';// added for plus
+
 import { ErrorBoundary, Loading } from '../components';
 import { AccountContext, ActionContext, AuthorizeReqContext, MediaContext, MetadataReqContext, SettingsContext, SigningReqContext } from '../components/contexts';
 import ToastProvider from '../components/Toast/ToastProvider';
@@ -137,6 +141,12 @@ export default function Popup (): React.ReactElement {
                   <SigningReqContext.Provider value={signRequests}>
                     <ToastProvider>
                       <Switch>
+
+                        {/* // added for plus */}
+                        <Route path='/auction-crowdloans'>{wrapWithErrorBoundary(<CrowdLoans />, 'auction-crowdloans')}</Route>
+                        <Route path='/governance'>{wrapWithErrorBoundary(<Governance />, 'governance')}</Route>
+                        <Route path='/endecrypt/:address'>{wrapWithErrorBoundary(<EnDecrypt />, 'encrypt-decrypt')}</Route>
+
                         <Route path='/auth-list'>{wrapWithErrorBoundary(<AuthList />, 'auth-list')}</Route>
                         <Route path='/account/create'>{wrapWithErrorBoundary(<CreateAccount />, 'account-creation')}</Route>
                         <Route path='/account/forget/:address'>{wrapWithErrorBoundary(<Forget />, 'forget-address')}</Route>

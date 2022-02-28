@@ -3,7 +3,9 @@
 
 import type { Theme, ThemeProps } from '../types';
 
-import { faExpand, faTasks } from '@fortawesome/free-solid-svg-icons';
+// added for plus."faCompass"
+
+import { faExpand, faTasks, faCompass } from '@fortawesome/free-solid-svg-icons';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
@@ -32,7 +34,7 @@ const prefixOptions = settings.availablePrefixes
   .filter(({ value }) => value !== -1)
   .map(({ text, value }): Option => ({ text, value: `${value}` }));
 
-function MenuSettings ({ className, reference }: Props): React.ReactElement<Props> {
+function MenuSettings({ className, reference }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [camera, setCamera] = useState(settings.camera === 'on');
   const [prefix, setPrefix] = useState(`${settings.prefix === -1 ? 42 : settings.prefix}`);
@@ -85,6 +87,19 @@ function MenuSettings ({ className, reference }: Props): React.ReactElement<Prop
   const _goToAuthList = useCallback(
     () => {
       onAction('auth-list');
+    }, [onAction]
+  );
+
+  // added for plus
+  const _goToCrowdloans = useCallback(
+    () => {
+      onAction('auction-crowdloans');
+    }, [onAction]
+  );
+
+  const _goToGovernance = useCallback(
+    () => {
+      onAction('governance');
     }, [onAction]
   );
 
@@ -152,6 +167,23 @@ function MenuSettings ({ className, reference }: Props): React.ReactElement<Prop
         />
       </MenuItem>
       <MenuDivider />
+      {/* // added for plus */}
+      <MenuItem className='setting'>
+        <ActionText
+          className='crowdloans'
+          icon={faCompass}
+          onClick={_goToCrowdloans}
+          text={t<string>('Contribute in Crowdloans')}
+        />
+      </MenuItem>
+      {/* <MenuItem className='setting'>
+        <ActionText
+          className='governance'
+          icon={faLandmark}
+          onClick={_goToGovernance}
+          text={t<string>('Governance')}
+        />
+      </MenuItem> */}
       <MenuItem className='setting'>
         <ActionText
           className='manageWebsiteAccess'
@@ -178,6 +210,16 @@ export default React.memo(styled(MenuSettings)(({ theme }: Props) => `
   margin-top: 50px;
   right: 24px;
   user-select: none;
+
+  .crowdloans, .governance{ // added for plus
+    span {
+      color: ${theme.textColor};
+      font-size: ${theme.fontSize};
+      font-weight: bold;
+      line-height: ${theme.lineHeight};
+      text-decoration: none;
+      vertical-align: middle;
+    }
 
   .openWindow, .manageWebsiteAccess{
     span {
