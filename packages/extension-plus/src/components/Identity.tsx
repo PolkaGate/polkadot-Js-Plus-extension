@@ -36,11 +36,11 @@ export default function Identity({ accountInfo, chain, iconSize = 24, limitLengt
     displayLength = LENGTH_LIMIT - parentLength < 0 ? 0 : LENGTH_LIMIT - parentLength;
   }
 
-  const ICON_SPACE = 2;
+  const ICON_SPACE = 3;
 
-  displayLength = accountInfo?.identity.twitter ? displayLength + ICON_SPACE : displayLength;
-  displayLength = accountInfo?.identity.web ? displayLength + ICON_SPACE : displayLength;
-  displayLength = accountInfo?.identity.email ? displayLength + ICON_SPACE : displayLength;
+  displayLength = accountInfo?.identity.twitter ? displayLength : displayLength + ICON_SPACE;
+  displayLength = accountInfo?.identity.web ? displayLength : displayLength + ICON_SPACE;
+  displayLength = accountInfo?.identity.email ? displayLength : displayLength + ICON_SPACE;
 
   return (
     <>

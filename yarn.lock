@@ -13190,6 +13190,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"memoize-one@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "memoize-one@npm:6.0.0"
+  checksum: f185ea69f7cceae5d1cb596266dcffccf545e8e7b4106ec6aa93b71ab9d16460dd118ac8b12982c55f6d6322fcc1485de139df07eacffaae94888b9b3ad7675f
+  languageName: node
+  linkType: hard
+
 "merge-descriptors@npm:1.0.1":
   version: 1.0.1
   resolution: "merge-descriptors@npm:1.0.1"
@@ -16061,6 +16068,7 @@ resolve@^2.0.0-next.3:
     i18next-scanner: ^3.1.0
     intersection-observer: ^0.12.0
     jsdom-worker-fix: ^0.1.8
+    memoize-one: ^6.0.0
     qrcode.react: ^1.0.1
     react-tooltip: ^4.2.21
     sinon-chrome: ^3.0.1

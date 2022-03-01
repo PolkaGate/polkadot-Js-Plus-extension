@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
+import { MAX_NOMINATIONS } from '../constants';
 import getChainInfo from '../getChainInfo.ts';
 
 async function getStackingConsts (_chain) {
   try {
     const { api, decimals } = await getChainInfo(_chain);
 
-    const maxNominations = api.consts.staking.maxNominations.toHuman();
-    const maxNominatorRewardedPerValidator = api.consts.staking.maxNominatorRewardedPerValidator.toHuman();
+    const maxNominations = api.consts.staking.maxNominations?.toNumber() || MAX_NOMINATIONS;
+    const maxNominatorRewardedPerValidator = api.consts.staking.maxNominatorRewardedPerValidator.toNumber();
     const existentialDeposit = api.consts.balances.existentialDeposit.toString();
-    const bondingDuration = api.consts.staking.bondingDuration.toHuman();
+    const bondingDuration = api.consts.staking.bondingDuration.toNumber();
     const minNominatorBond = await api.query.staking.minNominatorBond();
 
     // console.log('maxNominations in worker:', maxNominations);
@@ -26,7 +27,7 @@ async function getStackingConsts (_chain) {
       minNominatorBond: Number(minNominatorBond) / (10 ** decimals)
     };
   } catch (error) {
-    console.log('something went wrong while getStackingConsts ');
+    console.log('something went wrong while getStackingConsts. err: ' + error);
 
     return null;
   }

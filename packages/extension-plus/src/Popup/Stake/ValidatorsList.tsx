@@ -23,17 +23,17 @@ interface Props {
   chainInfo: ChainInfo;
   validatorsInfo: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts;
-  validatorsIdentities: DeriveAccountInfo[];
+  validatorsIdentities: DeriveAccountInfo[] | null;
   height: number;
 }
 
 export default function ValidatorsList({ activeValidator, height, chain, chainInfo, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showValidatorInfoModal, setShowValidatorInfoModal] = useState<boolean>(false);
-  const [info, setInfo] = useState<DeriveStakingQuery>();
+  const [info, setInfo] = useState<DeriveStakingQuery | null>(null);
 
   useEffect(() => {
-    if (!activeValidator || !validatorsInfo.length) return;
+    if (!activeValidator || !validatorsInfo?.length) return;
 
     // put active validator at the top of list
     const index = validatorsInfo.findIndex((v) => v.accountId === activeValidator?.accountId);
@@ -46,7 +46,7 @@ export default function ValidatorsList({ activeValidator, height, chain, chainIn
 
   return (
     <>
-      <Grid item xs={12} sx={{p:'0px 10px' }}>
+      <Grid item sx={{p: '0px 10px' }} xs={12}>
         {validatorsInfo
           ? <VTable
             activeValidator={activeValidator}

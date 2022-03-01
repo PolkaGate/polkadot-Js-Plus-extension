@@ -6,7 +6,7 @@
 /** NOTE in this component manual selection of validators is provided, with some filtering features to facilitate selection process */
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
-import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, Delete as DeleteIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
+import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded  as DeleteSweepRoundedIcon , RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
 import { grey, pink } from '@mui/material/colors';
 import Typography from '@mui/material/Typography';
@@ -139,7 +139,7 @@ const TableToolbar = (props: ToolbarProps) => {
         <Grid item sx={{ pl: 1 }}>
           {!!numSelected &&
             <Hint id='delete' place='right' tip='Delete'>
-              <DeleteIcon onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
+              < DeleteSweepRoundedIcon  onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
             </Hint>
           }
         </Grid>

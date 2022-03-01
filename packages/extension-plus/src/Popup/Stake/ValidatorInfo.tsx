@@ -26,7 +26,7 @@ interface Props {
   showValidatorInfoModal: boolean;
   setShowValidatorInfoModal: Dispatch<SetStateAction<boolean>>;
   info: DeriveStakingQuery;
-  validatorsIdentities: DeriveAccountInfo[];
+  validatorsIdentities: DeriveAccountInfo[] | null;
 }
 
 export default function ValidatorInfo({ chain, chainInfo, info, setShowValidatorInfoModal, showValidatorInfoModal, validatorsIdentities }: Props): React.ReactElement<Props> {

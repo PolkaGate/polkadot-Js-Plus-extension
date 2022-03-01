@@ -1,6 +1,9 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+/** 
+ * @description This test is to test plus component
+*/
 import '@polkadot/extension-mocks/chrome';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

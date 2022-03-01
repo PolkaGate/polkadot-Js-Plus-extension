@@ -3,7 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE render a table which is used to show validators info */
+/** 
+ * @description render a table which is used to show validators info 
+ * */
 import { Box, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback } from 'react';
@@ -21,8 +23,8 @@ interface Props {
   validators: DeriveStakingQuery[];
   decimals: number;
   stakingConsts: StakingConsts;
-  validatorsIdentities: DeriveAccountInfo[];
-  setInfo: React.Dispatch<React.SetStateAction<DeriveStakingQuery>>;
+  validatorsIdentities: DeriveAccountInfo[] | null;
+  setInfo: React.Dispatch<React.SetStateAction<DeriveStakingQuery | null>>;
   setShowValidatorInfoModal: React.Dispatch<React.SetStateAction<boolean>>;
   height?: number;
 }

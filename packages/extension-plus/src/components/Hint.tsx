@@ -16,7 +16,7 @@ export interface Props {
   id: string;
 }
 
-function Hint({ children, effect = 'solid', id, place = 'right', tip }: Props): React.ReactElement<Props> {
+function Hint({ children, effect = 'float', id, place = 'right', tip }: Props): React.ReactElement<Props> {
   return (
     <>
       <a

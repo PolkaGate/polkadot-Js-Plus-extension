@@ -3,7 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component shows an individual validators info in a row in a table shape */
+/** 
+ * @description this component shows an individual validators info in a row in a table shape 
+ * */
 
 import type { AccountId } from '@polkadot/types/interfaces';
 
@@ -16,20 +18,20 @@ import { Chain } from '@polkadot/extension-chains/types';
 
 import { ShortAddress } from '../../components';
 import Hint from '../../components/Hint';
-import { StakingConsts } from '../../util/plusTypes';
 import Identity from '../../components/Identity';
+import { StakingConsts } from '../../util/plusTypes';
 
 interface Props {
   key: number;
   chain: Chain;
-  stakingConsts: StakingConsts;
+  stakingConsts: StakingConsts | null;
   validator: DeriveStakingQuery;
   showSwitch?: boolean;
   handleSwitched?: (arg0: React.MouseEvent<unknown>, arg1: DeriveStakingQuery) => void;
   handleMoreInfo: (arg0: DeriveStakingQuery) => void;
   isSelected?: (arg0: DeriveStakingQuery) => boolean;
   isInNominatedValidators?: (arg0: DeriveStakingQuery) => boolean;
-  validatorsIdentities: DeriveAccountInfo[];
+  validatorsIdentities: DeriveAccountInfo[] | null;
   activeValidator?: DeriveStakingQuery;
 }
 
@@ -37,6 +39,9 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? '#fffbed' : '');
   const getAccountInfo = (id: AccountId): DeriveAccountInfo => validatorsIdentities?.find((v) => v.accountId === id);
+  const nominatorCount = validator.exposure.others.length;
+  const isActive = validator.accountId === activeValidator?.accountId;
+  const isOverSubscribed = validator.exposure.others.length > stakingConsts.maxNominatorRewardedPerValidator;
 
   return (
     <Paper elevation={2} key={key} sx={{ backgroundColor: rowBackground, borderRadius: '10px', margin: '5px 0px 1px', p: '1px' }}>
@@ -72,25 +77,27 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
 
         <Grid alignItems='center' item xs={2}>
           <Grid item sx={{ textAlign: 'center' }} xs={6}>
-            {validator.exposure.others.length
-              ? validator.accountId === activeValidator?.accountId
-                ? <Hint id='active' place='left' tip='Active'>
-                  <DirectionsRunIcon color='primary' sx={{ fontSize: '20px' }} />
-                </Hint>
-                : validator.exposure.others.length > stakingConsts.maxNominatorRewardedPerValidator
-                  ? <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
+            {!!nominatorCount &&
+              <>
+                {isActive &&
+                  <Hint id='active' place='left' tip='Active'>
+                    <DirectionsRunIcon color='primary' sx={{ fontSize: '20px' }} />
+                  </Hint>
+                }
+                {isOverSubscribed &&
+                  <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
                     <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '20px' }} />
                   </Hint>
-                  : ''
-              : ''}
+                }
+              </>}
           </Grid>
           <Grid item sx={{ textAlign: 'center' }} xs={6}>
-            {validator.exposure.others.length ? validator.exposure.others.length : 'waiting'}
+            {nominatorCount || 'waiting'}
           </Grid>
         </Grid>
 
         {showSwitch && <Grid alignItems='center' item xs={1}>
-          <Switch checked={isItemSelected} onChange={(e) => handleSwitched(e, validator)} size='small' color='warning' />
+          <Switch checked={isItemSelected} color='warning' onChange={(e) => handleSwitched(e, validator)} size='small' />
         </Grid>
         }
 

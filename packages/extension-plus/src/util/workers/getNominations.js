@@ -5,7 +5,7 @@
 import getChainInfo from '../getChainInfo.ts';
 
 // get all nominated/elected validators of an address
-export async function getNominators (_chain, _address) {
+export async function  getNominations (_chain, _address) {
   try {
     const { api } = await getChainInfo(_chain);
 
@@ -14,8 +14,6 @@ export async function getNominators (_chain, _address) {
     const parsedNominators = JSON.parse(JSON.stringify(nominators));
 
     if (!parsedNominators) return null;
-
-    console.log('#targets', parsedNominators.targets.length);
 
     return parsedNominators.targets;
   } catch (error) {
@@ -29,7 +27,7 @@ onmessage = (e) => {
   const { chain, stakerAddress } = e.data;
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  getNominators(chain, stakerAddress).then((targets) => {
+   getNominations(chain, stakerAddress).then((targets) => {
     postMessage(targets);
   });
 };

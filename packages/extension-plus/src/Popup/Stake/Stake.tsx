@@ -183,7 +183,7 @@ export default function Stake({ availableBalance, chainInfo, handleConfirmStakin
               sx={{ fontSize: 12 }}
               value='Manual'
             />
-            {nominatedValidators?.length > 0 &&
+            {!!nominatedValidators?.length &&
               <FormControlLabel
                 control={<Radio sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
                 label={
@@ -262,7 +262,7 @@ export default function Stake({ availableBalance, chainInfo, handleConfirmStakin
         <Grid item xs={12}>
           <NextStepButton
             data-button-action='next to stake'
-            isBusy={nextToStakeButtonBusy && ['KeepNominated', 'Auto'].includes(validatorSelectionType)}
+            isBusy={nextToStakeButtonBusy}// && ['KeepNominated', 'Auto'].includes(validatorSelectionType)}
             isDisabled={nextToStakeButtonDisabled}
             onClick={handleNextToStake}
           >

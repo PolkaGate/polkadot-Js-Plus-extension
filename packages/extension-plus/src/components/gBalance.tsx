@@ -3,6 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+/** 
+ * @description  this componet is used to show anaccount balance in soem pages like contributeToCrowdloan
+ * */
 import type { Balance } from '@polkadot/types/interfaces';
 import type { ThemeProps } from '../../../extension-ui/src/types';
 

@@ -19,6 +19,7 @@ import { MIN_EXTRA_BOND } from '../../util/constants';
 import getChainInfo from '../../util/getChainInfo';
 import { ChainInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
 import Stake from './Stake';
+import { amountToMachine } from 'extension-plus/src/util/plusUtils';
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
@@ -72,8 +73,8 @@ const validAmount = 1;
 describe('Testing Stake component', () => {
   beforeAll(async () => chainInfo = await getChainInfo('westend'));
 
-  test('Checking the elements with valid values while ledger is null (not staked)', async () => {
-    const { queryAllByRole, queryByLabelText, queryByRole, queryByText } = render(
+  test.only('Checking the elements with valid values while ledger is null (not staked)', async () => {
+    const { queryAllByRole, queryByLabelText, queryByRole, queryByText, getByRole } = render(
       <Stake
         availableBalance={availableBalance}
         chainInfo={chainInfo}
@@ -81,30 +82,31 @@ describe('Testing Stake component', () => {
         nextToStakeButtonBusy={nextToStakeButtonBusy}
         nominatedValidators={[]}
         setStakeAmount={setStakeAmount}
+        staker={staker}
         stakingConsts={stakingConsts}
         state={state}
       />);
 
     expect(queryByLabelText('Amount')).toBeTruthy();
-    await waitFor(() => queryByText('Min:'), {timeout: 10000});
-    await waitFor(() => queryByText('Max: ~'), {timeout: 10000});
-    
+    await waitFor(() => queryByText('Min:'), { timeout: 10000 });
+    await waitFor(() => queryByText('Max: ~'), { timeout: 10000 });
+
     expect(queryByText('Validator selection:')).toBeTruthy();
     expect(queryByText('Auto')).toBeTruthy();
     expect(queryByText('Manual')).toBeTruthy();
     expect(queryByText('Keep nominated')).toBeFalsy();
     expect(queryByText('Next')).toBeTruthy();
 
-
-    const minButton = queryAllByRole('button')[0];
-    const maxButton = queryAllByRole('button')[1];
-    const nextStepButton = queryAllByRole('button')[2];
+    const minButton = queryByText('Min:');
+    const maxButton = queryByText('Max: ~');
+    const nextStepButton = getByRole('button', { name: /next/i });
     const stakeAmounInHuman = queryByRole('spinbutton');
 
     expect(nextStepButton.hasAttribute('disabled')).toBe(true);
 
     fireEvent.click(minButton);
-    expect(nextStepButton.hasAttribute('disabled')).toBe(false);
+    await waitFor(() => expect(nextStepButton.hasAttribute('disabled')).toBe(false), { timeout: 2000 });
+
     expect(Number(stakeAmounInHuman.value)).toEqual(stakingConsts.minNominatorBond);
 
     fireEvent.click(maxButton);
@@ -115,7 +117,7 @@ describe('Testing Stake component', () => {
     expect(nextStepButton.hasAttribute('disabled')).toBe(false);
   });
 
-  test('Checking the elements with valid values while ledger is NOT null (staked)', () => {
+  test('Checking the elements with valid values while ledger is NOT null (staked)', async () => {
     const { queryAllByRole, queryByLabelText, queryByRole, queryByText } = render(
       <Stake
         availableBalance={availableBalance}
@@ -129,8 +131,8 @@ describe('Testing Stake component', () => {
       />);
 
     expect(queryByLabelText('Amount')).toBeTruthy();
-    expect(queryByText('Min:')).toBeTruthy();
-    expect(queryByText('Max: ~')).toBeTruthy();
+    await waitFor(() => queryByText('Min:'), { timeout: 10000 });
+    await waitFor(() => queryByText('Max: ~'), { timeout: 10000 });
     expect(queryByText('Validator selection:')).toBeTruthy();
     expect(queryByText('Auto')).toBeTruthy();
     expect(queryByText('Manual')).toBeTruthy();

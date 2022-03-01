@@ -12,11 +12,9 @@ async function getAllValidators (_chain) {
     const [elected, waiting, currentEra] = await Promise.all([
 
       api.derive.staking.electedInfo({ withController: true, withDestination: true, withExposure: true, withPrefs: true, withNominations: true, withLedger: true }),
-      api.derive.staking.waitingInfo({ withController: true, withDestination: true, withExposure: true, withPrefs: true, withNominations: true, withLedger: true })
-      // , api.query.staking.currentEra()
+      api.derive.staking.waitingInfo({ withController: true, withDestination: true, withExposure: true, withPrefs: true, withNominations: true, withLedger: true }),
+      api.query.staking.currentEra()
     ]);
-
-    console.log(`Got all validators elected ${elected?.info.length} waiting:${waiting?.info.length}`);
     let nextElectedInfo = elected.info.filter((e) =>
       elected.nextElected.find((n) =>
         String(n) === String(e.accountId)
@@ -43,15 +41,11 @@ async function getAllValidators (_chain) {
       return w;
     });
 
-    const output = JSON.parse(JSON.stringify({
+    return JSON.parse(JSON.stringify({
       current: nextElectedInfo,
+      currentEraIndex: currentEra.toHuman(),
       waiting: waitingInfo
-      // , currentEraIndex: currentEra.toHuman(),
     }));
-
-    console.log('output', output);
-
-    return output;
   } catch (error) {
     console.log('something went wrong while getting validators info, err:', error);
 
