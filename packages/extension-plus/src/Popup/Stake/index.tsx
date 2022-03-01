@@ -48,7 +48,7 @@ interface Props {
 
 const workers: Worker[] = [];
 
-export default function EasyStaking({ account, chain, chainInfo, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function EasyStaking ({ account, chain, chainInfo, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -113,7 +113,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
       setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
     }
 
-    // **** retrive validators identities from local storage 
+    // **** retrive validators identities from local storage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const validarorsIdentitiesFromLocalStorage: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
 
@@ -160,7 +160,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     const validatorsInfoFromLocalStorage: savedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
 
     if (validatorsInfoFromLocalStorage && validatorsInfoFromLocalStorage?.chainName === chainName) {
-      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromLocalStorage.metaData.current?.length} waiting:${validatorsInfoFromLocalStorage.metaData.waiting?.length}`);
+      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromLocalStorage.metaData?.current?.length} waiting:${validatorsInfoFromLocalStorage.metaData?.waiting?.length}`);
       setValidatorsInfo(validatorsInfoFromLocalStorage.metaData as Validators);
     }
 
