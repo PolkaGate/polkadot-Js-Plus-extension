@@ -57,7 +57,7 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
   const [stakeAmount, setStakeAmount] = useState<bigint>(0n);
-  const [availableBalance, setAvailableBalance] = useState<string>('');
+  const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
   const [currentlyStakedInHuman, setCurrentlyStakedInHuman] = useState<string | null>(null);
   const [validatorsInfo, setValidatorsInfo] = useState<Validators | null>(null); // validatorsInfo is all validators (current and waiting) information
   const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | null>(null);
@@ -281,7 +281,7 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
   }, [chain, staker]);
 
   useEffect((): void => {
-    setAvailableBalance(balanceToHuman(staker, 'available'));
+    setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
   }, [staker]);
 
   useEffect(() => {
@@ -402,7 +402,7 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
       <Grid alignItems='center' container>
         <Grid container item xs={12}>
           <Overview
-            availableBalance={availableBalance}
+            availableBalanceInHuman={availableBalanceInHuman}
             chainInfo={chainInfo}
             currentlyStakedInHuman={currentlyStakedInHuman}
             handleWithdrowUnbound={handleWithdrowUnbound}
@@ -447,7 +447,6 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
           </Box>
           <TabPanel index={0} value={tabValue}>
             <Stake
-              availableBalance={availableBalance}
               chainInfo={chainInfo}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}

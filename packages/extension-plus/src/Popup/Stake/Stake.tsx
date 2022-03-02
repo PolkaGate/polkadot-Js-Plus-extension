@@ -3,7 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE render stake tab in easy staking component */
+/** 
+ * @description
+ * render stake tab in easy staking component 
+ * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
@@ -16,14 +19,13 @@ import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { MIN_EXTRA_BOND } from '../../util/constants';
 import { AccountsBalanceType, ChainInfo, StakingConsts } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../util/plusUtils';
+import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
 
 interface Props {
   chainInfo: ChainInfo;
   nextToStakeButtonBusy: boolean;
   nominatedValidators: DeriveStakingQuery[] | null;
   setStakeAmount: React.Dispatch<React.SetStateAction<bigint>>
-  availableBalance: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
   staker?: AccountsBalanceType;
   state: string;
@@ -33,7 +35,7 @@ interface Props {
   handleSelectValidatorsModalOpen: () => void;
 }
 
-export default function Stake({ availableBalance, chainInfo, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
+export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -43,12 +45,19 @@ export default function Stake({ availableBalance, chainInfo, handleConfirmStakin
   const [validatorSelectionType, setValidatorSelectionType] = useState<string>('Auto');
   const [minStakeable, setMinStakeable] = useState<number>(0);
   const [maxStake, setMaxStake] = useState<number>(0);
+  const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
 
   useEffect(() => {
     if (!chainInfo) { return; }
 
     setStakeAmount(amountToMachine(stakeAmountInHuman, chainInfo?.decimals));
   }, [chainInfo, setStakeAmount, stakeAmountInHuman]);
+
+  useEffect(() => {
+    if (!chainInfo || !staker?.balanceInfo?.available) { return; }
+
+    setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
+  }, [chainInfo, staker, staker?.balanceInfo?.available]);
 
   const handleStakeAmountInput = useCallback((value: string): void => {
     setAlert('');
@@ -57,12 +66,12 @@ export default function Stake({ availableBalance, chainInfo, handleConfirmStakin
       setAlert(t(`Staking amount is too low, it must be at least ${minStakeable} ${chainInfo?.coin}`));
     }
 
-    if (Number(value) > maxStake && Number(value) < Number(availableBalance)) {
+    if (Number(value) > maxStake && Number(value) < Number(availableBalanceInHuman)) {
       setAlert(t('Your account might be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [availableBalance, chainInfo, maxStake, minStakeable, t]);
+  }, [availableBalanceInHuman, chainInfo, maxStake, minStakeable, t]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -103,7 +112,7 @@ export default function Stake({ availableBalance, chainInfo, handleConfirmStakin
   useEffect(() => {
     if (!stakingConsts) return;
     const ED = Number(amountToHuman(stakingConsts?.existentialDeposit.toString(), chainInfo?.decimals));
-    let max = Number(fixFloatingPoint(Number(availableBalance) - 2 * ED));
+    let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 2 * ED));
     let min = stakingConsts?.minNominatorBond;
 
     if (Number(ledger?.active)) { // TODO: check if it is below minNominatorBond
@@ -116,7 +125,7 @@ export default function Stake({ availableBalance, chainInfo, handleConfirmStakin
 
     setMaxStake(max);
     setMinStakeable(min);
-  }, [availableBalance, ledger, stakingConsts, chainInfo]);
+  }, [availableBalanceInHuman, ledger, stakingConsts, chainInfo]);
 
   useEffect(() => {
     if (stakeAmountInHuman && minStakeable <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStake) {

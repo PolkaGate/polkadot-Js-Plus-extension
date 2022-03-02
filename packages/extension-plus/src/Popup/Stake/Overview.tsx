@@ -17,7 +17,7 @@ import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
 
 interface Props {
-  availableBalance: string,
+  availableBalanceInHuman: string,
   chainInfo: ChainInfo;
   ledger: StakingLedger | null;
   redeemable: bigint | null;
@@ -27,7 +27,7 @@ interface Props {
   unlockingAmount: bigint;
 }
 
-export default function Overview({ availableBalance, chainInfo, currentlyStakedInHuman, handleWithdrowUnbound, ledger, redeemable, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ availableBalanceInHuman, chainInfo, currentlyStakedInHuman, handleWithdrowUnbound, ledger, redeemable, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
  
   return (
@@ -35,7 +35,7 @@ export default function Overview({ availableBalance, chainInfo, currentlyStakedI
       <Grid container item>
         <Grid container item justifyContent='space-between' sx={{ padding: '10px 0px 20px' }}>
           <Grid item>
-            <b> {t('Available')}: </b> <Box component='span' sx={{ fontWeight: 600 }}> {availableBalance}</Box>
+            <b> {t('Available')}: </b> <Box component='span' sx={{ fontWeight: 600 }}> {availableBalanceInHuman}</Box>
           </Grid>
           <Grid item>
             <b> {t('Staked')}: </b> {!ledger
