@@ -163,7 +163,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
   useEffect(() => {
     if (!transferAmount) { return; }
 
-    const available = sender?.balanceInfo.available;
+    const available = sender?.balanceInfo?.available;
 
     if (!Number(availableBalance)) {
       return setZeroBalanceAlert(true);
@@ -197,7 +197,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
     } else {
       setFeeAlert(false);
     }
-  }, [transferAmountInHuman, availableBalance, ED, t, estimatedFee, transferAmount, chainInfo?.decimals, sender.balanceInfo.available, transferAllType]);
+  }, [transferAmountInHuman, availableBalance, ED, t, estimatedFee, transferAmount, chainInfo?.decimals, sender?.balanceInfo?.available, transferAllType]);
 
   const handleTransferAmountChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     let value = event.target.value;
@@ -226,7 +226,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
   }
 
   const HandleSetMax = useCallback(async (event: React.MouseEvent<HTMLElement>): Promise<void> => {
-    if (!sender || !sender.balanceInfo || String(sender.balanceInfo.available) === '0' || !recepient) return;
+    if (!sender || !sender.balanceInfo || String(sender?.balanceInfo?.available) === '0' || !recepient) return;
     const available = sender.balanceInfo.available;
     const { name } = event.target as HTMLButtonElement;
 
