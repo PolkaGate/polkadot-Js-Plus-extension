@@ -191,8 +191,14 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
           value={address}
         />
       </Grid>
-      <Grid item sx={{ fontSize: 14, textAlign: 'left' }} xs={6}>
-        {name || makeAddressShort(String(address))}
+      <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={6}>
+        <Grid item sx={{ fontSize: 14, textAlign: 'left' }} xs={12}>
+          {name || makeAddressShort(String(address))}
+        </Grid>
+        {name && <Grid item sx={{ fontSize: 13, textAlign: 'left', color: grey[500] }} xs={12}>
+          {makeAddressShort(String(address))}
+        </Grid>
+        }
       </Grid>
     </>);
 
@@ -262,7 +268,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
           <Grid item sx={{ fontSize: 13, fontWeight: '600', textAlign: 'left' }} xs={3}>
             {t('Total')}
           </Grid>
-          <Grid item sx={{ height: '20px', p:'0px 10px' }} xs={6}>
+          <Grid item sx={{ height: '20px', p: '0px 10px' }} xs={6}>
             {transferAllAlert
               ? <Alert severity='warning' sx={{ fontSize: 12, p: 0, textAlign: 'center' }}>{t('Transfering {{type}} amount', { type: transferAllType })}!</Alert>
               : ''}

@@ -13,7 +13,7 @@ import type { AccountJson, AccountWithChildren } from '../../../../extension-bas
 import { ArrowBackIosRounded, CheckRounded as CheckRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { Alert, Avatar, Box, Button, Divider, Grid, IconButton, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, TextField } from '@mui/material';
+import { Alert, Avatar, Box, Button, Divider, Grid, IconButton, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Skeleton, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -79,14 +79,16 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
   const [transferAllType, setTransferAllType] = useState<string | undefined>(undefined);
 
   const transfer = chainInfo?.api.tx.balances.transfer;
+  const FEE_DECIMAL_DIGITS = chainInfo?.coin === 'KSM' ? 6 : 4;
 
   useEffect(() => {
     if (!chainInfo || !transfer) return;
 
+
     // eslint-disable-next-line no-void
-    void transfer(sender.address, 1 * 10 ** chainInfo.decimals).paymentInfo(sender.address)
+    void transfer(sender.address, transferAmount).paymentInfo(sender.address)
       .then((i) => setEstimatedFee(i?.partialFee)).catch(console.error);
-  }, [chainInfo, sender.address, transfer]);
+  }, [chainInfo, sender.address, transfer, transferAmount]);
 
   useEffect(() => {
     if (recepientAddressIsValid) { setSenderAddressOpacity(0.7); } else setSenderAddressOpacity(0.2);
@@ -165,7 +167,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
 
     const available = sender?.balanceInfo?.available;
 
-    if (!Number(availableBalance)) {
+    if (!available) {
       return setZeroBalanceAlert(true);
     } else {
       setZeroBalanceAlert(false);
@@ -241,7 +243,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
     let fee = estimatedFee;
 
     if (!fee) {
-      const { partialFee } = await transfer(sender.address, BigInt(sender.balanceInfo.available)).paymentInfo(sender.address);
+      const { partialFee } = await transfer(sender.address, sender.balanceInfo.available).paymentInfo(sender.address);
 
       fee = partialFee;
     }
@@ -446,9 +448,26 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
                       sx={{ height: 45, width: 45 }}
                     />
                   </Grid>
-                  <Grid container direction='column' item justifyContent='flex-start' xs={10}>
-                    <Grid sx={{ fontSize: '14px', textAlign: 'left' }}>{chainInfo?.coin}</Grid>
-                    <Grid id='availableBalance' sx={{ fontSize: '12px', textAlign: 'left' }}>{t('Available Balance')}: {availableBalance}</Grid>
+                  <Grid container item justifyContent='flex-start' xs={10}>
+                    <Grid sx={{ fontSize: '14px', textAlign: 'left' }} xs={12}>
+                      {chainInfo?.coin
+                        ? chainInfo?.coin
+                        : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+                      }
+                    </Grid>
+
+                    <Grid container item justifyContent='space-between' xs={12}>
+                      <Grid id='availableBalance' sx={{ fontSize: '12px', textAlign: 'left' }}>
+                        {t('Available Balance')}: {availableBalance}
+                      </Grid>
+                      <Grid item sx={{ fontSize: '11px', textAlign: 'left', color: grey[600] }} >
+                        {t('Fee')} {': '}
+                        {estimatedFee
+                          ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
+                          : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+                        }
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Grid>
               </Box>
@@ -460,7 +479,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
                 <Hint id='transferAll' tip={t<string>('Transfer all amount and deactivate the account.')}>
                   <LoadingButton
                     color='primary'
-                    disabled={safeMaxAmountLoading}
+                    disabled={safeMaxAmountLoading || !transfer}
                     loading={allAmountLoading}
                     name='All'
                     onClick={HandleSetMax}
@@ -477,7 +496,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
                 <Hint id='Max' tip={t<string>('Transfer max amount where the account remains active.')}>
                   <LoadingButton
                     color='primary'
-                    disabled={allAmountLoading}
+                    disabled={allAmountLoading || !transfer}
                     loading={safeMaxAmountLoading}
                     name='Max'
                     onClick={HandleSetMax}

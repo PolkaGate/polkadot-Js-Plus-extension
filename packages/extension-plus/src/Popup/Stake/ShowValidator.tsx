@@ -96,7 +96,7 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
           </Grid>
         </Grid>
 
-        {showSwitch && <Grid alignItems='center' item xs={1}>
+        {showSwitch && <Grid item xs={1}>
           <Switch checked={isItemSelected} color='warning' onChange={(e) => handleSwitched(e, validator)} size='small' />
         </Grid>
         }

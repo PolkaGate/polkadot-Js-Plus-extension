@@ -236,7 +236,7 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
           <Grid item xs={6}> {order === 'asc' && orderBy === 'nominator' ? <ArrowDropDownIcon /> : <ArrowDropUpIcon />}</Grid>
           <Grid item xs={6}> {t('Nominators')}</Grid>
         </Grid>
-        <Grid item sx={{ pl: '40px' }} xs={2}>
+        <Grid item sx={{ pl: '50px' }} xs={2}>
           {t('Select')}
         </Grid>
       </Grid>
