@@ -6,7 +6,7 @@
 /** NOTE in this component manual selection of validators is provided, with some filtering features to facilitate selection process */
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
-import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded  as DeleteSweepRoundedIcon , RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
+import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded as DeleteSweepRoundedIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
 import { grey, pink } from '@mui/material/colors';
 import Typography from '@mui/material/Typography';
@@ -52,15 +52,15 @@ interface TableRowProps {
   chain: Chain;
   validators: DeriveStakingQuery[];
   chainInfo: ChainInfo;
-  nominatedValidators: DeriveStakingQuery[];
+  nominatedValidators: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts;
-  searchedValidators: DeriveStakingQuery[];
-  setSearchedValidators: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
+  searchedValidators: DeriveStakingQuery[] | null;
+  setSearchedValidators: React.Dispatch<React.SetStateAction<DeriveStakingQuery[] | null>>;
   selected: DeriveStakingQuery[];
   setSelected: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
   searching: boolean;
   setSearching: React.Dispatch<React.SetStateAction<boolean>>;
-  validatorsIdentities: DeriveAccountInfo[];
+  validatorsIdentities: DeriveAccountInfo[] | null;
 }
 
 interface ToolbarProps {
@@ -139,7 +139,7 @@ const TableToolbar = (props: ToolbarProps) => {
         <Grid item sx={{ pl: 1 }}>
           {!!numSelected &&
             <Hint id='delete' place='right' tip='Delete'>
-              < DeleteSweepRoundedIcon  onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
+              < DeleteSweepRoundedIcon onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
             </Hint>
           }
         </Grid>
@@ -296,7 +296,7 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
 export default function SelectValidators({ chain, chainInfo, ledger, nominatedValidators, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
-  const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>();
+  const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[] | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
   const [filterHighCommissionsState, setFilterHighCommissions] = useState(true);
   const [filterOverSubscribedsState, setFilterOverSubscribeds] = useState(true);

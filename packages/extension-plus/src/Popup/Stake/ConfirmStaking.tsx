@@ -3,7 +3,9 @@
 
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE here users confirm their staking related orders (e.g., stake, unstake, redeem, etc.) */
+/** 
+ * @description here users confirm their staking related orders (e.g., stake, unstake, redeem, etc.) 
+ * */
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
@@ -53,18 +55,19 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   const [confirmingState, setConfirmingState] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
-  const [currentlyStaked, setCurrentlyStaked] = useState<bigint>(undefined);
+  const [currentlyStaked, setCurrentlyStaked] = useState<bigint | undefined>(undefined);
   const [totalStakedInHuman, setTotalStakedInHuman] = useState<string>('');
   const [estimatedFee, setEstimatedFee] = useState<Balance>();
   const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean>(false);
   const [confirmButtonText, setConfirmButtonText] = useState<string>(t('Confirm'));
   const [amountNeedsAdjust, setAmountNeedsAdjust] = useState<boolean>(false);
   const [surAmount, setSurAmount] = useState<bigint>(amount); /** SUR: Staking Unstaking Redeem */
-  const [note, setNote] = useState<string>();
+  const [note, setNote] = useState<string>('');
+  const [availableBalance, setAvailableBalance] = useState<bigint>(0n);
 
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
-  const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators'].includes(state) ? selectedValidators : nominatedValidators;
+  const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
   /** list of available trasaction types */
   const chilled = chainInfo?.api.tx.staking.chill;
@@ -76,7 +79,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   const bonding = currentlyStaked ? bondExtra : bond;
 
   async function saveHistory(chain: Chain | null, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
-    if (!chain || !history.length) return;
+    if (!chain || !history.length) return false;
 
     const accountSubstrateAddress = getSubstrateAddress(address);
     const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
@@ -87,17 +90,28 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   }
 
   useEffect(() => {
+    if (staker?.balanceInfo?.available) { setAvailableBalance(staker.balanceInfo.available); }
+  }, [staker?.balanceInfo?.available]);
+
+  useEffect(() => {
+    if (['confirming', 'success', 'failed'].includes(confirmingState)) {
+      // do not run following code while in these states
+      return;
+    }
+
     /** check if re-nomination is needed */
     if (['stakeManual', 'changeValidators'].includes(state)) {
       if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
-        if (state === 'changeValidators') setConfirmButtonDisabled(true);
+        if (state === 'changeValidators') {
+          setConfirmButtonDisabled(true)
+        };
         setNote(t('The selected and previously nominated validators are the same, no need to renominate'));
       } else {
         setConfirmButtonDisabled(false);
         setNote('');
       }
     }
-  }, [selectedValidatorsAccountId, state, nominatedValidatorsId, t]);
+  }, [selectedValidatorsAccountId, state, nominatedValidatorsId, t, confirmingState]);
 
   useEffect(() => {
     if (['confirming', 'success', 'failed'].includes(confirmingState) || !chainInfo || currentlyStaked === undefined) {
@@ -135,7 +149,6 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         );
 
         setTotalStakedInHuman(amountToHuman((currentlyStaked + surAmount).toString(), chainInfo?.decimals));
-        console.log('amountToHuman((currentlyStaked + surAmount).toString(), chainInfo?.decimals):', amountToHuman((currentlyStaked + surAmount).toString(), chainInfo?.decimals))
         break;
       case ('stakeKeepNominated'):
         params = [surAmount];
@@ -184,7 +197,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   }, [surAmount, currentlyStaked, chainInfo, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, ledger]);
 
   useEffect(() => {
-    if (!estimatedFee || estimatedFee?.isEmpty || !surAmount || !staker.balanceInfo?.available || !stakingConsts.existentialDeposit) { return; }
+    if (!estimatedFee || estimatedFee?.isEmpty || !surAmount || !availableBalance || !stakingConsts?.existentialDeposit) { return; }
+
+    if (['confirming', 'success', 'failed'].includes(confirmingState)) {
+      // do not run following code while confirming
+      return;
+    }
 
     let partialSubtrahend = surAmount;
 
@@ -192,12 +210,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
 
     const fee = BigInt(estimatedFee.toString());
 
-    if (staker.balanceInfo?.available - (partialSubtrahend + fee) < stakingConsts.existentialDeposit) {
+    if (availableBalance - (partialSubtrahend + fee) < stakingConsts?.existentialDeposit) {
       setConfirmButtonDisabled(true);
       setConfirmButtonText(t('Account reap issue, consider fee!'));
 
       if (
-        // staker.balanceInfo?.available - (partialSubtrahend + fee) > 0 &&
+        // staker.balanceInfo?.available - (partialSubtrahend + fee) > 0 && // might be even negative!!
         ['stakeAuto', 'stakeManual', 'stakeKeepNominated'].includes(state)) {
         setAmountNeedsAdjust(true);
       }
@@ -205,10 +223,9 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       setConfirmButtonDisabled(false);
       setConfirmButtonText(t('Confirm'));
     }
-  }, [surAmount, estimatedFee, staker.balanceInfo?.available, stakingConsts.existentialDeposit, state, t]);
+  }, [surAmount, estimatedFee, availableBalance, stakingConsts?.existentialDeposit, state, t, confirmingState]);
 
   useEffect(() => {
-    // if (!ledger?.active) { return; }
     if (!ledger) { return; }
 
     setCurrentlyStaked(BigInt(String(ledger.active)));
@@ -432,13 +449,13 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
     switch (state) {
       case ('unstake'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
-          {t('Note: The unstaked amount will be redeemable after {{days}} days ', { replace: { days: stakingConsts.bondingDuration } })}
+          {t('Note: The unstaked amount will be redeemable after {{days}} days ', { replace: { days: stakingConsts?.bondingDuration } })}
         </Typography>;
       case ('withdrawUnbound'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
           {t('Available balance after redeem will be')}<br />
           {estimatedFee
-            ? amountToHuman(String(BigInt(surAmount + staker.balanceInfo.available) - BigInt(String(estimatedFee))), chainInfo?.decimals)
+            ? amountToHuman(String(BigInt(surAmount + availableBalance) - BigInt(String(estimatedFee))), chainInfo?.decimals)
             : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
           }
           {' '} {chainInfo?.coin}
@@ -452,15 +469,17 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           {note}
         </Typography>;
     }
-  }, [surAmount, chainInfo?.coin, chainInfo?.decimals, estimatedFee, staker.balanceInfo?.available, stakingConsts.bondingDuration, t]);
+  }, [surAmount, chainInfo?.coin, chainInfo?.decimals, estimatedFee, availableBalance, stakingConsts?.bondingDuration, t]);
 
   const handleAutoAdjust = useCallback((): void => {
-    const fee = BigInt(estimatedFee.toString());
-    const adjustedAmount = staker.balanceInfo?.available - (BigInt(stakingConsts.existentialDeposit) + fee);
+    if (!stakingConsts?.existentialDeposit) { return; }
+
+    const fee = BigInt(String(estimatedFee));
+    const adjustedAmount = availableBalance - (stakingConsts?.existentialDeposit + fee);
 
     setSurAmount(adjustedAmount);
     setAmountNeedsAdjust(false);
-  }, [estimatedFee, staker.balanceInfo?.available, stakingConsts.existentialDeposit]);
+  }, [estimatedFee, availableBalance, stakingConsts?.existentialDeposit]);
 
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmStakingModal}>
@@ -527,7 +546,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         </Grid>
         {stakingConsts && !(STATES_NEEDS_MESSAGE.includes(state) || note)
           ? <>
-            <Grid item sx={{ textAlign: 'center', color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px' }} xs={12}>
+            <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
               {t('VALIDATORS')}{` (${validatorsToList?.length})`}
             </Grid>
             <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>

@@ -69,7 +69,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
   const [ledger, setLedger] = useState<StakingLedger | null>(null);
   const [redeemable, setRedeemable] = useState<bigint | null>(null);
 
-  const callGetLedgerWorker = (): void => {
+  const callGetLedgerWorker = useCallback((): void => {
     const getLedgerWorker: Worker = new Worker(new URL('../util/workers/getLedger.js', import.meta.url));
 
     getLedgerWorker.postMessage({ address, chain });
@@ -84,11 +84,11 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
 
       console.log('Ledger:', ledger);
       setLedger(ledger);
-      getLedgerWorker.terminate(); 
+      getLedgerWorker.terminate();
     };
-  };
+  }, [address, chain]);
 
-  const callRedeemable = (): void => {
+  const callRedeemable = useCallback((): void => {
     const getRedeemableWorker: Worker = new Worker(new URL('../util/workers/getRedeemable.js', import.meta.url));
 
     getRedeemableWorker.postMessage({ address, chain });
@@ -100,12 +100,13 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
     getRedeemableWorker.onmessage = (e) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const stakingAccount: string = e.data;
+      const rcvdRedeemable = JSON.parse(stakingAccount)?.redeemable as string;
 
-      if (stakingAccount) { setRedeemable(BigInt(JSON.parse(stakingAccount).redeemable)); } else { setRedeemable(0n); }
+      if (rcvdRedeemable) { setRedeemable(BigInt(rcvdRedeemable)); } else { setRedeemable(0n); }
 
       getRedeemableWorker.terminate();
     };
-  };
+  }, [address, chain]);
 
   useEffect((): void => {
     if (!chain) return;
@@ -126,7 +127,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       // ** get redeemable amount
       callRedeemable();
     }
-  }, [chain]);
+  }, [callGetLedgerWorker, callRedeemable, chain, sender.balanceInfo]);
 
   function getBalanceFromMetaData(_account: AccountJson, _chain: Chain): AccountsBalanceType | null {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
