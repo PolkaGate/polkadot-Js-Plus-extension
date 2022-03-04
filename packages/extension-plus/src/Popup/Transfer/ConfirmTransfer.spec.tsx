@@ -98,7 +98,7 @@ const createAccount = async (suri: string): Promise<string> => {
   return address;
 };
 
-[firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
+//[firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
 
 describe('ConfirmTransfer for Successful Scenario (Note: account must have some fund to transfer)', () => {
   beforeAll(async () => {
