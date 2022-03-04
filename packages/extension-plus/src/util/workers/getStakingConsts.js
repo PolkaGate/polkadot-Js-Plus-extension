@@ -15,13 +15,9 @@ async function getStackingConsts (_chain) {
     const bondingDuration = api.consts.staking.bondingDuration.toNumber();
     const minNominatorBond = await api.query.staking.minNominatorBond();
 
-    // console.log('maxNominations in worker:', maxNominations);
-    // console.log('maxNominatorRewardedPerValidator:', maxNominatorRewardedPerValidator);
-    console.log('existentialDeposit in worker:', existentialDeposit);
-
     return {
       bondingDuration: bondingDuration,
-      existentialDeposit: existentialDeposit, //) / (10 ** decimals),
+      existentialDeposit: BigInt(existentialDeposit),
       maxNominations: maxNominations,
       maxNominatorRewardedPerValidator: maxNominatorRewardedPerValidator,
       minNominatorBond: Number(minNominatorBond) / (10 ** decimals)

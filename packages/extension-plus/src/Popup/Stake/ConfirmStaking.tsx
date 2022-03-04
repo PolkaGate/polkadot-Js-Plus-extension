@@ -197,7 +197,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   }, [surAmount, currentlyStaked, chainInfo, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, ledger]);
 
   useEffect(() => {
-    if (!estimatedFee || estimatedFee?.isEmpty || !surAmount || !availableBalance || !stakingConsts?.existentialDeposit) { return; }
+    if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !stakingConsts?.existentialDeposit) { return; }
 
     if (['confirming', 'success', 'failed'].includes(confirmingState)) {
       // do not run following code while confirming
@@ -472,10 +472,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   }, [surAmount, chainInfo?.coin, chainInfo?.decimals, estimatedFee, availableBalance, stakingConsts?.bondingDuration, t]);
 
   const handleAutoAdjust = useCallback((): void => {
-    if (!stakingConsts?.existentialDeposit) { return; }
+    const ED = stakingConsts?.existentialDeposit;
+
+    if (!ED) { return; }
 
     const fee = BigInt(String(estimatedFee));
-    const adjustedAmount = availableBalance - (stakingConsts?.existentialDeposit + fee);
+    const adjustedAmount = availableBalance - (ED + fee);
 
     setSurAmount(adjustedAmount);
     setAmountNeedsAdjust(false);
@@ -583,7 +585,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!ledger || confirmButtonDisabled}
+              isDisabled={!ledger || confirmButtonDisabled || !estimatedFee}
               state={confirmingState}
               text={confirmButtonText}
             />

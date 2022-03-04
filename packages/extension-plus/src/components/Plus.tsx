@@ -3,6 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+/** 
+ * @description This is the main component which conects plus to original extension, 
+ * and make most of the new functionalities avilable
+*/
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { ThemeProps } from '../../../extension-ui/src/types';

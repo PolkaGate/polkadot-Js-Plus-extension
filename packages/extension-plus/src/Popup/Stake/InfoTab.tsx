@@ -49,7 +49,7 @@ function InfoTab({ chainInfo, stakingConsts }: Props): React.ReactElement<Props>
           <Grid sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
             {t('Minimum')} {chainInfo.coin}s {t('that must remain in you account: ')}
             <Box component='span' sx={{ fontWeight: 'bold' }}>
-              {amountToHuman(stakingConsts.existentialDeposit.toString(), chainInfo.decimals, 6)}
+              {stakingConsts.existentialDeposit ? amountToHuman(stakingConsts.existentialDeposit.toString(), chainInfo.decimals, 6) : ''}
             </Box>
             {' '}{chainInfo.coin}s {t('plus some fees')}
           </Grid>

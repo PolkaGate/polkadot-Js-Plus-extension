@@ -93,19 +93,10 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
     const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
 
     if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-      setStakingConsts(stakingConstsFromLocalStrorage.metaData as StakingConsts);
+      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
     }
 
-    // // ** retrive validatorInfo from local sorage
-    // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    // const validatorsInfoFromLocalStorage: savedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
-
-    // if (validatorsInfoFromLocalStorage && validatorsInfoFromLocalStorage?.chainName === chainName) {
-    //   console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromLocalStorage.metaData.current?.length} waiting:${validatorsInfoFromLocalStorage.metaData.waiting?.length}`);
-    //   setValidatorsInfo(validatorsInfoFromLocalStorage.metaData as Validators);
-    // }
-
-    // *** retrive validators name from local sorage
+    // *** retrive nominated validators from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const nominatedValidatorsInfoFromLocalStrorage: savedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
 
@@ -145,10 +136,12 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
 
         setgettingStakingConstsFromBlockchain(false);
 
-        if (staker.address) {
-          // updateStakingConsts(account.address, JSON.stringify(consts));
+        if (staker?.address) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
+
           // eslint-disable-next-line no-void
-          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', consts));
+          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', stringifiedStakingConsts));
         }
       }
 
