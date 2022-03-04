@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { SHORT_ADDRESS_CHARACTERS } from '../../util/constants';
+import { makeShortAddr } from '../../util/test/testHelper';
 import Details from './Details';
 
 const chain = {
@@ -31,10 +31,6 @@ const transaction = {
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
-function makeShortAddr (address: string) {
-  return `${address.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
-}
-
 describe('Testing Details component', () => {
   render(
     <Details
@@ -45,7 +41,7 @@ describe('Testing Details component', () => {
       transaction={transaction}
     />);
 
-  test('Checking the exist elements', async () => {
+  test('Checking the existence of elements', () => {
     expect(screen.queryAllByText('Transaction Detail')).toHaveLength(1);
 
     const detailAction = screen.queryByTestId('details').children.item(0).children.item(0).children.item(0).children.item(0).textContent;

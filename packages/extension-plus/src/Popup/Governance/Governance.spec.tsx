@@ -3,7 +3,7 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { fireEvent, render, waitForElementToBeRemoved } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { MemoryRouter, Route } from 'react-router';
@@ -55,8 +55,6 @@ describe('Testing Governance component', () => {
       fireEvent.click(democarcy);
       expect(queryByText('Referendums')).toBeTruthy();
       expect(queryByText('Loading referendums ...')).toBeTruthy();
-      //   await waitForElementToBeRemoved(queryByText('Loading referendums ...'), { timeout: 30000 });
-      //   expect('No active referendum').toBeTruthy();
 
       expect(queryByText('Proposals')).toBeTruthy();
       fireEvent.click(queryByText('Proposals'));

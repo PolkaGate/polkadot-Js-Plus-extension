@@ -56,7 +56,7 @@ describe('Testing History component', () => {
     );
   });
 
-  test('Checking the exist elements', async () => {
+  test('Checking the existence of elements', async () => {
     expect(screen.queryAllByText('All')).toHaveLength(1);
     expect(screen.queryAllByText('Transfers')).toHaveLength(1);
     expect(screen.queryAllByText('Staking')).toHaveLength(1);

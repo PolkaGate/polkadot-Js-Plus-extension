@@ -13,20 +13,14 @@ import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { DeriveStakingQuery } from '@polkadot/api-derive/types';
-
 import getChainInfo from '../../util/getChainInfo';
-import { ChainInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { ChainInfo } from '../../util/plusTypes';
+import { stakingConsts } from '../../util/test/testHelper';
 import Unstake from './Unstake';
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
-const stakingConsts: StakingConsts = {
-  bondingDuration: 28,
-  existentialDeposit: 10000000000n,
-  maxNominations: 16,
-  maxNominatorRewardedPerValidator: 64,
-  minNominatorBond: 1
-};
+jest.setTimeout(60000);
+
 const ledger: StakingLedger = {
   active: 5000000000000n
 };

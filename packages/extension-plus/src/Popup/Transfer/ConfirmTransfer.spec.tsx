@@ -12,15 +12,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { Balance } from '@polkadot/types/interfaces';
-import keyring from '@polkadot/ui-keyring';
-import { cryptoWaitReady } from '@polkadot/util-crypto';
 
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
-import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
-import { AccountsStore } from '../../../../extension-base/src/stores';
 import getChainInfo from '../../util/getChainInfo';
 import { AccountsBalanceType, BalanceType, ChainInfo } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint, toShortAddress } from '../../util/plusUtils';
+import { createAccount, createExtension } from '../../util/test/testHelper';
 import ConfirmTransfer from './ConfirmTransfer';
 
 jest.setTimeout(50000);
@@ -49,7 +46,6 @@ const balanceInfo: BalanceType = {
 };
 
 let extension: Extension;
-let state: State;
 let sender: AccountsBalanceType;
 let recepient: AccountsBalanceType;
 let firstAddress: string;
@@ -61,52 +57,16 @@ const transferAmount = amountToMachine(transferAmountInHuman, decimals);
 let firstSuri = 'seed sock milk update focus rotate barely fade car face mechanic mercy';
 let secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
 const password = 'passw0rd';
-const type = 'sr25519';
-const westendGenesisHash = '0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e';
 let chainInfo: ChainInfo;
 
-async function createExtension(): Promise<Extension> {
-  await cryptoWaitReady();
-
-  keyring.loadAll({ store: new AccountsStore() });
-  const authUrls: AuthUrls = {};
-
-  authUrls['localhost:3000'] = {
-    count: 0,
-    id: '11',
-    isAllowed: true,
-    origin: 'example.com',
-    url: 'http://localhost:3000'
-  };
-  localStorage.setItem('authUrls', JSON.stringify(authUrls));
-  state = new State();
-
-  return new Extension(state);
-}
-
-const createAccount = async (suri: string): Promise<string> => {
-  await extension.handle('id', 'pri(accounts.create.suri)', {
-    genesisHash: westendGenesisHash,
-    name: 'Amir khan',
-    password: password,
-    suri: suri,
-    type: type
-  }, {} as chrome.runtime.Port);
-
-  const { address } = await extension.handle('id', 'pri(seed.validate)', { suri: suri, type: type }, {} as chrome.runtime.Port);
-
-  return address;
-};
-
-//[firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
+// [firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
 
 describe('ConfirmTransfer for Successful Scenario (Note: account must have some fund to transfer)', () => {
   beforeAll(async () => {
-    [firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
     extension = await createExtension();
     chainInfo = await getChainInfo(props.chain.name);
-    firstAddress = await createAccount(firstSuri);
-    secondAddress = await createAccount(secondSuri);
+    firstAddress = await createAccount(firstSuri, extension);
+    secondAddress = await createAccount(secondSuri, extension);
 
     sender = {
       address: firstAddress,
@@ -189,7 +149,6 @@ describe('ConfirmTransfer for Failed Scenario', () => {
   const invaliTransferAmount = amountToMachine('1000', decimals); // supposed that the address does not have 1000WSN to transfer, hence fails
 
   beforeAll(async () => {
-    [firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
     chainInfo = await getChainInfo(props.chain.name);
     sender = {
       address: firstAddress,

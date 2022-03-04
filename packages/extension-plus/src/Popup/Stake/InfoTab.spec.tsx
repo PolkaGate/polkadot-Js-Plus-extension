@@ -9,18 +9,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import getChainInfo from '../../util/getChainInfo';
-import { ChainInfo, StakingConsts } from '../../util/plusTypes';
+import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
+import { stakingConsts } from '../../util/test/testHelper';
 import Info from './InfoTab';
 
-let chainInfo: ChainInfo = null;
-const stakingConsts: StakingConsts = {
-  bondingDuration: 28,
-  existentialDeposit: 10000000000n,
-  maxNominations: 16,
-  maxNominatorRewardedPerValidator: 64,
-  minNominatorBond: 1
-};
+let chainInfo: ChainInfo | null = null;
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
 

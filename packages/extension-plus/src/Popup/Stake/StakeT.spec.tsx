@@ -13,49 +13,20 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { DeriveStakingQuery } from '@polkadot/api-derive/types';
-
 import getChainInfo from '../../util/getChainInfo';
-import { ChainInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo } from '../../util/plusTypes';
 import { amountToMachine } from '../../util/plusUtils';
+import { nominatedValidators, stakingConsts } from '../../util/test/testHelper';
 import Stake from './Stake';
 
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
-const validatorsName: ValidatorsName[] = [
-  { address: '5HNJ3k2Xr3CKiygecfWnpsq9dDJvFGMbNu1ckDqAUJHwf45P', name: 'Chris' },
-  { address: '5Dt2dFSLVwiKtEHC7VrVEiJDiVLRiDbaFRBdh8MBSvwuvDCD', name: 'Amir' },
-  { address: '5DviS2M1kyyqs1GzMxHAjS3Si49hS3N2Jib9jz4Yx7pJgQHu', name: 'Diego' },
-  { address: '5DVDZcaxCDLStUgnqkx67ZrYP9ZQ4hpSiVsHiUmfJh8VTo8S', name: 'Moly' },
-  { address: '5GVzG3QJvRc6MEtxaJZnLB3PAhQT8eMgesqgHxYiiQJE4HNv', name: 'Mary' }
-];
-const others = [
-  { who: validatorsName[0].address, value: 2331341969325348 },
-  { who: validatorsName[1].address, value: 2233136292040751 },
-  { who: validatorsName[2].address, value: 1102408869404150 },
-  { who: validatorsName[3].address, value: 536346326599754 },
-  { who: validatorsName[4].address, value: 123257089339220 }
-];
 const availableBalance = '5.4321';
 let chainInfo: ChainInfo;
 const nextToStakeButtonBusy = false;
-const nominatedValidators: DeriveStakingQuery[] = [
-  { accountId: validatorsName[0].address, exposure: { others: others.slice(1), total: 1.23456 }, validatorPrefs: { commission: 200000000 } },
-  { accountId: validatorsName[1].address, exposure: { others: others.slice(0, 1), total: 12.3456 }, validatorPrefs: { commission: 210000000 } },
-  { accountId: validatorsName[2].address, exposure: { others: others.slice(3), total: 123.456 }, validatorPrefs: { commission: 150000000 } },
-  { accountId: validatorsName[3].address, exposure: { others: others.slice(2), total: 1234.56 }, validatorPrefs: { commission: 90000000 } },
-  { accountId: validatorsName[4].address, exposure: { others: others, total: 12345.6 }, validatorPrefs: { commission: 750000000 } }
-];
-const stakingConsts: StakingConsts = {
-  bondingDuration: 28,
-  existentialDeposit: 10000000000n,
-  maxNominations: 16,
-  maxNominatorRewardedPerValidator: 64,
-  minNominatorBond: 1
-};
 const state = '';
-let staker;
+let staker: AccountsBalanceType;
 
 const setStakeAmount = () => { };
 
