@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
+/* eslint-disable react/jsx-max-props-per-line */
 
 import { CheckRounded, Clear } from '@mui/icons-material';
 import { Grid, IconButton, InputAdornment, TextField } from '@mui/material';
