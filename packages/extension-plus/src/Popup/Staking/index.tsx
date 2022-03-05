@@ -456,6 +456,7 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
           <TabPanel index={1} value={tabValue}>
             <Unstake
               chainInfo={chainInfo}
+              availableBalance={staker?.balanceInfo?.available}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
               ledger={ledger}
@@ -507,7 +508,7 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
           validatorsInfo={validatorsInfo}
         />
       }
-      {((ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') &&
+      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           chain={chain}

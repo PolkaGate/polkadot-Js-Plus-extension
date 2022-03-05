@@ -95,7 +95,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
 
   useEffect(() => {
     if (['confirming', 'success', 'failed'].includes(confirmingState)) {
-      // do not run following code while in these states
+      // do not run following code while are in these states
       return;
     }
 
@@ -103,8 +103,9 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
     if (['stakeManual', 'changeValidators'].includes(state)) {
       if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
         if (state === 'changeValidators') {
-          setConfirmButtonDisabled(true)
-        };
+          setConfirmButtonDisabled(true);
+        }
+
         setNote(t('The selected and previously nominated validators are the same, no need to renominate'));
       } else {
         setConfirmButtonDisabled(false);
@@ -119,7 +120,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
     }
 
     /** defaults for many states */
-    setTotalStakedInHuman(amountToHuman((currentlyStaked).toString(), chainInfo?.decimals));
+    setTotalStakedInHuman(amountToHuman(String(currentlyStaked), chainInfo?.decimals));
 
     /** set fees and stakeAmount */
     let params;
@@ -204,13 +205,13 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       return;
     }
 
-    let partialSubtrahend = surAmount;
+    let partialSubtrahend = BigInt(surAmount);
 
     if (['withdrawUnbound', 'unstake'].includes(state)) { partialSubtrahend = 0n; }
 
     const fee = BigInt(estimatedFee.toString());
 
-    if (availableBalance - (partialSubtrahend + fee) < stakingConsts?.existentialDeposit) {
+    if (BigInt(availableBalance) - (partialSubtrahend + fee) < stakingConsts?.existentialDeposit) {
       setConfirmButtonDisabled(true);
       setConfirmButtonText(t('Account reap issue, consider fee!'));
 
@@ -469,7 +470,8 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           {note}
         </Typography>;
     }
-  }, [surAmount, chainInfo?.coin, chainInfo?.decimals, estimatedFee, availableBalance, stakingConsts?.bondingDuration, t]);
+    // FIXME: availableBalance change should not change the alert in redeem confirm page!
+  }, [surAmount, chainInfo?.coin, chainInfo?.decimals, estimatedFee, stakingConsts?.bondingDuration, t]);
 
   const handleAutoAdjust = useCallback((): void => {
     const ED = stakingConsts?.existentialDeposit;
