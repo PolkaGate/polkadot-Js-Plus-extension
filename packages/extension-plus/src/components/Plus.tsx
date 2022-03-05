@@ -208,7 +208,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
     }
 
     if (!chain) {
-      // console.log(' does not need to subscribe to balanceChange for no chain');
+      // does not need to subscribe to balanceChange for no chain
 
       return;
     }
@@ -299,8 +299,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
             ? <Grid id='noChainAlert' item sx={{ color: grey[700], fontFamily: '"Source Sans Pro", Arial, sans-serif', fontWeight: 600, fontSize: 12, textAlign: 'center', paddingLeft: '20px' }} xs={12} >
               {t('Please select a chain to view your balance.')}
             </Grid>
-            :
-            <Grid container item sx={{ textAlign: 'left', paddingLeft: '75px' }} xs={12}>
+            : <Grid container item sx={{ paddingLeft: '75px', textAlign: 'left' }} xs={12}>
               <Grid item xs={4}>
                 <Balance balance={balance} chain={chain} price={price} type='total' />
               </Grid>
@@ -368,21 +367,18 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
             </Grid>
           </Grid>
           {chain && <>
-            {
-              balance
-                ? <Grid id='coinPrice' item sx={{ color: grey[600], fontSize: 10, textAlign: 'center' }} xs={12}>
-                  {chain && <> {'1 '}{getCoin(balance)}{' = $'}{price}</>}
-                </Grid>
-                : <Grid id='emptyCoinPrice' item sx={{ color: grey[400], fontSize: 10, textAlign: 'center' }} xs={12}>
-                  {'1 ---  =  $ --- '}
-                </Grid>
+            {balance
+              ? <Grid id='coinPrice' item sx={{ color: grey[600], fontSize: 10, textAlign: 'center' }} xs={12}>
+                {chain && <> {'1 '}{getCoin(balance)}{' = $'}{price}</>}
+              </Grid>
+              : <Grid id='emptyCoinPrice' item sx={{ color: grey[400], fontSize: 10, textAlign: 'center' }} xs={12}>
+                {'1 ---  =  $ --- '}
+              </Grid>
             }
           </>}
         </Grid>
       </Grid>
-
-      {
-        transferModalOpen && sender &&
+      {transferModalOpen && sender &&
         <TransferFunds
           chain={chain}
           chainInfo={chainInfo}
@@ -392,30 +388,25 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           transferModalOpen={transferModalOpen}
         />
       }
-      {
-        showQRcodeModalOpen
-          ? <AddressQRcode
-            address={String(formattedAddress || address)}
-            chain={chain}
-            name={name}
-            setQRcodeModalOpen={setQRcodeModalOpen}
-            showQRcodeModalOpen={showQRcodeModalOpen}
-          />
-          : ''
+      {showQRcodeModalOpen &&
+        <AddressQRcode
+          address={String(formattedAddress || address)}
+          chain={chain}
+          name={name}
+          setQRcodeModalOpen={setQRcodeModalOpen}
+          showQRcodeModalOpen={showQRcodeModalOpen}
+        />
       }
-      {
-        showTxHistoryModal
-          ? <TransactionHistory
-            address={sender}
-            chain={chain}
-            name={name}
-            setTxHistoryModalOpen={setTxHistoryModalOpen}
-            showTxHistoryModal={showTxHistoryModal}
-          />
-          : ''
+      {showTxHistoryModal &&
+        <TransactionHistory
+          address={sender}
+          chain={chain}
+          name={name}
+          setTxHistoryModalOpen={setTxHistoryModalOpen}
+          showTxHistoryModal={showTxHistoryModal}
+        />
       }
-      {
-        showStakingModal && sender && account &&
+      {showStakingModal && sender && account &&
         <EasyStaking
           account={account}
           chain={chain}
