@@ -13,7 +13,7 @@ import React, { useCallback, useState } from 'react';
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ChainInfo, StakingConsts } from '../../util/plusTypes';
-import { amountToHuman,amountToMachine, fixFloatingPoint } from '../../util/plusUtils';
+import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../util/plusUtils';
 
 interface Props {
   chainInfo: ChainInfo;
@@ -22,14 +22,16 @@ interface Props {
   currentlyStakedInHuman: string | null;
   ledger: StakingLedger | null;
   nextToUnStakeButtonBusy: boolean;
+  availableBalance: bigint;
   handleNextToUnstake: () => void;
 }
 
-export default function Unstake({ chainInfo, currentlyStakedInHuman, stakingConsts, setUnstakeAmount, handleNextToUnstake, ledger, nextToUnStakeButtonBusy }: Props): React.ReactElement<Props> {
+export default function Unstake({ chainInfo, currentlyStakedInHuman, handleNextToUnstake, availableBalance, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
   const [alert, setAlert] = useState<string>('');
+  const UnableToPayFee = availableBalance === 0n;
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
     setAlert('');
@@ -91,21 +93,36 @@ export default function Unstake({ chainInfo, currentlyStakedInHuman, stakingCons
             InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo?.coin}</InputAdornment>) }}
             autoFocus
             color='info'
-            error={!currentlyStakedInHuman || Number(unstakeAmountInHuman) > Number(currentlyStakedInHuman)}
+            error={!currentlyStakedInHuman || Number(unstakeAmountInHuman) > Number(currentlyStakedInHuman) || UnableToPayFee}
             fullWidth
-            helperText={currentlyStakedInHuman === null
-              ? t('Fetching data from blockchain ...')
-              : (Number(currentlyStakedInHuman) === 0 && t('Nothing to unstake'))
+            helperText={
+              <>
+                {currentlyStakedInHuman === null &&
+                  <Grid xs={12}>
+                    {t('Fetching data from blockchain ...')}
+                  </Grid>}
+
+                {currentlyStakedInHuman === '0' &&
+                  <Grid xs={12}>
+                    {t('Nothing to unstake')}
+                  </Grid>
+                }
+                {currentlyStakedInHuman !== '0' && UnableToPayFee &&
+                  <Grid xs={12}>
+                    {t('Unable to pay fee')}
+                  </Grid>
+                }
+              </>
             }
             inputProps={{ step: '.01' }}
             label={t('Amount')}
             name='unstakeAmount'
             onChange={handleUnstakeAmount}
             placeholder='0.0'
+            sx={{ height: '10px' }}
             type='number'
             value={unstakeAmountInHuman}
             variant='outlined'
-            sx={{ height: '10px' }}
           />
         </Grid>
 
@@ -142,7 +159,7 @@ export default function Unstake({ chainInfo, currentlyStakedInHuman, stakingCons
         <NextStepButton
           data-button-action='next to unstake'
           isBusy={nextToUnStakeButtonBusy}
-          isDisabled={nextToUnStakeButtonDisabled}
+          isDisabled={nextToUnStakeButtonDisabled || availableBalance === 0n}
           onClick={handleNextToUnstake}
         >
           {t('Next')}
