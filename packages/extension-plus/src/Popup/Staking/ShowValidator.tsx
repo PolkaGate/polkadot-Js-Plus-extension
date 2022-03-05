@@ -3,7 +3,7 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description this component shows an individual validators info in a row in a table shape 
  * */
 

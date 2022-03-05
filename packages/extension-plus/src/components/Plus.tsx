@@ -27,7 +27,7 @@ import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../extension-ui/src/messaging';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
-import EasyStaking from '../Popup/Stake';
+import EasyStaking from '../Popup/Staking';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
 import { SUPPORTED_CHAINS } from '../util/constants';

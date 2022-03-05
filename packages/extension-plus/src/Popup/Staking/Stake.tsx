@@ -271,7 +271,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
         <Grid item xs={12}>
           <NextStepButton
             data-button-action='next to stake'
-            isBusy={nextToStakeButtonBusy}// && ['KeepNominated', 'Auto'].includes(validatorSelectionType)}
+            isBusy={nextToStakeButtonBusy}
             isDisabled={nextToStakeButtonDisabled}
             onClick={handleNextToStake}
           >

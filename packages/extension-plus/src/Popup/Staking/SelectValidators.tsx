@@ -3,7 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE in this component manual selection of validators is provided, with some filtering features to facilitate selection process */
+/** 
+ * @description
+ *  in this component manual selection of validators is provided, with some filtering features to facilitate selection process 
+ **/
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded as DeleteSweepRoundedIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
@@ -68,7 +71,7 @@ interface ToolbarProps {
   setSelected: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
   setSearchedValidators: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
   stakingConsts: StakingConsts;
-  validators: DeriveStakingQuery[];
+  validators: DeriveStakingQuery[] | null;
   setSearching: React.Dispatch<React.SetStateAction<boolean>>;
   validatorsIdentities: DeriveAccountInfo[];
 }
@@ -116,11 +119,11 @@ const TableToolbar = (props: ToolbarProps) => {
 
     setSearching(!!keyWord);
 
-    const haveSearchKeywordInAccountId = validators.filter((item) => String(item.accountId).toLowerCase().includes(keyWord.toLowerCase()));
+    const haveSearchKeywordInAccountId = validators?.filter((item) => String(item.accountId).toLowerCase().includes(keyWord.toLowerCase()));
     const haveSearchKeywordInName = validatorsIdentities?.filter((item) => `${item.identity.display}${item.identity.displayParent}`.toLowerCase().includes(keyWord.toLowerCase()));
 
     haveSearchKeywordInName?.forEach((item) => {
-      const f = validators.find((v) => v.accountId === item.accountId);
+      const f = validators?.find((v) => v.accountId === item.accountId);
 
       if (f) haveSearchKeywordInAccountId.push(f);
     });
@@ -139,7 +142,7 @@ const TableToolbar = (props: ToolbarProps) => {
         <Grid item sx={{ pl: 1 }}>
           {!!numSelected &&
             <Hint id='delete' place='right' tip='Delete'>
-              < DeleteSweepRoundedIcon onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
+              <DeleteSweepRoundedIcon onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
             </Hint>
           }
         </Grid>
@@ -183,31 +186,24 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
     setOrderBy(property);
   };
 
-  const handleSwitched = useCallback((event: React.MouseEvent<unknown>, validator: DeriveStakingQuery) => {
-    const selectedIndex = selected.indexOf(validator);
-
-    if (selected.length >= stakingConsts.maxNominations && selectedIndex === -1) {
+  const handleSwitched = useCallback((event: React.ChangeEvent<HTMLInputElement>, validator: DeriveStakingQuery) => {
+    if (selected.length >= stakingConsts.maxNominations && event.target.checked) {
       console.log('Max validators are selected !');
 
       return;
     }
 
-    let newSelected: DeriveStakingQuery[] = [];
+    const newSelected: DeriveStakingQuery[] = [...selected];
 
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, validator);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+    if (event.target.checked) {
+      newSelected.push(validator);
+    } else {
+      const selectedIndex = selected.indexOf(validator);
+
+      newSelected.splice(selectedIndex, 1);
     }
 
-    setSelected(newSelected);
+    setSelected([...newSelected]);
   }, [selected, setSelected, stakingConsts.maxNominations]);
 
   const isSelected = useCallback((v: DeriveStakingQuery) => selected.indexOf(v) !== -1, [selected]);
