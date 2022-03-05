@@ -1205,7 +1205,7 @@ export const endpoints: LinkOption[] = [
   }
 ];
 
-export function makeShortAddr (address: string) {
+export function makeShortAddr(address: string) {
   return `${address.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
 }
 
@@ -1271,7 +1271,7 @@ export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[9].address, exposure: { others: others, total: 12345.6 }, validatorPrefs: { commission: 750000000 } }
 ];
 
-export async function createAccount (suri: string, extension: Extension): Promise<string> {
+export async function createAccount(suri: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: westendGenesisHash,
     name: 'Amir khan',
@@ -1285,21 +1285,30 @@ export async function createAccount (suri: string, extension: Extension): Promis
   return address;
 }
 
-export async function createExtension (): Promise<Extension> {
-  await cryptoWaitReady();
+export async function createExtension(): Promise<Extension> {
+  try {
+    return new Promise((resolve) => {
+      cryptoWaitReady()
+        .then((): void => {
+          keyring.loadAll({ store: new AccountsStore() });
+          const authUrls: AuthUrls = {};
 
-  keyring.loadAll({ store: new AccountsStore() });
-  const authUrls: AuthUrls = {};
+          authUrls['localhost:3000'] = {
+            count: 0,
+            id: '11',
+            isAllowed: true,
+            origin: 'example.com',
+            url: 'http://localhost:3000'
+          };
+          localStorage.setItem('authUrls', JSON.stringify(authUrls));
+          const state = new State();
 
-  authUrls['localhost:3000'] = {
-    count: 0,
-    id: '11',
-    isAllowed: true,
-    origin: 'example.com',
-    url: 'http://localhost:3000'
-  };
-  localStorage.setItem('authUrls', JSON.stringify(authUrls));
-  const state = new State();
-
-  return new Extension(state);
+          resolve(new Extension(state));
+        }).catch((error): void => {
+          console.error('initialization failed in testHelpers', error);
+        });
+    });
+  } catch (error) {
+    console.error('Catch error when loadAll:', error);
+  }
 }

@@ -7,15 +7,11 @@ import { fireEvent, render, RenderResult, screen, waitFor } from '@testing-libra
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import keyring from '@polkadot/ui-keyring';
-import { cryptoWaitReady } from '@polkadot/util-crypto';
-
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
-import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
-import { AccountsStore } from '../../../../extension-base/src/stores';
 import getChainInfo from '../../util/getChainInfo';
 import { AccountsBalanceType, BalanceType, ChainInfo } from '../../util/plusTypes';
 import { amountToMachine, balanceToHuman } from '../../util/plusUtils';
+import { createAccount, createExtension } from '../../util/test/testHelper';
 import TransferFund from './index';
 
 jest.setTimeout(50000);
@@ -119,53 +115,16 @@ describe('Testing TransferFund index', () => {
 
 describe('Testing transferFund with real account', () => {
   let extension: Extension;
-  let state: State;
   let realSender: AccountsBalanceType | null;
   let secondAddress: string;
   const firstSuri = 'seed sock milk update focus rotate barely fade car face mechanic mercy';
   const secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
-  const password = 'passw0rd';
-  const type = 'sr25519';
-  const westendGenesisHash = '0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e';
-
-  async function createExtension(): Promise<Extension> {
-    await cryptoWaitReady();
-
-    keyring.loadAll({ store: new AccountsStore() });
-    const authUrls: AuthUrls = {};
-
-    authUrls['localhost:3000'] = {
-      count: 0,
-      id: '11',
-      isAllowed: true,
-      origin: 'example.com',
-      url: 'http://localhost:3000'
-    };
-    localStorage.setItem('authUrls', JSON.stringify(authUrls));
-    state = new State();
-
-    return new Extension(state);
-  }
-
-  const createAccount = async (suri: string): Promise<string> => {
-    await extension.handle('id', 'pri(accounts.create.suri)', {
-      genesisHash: westendGenesisHash,
-      name: 'Amir khan',
-      password: password,
-      suri: suri,
-      type: type
-    }, {} as chrome.runtime.Port);
-
-    const { address } = await extension.handle('id', 'pri(seed.validate)', { suri: suri, type: type }, {} as chrome.runtime.Port);
-
-    return address;
-  };
 
   beforeAll(async () => {
     extension = await createExtension();
-    const firstAddress = await createAccount(firstSuri);
+    const firstAddress = await createAccount(firstSuri, extension);
 
-    secondAddress = await createAccount(secondSuri);
+    secondAddress = await createAccount(secondSuri, extension);
 
     realSender = {
       address: firstAddress,

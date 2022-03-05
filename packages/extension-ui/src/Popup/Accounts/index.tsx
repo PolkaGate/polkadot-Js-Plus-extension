@@ -23,21 +23,21 @@ interface Props extends ThemeProps {
   className?: string;
 }
 
-function Accounts ({ className }: Props): React.ReactElement {
+function Accounts({ className }: Props): React.ReactElement {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('');
   const [filteredAccount, setFilteredAccount] = useState<AccountWithChildren[]>([]);
   const { hierarchy } = useContext(AccountContext);
   const networkMap = useMemo(() => getNetworkMap(), []);
 
-     // added for plus
-     useEffect(() => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      cryptoWaitReady().then(() => {
-        keyring.loadAll({ store: new AccountsStore() });
-      });
-    }, []);
-    
+  // added for plus
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    cryptoWaitReady().then(() => {
+      keyring.loadAll({ store: new AccountsStore() });
+    });
+  }, []);
+
   useEffect(() => {
     setFilteredAccount(
       filter

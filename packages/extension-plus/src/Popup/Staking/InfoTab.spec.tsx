@@ -17,6 +17,7 @@ import Info from './InfoTab';
 let chainInfo: ChainInfo | null = null;
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
+jest.setTimeout(60000);
 
 describe('Testing Info component', () => {
   test('Checking exist element while loading!', () => {
@@ -31,7 +32,7 @@ describe('Testing Info component', () => {
     expect(queryByText('Loading information ...')).toBeTruthy();
   });
 
-  test('Checking exist element when loading is done', async () => {
+  test('Checking the existence of elements when loading is done', async () => {
     chainInfo = await getChainInfo('westend');
     const { queryByTestId, queryByText } = render(
       <Info
