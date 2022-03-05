@@ -13,7 +13,7 @@ import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, GBalance, Password, PlusHeader, Popup, Progress } from '../../../../../components';
+import { AllAddresses, ConfirmButton, ShowBalance, Password, PlusHeader, Popup, Progress } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
 import getVotes from '../../../../../util/api/getVotes';
 import { PASS_MAP } from '../../../../../util/constants';
@@ -88,9 +88,11 @@ export default function MyVotes({ allCouncilInfo, chain, chainInfo, setShowMyVot
     <Popup handleClose={handleClose} showModal={showMyVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<GroupRemoveIcon fontSize='small' />} title={'My Votes'} />
 
-      <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo}  setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedAddress} setSelectedAddress={setSelectedAddress} text={t('select account to view votes')} />
+      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} text={t('select account to view votes')} />
 
-      <GBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />
+      <Grid sx={{ fontSize: 12 }} xs={12}>
+        <ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />
+      </Grid>
 
       <Container id='scrollArea' sx={{ height: '250px', overflowY: 'auto' }}>
         {votesInfo && filteredPersonsInfo

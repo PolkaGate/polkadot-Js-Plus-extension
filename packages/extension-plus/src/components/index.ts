@@ -5,7 +5,7 @@
 export { default as Plus } from './Plus';
 export { default as Balance } from './Balance';
 export { default as Popup } from './Popup';
-export { default as GBalance } from './GBalance';
+export { default as ShowBalance } from './ShowBalance';
 
 export { default as ConfirmButton } from './ConfirmButton';
 

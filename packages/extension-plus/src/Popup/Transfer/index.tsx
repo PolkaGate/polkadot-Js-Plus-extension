@@ -84,7 +84,6 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
   useEffect(() => {
     if (!chainInfo || !transfer) return;
 
-
     // eslint-disable-next-line no-void
     void transfer(sender.address, transferAmount).paymentInfo(sender.address)
       .then((i) => setEstimatedFee(i?.partialFee)).catch(console.error);

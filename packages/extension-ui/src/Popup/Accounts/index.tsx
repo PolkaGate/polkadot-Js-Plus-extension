@@ -7,9 +7,8 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import styled from 'styled-components';
 
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
-
-import getNetworkMap from '@polkadot/extension-ui/util/getNetworkMap';
 import { AccountsStore } from '@polkadot/extension-base/stores'; // added for plus
+import getNetworkMap from '@polkadot/extension-ui/util/getNetworkMap';
 import keyring from '@polkadot/ui-keyring'; // added for plus
 import { cryptoWaitReady } from '@polkadot/util-crypto'; // added for plus
 
@@ -32,10 +31,12 @@ function Accounts({ className }: Props): React.ReactElement {
 
   // added for plus
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    cryptoWaitReady().then(() => {
-      keyring.loadAll({ store: new AccountsStore() });
-    });
+    // eslint-disable-next-line no-void
+    void cryptoWaitReady().then(() => {
+      if (!keyring.isAvailable) {
+        keyring.loadAll({ store: new AccountsStore() });
+      }
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {

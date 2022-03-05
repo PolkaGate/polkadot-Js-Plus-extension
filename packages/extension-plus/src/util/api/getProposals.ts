@@ -5,17 +5,20 @@
 import getChainInfo from '../getChainInfo';
 import { ProposalsInfo } from '../plusTypes';
 
-
-
-export default async function getProposals(_chain: string): Promise<ProposalsInfo> {
-
+export default async function getProposals(_chain: string): Promise<ProposalsInfo | null> {
   const { api } = await getChainInfo(_chain);
 
-  console.log(' minimumDeposit=', api.consts.democracy.minimumDeposit.toString());
+  const proposals = api.derive.democracy?.proposals && await api.derive.democracy.proposals();
 
-  const proposals = await api.derive.democracy.proposals();
+  if (!proposals) return null;
+
   const accountsInfo = await Promise.all(proposals.map((p) => api.derive.accounts.info(p.proposer)));
-  const proposalInfo = { accountsInfo: accountsInfo, proposals: proposals, minimumDeposit: api.consts.democracy.minimumDeposit.toString() };
+  
+  const proposalInfo = {
+    accountsInfo: accountsInfo,
+    minimumDeposit: api.consts.democracy.minimumDeposit.toString(),
+    proposals: proposals
+  };
 
   console.log('proposalInfo:', JSON.parse(JSON.stringify(proposalInfo)));
 

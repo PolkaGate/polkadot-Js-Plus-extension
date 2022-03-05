@@ -30,27 +30,29 @@ interface Props {
 export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen, showDemocracyModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('referendums');
-  const [referendums, setReferenduns] = useState<DeriveReferendumExt[]>();
-  const [proposalsInfo, setProposalsInfo] = useState<ProposalsInfo>();
+  const [referendums, setReferenduns] = useState<DeriveReferendumExt[] | undefined | null>();
+  const [proposalsInfo, setProposalsInfo] = useState<ProposalsInfo | undefined | null>();
   const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const [convictions, setConvictions] = useState<Conviction[]>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
   useEffect(() => {
+    if (!referendums) return;
+
     // eslint-disable-next-line no-void
     void createConvictions(chain, t).then((c) => {
       setConvictions(c);
     });
-  }, [chain, t]);
+  }, [chain, t, referendums]);
 
   useEffect(() => {
     // eslint-disable-next-line no-void
-    void getReferendums(chainName).then(r => {
+    void getReferendums(chainName).then((r) => {
       setReferenduns(r);
     });
 
     // eslint-disable-next-line no-void
-    void getProposals(chainName).then(r => {
+    void getProposals(chainName).then((r) => {
       setProposalsInfo(r);
     });
 
@@ -64,9 +66,9 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
     setTabValue(newValue);
   }, []);
 
-  const handleDemocracyModalClose = useCallback(
-    (): void => { setDemocracyModalOpen(false);
-    },[setDemocracyModalOpen]);
+  const handleDemocracyModalClose = useCallback((): void => {
+    setDemocracyModalOpen(false);
+  }, [setDemocracyModalOpen]);
 
   return (
     <Popup handleClose={handleDemocracyModalClose} showModal={showDemocracyModal}>
@@ -81,7 +83,7 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
 
         {tabValue === 'referendums'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {referendums
+            {referendums !== undefined
               ? <Referendums chain={chain} chainInfo={chainInfo} convictions={convictions} currentBlockNumber={currentBlockNumber} referendums={referendums} />
               : <Progress title={'Loading referendums ...'} />}
           </Grid>
@@ -89,7 +91,7 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
 
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {proposalsInfo
+            {proposalsInfo !== undefined
               ? <Proposals chain={chain} chainInfo={chainInfo} proposalsInfo={proposalsInfo} />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>

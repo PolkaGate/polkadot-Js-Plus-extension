@@ -9,10 +9,10 @@ import React, { useEffect, useState } from 'react';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
+import Identity from '../../../../../components/Identity';
 import { MAX_VOTES } from '../../../../../util/constants';
 import { ChainInfo, PersonsInfo } from '../../../../../util/plusTypes';
 import { amountToHuman } from '../../../../../util/plusUtils';
-import Identity from '../../../../../components/Identity';
 
 interface Props {
   personsInfo: PersonsInfo;
@@ -51,20 +51,20 @@ export default function VoteMembers({ chain, chainInfo, membersType, personsInfo
 
   return (
     <>
-      <Grid xs={12} sx={{ fontSize: 14, fontWeigth: 'bold', color: grey[600], fontFamily: 'fantasy', textAlign: 'center', p: '10px 1px 10px' }}>
+      <Grid sx={{ color: grey[600], fontSize: 14, fontFamily: 'fantasy', fontWeigth: 'bold', textAlign: 'center', p: '10px 1px 10px' }} xs={12}>
         {membersType}
       </Grid>
 
       {candidates.map((p, index) => (
         <Paper elevation={2} key={index} sx={{ borderRadius: '10px', margin: '10px 10px 1px', p: '5px 10px 5px' }}>
-          <Grid container>
+          <Grid container sx={{ fontSize: 12 }}>
 
             <Grid container item xs={7}>
               <Identity accountInfo={p.info} chain={chain} />
             </Grid>
 
             {p?.backed &&
-              <Grid item xs={4} sx={{ fontSize: 11, textAlign: 'left' }}>
+              <Grid item sx={{ textAlign: 'left' }} xs={4}>
                 {t('Backed')}{': '} {amountToHuman(p.backed, chainInfo.decimals, 2)} {chainInfo.coin}
               </Grid>
             }

@@ -3,9 +3,8 @@
 
 import type { Theme, ThemeProps } from '../types';
 
-// added for plus."faCompass"
-
-import { faExpand, faTasks, faCompass } from '@fortawesome/free-solid-svg-icons';
+// added for plus 'faCompass' and 'faLandmark'
+import { faCompass, faExpand, faLandmark, faTasks } from '@fortawesome/free-solid-svg-icons';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
@@ -176,14 +175,14 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
           text={t<string>('Contribute in Crowdloans')}
         />
       </MenuItem>
-      {/* <MenuItem className='setting'>
+      <MenuItem className='setting'>
         <ActionText
           className='governance'
           icon={faLandmark}
           onClick={_goToGovernance}
           text={t<string>('Governance')}
         />
-      </MenuItem> */}
+      </MenuItem>
       <MenuItem className='setting'>
         <ActionText
           className='manageWebsiteAccess'

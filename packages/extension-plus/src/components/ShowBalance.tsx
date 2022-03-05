@@ -17,14 +17,14 @@ import { ChainInfo } from '../util/plusTypes';
 import { amountToHuman } from '../util/plusUtils';
 
 export interface Props {
-  balance: Balance | bigint | string | number | null;
+  balance: Balance | bigint | string | number | null | undefined;
   chainInfo: ChainInfo;
   align?: 'start' | 'end' | 'left' | 'right' | 'center' | 'justify' | 'match-parent';
   title: string;
   decimalDigits?: number;
 }
 
-function GBalance({ align = 'right', balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
+function ShowBalance({ align = 'right', balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
   return (
     <Grid item sx={{ padding: '0px 40px 10px', textAlign: align }} xs={12}>
       {title}:{' '}
@@ -38,7 +38,7 @@ function GBalance({ align = 'right', balance, chainInfo, decimalDigits, title }:
   );
 }
 
-export default styled(GBalance)(({ theme }: ThemeProps) => `
+export default styled(ShowBalance)(({ theme }: ThemeProps) => `
       background: ${theme.accountBackground};
       border: 1px solid ${theme.boxBorderColor};
       box-sizing: border-box;

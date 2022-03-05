@@ -11,14 +11,14 @@ import React, { useCallback, useState } from 'react';
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import Hint from '../../../../components/Hint';
+import Identity from '../../../../components/Identity';
 import getLogo from '../../../../util/getLogo';
 import { ChainInfo, ProposalsInfo } from '../../../../util/plusTypes';
 import { amountToHuman, formatMeta } from '../../../../util/plusUtils';
-import Identity from '../../../../components/Identity';
 import Second from './Second';
 
 interface Props {
-  proposalsInfo: ProposalsInfo;
+  proposalsInfo: ProposalsInfo | null;
   chain: Chain;
   chainInfo: ChainInfo;
 }
@@ -27,7 +27,6 @@ const secondToolTip = 'Express your backing. Proposals with greater interest mov
 
 export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const { accountsInfo, proposals } = proposalsInfo;
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const [showVoteProposalModal, setShowVoteProposalModal] = useState<boolean>(false);
@@ -41,6 +40,10 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
   const handleVoteProposalModalClose = useCallback(() => {
     setShowVoteProposalModal(false);
   }, []);
+
+  if (!proposalsInfo) return (<></>);
+
+  const { accountsInfo, proposals } = proposalsInfo;
 
   return (
     <>
@@ -115,9 +118,12 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
                 {description}
               </Grid>
 
-              {p?.proposer &&
-                <Identity accountInfo={accountsInfo[index]} chain={chain} showAddress title={t('Proposer')} />
-              }
+              <Grid item sx={{ fontSize: 12 }} xs={12}>
+                {p?.proposer &&
+                  <Identity accountInfo={accountsInfo[index]} chain={chain} showAddress title={t('Proposer')} />
+                }
+              </Grid>
+
 
               {/* <Grid item xs={12} sx={{ border: '1px dotted', borderRadius: '10px', padding: 1, margin: '20px 1px 20px' }}>
                 {t('Hash')}<br />

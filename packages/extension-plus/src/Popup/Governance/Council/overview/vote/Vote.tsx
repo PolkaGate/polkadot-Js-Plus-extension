@@ -11,7 +11,7 @@ import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, GBalance, Password, PlusHeader, Popup, Progress } from '../../../../../components';
+import { AllAddresses, ConfirmButton, ShowBalance, Password, PlusHeader, Popup, Progress } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
 import getVotingBond from '../../../../../util/api/getVotingBond';
 import { PASS_MAP } from '../../../../../util/constants';
@@ -85,9 +85,11 @@ export default function Vote({ allCouncilInfo, chain, chainInfo, setShowVotesMod
     <Popup handleClose={handleClose} showModal={showVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<HowToRegIcon fontSize='small' />} title={'Vote'} />
 
-      <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo}  setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedVoterAddress} setSelectedAddress={setSelectedVoterAddress} text={t('Select voter account')} />
+      <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo} setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedVoterAddress} setSelectedAddress={setSelectedVoterAddress} text={t('Select voter account')} />
 
-      <GBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
+      <Grid sx={{ fontSize: 12 }} xs={12}>
+        <ShowBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
+      </Grid>
 
       {allCouncilInfo
         ? <Grid container sx={{ padding: '0px 30px' }}>

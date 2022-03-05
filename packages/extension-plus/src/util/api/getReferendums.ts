@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import { DeriveReferendumExt, DeriveProposal } from '@polkadot/api-derive/types';
+import { DeriveReferendumExt } from '@polkadot/api-derive/types';
+
 import getChainInfo from '../getChainInfo';
 
-export default async function getReferendums(_chain: string): Promise<DeriveReferendumExt[] > {
+export default async function getReferendums(_chain: string): Promise<DeriveReferendumExt[] | null> {
 
   const { api } = await getChainInfo(_chain);
 
- const  referendums = await api.derive.democracy.referendums();
- 
-  console.log('referendums:', referendums)
+  if (!api.derive.democracy?.referendums) return null;
+  const referendums = await api.derive.democracy.referendums();
+
+  console.log('referendums:', referendums);
 
   return referendums;
 }
