@@ -11,7 +11,7 @@ import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, Progress,ShowBalance } from '../../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, Progress, ShowBalance } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
 import getVotingBond from '../../../../../util/api/getVotingBond';
 import { PASS_MAP } from '../../../../../util/constants';
@@ -111,6 +111,7 @@ export default function Vote({ allCouncilInfo, chain, chainInfo, setShowVotesMod
               handleBack={handleClose}
               handleConfirm={handleVote}
               handleReject={handleClose}
+              isDisabled={!availableBalance || !votingBond || BigInt(votingBond) >= BigInt(availableBalance)} //FIXME: consider fee too
               state={state}
               text='Vote'
             />
