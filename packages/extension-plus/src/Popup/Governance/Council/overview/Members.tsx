@@ -6,15 +6,14 @@
 /** 
  * @description Lists all councilers information
 */
-import { Grid, Paper } from '@mui/material';
+import { Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React from 'react';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import Identity from '../../../../components/Identity';
 import { ChainInfo, PersonsInfo } from '../../../../util/plusTypes';
-import { amountToHuman } from '../../../../util/plusUtils';
+import Member from './Member';
 
 interface Props {
   personsInfo: PersonsInfo;
@@ -28,33 +27,19 @@ export default function Members({ chain, chainInfo, membersType, personsInfo }: 
 
   return (
     <>
-      <Grid sx={{ fontSize: 14, fontWeigth: 'bold', color: grey[600], fontFamily: 'fantasy', textAlign: 'center', p: '10px 1px 10px' }} xs={12}>
+      <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 14, fontWeigth: 'bold', p: '10px 1px 10px', textAlign: 'center' }} xs={12}>
         {membersType}
       </Grid>
 
       {personsInfo.infos.length
-        ? personsInfo.infos.map((m, index) => (
-          <Paper elevation={2} key={index} sx={{ borderRadius: '10px', fontSize: 12, margin: '10px 20px 1px', p: '5px 20px 10px 5px' }}>
-
-            <Grid alignItems='center' container justifyContent='space-between'>
-
-              <Grid container item xs={8}>
-                <Identity accountInfo={m} chain={chain} />
-              </Grid>
-              {personsInfo?.backed &&
-                <Grid item sx={{ textAlign: 'left' }} xs={4}>
-                  {t('Backed')}{': '} {Number(amountToHuman(personsInfo.backed[index], chainInfo.decimals, 2)).toLocaleString()} {chainInfo.coin}
-                </Grid>
-              }
-            </Grid>
-
-          </Paper>))
+        ? personsInfo.infos.map((p, index) => (
+          <Member backed={personsInfo?.backed && personsInfo?.backed[index]} chain={chain} chainInfo={chainInfo} info={p} key={index} />
+        ))
         : <Grid sx={{ fontSize: 12, pt: 2, textAlign: 'center' }} xs={12}>
           {membersType &&
             <>{t('No ')}{membersType.toLowerCase()} {t(' found')}</>
           }
         </Grid>}
-
     </>
-  )
+  );
 }
