@@ -8,14 +8,25 @@ interface Props {
   title: string;
 }
 
-function Progress({ title }: Props): React.ReactElement<Props> {
-
+function Progress ({ title }: Props): React.ReactElement<Props> {
   return (
-    <Grid container direction='column' alignItems='center' justifyContent='center' sx={{ paddingTop: '40px' }} >
+    <Grid
+      alignItems='center'
+      container
+      direction='column'
+      justifyContent='center'
+      sx={{ paddingTop: '40px' }}
+    >
       <Grid item>
-        <CircularProgress />
+        <CircularProgress
+          color='warning'
+          thickness={2}
+        />
       </Grid>
-      <Grid item sx={{ fontSize: 13, paddingTop: '20px' }}>
+      <Grid
+        item
+        sx={{ fontSize: 13, paddingTop: '20px' }}
+      >
         {title}
       </Grid>
     </Grid>
