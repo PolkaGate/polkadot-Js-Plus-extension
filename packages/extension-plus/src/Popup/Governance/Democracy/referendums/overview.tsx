@@ -126,7 +126,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
 
               <Grid container justifyContent='space-between' sx={{ fontSize: 12, paddingTop: 1 }}>
                 <Grid item>
-                  {t('Aye')}
+                  {t('Aye')}{`(${r?.allAye?.length})`}
                 </Grid>
                 <Grid item>
                   {r?.isPassing
@@ -141,7 +141,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
                   }
                 </Grid>
                 <Grid item>
-                  {t('Nay')}
+                  {t('Nay')}{`(${r?.allNay?.length})`}
                 </Grid>
               </Grid>
 
