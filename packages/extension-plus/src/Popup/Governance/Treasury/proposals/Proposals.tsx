@@ -7,7 +7,7 @@ import type { DeriveAccountInfo, DeriveTreasuryProposal } from '@polkadot/api-de
 
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import { Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
-import { deepOrange, grey } from '@mui/material/colors';
+import { grey } from '@mui/material/colors';
 import React, { useEffect, useState } from 'react';
 
 import { Chain } from '../../../../../../extension-chains/src/types';

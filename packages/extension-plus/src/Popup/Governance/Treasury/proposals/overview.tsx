@@ -6,12 +6,13 @@
 import type { DeriveTreasuryProposals } from '@polkadot/api-derive/types';
 
 import { Container, Grid } from '@mui/material';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import { ChainInfo } from '../../../../util/plusTypes';
 import Proposals from './Proposals';
+import SubmitProposal from './SubmitProposal';
 
 interface Props {
   proposalsInfo: DeriveTreasuryProposals | null;
@@ -23,6 +24,15 @@ interface Props {
 export default function Overview({ chain, chainInfo, currentBlockNumber, proposalsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
+  const [showSubmitProposalModal, setShowSubmitProposalModal] = useState<boolean>(false);
+
+  const handleSubmitProposal = useCallback(() => {
+    setShowSubmitProposalModal(true);
+  }, []);
+
+  const handleSubmitProposalModalClose = useCallback(() => {
+    setShowSubmitProposalModal(false);
+  }, []);
 
   if (!proposalsInfo) {
     return (
@@ -34,14 +44,19 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, proposa
 
   const { approvals, proposalCount, proposals } = proposalsInfo;
 
-  console.log('proposalCount', String(proposalCount));
-
   return (
     <Container disableGutters>
-      <Grid item xs={12} sx={{ textAlign: 'right' }}>
-        <Proposals chain={chain} chainInfo={chainInfo} proposals={proposals} showSubmit={true} title={t('Proposals')} />
-        <Proposals chain={chain} chainInfo={chainInfo} proposals={approvals} title={t('Approved')} />
-      </Grid>
+      <Proposals chain={chain} chainInfo={chainInfo} handleSubmitProposal={handleSubmitProposal} proposals={proposals} showSubmit={true} title={t('Proposals')} />
+      <Proposals chain={chain} chainInfo={chainInfo} proposals={approvals} title={t('Approved')} />
+
+      {showSubmitProposalModal &&
+        <SubmitProposal
+          chain={chain}
+          chainInfo={chainInfo}
+          handleSubmitProposalModalClose={handleSubmitProposalModalClose}
+          showSubmitProposalModal={showSubmitProposalModal}
+        />
+      }
     </Container>
   );
 }
