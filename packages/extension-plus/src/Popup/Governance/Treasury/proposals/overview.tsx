@@ -5,7 +5,7 @@
 
 import type { DeriveTreasuryProposals } from '@polkadot/api-derive/types';
 
-import { Grid } from '@mui/material';
+import { Container, Grid } from '@mui/material';
 import React from 'react';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
@@ -34,10 +34,14 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, proposa
 
   const { approvals, proposalCount, proposals } = proposalsInfo;
 
+  console.log('proposalCount', String(proposalCount));
+
   return (
-    <>
-      <Proposals chain={chain} chainInfo={chainInfo} proposals={proposals} title={t('Proposals')} />
-      <Proposals chain={chain} chainInfo={chainInfo} proposals={approvals} title={t('Approved')} />
-    </>
+    <Container disableGutters>
+      <Grid item xs={12} sx={{ textAlign: 'right' }}>
+        <Proposals chain={chain} chainInfo={chainInfo} proposals={proposals} showSubmit={true} title={t('Proposals')} />
+        <Proposals chain={chain} chainInfo={chainInfo} proposals={approvals} title={t('Approved')} />
+      </Grid>
+    </Container>
   );
 }

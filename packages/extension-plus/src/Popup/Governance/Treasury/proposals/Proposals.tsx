@@ -5,7 +5,8 @@
 
 import type { DeriveAccountInfo, DeriveTreasuryProposal } from '@polkadot/api-derive/types';
 
-import { Avatar, Divider, Grid, Link, Paper } from '@mui/material';
+import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
+import { Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
 import { deepOrange, grey } from '@mui/material/colors';
 import React, { useEffect, useState } from 'react';
 
@@ -21,9 +22,11 @@ interface Props {
   chain: Chain;
   chainInfo: ChainInfo;
   title: string
+  showSubmit?: boolean;
+  handleSubmitProposal?: () => void;
 }
 
-export default function Proposals({ chain, chainInfo, proposals, title }: Props): React.ReactElement<Props> {
+export default function Proposals({ chain, chainInfo, handleSubmitProposal, proposals, showSubmit, title }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
   const [identities, setIdentities] = useState<DeriveAccountInfo[]>();
@@ -40,8 +43,17 @@ export default function Proposals({ chain, chainInfo, proposals, title }: Props)
 
   return (
     <>
-      <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, fontWeigth: 'bold', p: '30px 30px 10px', textAlign: 'left' }} xs={12}>
-        {title}
+      <Grid container justifyContent='flex-start' xs={12}>
+        <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, fontWeigth: 'bold', p: '10px 30px 10px', textAlign: 'left' }} xs={4}>
+          {showSubmit &&
+            <Button onClick={handleSubmitProposal} size='small' startIcon={<AddCircleRoundedIcon />} color='warning' variant='outlined'>
+              {t('Submit')}
+            </Button>
+          }
+        </Grid>
+        <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, fontWeigth: 'bold', p: '10px 30px 10px', textAlign: 'center' }} xs={4}>
+          {title}
+        </Grid>
       </Grid>
 
       {proposals?.length
@@ -51,17 +63,17 @@ export default function Proposals({ chain, chainInfo, proposals, title }: Props)
 
           return (
             <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '20px 30px 10px', p: '10px 20px' }}>
-              <Grid container alignItems='center' justifyContent='space-between'>
+              <Grid alignItems='center' container justifyContent='space-between'>
                 <Grid item>
-                  <Avatar sx={{ bgcolor: deepOrange[500], fontSize: 14, height: 30, width: 30 }}>
-                    # {String(p?.id)}
+                  <Avatar sx={{ bgcolor: 'black', fontSize: 14, height: 30, width: 30 }}>
+                    {String(p?.id)}
                   </Avatar>
                 </Grid>
                 <Grid item sx={{ fontSize: 12 }}>
-                  {t('Payment')}{': '}{Number(amountToHuman(String(p?.proposal.value), chainInfo?.decimals)).toLocaleString()} {chainInfo.coin}
+                  {t('Payment')}{': '}{amountToHuman(String(p?.proposal.value), chainInfo?.decimals)} {chainInfo.coin}
                 </Grid>
                 <Grid item sx={{ fontSize: 12 }}>
-                  {t('Bond')}{': '}{Number(amountToHuman(String(p?.proposal.bond), chainInfo?.decimals)).toLocaleString()} {chainInfo.coin}
+                  {t('Bond')}{': '}{amountToHuman(String(p?.proposal.bond), chainInfo?.decimals)} {chainInfo.coin}
                 </Grid>
 
               </Grid>
@@ -124,10 +136,9 @@ export default function Proposals({ chain, chainInfo, proposals, title }: Props)
                   <Identity accountInfo={beneficiaryAccountInfo} chain={chain} showAddress title={t('Beneficiary')} />
                 }
               </Grid>
-
             </Paper>);
         })
-        : <Grid sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
+        : <Grid sx={{ fontSize: 12, p: 2, textAlign: 'center' }} xs={12}>
           {t('No proposal')}
         </Grid>}
     </>

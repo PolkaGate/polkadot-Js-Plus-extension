@@ -175,7 +175,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
           {t('No active referendum')}
         </Grid>}
 
-      {showVoteReferendumModal &&
+      {showVoteReferendumModal && convictions && voteInfo &&
         <VoteReferendum
           chain={chain}
           chainInfo={chainInfo}

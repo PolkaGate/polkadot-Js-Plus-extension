@@ -9,7 +9,7 @@ import React, { useCallback, useState } from 'react';
 
 import useMetadata from '../../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { CouncilInfo, ChainInfo } from '../../../../util/plusTypes';
+import { ChainInfo,CouncilInfo } from '../../../../util/plusTypes';
 import MyVotes from './cancelVotes/MyVotes';
 import Votes from './vote/Vote';
 import Members from './Members';

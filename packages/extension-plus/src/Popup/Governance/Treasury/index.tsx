@@ -36,6 +36,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
     // get all treasury proposals including approved
     chainInfo?.api.derive.treasury.proposals().then((p) => {
       setProposals(p);
+      console.log('proposals:',JSON.parse(JSON.stringify(p.proposals)))
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
@@ -58,7 +59,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
       <Grid container>
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab icon={<SummarizeOutlinedIcon fontSize='small' />} iconPosition='start' label='Proposals' sx={{ fontSize: 11 }} value='proposals' />
+            <Tab icon={<SummarizeOutlinedIcon fontSize='small' />} iconPosition='start' label={`Proposals (${proposals?.proposalCount ? proposals?.proposalCount : 0})`} sx={{ fontSize: 11 }} value='proposals' />
             <Tab icon={<VolunteerActivismSharpIcon fontSize='small' />} iconPosition='start' label='Tips' sx={{ fontSize: 11 }} value='tips' />
           </Tabs>
         </Grid>
