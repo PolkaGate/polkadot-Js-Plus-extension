@@ -17,6 +17,7 @@ import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo } from '../../../../util/plusTypes';
 import { amountToHuman, amountToMachine } from '../../../../util/plusUtils';
+import Hint from '../../../../components/Hint';
 
 interface Props {
   chain: Chain;
@@ -142,10 +143,14 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
 
       <Grid container item justifyContent='space-between' sx={{ fontSize: 13, p: '10px 40px 10px' }} xs={12}>
         <Grid item>
-          {t('Proposal bond')}{': '} {bondPercentage.toFixed(2)} %
+          <Hint id='pBond' place='top' tip='% of value would need to be put up as collateral'>
+            {t('Proposal bond')}{': '} {bondPercentage.toFixed(2)} %
+          </Hint>
         </Grid>
         <Grid item>
-          {t('Minimum bond')}{': '} {amountToHuman(minimumBond.toString(), chainInfo.decimals)} {chainInfo?.coin}
+          <Hint id='pBond' place='top' tip='The minimum to put up as collateral'>
+            {t('Minimum bond')}{': '} {amountToHuman(minimumBond.toString(), chainInfo.decimals)} {chainInfo?.coin}
+          </Hint>
         </Grid>
       </Grid>
 
@@ -168,5 +173,5 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
       </Grid>
 
     </Popup>
-  )
+  );
 }
