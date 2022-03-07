@@ -3,20 +3,22 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+/** 
+ * @description here one can vote Aye or Nay to a referendum
+ * 
+*/
 import { ThumbsUpDown as ThumbsUpDownIcon } from '@mui/icons-material';
 import { FormControl, FormHelperText, Grid, InputAdornment, InputLabel, Select, SelectChangeEvent, Skeleton, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, ShowBalance, Password, PlusHeader, Popup } from '../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup,ShowBalance } from '../../../../components';
 import broadcast from '../../../../util/api/broadcast';
 import getBalanceAll from '../../../../util/api/getBalanceAll';
 import { PASS_MAP } from '../../../../util/constants';
-import getChainInfo from '../../../../util/getChainInfo';
 import { ChainInfo, Conviction } from '../../../../util/plusTypes';
 import { amountToHuman, amountToMachine } from '../../../../util/plusUtils';
 
