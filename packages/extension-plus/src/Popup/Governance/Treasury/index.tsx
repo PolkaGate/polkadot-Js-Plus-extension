@@ -34,7 +34,6 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
   const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
-
   useEffect(() => {
     if (!chainInfo) return;
     // get all treasury proposals including approved
@@ -43,6 +42,9 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
       console.log('proposals:', JSON.parse(JSON.stringify(p.proposals)))
     }).catch(console.error);
 
+  }, [chainInfo]);
+
+  useEffect(() => {
     // get all treasury tips
     // eslint-disable-next-line no-void
     void getTips(chainName, 1, 10).then((res) => {
@@ -54,7 +56,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
     void getCurrentBlockNumber(chainName).then((n) => {
       setCurrentBlockNumber(n);
     });
-  }, [chainInfo, chainName]);
+  }, [chainName]);
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
