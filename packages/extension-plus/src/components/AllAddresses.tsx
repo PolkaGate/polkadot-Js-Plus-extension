@@ -32,7 +32,7 @@ interface nameAddress {
   address: string;
 }
 
-export default function AllAddresses({ availableBalance, chain, chainInfo, freeSolo, title = 'Account', selectedAddress, setAvailableBalance, setSelectedAddress, text }: Props): React.ReactElement<Props> {
+export default function AllAddresses({ availableBalance, chain, chainInfo, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);

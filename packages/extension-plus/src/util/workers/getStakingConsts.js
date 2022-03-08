@@ -17,7 +17,7 @@ async function getStackingConsts (_chain) {
 
     return {
       bondingDuration: bondingDuration,
-      existentialDeposit: BigInt(existentialDeposit),
+      existentialDeposit: BigInt(existentialDeposit), // FIXME, sometimes make issue while reading from local storge
       maxNominations: maxNominations,
       maxNominatorRewardedPerValidator: maxNominatorRewardedPerValidator,
       minNominatorBond: Number(minNominatorBond) / (10 ** decimals)
