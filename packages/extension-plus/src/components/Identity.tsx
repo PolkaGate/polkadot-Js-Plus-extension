@@ -5,7 +5,7 @@
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
-import { Email as EmailIcon, LaunchRounded as LaunchRoundedIcon, Twitter as TwitterIcon } from '@mui/icons-material';
+import { CheckCircleRounded as CheckCircleRoundedIcon, Email as EmailIcon, LaunchRounded as LaunchRoundedIcon, RemoveCircleRounded as RemoveCircleRoundedIcon, Twitter as TwitterIcon } from '@mui/icons-material';
 import { Grid, Link, Skeleton } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React from 'react';
@@ -41,6 +41,10 @@ export default function Identity({ accountInfo, chain, iconSize = 24, limitLengt
   displayLength = accountInfo?.identity.twitter ? displayLength : displayLength + ICON_SPACE;
   displayLength = accountInfo?.identity.web ? displayLength : displayLength + ICON_SPACE;
   displayLength = accountInfo?.identity.email ? displayLength : displayLength + ICON_SPACE;
+  const hasJudgements = accountInfo?.identity?.judgements?.toString().match(/reasonable|knownGood|Reasonable|KnownGood/gi);
+  console.log('%o', accountInfo?.identity)
+  console.log(hasJudgements)
+
 
   return (
     <>
@@ -63,7 +67,15 @@ export default function Identity({ accountInfo, chain, iconSize = 24, limitLengt
                 />}
             </Grid>
 
-            <Grid container item justifyContent='flex-start' spacing={1} sx={{ paddingLeft: '5px' }} xs={11}>
+            <Grid alignItems='center' container item justifyContent='flex-start' spacing={1} sx={{ paddingLeft: '5px' }} xs={11}>
+
+              <Grid item>
+                {hasJudgements
+                  ? <CheckCircleRoundedIcon color='success' sx={{ fontSize: 15 }} />
+                  : <RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15 }} />
+                }
+              </Grid>
+
               {accountInfo?.identity.displayParent &&
                 <Grid item>
                   {limitLength ? accountInfo?.identity.displayParent.slice(0, LENGTH_LIMIT) : accountInfo?.identity.displayParent} /
