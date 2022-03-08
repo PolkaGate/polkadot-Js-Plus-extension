@@ -13,8 +13,10 @@ import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../../components';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
+import getTips from '../../../util/api/getTips';
 import { ChainInfo, ProposalsInfo } from '../../../util/plusTypes';
-import Overview from './proposals/Overview';
+import ProposalOverview from './proposals/Overview';
+import TipOverview from './tips/Overview';
 
 interface Props {
   chainName: string;
@@ -28,15 +30,24 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
   const [tabValue, setTabValue] = useState('proposals');
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
 
-  const [tips, setTips] = useState<ProposalsInfo | undefined | null>();
+  const [tips, setTips] = useState<any[]>();
   const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
+
   useEffect(() => {
+    if (!chainInfo) return;
     // get all treasury proposals including approved
     chainInfo?.api.derive.treasury.proposals().then((p) => {
       setProposals(p);
-      console.log('proposals:',JSON.parse(JSON.stringify(p.proposals)))
+      console.log('proposals:', JSON.parse(JSON.stringify(p.proposals)))
+    }).catch(console.error);
+
+    // get all treasury tips
+    // eslint-disable-next-line no-void
+    void getTips(chainName, 1, 10).then((res) => {
+      console.log('tips:', res);
+      setTips(res?.data?.list);
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
@@ -67,16 +78,16 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {proposals !== undefined
-              ? <Overview chain={chain} chainInfo={chainInfo} currentBlockNumber={currentBlockNumber} proposalsInfo={proposals} />
+              ? <ProposalOverview chain={chain} chainInfo={chainInfo} currentBlockNumber={currentBlockNumber} proposalsInfo={proposals} />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>
           : ''}
 
         {tabValue === 'tips'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {/* {tips !== undefined
-              ? <Tips chain={chain} chainInfo={chainInfo} tips={tips} />
-              : <Progress title={'Loading tips ...'} />} */}
+            {tips !== undefined
+              ? <TipOverview chain={chain} chainInfo={chainInfo} tips={tips} />
+              : <Progress title={'Loading tips ...'} />}
           </Grid>
           : ''}
       </Grid>

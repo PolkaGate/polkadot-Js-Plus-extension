@@ -22,11 +22,11 @@ import Hint from '../../../../components/Hint';
 interface Props {
   chain: Chain;
   chainInfo: ChainInfo;
-  showSubmitProposalModal: boolean;
-  handleSubmitProposalModalClose: () => void;
+  showSubmitTipModal: boolean;
+  handleSubmitTipModalClose: () => void;
 }
 
-export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalModalClose, showSubmitProposalModal }: Props): React.ReactElement<Props> {
+export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose, showSubmitTipModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [proposerAddress, setProposerAddress] = useState<string>('');
   const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');
@@ -42,8 +42,6 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
   const tx = chainInfo?.api.tx.treasury.proposeSpend;
   const FEE_DECIMAL_DIGITS = chainInfo?.coin === 'DOT' ? 4 : 6;
 
-  const bondPercentage = useMemo(() => chainInfo?.api.consts.treasury.proposalBond.mul(BN_HUNDRED).div(BN_MILLION).toNumber(), [chainInfo]);
-  const minimumBond = useMemo(() => chainInfo?.api.consts.treasury.proposalBondMinimum.toNumber(), [chainInfo]);
 
   useEffect(() => {
     if (!chainInfo || !tx || !proposerAddress) return;
@@ -91,16 +89,16 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
 
   const handleReject = useCallback((): void => {
     setState('');
-    handleSubmitProposalModalClose();
-  }, [handleSubmitProposalModalClose]);
+    handleSubmitTipModalClose();
+  }, [handleSubmitTipModalClose]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setValue(event.target.value);
   }, []);
 
   return (
-    <Popup handleClose={handleSubmitProposalModalClose} showModal={showSubmitProposalModal}>
-      <PlusHeader action={handleSubmitProposalModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit proposal')} />
+    <Popup handleClose={handleSubmitTipModalClose} showModal={showSubmitTipModal}>
+      <PlusHeader action={handleSubmitTipModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit proposal')} />
 
       <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={proposerAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setProposerAddress} title={t('Proposer')} />
 
