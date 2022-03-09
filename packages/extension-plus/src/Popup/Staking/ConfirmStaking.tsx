@@ -587,7 +587,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!ledger || confirmButtonDisabled || !estimatedFee}
+              isDisabled={!ledger || confirmButtonDisabled || !estimatedFee || Number(totalStakedInHuman) < stakingConsts?.minNominatorBond}
               state={confirmingState}
               text={confirmButtonText}
             />
