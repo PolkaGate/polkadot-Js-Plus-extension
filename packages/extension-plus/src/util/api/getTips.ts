@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import request from 'umi-request';
+
 import { TransferRequest } from '../plusTypes';
 
 export default function getTips(chainName: string, pageNum: number, pageSize: number): Promise<TransferRequest> {
-
   return postReq(`https://${chainName}.api.subscan.io/api/scan/treasury/tips`, {
     // from_block: 8658091,
     // to_block: 8684569,

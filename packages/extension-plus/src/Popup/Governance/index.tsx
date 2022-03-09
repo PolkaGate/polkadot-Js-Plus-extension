@@ -3,7 +3,7 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description list all governance options e.g., Democracy, Council, Treasury, etc.
 */
 import type { ThemeProps } from '../../../../extension-ui/src/types';
@@ -44,9 +44,7 @@ function Governance({ className }: Props): React.ReactElement<Props> {
   useEffect(() => {
     // eslint-disable-next-line no-void
     void cryptoWaitReady().then(() => {
-      if (!keyring.isAvailable) {
-        keyring.loadAll({ store: new AccountsStore() });
-      }
+      keyring.loadAll({ store: new AccountsStore() });
     }).catch(console.error);
   }, []);
 

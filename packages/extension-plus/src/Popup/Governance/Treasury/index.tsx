@@ -41,7 +41,6 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
       setProposals(p);
       console.log('proposals:', JSON.parse(JSON.stringify(p.proposals)))
     }).catch(console.error);
-
   }, [chainInfo]);
 
   useEffect(() => {

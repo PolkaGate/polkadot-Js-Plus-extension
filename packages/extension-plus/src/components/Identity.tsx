@@ -15,6 +15,7 @@ import Identicon from '@polkadot/react-identicon';
 import { Chain } from '../../../extension-chains/src/types';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { ShortAddress } from '.';
+import Hint from './Hint';
 
 interface Props {
   accountInfo: DeriveAccountInfo;
@@ -41,10 +42,9 @@ export default function Identity({ accountInfo, chain, iconSize = 24, limitLengt
   displayLength = accountInfo?.identity.twitter ? displayLength : displayLength + ICON_SPACE;
   displayLength = accountInfo?.identity.web ? displayLength : displayLength + ICON_SPACE;
   displayLength = accountInfo?.identity.email ? displayLength : displayLength + ICON_SPACE;
-  const hasJudgements = accountInfo?.identity?.judgements?.toString().match(/reasonable|knownGood|Reasonable|KnownGood/gi);
-  console.log('%o', accountInfo?.identity)
-  console.log(hasJudgements)
-
+  
+  // to check if the account has a judgement to set a verified green tick
+  const judgement = accountInfo?.identity?.judgements && JSON.stringify(accountInfo?.identity?.judgements).match(/reasonable|knownGood/gi);
 
   return (
     <>
@@ -70,9 +70,9 @@ export default function Identity({ accountInfo, chain, iconSize = 24, limitLengt
             <Grid alignItems='center' container item justifyContent='flex-start' spacing={1} sx={{ paddingLeft: '5px' }} xs={11}>
 
               <Grid item>
-                {hasJudgements
-                  ? <CheckCircleRoundedIcon color='success' sx={{ fontSize: 15 }} />
-                  : <RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15 }} />
+                {judgement
+                  ? <Hint id='judgement' tip={judgement}><CheckCircleRoundedIcon color='success' sx={{ fontSize: 15 }} /></Hint>
+                  : <Hint id='noJudgement' tip={judgement}><RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15 }} /></Hint>
                 }
               </Grid>
 

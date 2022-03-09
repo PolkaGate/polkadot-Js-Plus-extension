@@ -24,7 +24,7 @@ interface Props {
   chainInfo?: ChainInfo;
   text?: string;
   freeSolo?: boolean;
-  title: string;
+  title?: string;
 }
 
 interface nameAddress {
@@ -65,11 +65,8 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
     setAvailableBalance('');
 
     // eslint-disable-next-line no-void
-    void chainInfo.api.query.system.account(selectedAddress).then((result) => {
-      const { available } = handleAccountBalance(result.data);
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      setAvailableBalance(String(available));
+    void chainInfo?.api.derive.balances?.all(selectedAddress).then((b) => {
+      setAvailableBalance(b?.availableBalance.toString());
     });
   }, [chainInfo, selectedAddress, setAvailableBalance]);
 

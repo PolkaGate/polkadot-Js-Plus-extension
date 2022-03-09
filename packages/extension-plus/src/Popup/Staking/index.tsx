@@ -90,11 +90,11 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
 
     // * retrive staking consts from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
+    // const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
 
-    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
-    }
+    // if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
+    //   setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
+    // }
 
     // *** retrive nominated validators from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -136,13 +136,13 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
 
         setgettingStakingConstsFromBlockchain(false);
 
-        if (staker?.address) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
+        // if (staker?.address) {
+        //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
 
-          // eslint-disable-next-line no-void
-          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', stringifiedStakingConsts));
-        }
+        //   // eslint-disable-next-line no-void
+        //   void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', stringifiedStakingConsts));
+        // }
       }
 
       getStakingConstsWorker.terminate();

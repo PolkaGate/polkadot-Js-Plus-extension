@@ -13,6 +13,7 @@ import Identity from '../../../../components/Identity';
 import getLogo from '../../../../util/getLogo';
 import { ChainInfo } from '../../../../util/plusTypes';
 import { amountToHuman } from '../../../../util/plusUtils';
+import SubmitTip from './SubmitTip';
 
 interface Judgment {
   index: number;
@@ -74,7 +75,7 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
       <Grid container justifyContent='flex-end' xs={12}>
         <Grid item sx={{ p: '10px 30px' }}>
           <Button color='warning' onClick={handleSubmitTip} size='small' startIcon={<AddCircleRoundedIcon />} variant='outlined'>
-            {t('sSubmit')}
+            {t('Submit')}
           </Button>
         </Grid>
       </Grid>
@@ -140,14 +141,14 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
           </Paper>);
       })}
 
-      {/* {showSubmitTipModal &&
+      {showSubmitTipModal &&
         <SubmitTip
           chain={chain}
           chainInfo={chainInfo}
           handleSubmitTipModalClose={handleSubmitTipModalClose}
           showSubmitTipModal={showSubmitTipModal}
         />
-      } */}
+      }
     </>
   );
 }

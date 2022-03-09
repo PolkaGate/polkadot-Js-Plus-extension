@@ -5,10 +5,9 @@
 
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, Skeleton, TextField } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import keyring from '@polkadot/ui-keyring';
-import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
@@ -58,14 +57,11 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
 
   useEffect(() => {
     if (!estimatedFee) { setIsDisabled(true); }
-    else {
-      const valueInMachine = amountToMachine(value, chainInfo?.decimals);
-      const valuePercentage = BigInt(bondPercentage) * valueInMachine / 100n;
-      const minBond = BigInt(valuePercentage > minimumBond ? valuePercentage : minimumBond);
+    // else {
 
-      setIsDisabled(minBond + estimatedFee >= BigInt(availableBalance));
-    }
-  }, [availableBalance, bondPercentage, chainInfo?.decimals, estimatedFee, minimumBond, value]);
+    //   setIsDisabled(minBond + estimatedFee >= BigInt(availableBalance));
+    // }
+  }, [availableBalance, chainInfo?.decimals, estimatedFee]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
     setState('confirming');
@@ -98,61 +94,33 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
 
   return (
     <Popup handleClose={handleSubmitTipModalClose} showModal={showSubmitTipModal}>
-      <PlusHeader action={handleSubmitTipModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit proposal')} />
+      <PlusHeader action={handleSubmitTipModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit tip request')} />
 
       <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={proposerAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setProposerAddress} title={t('Proposer')} />
 
       <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
 
-      <Grid item sx={{ p: '20px 40px 20px' }} xs={12}>
+      <Grid item sx={{ p: '15px 40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
           autoFocus
           color='warning'
-          // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
           fullWidth
-          helperText={
-            <Grid container item justifyContent='space-between' xs={12}>
-              <Grid item>
-                {t('The amount will be allocated to the beneficiary if approved')}
-              </Grid>
-              <Grid item>
-                {t('Fee')} {': '}
-                {estimatedFee
-                  ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
-                  : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-                }
-              </Grid>
-            </Grid>
-          }
-          label={t('Value')}
+          helperText={t('why the recipient deserves a tip payout')}
+          label={t('Reason')}
           margin='dense'
           name='value'
-          // onBlur={(event) => handleTransferAmountOnBlur(event.target.value)}
           onChange={handleChange}
-          placeholder='0'
           size='medium'
-          type='number'
+          type='text'
           value={value}
           variant='outlined'
+          multiline
+          rows={4}
         />
       </Grid>
 
-      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, p: '10px 40px 10px' }} xs={12}>
-        <Grid item>
-          <Hint id='pBond' place='top' tip='% of value would need to be put up as collateral'>
-            {t('Proposal bond')}{': '} {bondPercentage.toFixed(2)} %
-          </Hint>
-        </Grid>
-        <Grid item>
-          <Hint id='pBond' place='top' tip='The minimum to put up as collateral'>
-            {t('Minimum bond')}{': '} {amountToHuman(minimumBond.toString(), chainInfo.decimals)} {chainInfo?.coin}
-          </Hint>
-        </Grid>
-      </Grid>
-
-      <Grid container item sx={{ p: '30px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{ p: '15px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}

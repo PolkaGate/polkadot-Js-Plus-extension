@@ -15,9 +15,8 @@ import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup,ShowBalance } from '../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import broadcast from '../../../../util/api/broadcast';
-import getBalanceAll from '../../../../util/api/getBalanceAll';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo, Conviction } from '../../../../util/plusTypes';
 import { amountToHuman, amountToMachine } from '../../../../util/plusUtils';
@@ -65,12 +64,12 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
   }, [chainInfo, isCurrentVote, selectedAddress, selectedConviction, tx, voteInfo, voteValue]);
 
   useEffect(() => {
-    if (!selectedAddress || !chain) return;
+    if (!selectedAddress || !chainInfo?.api) return;
     // eslint-disable-next-line no-void
-    void getBalanceAll(selectedAddress, chain).then((b) => {
+    void chainInfo?.api.derive.balances?.all(selectedAddress).then((b) => {
       setVotingBalance(b?.votingBalance.toString());
     });
-  }, [chain, selectedAddress, t]);
+  }, [chainInfo?.api, selectedAddress, t]);
 
   useEffect(() => {
     if (!estimatedFee) { setIsDisabled(true); }
@@ -105,13 +104,29 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
   }, [handleVoteReferendumModalClose]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setVoteValue(event.target.value);
+    const value = Number(event.target.value) < 0 ? -Number(event.target.value) : Number(event.target.value);
+    
+    setVoteValue(String(value));
   }, []);
 
   const handleConvictionChange = useCallback((event: SelectChangeEvent<number>): void => {
     console.log('selected', event.target.value);
     setSelectedConviction(Number(event.target.value));
   }, []);
+
+  const HelperText = () => (
+    <Grid container item justifyContent='space-between' xs={12}>
+      <Grid item>
+        {t('This value is locked for the duration of the vote')}
+      </Grid>
+      <Grid item>
+        {t('Fee')} {': '}
+        {estimatedFee
+          ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
+          : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+        }
+      </Grid>
+    </Grid>);
 
   return (
     <Popup handleClose={handleVoteReferendumModalClose} showModal={showVoteReferendumModal}>
@@ -131,20 +146,7 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
           color='warning'
           // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
           fullWidth
-          helperText={
-            <Grid container item justifyContent='space-between' xs={12}>
-              <Grid item>
-                {t('This value is locked for the duration of the vote')}
-              </Grid>
-              <Grid item>
-                {t('Fee')} {': '}
-                {estimatedFee
-                  ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
-                  : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-                }
-              </Grid>
-            </Grid>
-          }
+          helperText={<HelperText />}
           label={t('Vote value')}
           margin='dense'
           name='voteValue'
