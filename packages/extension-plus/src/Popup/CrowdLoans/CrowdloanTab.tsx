@@ -51,9 +51,9 @@ function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribu
 
   return (
     <Grid container id='crowdloan-list'>
-      <CrowdloanList chainInfo={chainInfo} crowdloans={activeCrowdloans} description={t('view active crowdloans')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={250} title={t('Actives')} />
-      <CrowdloanList chainInfo={chainInfo} crowdloans={auctionWinners} description={t('view auction winners')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={200} title={t('Winners')} />
-      <CrowdloanList chainInfo={chainInfo} crowdloans={[]} description={t('view ended crowdloans')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={150} title={t('Ended')} />
+      <CrowdloanList chainInfo={chainInfo} crowdloans={activeCrowdloans} description={t('view active crowdloans')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={275} title={t('Actives')} />
+      <CrowdloanList chainInfo={chainInfo} crowdloans={auctionWinners} description={t('view auction winners')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={225} title={t('Winners')} />
+      <CrowdloanList chainInfo={chainInfo} crowdloans={[]} description={t('view ended crowdloans')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={200} title={t('Ended')} />
     </Grid>
   );
 }

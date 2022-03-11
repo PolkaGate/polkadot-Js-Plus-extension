@@ -38,7 +38,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
   if (!display) return (<></>);
 
   return (
-    <Grid item sx={{ paddingTop: '10px' }} xs={12}>
+    <Grid item sx={{ pb: '10px' }} xs={12}>
       <Paper elevation={3}>
         <Grid alignItems='center' container sx={{ padding: '10px' }}>
           <Grid container item justifyContent='flex-start' spacing={1} sx={{ fontSize: 13, fontWeight: 'fontWeightBold' }} xs={6}>
