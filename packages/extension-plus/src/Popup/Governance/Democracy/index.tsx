@@ -23,7 +23,7 @@ import Referendums from './referendums/overview';
 interface Props {
   chainName: string;
   showDemocracyModal: boolean;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   setDemocracyModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -83,7 +83,7 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
 
         {tabValue === 'referendums'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {referendums !== undefined
+            {chainInfo && referendums !== undefined
               ? <Referendums chain={chain} chainInfo={chainInfo} convictions={convictions} currentBlockNumber={currentBlockNumber} referendums={referendums} />
               : <Progress title={'Loading referendums ...'} />}
           </Grid>
@@ -91,7 +91,7 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
 
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {proposalsInfo !== undefined
+            {chainInfo && proposalsInfo !== undefined
               ? <Proposals chain={chain} chainInfo={chainInfo} proposalsInfo={proposalsInfo} />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>

@@ -85,7 +85,7 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
         const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } };
 
         return (
-          <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '20px 30px 10px', p: '10px 20px' }}>
+          <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '10px 30px 10px', p: '10px 20px' }}>
             <Grid alignItems='center' container justifyContent='space-between'>
 
               <Grid container item justifyContent='space-between' sx={{ fontSize: 12, pb: '5px' }} xs={12}>
@@ -96,7 +96,7 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
                   {t('Tippers')}{': '}{tip.tipper_num}
                 </Grid>
                 <Grid item>
-                  {t('Amount')}{': '}{amountToHuman(tip.amount, chainInfo.decimals)}{' '}{chainInfo?.coin}
+                  {t('Amount')}{': '}{amountToHuman(tip.amount, chainInfo.decimals)}{' '}{chainInfo.coin}
                 </Grid>
               </Grid>
 

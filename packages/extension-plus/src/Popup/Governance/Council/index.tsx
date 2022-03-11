@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
+import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
+
 import { AutoAwesomeMotion as AutoAwesomeMotionIcon, Groups as GroupsIcon, People as PeopleIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
@@ -11,14 +13,13 @@ import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation
 import { PlusHeader, Popup, Progress } from '../../../components';
 import getCouncil from '../../../util/api/getCouncil';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
-import getMotions from '../../../util/api/getMotions';
-import { ChainInfo, CouncilInfo, MotionsInfo } from '../../../util/plusTypes';
+import { ChainInfo, CouncilInfo } from '../../../util/plusTypes';
 import Motions from './motions/Motions';
 import Overview from './overview/Overview';
 
 interface Props {
   chainName: string;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   showCouncilModal: boolean;
   setCouncilModalOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -27,8 +28,29 @@ export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('council');
   const [councilInfo, setCouncilInfo] = useState<CouncilInfo>();
-  const [motions, setMotions] = useState<MotionsInfo>();
+  // const [motions, setMotions] = useState<MotionsInfo>();
+  const [motions, setMotions] = useState<DeriveCollectiveProposal[]>();
   const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
+  const [totalMotionsSofar, setTotalMotionsSofar] = useState<number>(0);
+  const [currentMotionsCount, setCurrentMotionsCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!chainInfo) return;
+
+    // eslint-disable-next-line no-void
+    void chainInfo.api.query.council.proposalCount().then((c) => {
+      setTotalMotionsSofar(c.toNumber());
+    });
+
+    // eslint-disable-next-line no-void
+    void chainInfo.api.derive.council?.proposals().then((p) => {
+      if (p) {
+        setMotions(JSON.parse(JSON.stringify(p)));
+
+        if (p?.length) { setCurrentMotionsCount(p.length); }
+      }
+    });
+  }, [chainInfo]);
 
   useEffect(() => {
     // eslint-disable-next-line no-void
@@ -36,10 +58,12 @@ export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen
       setCouncilInfo(c);
     });
 
-    // eslint-disable-next-line no-void
-    void getMotions(chainName).then((m) => {
-      setMotions(m);
-    });
+    // // eslint-disable-next-line no-void
+    // void getMotions(chainName).then((m) => {
+    //   setMotions(m);
+
+    //   if (m?.proposals?.length) { setCurrentMotionsCount(m?.proposals?.length); }
+    // });
 
     // eslint-disable-next-line no-void
     void getCurrentBlockNumber(chainName).then((n) => {
@@ -62,18 +86,18 @@ export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
             <Tab icon={<PeopleIcon fontSize='small' />} iconPosition='start' label='councillors' sx={{ fontSize: 11 }} value='council' />
-            <Tab icon={<AutoAwesomeMotionIcon fontSize='small' />} iconPosition='start' label='Motions' sx={{ fontSize: 11 }} value='motions' />
+            <Tab icon={<AutoAwesomeMotionIcon fontSize='small' />} iconPosition='start' label={`Motions (${currentMotionsCount}/${totalMotionsSofar})`} sx={{ fontSize: 11 }} value='motions' />
           </Tabs>
         </Grid>
         {tabValue === 'council'
-          ? <>{councilInfo
+          ? <>{chainInfo && councilInfo
             ? <Overview chainInfo={chainInfo} councilInfo={councilInfo} />
             : <Progress title={'Loading members info ...'} />}
           </>
           : ''}
 
         {tabValue === 'motions'
-          ? <>{motions
+          ? <>{chainInfo && motions
             ? <Motions chainInfo={chainInfo} currentBlockNumber={currentBlockNumber} motions={motions} />
             : <Progress title={'Loading motions ...'} />}
           </>

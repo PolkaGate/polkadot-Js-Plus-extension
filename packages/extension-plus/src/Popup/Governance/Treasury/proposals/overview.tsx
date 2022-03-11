@@ -23,7 +23,6 @@ interface Props {
 
 export default function Overview({ chain, chainInfo, currentBlockNumber, proposalsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const chainName = chain?.name.replace(' Relay Chain', '');
   const [showSubmitProposalModal, setShowSubmitProposalModal] = useState<boolean>(false);
 
   const handleSubmitProposal = useCallback(() => {
@@ -46,8 +45,8 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, proposa
 
   return (
     <Container disableGutters>
-      <Proposals chain={chain} chainInfo={chainInfo} handleSubmitProposal={handleSubmitProposal} proposals={proposals} showSubmit={true} title={t('Proposals')} />
-      <Proposals chain={chain} chainInfo={chainInfo} proposals={approvals} title={t('Approved')} />
+      <Proposals chain={chain} chainInfo={chainInfo} handleSubmitProposal={handleSubmitProposal} proposals={proposals} showSubmit={true} title={t('proposed')} />
+      <Proposals chain={chain} chainInfo={chainInfo} proposals={approvals} title={t('approved')} />
 
       {showSubmitProposalModal &&
         <SubmitProposal

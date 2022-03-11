@@ -31,6 +31,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
   const [voteInfo, setVoteInfo] = useState<{ voteType: number, refId: string }>();
 
   const chainName = chain?.name.replace(' Relay Chain', '');
+  const { coin, decimals } = chainInfo;
 
   const handleVote = useCallback((voteType: number, refId: string) => {
     setShowVoteReferendumModal(true);
@@ -40,7 +41,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
   const handleVoteReferendumModalClose = useCallback(() => {
     setShowVoteReferendumModal(false);
   }, []);
-  
+
   if (!referendums) return (<></>);
 
   return (
@@ -150,13 +151,13 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
                   <LinearProgress color='warning' sx={{ backgroundColor: 'black' }} value={100 * (Number(r.status.tally.ayes) / (Number(r.status.tally.nays) + Number(r.status.tally.ayes)))} variant='determinate' />
                 </Grid>
                 <Grid item>
-                  {Number(amountToHuman(r.status.tally.ayes.toString(), chainInfo.decimals)).toLocaleString()}{' '}{chainInfo.coin}
+                  {Number(amountToHuman(r.status.tally.ayes.toString(), decimals)).toLocaleString()}{' '}{coin}
                 </Grid>
                 <Grid item sx={{ color: 'green', fontSize: 11 }}>
                   {t('Remaining Time')}{': '} {remainingTime(currentBlockNumber, r.status.end)}
                 </Grid>
                 <Grid item>
-                  {Number(amountToHuman(Number(r.status.tally.nays).toString(), chainInfo.decimals)).toLocaleString()}{' '}{chainInfo.coin}
+                  {Number(amountToHuman(Number(r.status.tally.nays).toString(), decimals)).toLocaleString()}{' '}{coin}
                 </Grid>
               </Grid>
 

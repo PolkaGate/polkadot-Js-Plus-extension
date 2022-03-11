@@ -32,6 +32,8 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
   const [showVoteProposalModal, setShowVoteProposalModal] = useState<boolean>(false);
   const [selectedProposal, setSelectedProposal] = useState<DeriveProposal>();
 
+  const { coin, decimals } = chainInfo;
+
   const handleSecond = useCallback((p: DeriveProposal): void => {
     setShowVoteProposalModal(true);
     setSelectedProposal(p);
@@ -104,10 +106,10 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
 
               <Grid container justifyContent='space-between' sx={{ fontSize: 11, paddingTop: 1, color: 'red' }}>
                 <Grid item>
-                  {t('Locked')}{': '}{Number(amountToHuman(p.balance.toString(), chainInfo.decimals)).toLocaleString()} {' '}{chainInfo.coin}
+                  {t('Locked')}{': '}{Number(amountToHuman(p.balance.toString(), decimals)).toLocaleString()} {' '}{coin}
                 </Grid>
                 <Grid item>
-                  {t('Deposit')}{': '}{amountToHuman(p.image.balance.toString(), chainInfo.decimals, 6)} {' '}{chainInfo.coin}
+                  {t('Deposit')}{': '}{amountToHuman(p.image.balance.toString(), decimals, 6)} {' '}{coin}
                 </Grid>
                 <Grid item>
                   {t('Seconds')}{': '}{p.seconds.length - 1}
@@ -143,7 +145,7 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
           {t('No active proposal')}
         </Grid>}
 
-      {showVoteProposalModal &&
+      {selectedProposal && showVoteProposalModal &&
         <Second
           chain={chain}
           chainInfo={chainInfo}

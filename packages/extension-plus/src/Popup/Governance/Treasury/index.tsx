@@ -21,7 +21,7 @@ import TipOverview from './tips/Overview';
 interface Props {
   chainName: string;
   showTreasuryModal: boolean;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   setTreasuryModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -36,6 +36,8 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
 
   useEffect(() => {
     if (!chainInfo) return;
+    setProposals(undefined); // to clear when change changed
+
     // get all treasury proposals including approved
     chainInfo?.api.derive.treasury.proposals().then((p) => {
       setProposals(p);
@@ -78,7 +80,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
 
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {proposals !== undefined
+            {chainInfo && proposals !== undefined
               ? <ProposalOverview chain={chain} chainInfo={chainInfo} currentBlockNumber={currentBlockNumber} proposalsInfo={proposals} />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>
@@ -86,7 +88,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
 
         {tabValue === 'tips'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {tips !== undefined
+            {chainInfo && tips !== undefined
               ? <TipOverview chain={chain} chainInfo={chainInfo} tips={tips} />
               : <Progress title={'Loading tips ...'} />}
           </Grid>

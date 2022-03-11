@@ -98,6 +98,21 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
     setValue(event.target.value);
   }, []);
 
+  const HelperText = () => (
+    <Grid container item justifyContent='space-between' xs={12}>
+      <Grid item>
+        {t('The amount will be allocated to the beneficiary if approved')}
+      </Grid>
+      <Grid item>
+        {t('Fee')} {': '}
+        {estimatedFee
+          ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
+          : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+        }
+      </Grid>
+    </Grid>
+  );
+
   return (
     <Popup handleClose={handleSubmitProposalModalClose} showModal={showSubmitProposalModal}>
       <PlusHeader action={handleSubmitProposalModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit proposal')} />
@@ -112,26 +127,12 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
           InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
           autoFocus
           color='warning'
-          // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
           fullWidth
-          helperText={
-            <Grid container item justifyContent='space-between' xs={12}>
-              <Grid item>
-                {t('The amount will be allocated to the beneficiary if approved')}
-              </Grid>
-              <Grid item>
-                {t('Fee')} {': '}
-                {estimatedFee
-                  ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
-                  : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-                }
-              </Grid>
-            </Grid>
+          helperText={<HelperText />
           }
           label={t('Value')}
           margin='dense'
           name='value'
-          // onBlur={(event) => handleTransferAmountOnBlur(event.target.value)}
           onChange={handleChange}
           placeholder='0'
           size='medium'

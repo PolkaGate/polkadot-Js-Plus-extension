@@ -62,7 +62,7 @@ export default function Proposals({ chain, chainInfo, handleSubmitProposal, prop
           const beneficiaryAccountInfo = identities?.find((i) => i.accountId.toString() === p.proposal.beneficiary.toString());
 
           return (
-            <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '20px 30px 10px', p: '10px 20px' }}>
+            <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '10px 30px 10px', p: '10px 20px' }}>
               <Grid alignItems='center' container justifyContent='space-between'>
                 <Grid item>
                   <Avatar sx={{ bgcolor: 'black', fontSize: 14, height: 30, width: 30 }}>

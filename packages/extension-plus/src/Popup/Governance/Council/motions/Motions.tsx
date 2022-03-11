@@ -3,18 +3,19 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
+
 import { Avatar, Container, Grid, Link, Paper } from '@mui/material';
 import React from 'react';
 
 import useMetadata from '../../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import Identity from '../../../../components/Identity';
 import getLogo from '../../../../util/getLogo';
-import { ChainInfo, MotionsInfo } from '../../../../util/plusTypes';
+import { ChainInfo } from '../../../../util/plusTypes';
 import { remainingTime } from '../../../../util/plusUtils';
 
 interface Props {
-  motions: MotionsInfo;
+  motions: DeriveCollectiveProposal[];
   chainInfo: ChainInfo;
   currentBlockNumber: number;
 }
@@ -25,14 +26,12 @@ export default function Motions({ chainInfo, currentBlockNumber, motions }: Prop
   const chain = useMetadata(chainInfo.genesisHash, true);
   const chainName = chain?.name.replace(' Relay Chain', '');
 
-  const { accountInfo, proposalInfo, proposals } = pMotions;
-
-  console.log('pmotions', pMotions);
+  // const { accountInfo, proposalInfo, proposals } = pMotions;
 
   return (
     <Container disableGutters maxWidth='md' sx={{ fontSize: 12 }}>
-      {proposals.length
-        ? proposals.map((p, index) => (
+      {motions.length
+        ? motions.map((p, index) => (
           <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '20px 30px 10px', p: '10px 20px' }}>
             <Grid container justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item>
@@ -85,9 +84,9 @@ export default function Motions({ chainInfo, currentBlockNumber, motions }: Prop
               </Grid>
             </Grid>
 
-            {proposalInfo[index]?.proposer &&
+            {/* {proposalInfo[index]?.proposer &&
               <Identity accountInfo={accountInfo[index]} chain={chain} showAddress title={t('Proposer')} />
-            }
+            } */}
           </Paper>
         ))
         : <Grid sx={{ paddingTop: 3, textAlign: 'center' }} xs={12}>
