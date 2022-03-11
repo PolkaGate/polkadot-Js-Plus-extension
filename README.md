@@ -55,17 +55,21 @@ Once added, you can create an account (via a generated seed) or import via an ex
     westend:['0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e'] 
 
 
-2- add network info of westend to '@polkadot/networks/substrate.js':
+2- add network info of westend to '@substrate/ss58-registry/index.js':
 
- {
-    decimals: [12],
-    displayName: 'Westend', 
-    network: 'westend',
-    prefix: 42,
-    standardAccount: '*25519',
-    symbols: ['WND'],
-    website: 'https://polkadot.network'
-  }
+{
+		"prefix": 42,
+		"network": "westend",
+		"displayName": "Westend",
+		"symbols": [
+			"WND"
+		],
+		"decimals": [
+			12
+		],
+		"standardAccount": "*25519",
+		"website": "https://polkadot.network"
+	}
 
 
 
