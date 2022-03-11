@@ -3,7 +3,11 @@
 /* eslint-disable react/jsx-max-props-per-line */
 /* eslint-disable header/header */
 
-/** NOTE this component provides access to allstaking stuff,including stake, unstake, redeem, change validators, staking generak info,etc. */
+/**
+ * @description
+ *  this component provides access to allstaking stuff,including stake, 
+ *  unstake, redeem, change validators, staking generak info,etc. 
+ * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
@@ -48,7 +52,7 @@ interface Props {
 
 const workers: Worker[] = [];
 
-export default function EasyStaking ({ account, chain, chainInfo, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function EasyStaking({ account, chain, chainInfo, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -223,6 +227,21 @@ export default function EasyStaking ({ account, chain, chainInfo, ledger, redeem
 
   useEffect(() => {
     if (!chainInfo || !chain || !staker.address) return;
+
+    // // eslint-disable-next-line no-void
+    // void chainInfo.api.derive.staking.stakerRewards(staker.address).then((t) =>
+    //   console.log('stakerRewards', JSON.parse(JSON.stringify(t)))
+    // );
+
+    // // eslint-disable-next-line no-void
+    // void chainInfo.api.query.balances.totalIssuance().then((t) =>
+    //   console.log('totalIssuance', amountToHuman(t?.toString(), chainInfo?.decimals))
+    // );
+
+    // // eslint-disable-next-line no-void
+    // void chainInfo.api.query.balances.erasTotalStake().then((t) =>
+    //   console.log('erasTotalStake', amountToHuman(t?.toString(), chainInfo?.decimals))
+    // );
 
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
