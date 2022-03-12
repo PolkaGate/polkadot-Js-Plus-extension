@@ -15,3 +15,4 @@ export { default as NothingToShow } from './NothingToShow';
 export { default as Progress } from './Progress';
 export { default as AllAddresses } from './AllAddresses';
 export { default as Password } from './Password';
+export { default as Hint } from './Hint';

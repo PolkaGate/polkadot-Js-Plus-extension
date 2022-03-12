@@ -4,12 +4,12 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /** 
- * @description  this componet is used to show anaccount balance in soem pages like contributeToCrowdloan
+ * @description  this componet is used to show an account balance in some pages like contributeToCrowdloan
  * */
 import type { Balance } from '@polkadot/types/interfaces';
 import type { ThemeProps } from '../../../extension-ui/src/types';
 
-import { Grid, Skeleton } from '@mui/material';
+import { Skeleton } from '@mui/material';
 import React from 'react';
 import styled from 'styled-components';
 
@@ -19,22 +19,21 @@ import { amountToHuman } from '../util/plusUtils';
 export interface Props {
   balance: Balance | bigint | string | number | null | undefined;
   chainInfo: ChainInfo;
-  align?: 'start' | 'end' | 'left' | 'right' | 'center' | 'justify' | 'match-parent';
   title: string;
   decimalDigits?: number;
 }
 
-function ShowBalance({ align = 'right', balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
+function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
   return (
-    <Grid item sx={{ padding: '0px 40px 10px', textAlign: align }} xs={12}>
+    <>
       {title}:{' '}
       {balance
         ? <>
-          {Number(amountToHuman(balance.toString(), chainInfo.decimals, decimalDigits)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: decimalDigits})}{' '}{chainInfo.coin}
+          {Number(amountToHuman(balance.toString(), chainInfo.decimals, decimalDigits)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: decimalDigits })}{' '}{chainInfo.coin}
         </>
         : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
       }
-    </Grid>
+    </>
   );
 }
 

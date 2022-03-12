@@ -74,7 +74,6 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
 
   const handleChange = (_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
     const indexOfDots = value?.indexOf(':');
-    console.log(value)
 
     setSelectedAddress(value?.slice(indexOfDots + 1).trim());
   };
@@ -106,7 +105,7 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
             ListboxProps={{ sx: { fontSize: 12 } }}
             sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 12 } }}
             options={allAddresesOnThisChain?.map((option) => `${option?.name} :    ${option.address}`)}
-            renderInput={(params) => <TextField  {...params} label={title} />}
+            renderInput={(params) => <TextField {...params} label={title} />}
           />
 
           : <FormControl fullWidth>
@@ -153,7 +152,7 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
             </Grid>
             {setAvailableBalance &&
               <Grid item>
-                {t('Balance')} {': '}
+                {t('Balance')}{': '}
                 {availableBalance
                   ? `${amountToHuman(availableBalance, chainInfo?.decimals)}  ${chainInfo?.coin}`
                   : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
