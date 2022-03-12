@@ -61,6 +61,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
       const result: Auction = e.data;
 
       if (result.blockchain === selectedChain) {
+        console.log('Auction:', result);
         setAuction(result);
       }
 
