@@ -142,13 +142,13 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
         />
       </Grid>
 
-      <Grid item sx={{ color: grey[600], fontSize: 13, p: '0px 50px 10px', textAlign: 'right' }} xs={12}>
+      <Grid item sx={{ fontSize: 13, p: '0px 50px 10px', textAlign: 'center' }} xs={12}>
         <Hint id='reportDeposit' place='top' tip='The amount held on deposit for placing the tip report'>
           {t('Report deposit')}{': '} {Number(amountToHuman(String(reportDeposit), decimals)).toFixed(2)}{' '}{coin}
         </Hint>
       </Grid>
 
-      <Grid container item sx={{ p: '30px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{p: '10px 40px 10px', textAlign: 'left' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}
