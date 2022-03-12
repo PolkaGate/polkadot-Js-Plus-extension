@@ -29,7 +29,6 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('proposals');
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
-
   const [tips, setTips] = useState<any[]>();
   const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here

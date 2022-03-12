@@ -3,7 +3,7 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description
  * show a member info including its identity, backed amount ,etc.
  */
@@ -33,8 +33,8 @@ export default function Member({ backed, chain, chainInfo, handleSelect, hasSwit
   const { t } = useTranslation();
 
   return (
-    <Paper elevation={2} sx={{ borderRadius: '10px', margin: '10px 10px 1px', p: '5px 10px 5px' }}>
-      <Grid container sx={{ fontSize: 12 }}>
+    <Paper elevation={2} sx={{ borderRadius: '10px', margin: '5px 10px 1px', p: '1px' }}>
+      <Grid container alignItems='center' sx={{ fontSize: 12 }}>
 
         <Grid container item xs={hasSwitch ? 7 : 8}>
           <Identity accountInfo={info} chain={chain} />
@@ -42,7 +42,7 @@ export default function Member({ backed, chain, chainInfo, handleSelect, hasSwit
 
         {backed &&
           <Grid item sx={{ fontSize: 11, textAlign: 'left' }} xs={4}>
-            {t('Backed')}{': '} {amountToHuman(backed, chainInfo.decimals, 2)} {chainInfo.coin}
+            {t('Backed')}{': '} {amountToHuman(backed, chainInfo.decimals, 2, true)} {chainInfo.coin}
           </Grid>
         }
 

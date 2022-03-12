@@ -12,7 +12,7 @@ import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup } from '../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo } from '../../../../util/plusTypes';
@@ -38,12 +38,12 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<bigint>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
-
-  const tx = chainInfo?.api.tx.treasury.proposeSpend;
-  const FEE_DECIMAL_DIGITS = chainInfo?.coin === 'DOT' ? 4 : 6;
-
-  const bondPercentage = useMemo(() => chainInfo?.api.consts.treasury.proposalBond.mul(BN_HUNDRED).div(BN_MILLION).toNumber(), [chainInfo]);
-  const minimumBond = useMemo(() => chainInfo?.api.consts.treasury.proposalBondMinimum.toNumber(), [chainInfo]);
+  const { api, coin, decimals } = chainInfo;
+  const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
+  const tx = api.tx.treasury.proposeSpend;
+  const bondPercentage = useMemo((): number => (api.consts.treasury.proposalBond.mul(BN_HUNDRED).div(BN_MILLION)).toNumber(), [chainInfo]);
+  const minimumBond = BigInt(String(api.consts.treasury.proposalBondMinimum));
+  const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
 
   useEffect(() => {
     if (!chainInfo || !tx || !proposerAddress) return;
@@ -61,13 +61,13 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
   useEffect(() => {
     if (!estimatedFee) { setIsDisabled(true); }
     else {
-      const valueInMachine = amountToMachine(value, chainInfo?.decimals);
+      const valueInMachine = amountToMachine(value, decimals);
       const valuePercentage = BigInt(bondPercentage) * valueInMachine / 100n;
       const minBond = BigInt(valuePercentage > minimumBond ? valuePercentage : minimumBond);
 
       setIsDisabled(minBond + estimatedFee >= BigInt(availableBalance));
     }
-  }, [availableBalance, bondPercentage, chainInfo?.decimals, estimatedFee, minimumBond, value]);
+  }, [availableBalance, bondPercentage, decimals, estimatedFee, minimumBond, value]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
     setState('confirming');
@@ -78,7 +78,7 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(chainInfo?.api, tx, params, pair);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair);
 
       // TODO can save to history here
       setState(status);
@@ -87,7 +87,7 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [chainInfo?.api, params, password, proposerAddress, tx]);
+  }, [api, params, password, proposerAddress, tx]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -104,11 +104,7 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
         {t('The amount will be allocated to the beneficiary if approved')}
       </Grid>
       <Grid item>
-        {t('Fee')} {': '}
-        {estimatedFee
-          ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
-          : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-        }
+        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
       </Grid>
     </Grid>
   );
@@ -150,7 +146,7 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
         </Grid>
         <Grid item>
           <Hint id='pBond' place='top' tip='The minimum to put up as collateral'>
-            {t('Minimum bond')}{': '} {amountToHuman(minimumBond.toString(), chainInfo.decimals)} {chainInfo?.coin}
+            {t('Minimum bond')}{': '} {toHuman(minimumBond)}
           </Hint>
         </Grid>
       </Grid>

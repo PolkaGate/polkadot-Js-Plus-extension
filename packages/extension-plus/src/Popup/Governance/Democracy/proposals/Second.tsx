@@ -7,6 +7,7 @@ import type { DeriveProposal } from '@polkadot/api-derive/types';
 
 import { RecommendOutlined as RecommendOutlinedIcon } from '@mui/icons-material';
 import { Grid, Typography } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import keyring from '@polkadot/ui-keyring';
@@ -18,7 +19,6 @@ import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo } from '../../../../util/plusTypes';
 import { formatMeta } from '../../../../util/plusUtils';
-import { grey } from '@mui/material/colors';
 
 interface Props {
   selectedProposal: DeriveProposal;
@@ -40,10 +40,11 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
   const value = selectedProposal.image?.proposal;
   const meta = value?.registry.findMetaCall(value.callIndex);
   const description = formatMeta(meta?.meta);
+  const { api, coin, decimals } = chainInfo;
 
-  const tx = chainInfo?.api.tx.democracy.second;
+  const tx = api.tx.democracy.second;
 
-  const params = useMemo(() => chainInfo?.api.tx.democracy.second.meta.args.length === 2
+  const params = useMemo(() => api.tx.democracy.second.meta.args.length === 2
     ? [selectedProposal.index, selectedProposal.seconds.length]
     : [selectedProposal.index], [chainInfo, selectedProposal]);
 
@@ -70,7 +71,7 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(chainInfo?.api, tx, params, pair);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair);
 
       // TODO: can save to history here
       setState(status);
@@ -87,7 +88,7 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
 
       <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} text={t('Select voter')} />
 
-      <Grid sx={{ color: grey[600], fontSize: 11 }} xs={12}>
+      <Grid sx={{ color: grey[600], fontSize: 11, p: '0px 40px 20px', textAlign: 'right' }} xs={12}>
         <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title='Fee' />
       </Grid>
 

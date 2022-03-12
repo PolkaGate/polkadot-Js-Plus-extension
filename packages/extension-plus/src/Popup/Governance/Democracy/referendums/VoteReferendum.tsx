@@ -43,10 +43,11 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<bigint>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
+  const { api, coin, decimals } = chainInfo;
 
-  const isCurrentVote = !!chainInfo?.api.query.democracy.votingOf;
-  const tx = chainInfo?.api.tx.democracy.vote;
-  const FEE_DECIMAL_DIGITS = chainInfo?.coin === 'DOT' ? 4 : 6;
+  const isCurrentVote = !!api.query.democracy.votingOf;
+  const tx = api.tx.democracy.vote;
+  const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
 
   useEffect(() => {
     if (!chainInfo || !tx || !selectedAddress) return;
@@ -64,19 +65,19 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
   }, [chainInfo, isCurrentVote, selectedAddress, selectedConviction, tx, voteInfo, voteValue]);
 
   useEffect(() => {
-    if (!selectedAddress || !chainInfo?.api) return;
+    if (!selectedAddress || !api) return;
     // eslint-disable-next-line no-void
-    void chainInfo?.api.derive.balances?.all(selectedAddress).then((b) => {
+    void api.derive.balances?.all(selectedAddress).then((b) => {
       setVotingBalance(b?.votingBalance.toString());
     });
-  }, [chainInfo?.api, selectedAddress, t]);
+  }, [api, selectedAddress, t]);
 
   useEffect(() => {
     if (!estimatedFee) { setIsDisabled(true); }
     else {
-      setIsDisabled(amountToMachine(voteValue, chainInfo?.decimals) + estimatedFee >= BigInt(availableBalance))
+      setIsDisabled(amountToMachine(voteValue, decimals) + estimatedFee >= BigInt(availableBalance))
     }
-  }, [availableBalance, chainInfo?.decimals, estimatedFee, voteValue]);
+  }, [availableBalance, decimals, estimatedFee, voteValue]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
     setState('confirming');
@@ -87,7 +88,7 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(chainInfo?.api, tx, params, pair);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair);
 
       // TODO can save to history here
       setState(status);
@@ -96,7 +97,7 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [chainInfo?.api, params, password, selectedAddress, tx]);
+  }, [api, params, password, selectedAddress, tx]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -105,7 +106,7 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = Number(event.target.value) < 0 ? -Number(event.target.value) : Number(event.target.value);
-    
+
     setVoteValue(String(value));
   }, []);
 
@@ -122,7 +123,7 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
       <Grid item>
         {t('Fee')} {': '}
         {estimatedFee
-          ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
+          ? amountToHuman(estimatedFee.toString(), decimals, FEE_DECIMAL_DIGITS)
           : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
         }
       </Grid>
@@ -134,7 +135,7 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
 
       <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo} setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedAddress} setSelectedAddress={setSelectedAddress} text={t('Select voter')} />
 
-      <Grid item sx={{ fontSize: 12, pt: 2 }} xs={12}>
+      <Grid item sx={{ fontSize: 12, p: '0px 40px 20px', textAlign: 'right' }} xs={12}>
         <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />
       </Grid>
 
@@ -150,7 +151,6 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
           label={t('Vote value')}
           margin='dense'
           name='voteValue'
-          // onBlur={(event) => handleTransferAmountOnBlur(event.target.value)}
           onChange={handleChange}
           placeholder='0'
           size='medium'

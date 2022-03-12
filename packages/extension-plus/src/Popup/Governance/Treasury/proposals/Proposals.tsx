@@ -8,7 +8,7 @@ import type { DeriveAccountInfo, DeriveTreasuryProposal } from '@polkadot/api-de
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import { Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback,useEffect, useState } from 'react';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
@@ -21,7 +21,7 @@ interface Props {
   proposals: DeriveTreasuryProposal[] | null;
   chain: Chain;
   chainInfo: ChainInfo;
-  title: string
+  title?: string
   showSubmit?: boolean;
   handleSubmitProposal?: () => void;
 }
@@ -30,16 +30,20 @@ export default function Proposals({ chain, chainInfo, handleSubmitProposal, prop
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
   const [identities, setIdentities] = useState<DeriveAccountInfo[]>();
-
-  if (!proposals) return (<></>);
+  const { api, coin, decimals } = chainInfo;
+  const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
+  const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
 
   useEffect(() => {
+    if (!proposals) return;
     const ids = proposals.map((i) => [i.proposal.proposer, i.proposal.beneficiary]).flat();
 
-    Promise.all(ids.map((i) => chainInfo.api.derive.accounts.info(i))).then((infos) => {
+    Promise.all(ids.map((i) => api.derive.accounts.info(i))).then((infos) => {
       setIdentities(infos);
     }).catch(console.error);
-  }, [chainInfo, proposals]);
+  }, [api, proposals]);
+
+  if (!proposals) return (<></>);
 
   return (
     <>
@@ -70,10 +74,10 @@ export default function Proposals({ chain, chainInfo, handleSubmitProposal, prop
                   </Avatar>
                 </Grid>
                 <Grid item sx={{ fontSize: 12 }}>
-                  {t('Payment')}{': '}{amountToHuman(String(p?.proposal.value), chainInfo?.decimals)} {chainInfo.coin}
+                  {t('Payment')}{': '}{toHuman(p?.proposal.value)}
                 </Grid>
                 <Grid item sx={{ fontSize: 12 }}>
-                  {t('Bond')}{': '}{amountToHuman(String(p?.proposal.bond), chainInfo?.decimals)} {chainInfo.coin}
+                  {t('Bond')}{': '}{toHuman(p?.proposal.bond)}
                 </Grid>
 
               </Grid>
@@ -126,13 +130,13 @@ export default function Proposals({ chain, chainInfo, handleSubmitProposal, prop
               </Grid>
 
               <Grid item sx={{ fontSize: 12, pt: 1, textAlign: 'left' }} xs={12}>
-                {p?.proposal.proposer &&
+                {proposerAccountInfo &&
                   <Identity accountInfo={proposerAccountInfo} chain={chain} showAddress title={t('Proposer')} />
                 }
               </Grid>
 
               <Grid item sx={{ fontSize: 12, pt: 1, textAlign: 'left' }} xs={12}>
-                {p?.proposal.beneficiary &&
+                {beneficiaryAccountInfo &&
                   <Identity accountInfo={beneficiaryAccountInfo} chain={chain} showAddress title={t('Beneficiary')} />
                 }
               </Grid>

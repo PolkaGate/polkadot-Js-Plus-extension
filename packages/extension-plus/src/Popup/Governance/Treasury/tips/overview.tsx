@@ -53,14 +53,8 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
   const [showSubmitTipModal, setShowSubmitTipModal] = useState<boolean>(false);
-
-  const handleSubmitTip = useCallback(() => {
-    setShowSubmitTipModal(true);
-  }, []);
-
-  const handleSubmitTipModalClose = useCallback(() => {
-    setShowSubmitTipModal(false);
-  }, []);
+  const handleSubmitTip = useCallback(() => { setShowSubmitTipModal(true); }, []);
+  const handleSubmitTipModalClose = useCallback(() => { setShowSubmitTipModal(false); }, []);
 
   if (!tips) {
     return (

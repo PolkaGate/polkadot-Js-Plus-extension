@@ -45,7 +45,7 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, proposa
 
   return (
     <Container disableGutters>
-      <Proposals chain={chain} chainInfo={chainInfo} handleSubmitProposal={handleSubmitProposal} proposals={proposals} showSubmit={true} title={t('proposed')} />
+      <Proposals chain={chain} chainInfo={chainInfo} handleSubmitProposal={handleSubmitProposal} proposals={proposals} showSubmit={true} />
       <Proposals chain={chain} chainInfo={chainInfo} proposals={approvals} title={t('approved')} />
 
       {showSubmitProposalModal &&

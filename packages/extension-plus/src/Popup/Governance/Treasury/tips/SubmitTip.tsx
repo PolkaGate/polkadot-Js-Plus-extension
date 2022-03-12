@@ -3,6 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+/** 
+ * @description this component is used to submit a treasury tip
+*/
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, Skeleton, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -11,13 +14,12 @@ import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup } from '../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo } from '../../../../util/plusTypes';
 import { amountToHuman } from '../../../../util/plusUtils';
-import { grey } from '@mui/material/colors';
 
 interface Props {
   chain: Chain;
@@ -38,17 +40,12 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<bigint>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
-
   const { api, coin, decimals } = chainInfo;
-
   const tx = api.tx.tips.reportAwesome;
   const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
-
-  const reportDeposit = useMemo(() =>
-    BigInt(api.consts.tips.tipReportDepositBase) + BigInt(api.consts.tips.dataDepositPerByte) * BigInt(reason.length)
-    , [reason]);
-  const maximumReasonLength = useMemo(() => api.consts.tips.maximumReasonLength.toString(), []);
-  console.log('maximumReasonLength', maximumReasonLength);
+  const reportDeposit = useMemo(() => BigInt(String(api.consts.tips.tipReportDepositBase)) + BigInt(String(api.consts.tips.dataDepositPerByte)) * BigInt(reason.length), [reason]);
+  const maximumReasonLength = api.consts.tips.maximumReasonLength.toString();
+  const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
 
   useEffect(() => {
     if (!tx || !proposerAddress || !beneficiaryAddress) return;
@@ -68,7 +65,7 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
     } else {
       setIsDisabled(!(reason && beneficiaryAddress && estimatedFee + reportDeposit < BigInt(availableBalance)));
     }
-  }, [availableBalance, beneficiaryAddress, estimatedFee, reason]);
+  }, [availableBalance, beneficiaryAddress, estimatedFee, reason, reportDeposit]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
     setState('confirming');
@@ -105,11 +102,7 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
         {t('why the recipient deserves a tip payout')}
       </Grid>
       <Grid item>
-        {t('Fee')} {': '}
-        {estimatedFee
-          ? `${amountToHuman(estimatedFee.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`
-          : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-        }
+        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
       </Grid>
     </Grid>);
 
@@ -142,13 +135,13 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
         />
       </Grid>
 
-      <Grid item sx={{ fontSize: 13, p: '0px 50px 10px', textAlign: 'center' }} xs={12}>
-        <Hint id='reportDeposit' place='top' tip='The amount held on deposit for placing the tip report'>
-          {t('Report deposit')}{': '} {Number(amountToHuman(String(reportDeposit), decimals)).toFixed(2)}{' '}{coin}
+      <Grid item sx={{ fontSize: 13, p: '0px 50px 10px', textAlign: 'right' }} xs={12}>
+        <Hint id='reportDeposit' place='left' tip={t('The amount held on deposit for placing the tip report')}>
+          {t('Report deposit')}{': '} {toHuman(reportDeposit)}
         </Hint>
       </Grid>
 
-      <Grid container item sx={{p: '10px 40px 10px', textAlign: 'left' }} xs={12}>
+      <Grid container item sx={{ p: '20px 40px 10px', textAlign: 'left' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}

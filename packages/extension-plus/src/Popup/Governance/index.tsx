@@ -27,7 +27,6 @@ import CouncilIndex from './Council/index';
 import Democracy from './Democracy/index';
 import Treasury from './Treasury/index';
 
-
 interface Props extends ThemeProps {
   className?: string;
 }
@@ -38,7 +37,6 @@ function Governance({ className }: Props): React.ReactElement<Props> {
   const [showDemocracyModal, setDemocracyModalOpen] = useState<boolean>(false);
   const [showCouncilModal, setCouncilModalOpen] = useState<boolean>(false);
   const [showTreasuryModal, setTreasuryModalOpen] = useState<boolean>(false);
-
   const [chainInfo, setChainInfo] = useState<ChainInfo>();
 
   useEffect(() => {
