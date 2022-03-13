@@ -15,7 +15,7 @@ function Progress ({ title }: Props): React.ReactElement<Props> {
       container
       direction='column'
       justifyContent='center'
-      sx={{ paddingTop: '40px' }}
+      sx={{ paddingTop: '50px' }}
     >
       <Grid item>
         <CircularProgress
