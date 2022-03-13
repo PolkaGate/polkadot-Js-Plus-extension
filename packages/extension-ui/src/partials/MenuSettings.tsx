@@ -172,7 +172,7 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
           className='crowdloans'
           icon={faCompass}
           onClick={_goToCrowdloans}
-          text={t<string>('Contribute in Crowdloans')}
+          text={t<string>('Crowdloans')}
         />
       </MenuItem>
       <MenuItem className='setting'>
