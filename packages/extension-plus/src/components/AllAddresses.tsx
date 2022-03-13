@@ -22,7 +22,7 @@ interface Props {
   availableBalance?: string;
   setAvailableBalance?: React.Dispatch<React.SetStateAction<string>>;
   chainInfo?: ChainInfo;
-  text?: string;
+  text?: string | Element;
   freeSolo?: boolean;
   title?: string;
 }
