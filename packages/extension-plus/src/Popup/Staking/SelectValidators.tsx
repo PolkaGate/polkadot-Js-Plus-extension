@@ -225,12 +225,20 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
           {t('Identity')}
         </Grid>
         <Grid alignItems='center' container item onClick={(e) => handleRequestSort(e, 'commission')} sx={{ textAlign: 'right', cursor: 'pointer' }} xs={2}>
-          <Grid item xs={6}> {order === 'asc' && orderBy === 'commission' ? <ArrowDropDownIcon /> : <ArrowDropUpIcon />}</Grid>
-          <Grid item xs={6}> {t('Commision')}</Grid>
+          <Grid item xs={6}>
+            {order === 'asc' && orderBy === 'commission' ? <ArrowDropDownIcon /> : <ArrowDropUpIcon />}
+          </Grid>
+          <Grid item xs={6}>
+            {t('Commision')}
+          </Grid>
         </Grid>
         <Grid alignItems='center' container item onClick={(e) => handleRequestSort(e, 'nominator')} sx={{ textAlign: 'right', cursor: 'pointer' }} xs={2}>
-          <Grid item xs={6}> {order === 'asc' && orderBy === 'nominator' ? <ArrowDropDownIcon /> : <ArrowDropUpIcon />}</Grid>
-          <Grid item xs={6}> {t('Nominators')}</Grid>
+          <Grid item xs={6}>
+            {order === 'asc' && orderBy === 'nominator' ? <ArrowDropDownIcon /> : <ArrowDropUpIcon />}
+          </Grid>
+          <Grid item xs={6} sx={{ textAlign: 'center' }}>
+            {t('Nominators')}
+          </Grid>
         </Grid>
         <Grid item sx={{ pl: '50px' }} xs={2}>
           {t('Select')}
@@ -246,7 +254,7 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
       <Header />
 
       <Container disableGutters sx={{ height: 325, overflowY: 'auto', scrollbarWidth: 'none' }}>
-        {selected && selected.slice().sort(getComparator(order, orderBy)).map((validator, index) =>
+        {selected && selected.sort(getComparator(order, orderBy)).map((validator, index) =>
           <ShowValidator
             chain={chain}
             handleMoreInfo={handleMoreInfo}
@@ -260,7 +268,7 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
             validatorsIdentities={validatorsIdentities}
           />)}
 
-        {notSelectedValidators && notSelectedValidators.slice().sort(getComparator(order, orderBy)).map((validator, index) =>
+        {notSelectedValidators && notSelectedValidators.sort(getComparator(order, orderBy)).map((validator, index) =>
           <ShowValidator
             chain={chain}
             handleMoreInfo={handleMoreInfo}

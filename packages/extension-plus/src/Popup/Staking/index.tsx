@@ -175,6 +175,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     getValidatorsInfoWorker.onmessage = (e) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const fetchedValidatorsInfo: Validators | null = e.data;
+      setGettingNominatedValidatorsInfoFromBlockchain(false);
 
       console.log(`got validators from blockchain, current: ${fetchedValidatorsInfo?.current?.length} waiting ${fetchedValidatorsInfo?.waiting?.length} `);
 
@@ -304,7 +305,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
         .filter((v: DeriveStakingQuery) => nominatedValidatorsId.includes(String(v.accountId)));
 
       setNominatedValidatorsInfo(nominatedValidatorsIds);
-      setGettingNominatedValidatorsInfoFromBlockchain(false);
+      // setGettingNominatedValidatorsInfoFromBlockchain(false);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominatedValidatorsIds));
@@ -430,7 +431,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
               <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
               <Tab
-                icon={gettingNominatedValidatorsInfoFromBlockchain && !noNominatedValidators
+                icon={gettingNominatedValidatorsInfoFromBlockchain
                   ? <CircularProgress size={12} thickness={2} />
                   : oversubscribedsCount
                     ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>

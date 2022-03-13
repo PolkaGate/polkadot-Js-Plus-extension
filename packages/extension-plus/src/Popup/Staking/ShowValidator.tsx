@@ -75,24 +75,23 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
           {Number(validator.validatorPrefs.commission) / (10 ** 7) < 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
         </Grid>
 
-        <Grid alignItems='center' container item justifyContent='center' spacing={0.2} xs={2}>
+        <Grid alignItems='center' container spacing={0} direction='column' item xs={2}>
           <Grid item>
-            {nominatorCount || 'waiting'}
+            {!!nominatorCount && isActive &&
+              <Hint id='active' place='left' tip='Active'>
+                <DirectionsRunIcon color='primary' sx={{ fontSize: '17px' }} />
+              </Hint>
+            }
           </Grid>
           <Grid item>
-            {!!nominatorCount &&
-              <>
-                {isActive &&
-                  <Hint id='active' place='left' tip='Active'>
-                    <DirectionsRunIcon color='primary' sx={{ fontSize: '20px' }} />
-                  </Hint>
-                }
-                {isOverSubscribed &&
-                  <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
-                    <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '20px' }} />
-                  </Hint>
-                }
-              </>}
+            {!!nominatorCount && isOverSubscribed &&
+              <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
+                <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '17px' }} />
+              </Hint>
+            }
+          </Grid>
+          <Grid item>
+            {nominatorCount || 'waiting'}
           </Grid>
         </Grid>
 
