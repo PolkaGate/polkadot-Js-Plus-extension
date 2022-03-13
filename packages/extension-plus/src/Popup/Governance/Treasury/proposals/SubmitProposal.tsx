@@ -140,18 +140,18 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
 
       <Grid container item justifyContent='space-between' sx={{ fontSize: 13, p: '10px 40px 10px' }} xs={12}>
         <Grid item>
-          <Hint id='pBond' place='top' tip='% of value would need to be put up as collateral'>
+          <Hint icon={true} id='pBond' place='right' tip='% of value would need to be put up as collateral'>
             {t('Proposal bond')}{': '} {bondPercentage.toFixed(2)} %
           </Hint>
         </Grid>
         <Grid item>
-          <Hint id='pBond' place='top' tip='The minimum to put up as collateral'>
+          <Hint icon={true} id='mBond' place='left' tip='the minimum to put up as collateral'>
             {t('Minimum bond')}{': '} {toHuman(minimumBond)}
           </Hint>
         </Grid>
       </Grid>
 
-      <Grid container item sx={{ p: '30px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{ p: '25px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}

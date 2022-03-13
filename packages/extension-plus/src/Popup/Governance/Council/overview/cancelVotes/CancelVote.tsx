@@ -96,18 +96,21 @@ export default function CancelVote({ allCouncilInfo, chain, chainInfo, setShowMy
     <Popup handleClose={handleClose} showModal={showMyVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<GroupRemoveIcon fontSize='small' />} title={'My Votes'} />
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} title={t('Voter')} />
+      <AllAddresses
+        availableBalance={availableBalance}
+        chain={chain} chainInfo={chainInfo}
+        selectedAddress={selectedAddress}
+        setAvailableBalance={setAvailableBalance}
+        setSelectedAddress={setSelectedAddress}
+        text={<ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />}
+        title={t('Voter')}
+      />
 
-      <Grid container justifyContent='space-between' sx={{ fontSize: 12, p: '0px 40px 0px 80px' }}>
-        <Grid item>
-          <ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />
-        </Grid>
-        <Grid item sx={{ color: grey[600] }}>
-          <ShowBalance balance={estimatedFee} chainInfo={chainInfo} title={t('Fee')} />
-        </Grid>
+      <Grid item sx={{ color: grey[600], fontSize: 12, p: '0px 40px 0px 80px', textAlign: 'right' }}>
+        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} title={t('Fee')} />
       </Grid>
 
-      <Container id='scrollArea' sx={{ height: '250px', overflowY: 'auto' }}>
+      <Container id='scrollArea' sx={{ height: '255px', overflowY: 'auto' }}>
         {votesInfo && filteredPersonsInfo
           ? <Members chain={chain} chainInfo={chainInfo} membersType={t('Votes')} personsInfo={filteredPersonsInfo} />
           : <Progress title={t('Loading votes ...')} />

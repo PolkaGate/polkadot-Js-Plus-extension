@@ -7,7 +7,7 @@
  * @description this component is used to submit a treasury tip
 */
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
-import { Grid, Skeleton, TextField } from '@mui/material';
+import { Grid, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import keyring from '@polkadot/ui-keyring';
@@ -99,7 +99,7 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
   const HelperText = () => (
     <Grid container item justifyContent='space-between' xs={12}>
       <Grid item>
-        {t('why the recipient deserves a tip payout')}
+        {t('why the recipient deserves a tip payout?')}
       </Grid>
       <Grid item>
         <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
@@ -135,13 +135,13 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
         />
       </Grid>
 
-      <Grid item sx={{ fontSize: 13, p: '0px 50px 10px', textAlign: 'right' }} xs={12}>
-        <Hint id='reportDeposit' place='left' tip={t('The amount held on deposit for placing the tip report')}>
+      <Grid item sx={{ fontSize: 13, p: '15px 50px', textAlign: 'right' }} xs={12}>
+        <Hint icon={true} id='reportDeposit' place='left' tip={t('held on deposit for placing the tip report')}>
           {t('Report deposit')}{': '} {toHuman(reportDeposit)}
         </Hint>
       </Grid>
 
-      <Grid container item sx={{ p: '20px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{ p: '25px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}

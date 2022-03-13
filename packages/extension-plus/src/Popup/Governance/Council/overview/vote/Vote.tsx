@@ -102,9 +102,9 @@ export default function Vote({ allCouncilInfo, chain, chainInfo, setShowVotesMod
       <Grid item>
         {t('will be locked and used in elections')}
       </Grid>
-      {/* <Grid item>
+      <Grid item>
         <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
-      </Grid> */}
+      </Grid>
     </Grid>
   );
 
@@ -112,49 +112,46 @@ export default function Vote({ allCouncilInfo, chain, chainInfo, setShowVotesMod
     <Popup handleClose={handleClose} showModal={showVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<HowToRegIcon fontSize='small' />} title={'Vote'} />
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} title={t('Voter')} />
+      <AllAddresses
+        availableBalance={availableBalance}
+        chain={chain} chainInfo={chainInfo}
+        selectedAddress={selectedAddress}
+        setAvailableBalance={setAvailableBalance}
+        setSelectedAddress={setSelectedAddress}
+        text={
+          <Hint icon={true} id='votingBond' place='bottom' tip={t('will be reserved for the duration of your vote')}>
+            <ShowBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
+          </Hint>
+        }
+        title={t('Voter')}
+      />
 
-      <Grid container alignItems='center' justifyContent='space-between' sx={{ p: '0px 40px 0px 80px', fontSize: 12 }}>
-        <Grid item xs={7}>
-          <TextField
-            InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end' sx={{ fontSize: 10 }}>{coin}</InputAdornment>) }}
-            color='warning'
-            fullWidth
-            helperText={<HelperText />}
-            label={t('Vote value')}
-            margin='dense'
-            name='value'
-            onChange={handleChange}
-            placeholder='0'
-            size='medium'
-            type='number'
-            value={voteValue}
-            variant='outlined'
-          />
-        </Grid>
-
-        <Grid alignItems='flex-start' container direction='column' item justifyContent='space-between' xs={4} >
-          <Grid item sx={{ pb: 1 }}>
-            <Hint id='votingBond' tip={t('amount will be reserved for the duration of your vote')}>
-              <ShowBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
-            </Hint>
-          </Grid>
-          <Grid item sx={{ color: grey[600] }}>
-            <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
-          </Grid>
-        </Grid>
-
+      <Grid item xs={12} sx={{ p: '5px 40px', fontSize: 11 }}>
+        <TextField
+          InputProps={{ endAdornment: (<InputAdornment position='end' sx={{ fontSize: 10 }}>{coin}</InputAdornment>) }}
+          color='warning'
+          fullWidth
+          helperText={<HelperText />}
+          label={t('Vote value')}
+          margin='dense'
+          name='value'
+          onChange={handleChange}
+          placeholder='0'
+          size='medium'
+          type='number'
+          value={voteValue}
+          variant='outlined'
+        />
       </Grid>
 
       {allCouncilInfo
         ? <Grid container sx={{ padding: '0px 30px' }}>
 
-          <Grid id='scrollArea' item sx={{ height: '180px', overflowY: 'auto' }} xs={12}>
+          <Grid id='scrollArea' item sx={{ height: '172px', overflowY: 'auto' }} xs={12}>
             <VoteMembers chain={chain} chainInfo={chainInfo} membersType={t('Accounts to vote')} personsInfo={allCouncilInfo} setSelectedCandidates={setSelectedCandidates} />
           </Grid>
 
-          <Grid container item sx={{ paddingTop: '15px' }} xs={12}>
+          <Grid container item sx={{ paddingTop: '10px' }} xs={12}>
             <Password
               handleIt={handleVote}
               password={password}
