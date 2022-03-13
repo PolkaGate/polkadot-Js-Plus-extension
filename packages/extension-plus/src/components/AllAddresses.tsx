@@ -39,7 +39,6 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
   const [allAddresesOnThisChain, setAllAddresesOnThisChain] = useState<nameAddress[]>([]);
 
   function showAlladdressesOnThisChain(prefix: number): void {
-    console.log('accounts', accounts);
     const allAddresesOnSameChain = accounts.map((acc): nameAddress => {
       const publicKey = decodeAddress(acc.address);
 
@@ -151,7 +150,7 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
               {text}
             </Grid>
             {setAvailableBalance &&
-              <Grid item>
+              <Grid item data-testid='balance'>
                 {t('Balance')}{': '}
                 {availableBalance
                   ? `${amountToHuman(availableBalance, chainInfo?.decimals)}  ${chainInfo?.coin}`
