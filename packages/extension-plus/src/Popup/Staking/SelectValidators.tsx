@@ -296,7 +296,7 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
   const [searching, setSearching] = useState<boolean>(false);
   const [filterHighCommissionsState, setFilterHighCommissions] = useState(true);
   const [filterOverSubscribedsState, setFilterOverSubscribeds] = useState(true);
-  const [filterNoNamesState, setFilterNoNames] = useState(false);
+  const [filterNoNamesState, setFilterNoNames] = useState(true);
   const [filterWaitingsState, setFilterWaitings] = useState(true);
   const [selected, setSelected] = useState<DeriveStakingQuery[]>([]);
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
@@ -312,14 +312,8 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
     filteredValidators = filteredValidators?.filter((v) => !v.validatorPrefs.blocked);
 
     filteredValidators = filterWaitingsState ? filteredValidators?.filter((v) => v.exposure.others.length !== 0) : filteredValidators;
-
-    if (filterOverSubscribedsState) {
-      filteredValidators = filteredValidators?.filter((v) => v.exposure.others.length < stakingConsts.maxNominatorRewardedPerValidator);
-    }
-
-    if (filterHighCommissionsState) {
-      filteredValidators = filteredValidators?.filter((v) => Number(v.validatorPrefs.commission) / (10 ** 7) <= DEFAULT_VALIDATOR_COMMISION_FILTER);
-    }
+    filteredValidators = filterOverSubscribedsState ? filteredValidators?.filter((v) => v.exposure.others.length < stakingConsts.maxNominatorRewardedPerValidator) : filteredValidators;
+    filteredValidators = filterHighCommissionsState ? filteredValidators?.filter((v) => Number(v.validatorPrefs.commission) / (10 ** 7) <= DEFAULT_VALIDATOR_COMMISION_FILTER) : filteredValidators;
 
     if (filterNoNamesState && validatorsIdentities) {
       filteredValidators = filteredValidators?.filter((v) =>
@@ -361,7 +355,7 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
     setFilterOverSubscribeds(true);
     setFilterHighCommissions(true);
     setFilterWaitings(true);
-    setFilterNoNames(false);
+    setFilterNoNames(true);
     setState('');
     setSearching(false);
     setSearchedValidators([]);
@@ -400,6 +394,7 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
             <FormControlLabel
               control={<Checkbox
                 color='default'
+                defaultChecked
                 onChange={filterNoNames}
                 size='small'
               />

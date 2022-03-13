@@ -48,12 +48,12 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
       <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
         <Grid alignItems='center' item xs={1}>
-          <IconButton aria-label='more info' component='span' onClick={() => handleMoreInfo(validator)}>
+          <IconButton aria-label='more info' component='span' size='small' onClick={() => handleMoreInfo(validator)}>
             <MoreVertIcon fontSize={showSwitch ? 'medium' : 'small'} />
           </IconButton>
         </Grid>
 
-        <Grid item sx={{ fontSize: 11 }} xs={showSwitch ? 6 : 5}>
+        <Grid item sx={{ fontSize: 11 }} xs={6}>
           {validatorsIdentities
             ? <Identity
               accountInfo={getAccountInfo(validator?.accountId)}
@@ -71,12 +71,15 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
           </Grid>
         }
 
-        <Grid item sx={{ textAlign: 'center' }} xs={2}>
-          {Number(validator.validatorPrefs.commission) === 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
+        <Grid item sx={{ textAlign: 'center' }} xs={showSwitch ? 2 : 1}>
+          {Number(validator.validatorPrefs.commission) / (10 ** 7) < 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
         </Grid>
 
-        <Grid alignItems='center' item xs={2}>
-          <Grid item sx={{ textAlign: 'center' }} xs={6}>
+        <Grid alignItems='center' container item justifyContent='center' spacing={0.2} xs={2}>
+          <Grid item>
+            {nominatorCount || 'waiting'}
+          </Grid>
+          <Grid item>
             {!!nominatorCount &&
               <>
                 {isActive &&
@@ -90,9 +93,6 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
                   </Hint>
                 }
               </>}
-          </Grid>
-          <Grid item sx={{ textAlign: 'center' }} xs={6}>
-            {nominatorCount || 'waiting'}
           </Grid>
         </Grid>
 
