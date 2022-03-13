@@ -242,12 +242,12 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
               {t('Network Fee')}
             </Grid>
             <Grid item sx={{ fontSize: 13, marginLeft: '5px', textAlign: 'left' }}>
-              <Hint id='networkFee' tip={t<string>('Network fees are paid to network validators who process transactions on the network. This wallet does not profit from fees. Fees are set by the network and fluctuate based on network traffic and transaction complexity.')}>
+              <Hint id='networkFee1' tip={t<string>('Network fees are paid to network validators who process transactions on the network. This wallet does not profit from fees. Fees are set by the network and fluctuate based on network traffic and transaction complexity.')}>
                 <InfoTwoToneIcon color='action' fontSize='small' />
               </Hint>
             </Grid>
             <Grid item sx={{ alignItems: 'center', fontSize: 13, textAlign: 'left' }}>
-              <Hint id='networkFee' tip={t<string>('get newtwork fee now')}>
+              <Hint id='networkFee2' tip={t<string>('get newtwork fee now')}>
                 <IconButton onClick={refreshNetworkFee} sx={{ top: -7 }}>
                   <RefreshRounded color='action' fontSize='small' />
                 </IconButton>
