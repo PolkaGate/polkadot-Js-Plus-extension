@@ -3,6 +3,8 @@
 
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import { AccountJson } from '@polkadot/extension-base/background/types';
+import { Chain } from '@polkadot/extension-chains/types';
 import keyring from '@polkadot/ui-keyring';
 import { cryptoWaitReady } from '@polkadot/util-crypto';
 
@@ -1205,7 +1207,7 @@ export const endpoints: LinkOption[] = [
   }
 ];
 
-export function makeShortAddr(address: string) {
+export function makeShortAddr (address: string) {
   return `${address.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
 }
 
@@ -1271,7 +1273,7 @@ export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[9].address, exposure: { others: others, total: 12345.6 }, validatorPrefs: { commission: 750000000 } }
 ];
 
-export async function createAccount(suri: string, extension: Extension): Promise<string> {
+export async function createAccount (suri: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: westendGenesisHash,
     name: 'Amir khan',
@@ -1285,7 +1287,7 @@ export async function createAccount(suri: string, extension: Extension): Promise
   return address;
 }
 
-export async function createExtension(): Promise<Extension> {
+export async function createExtension (): Promise<Extension> {
   try {
     return new Promise((resolve) => {
       cryptoWaitReady()
@@ -1312,3 +1314,63 @@ export async function createExtension(): Promise<Extension> {
     console.error('Catch error when loadAll:', error);
   }
 }
+
+export const accounts = [
+  { address: '14fyMNdvtG6FiqQ1c4YiVr33kXeRGj5Nv4wceNyRV3ePeMw7', genesisHash: westendGenesisHash, name: 'Amir', type: 'sr25519' },
+  { address: '5GYmFzQCuC5u3tQNiMZNbFGakrz3Jq31NmMg4D2QAkSoQ2g5', genesisHash: westendGenesisHash, name: 'Kami', type: 'sr25519' },
+  { address: '5D2TPhGEy2FhznvzaNYW9AkuMBbg3cyRemnPsBvBY4ZhkZXA', genesisHash: westendGenesisHash, name: 'Mary', type: 'sr25519' }
+] as AccountJson[];
+
+export const chain: Chain = {
+  definition: {
+    chain: 'Polkadot Relay Chain',
+    genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
+    icon: 'polkadot',
+    ss58Format: 0,
+    specVersion: 0,
+    tokenDecimals: 15,
+    tokenSymbol: 'Unit',
+    types: {}
+  },
+  genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
+  hasMetadata: false,
+  icon: 'polkadot',
+  isUnknown: false,
+  name: 'polkadot',
+  registry: {},
+  specVersion: 0,
+  ss58Format: 0,
+  tokenDecimals: 15,
+  tokenSymbol: 'Unit'
+};
+
+export const convictions = [
+  {
+    text: '0.1x voting balance, no lockup period',
+    value: 0
+  },
+  {
+    text: '1x voting balance, locked for 1x enactment (8.00 days)',
+    value: 1
+  },
+  {
+    text: '2x voting balance, locked for 2x enactment (16.00 days)',
+    value: 2
+  },
+  {
+    text: '3x voting balance, locked for 4x enactment (32.00 days)',
+    value: 3
+  },
+  {
+    text: '4x voting balance, locked for 8x enactment (64.00 days)',
+    value: 4
+  },
+  {
+    text: '5x voting balance, locked for 16x enactment (128.00 days)',
+    value: 5
+  },
+  {
+    text: '6x voting balance, locked for 32x enactment (256.00 days)',
+    value: 6
+  }
+];
