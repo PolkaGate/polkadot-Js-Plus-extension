@@ -37,12 +37,12 @@ export default function Identity({ accountInfo, chain, iconSize = 24, limitLengt
     displayLength = LENGTH_LIMIT - parentLength < 0 ? 0 : LENGTH_LIMIT - parentLength;
   }
 
-  const ICON_SPACE = 3;
+  const ICON_SPACE = 6;
 
   displayLength = accountInfo?.identity.twitter ? displayLength : displayLength + ICON_SPACE;
   displayLength = accountInfo?.identity.web ? displayLength : displayLength + ICON_SPACE;
   displayLength = accountInfo?.identity.email ? displayLength : displayLength + ICON_SPACE;
-  
+
   // to check if the account has a judgement to set a verified green tick
   const judgement = accountInfo?.identity?.judgements && JSON.stringify(accountInfo?.identity?.judgements).match(/reasonable|knownGood/gi);
 
@@ -67,79 +67,84 @@ export default function Identity({ accountInfo, chain, iconSize = 24, limitLengt
                 />}
             </Grid>
 
-            <Grid alignItems='center' container item justifyContent='flex-start' spacing={1} sx={{ paddingLeft: '5px' }} xs={11}>
+            <Grid alignItems='center' container item sx={{ paddingLeft: '5px' }} xs={11}>
+              <Grid alignItems='center' container item justifyContent='flex-start' spacing={0.3} xs={12}>
 
-              <Grid item>
-                {judgement
-                  ? <Hint id='judgement' tip={judgement}><CheckCircleRoundedIcon color='success' sx={{ fontSize: 15 }} /></Hint>
-                  : <Hint id='noJudgement' tip={judgement}><RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15 }} /></Hint>
+                <Grid item>
+                  {judgement
+                    ? <Hint id='judgement' tip={judgement}><CheckCircleRoundedIcon color='success' sx={{ fontSize: 15, pt: 1 }} /></Hint>
+                    : <Hint id='noJudgement' tip={judgement}><RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15, pt: 1 }} /></Hint>
+                  }
+                </Grid>
+
+                {accountInfo?.identity.displayParent &&
+                  <Grid item>
+                    {limitLength ? accountInfo?.identity.displayParent.slice(0, LENGTH_LIMIT) : accountInfo?.identity.displayParent} /
+                  </Grid>
+                }
+                {accountInfo?.identity.display &&
+                  <Grid item sx={accountInfo?.identity.displayParent && { color: grey[500] }}>
+                    {limitLength ? accountInfo?.identity.display.slice(0, displayLength) : accountInfo?.identity.display} { }
+                  </Grid>
+                }
+
+                {!(accountInfo?.identity.displayParent || accountInfo?.identity.display) &&
+                  <Grid item sx={{ textAlign: 'letf' }}>
+                    {accountInfo?.accountId && <ShortAddress address={String(accountInfo?.accountId)} />}
+                  </Grid>
+                }
+
+                {accountInfo?.identity.twitter &&
+                  <Grid item>
+                    <Link href={`https://TwitterIcon.com/${accountInfo?.identity.twitter}`}>
+                      <TwitterIcon
+                        color='primary'
+                        sx={{ fontSize: 15 }}
+                      />
+                    </Link>
+                  </Grid>
+                }
+
+                {accountInfo?.identity.email &&
+                  <Grid item>
+                    <Link href={`mailto:${accountInfo?.identity.email}`}>
+                      <EmailIcon
+                        color='secondary'
+                        sx={{ fontSize: 15 }}
+                      />
+                    </Link>
+                  </Grid>
+                }
+
+                {accountInfo?.identity.web &&
+                  <Grid item>
+                    <Link
+                      href={accountInfo?.identity.web}
+                      rel='noreferrer'
+                      target='_blank'
+                    >
+                      <LaunchRoundedIcon
+                        color='primary'
+                        sx={{ fontSize: 15 }}
+                      />
+                    </Link>
+                  </Grid>
                 }
               </Grid>
 
-              {accountInfo?.identity.displayParent &&
-                <Grid item>
-                  {limitLength ? accountInfo?.identity.displayParent.slice(0, LENGTH_LIMIT) : accountInfo?.identity.displayParent} /
-                </Grid>
-              }
-              {accountInfo?.identity.display &&
-                <Grid item sx={accountInfo?.identity.displayParent && { color: grey[500] }}>
-                  {limitLength ? accountInfo?.identity.display.slice(0, displayLength) : accountInfo?.identity.display} { }
-                </Grid>
-              }
+              <Grid alignItems='center' container item justifyContent='flex-start' sx={{ paddingLeft: '18px' }} xs={12}>
+                {showAddress &&
+                  <Grid item sx={{ color: grey[500], textAlign: 'left' }} xs={12}>
+                    {String(accountInfo?.accountId)}
+                  </Grid>
+                }
+                {totalStaked &&
+                  <Grid item sx={{ color: grey[500], fontSize: 11, lineHeight: '10px', textAlign: 'left' }} xs={12}>
+                    {totalStaked}
+                  </Grid>
+                }
+              </Grid>
 
-              {!(accountInfo?.identity.displayParent || accountInfo?.identity.display) &&
-                <Grid item sx={{ textAlign: 'letf' }}>
-                  {accountInfo?.accountId && <ShortAddress address={String(accountInfo?.accountId)} />}
-                </Grid>
-              }
-
-              {accountInfo?.identity.twitter &&
-                <Grid item>
-                  <Link href={`https://TwitterIcon.com/${accountInfo?.identity.twitter}`}>
-                    <TwitterIcon
-                      color='primary'
-                      sx={{ fontSize: 15 }}
-                    />
-                  </Link>
-                </Grid>
-              }
-
-              {accountInfo?.identity.email &&
-                <Grid item>
-                  <Link href={`mailto:${accountInfo?.identity.email}`}>
-                    <EmailIcon
-                      color='secondary'
-                      sx={{ fontSize: 15 }}
-                    />
-                  </Link>
-                </Grid>
-              }
-
-              {accountInfo?.identity.web &&
-                <Grid item>
-                  <Link
-                    href={accountInfo?.identity.web}
-                    rel='noreferrer'
-                    target='_blank'
-                  >
-                    <LaunchRoundedIcon
-                      color='primary'
-                      sx={{ fontSize: 15 }}
-                    />
-                  </Link>
-                </Grid>
-              }
-
-              {showAddress &&
-                <Grid item sx={{ color: grey[500], textAlign: 'left' }} xs={12}>
-                  {String(accountInfo?.accountId)}
-                </Grid>
-              }
-              {totalStaked &&
-                <Grid item sx={{ color: grey[500], fontSize: 11, lineHeight: '10px', textAlign: 'left' }} xs={12}>
-                  {totalStaked}
-                </Grid>
-              }
             </Grid>
           </Grid>
           : <Skeleton sx={{ fontWeight: 'bold', lineHeight: '16px', width: '80%' }} />
