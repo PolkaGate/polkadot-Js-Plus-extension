@@ -25,7 +25,7 @@ export interface Props {
 
 function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
   return (
-    <>
+    <div data-testid='showBalance'>
       {title}:{' '}
       {balance
         ? <>
@@ -33,7 +33,7 @@ function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React
         </>
         : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
       }
-    </>
+    </div>
   );
 }
 
