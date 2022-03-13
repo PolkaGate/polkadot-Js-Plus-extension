@@ -159,7 +159,6 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
           setPassword={setPassword}
           setPasswordStatus={setPasswordStatus}
         />
-
         <ConfirmButton
           handleBack={handleReject}
           handleConfirm={handleConfirm}
@@ -168,7 +167,6 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
           state={state}
         />
       </Grid>
-
     </Popup>
   );
 }

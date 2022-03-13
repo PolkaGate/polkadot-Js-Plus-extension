@@ -112,14 +112,13 @@ export default function Vote({ allCouncilInfo, chain, chainInfo, setShowVotesMod
     <Popup handleClose={handleClose} showModal={showVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<HowToRegIcon fontSize='small' />} title={'Vote'} />
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} title={t('Voter account')} />
+      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} title={t('Voter')} />
 
       <Grid container alignItems='center' justifyContent='space-between' sx={{ p: '0px 40px 0px 80px', fontSize: 12 }}>
         <Grid item xs={7}>
           <TextField
             InputLabelProps={{ shrink: true }}
             InputProps={{ endAdornment: (<InputAdornment position='end' sx={{ fontSize: 10 }}>{coin}</InputAdornment>) }}
-            autoFocus
             color='warning'
             fullWidth
             helperText={<HelperText />}
@@ -135,8 +134,8 @@ export default function Vote({ allCouncilInfo, chain, chainInfo, setShowVotesMod
           />
         </Grid>
 
-        <Grid alignItems='left' container direction='column' item justifyContent='space-between' xs={4} >
-          <Grid item >
+        <Grid alignItems='flex-start' container direction='column' item justifyContent='space-between' xs={4} >
+          <Grid item sx={{ pb: 1 }}>
             <Hint id='votingBond' tip={t('amount will be reserved for the duration of your vote')}>
               <ShowBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
             </Hint>

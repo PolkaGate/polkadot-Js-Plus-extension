@@ -141,7 +141,7 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
         </Hint>
       </Grid>
 
-      <Grid container item sx={{ p: '20px 40px 10px', textAlign: 'left' }} xs={12}>
+      <Grid container item sx={{ p: '20px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}
@@ -149,7 +149,6 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
           setPassword={setPassword}
           setPasswordStatus={setPasswordStatus}
         />
-
         <ConfirmButton
           handleBack={handleReject}
           handleConfirm={handleConfirm}
@@ -158,7 +157,6 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
           state={state}
         />
       </Grid>
-
     </Popup>
   );
 }

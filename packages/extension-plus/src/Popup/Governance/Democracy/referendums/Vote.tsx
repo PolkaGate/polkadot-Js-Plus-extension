@@ -3,9 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description here one can vote Aye or Nay to a referendum
- * 
+ *
 */
 import { ThumbsUpDown as ThumbsUpDownIcon } from '@mui/icons-material';
 import { FormControl, FormHelperText, Grid, InputAdornment, InputLabel, Select, SelectChangeEvent, Skeleton, TextField } from '@mui/material';
@@ -133,13 +133,14 @@ export default function VoteReferendum({ chain, chainInfo, convictions, handleVo
     <Popup handleClose={handleVoteReferendumModalClose} showModal={showVoteReferendumModal}>
       <PlusHeader action={handleVoteReferendumModalClose} chain={chain} closeText={'Close'} icon={<ThumbsUpDownIcon fontSize='small' />} title={'Vote'} />
 
-      <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo} setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedAddress} setSelectedAddress={setSelectedAddress} text={t('Select voter')} />
+      <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo} setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedAddress} setSelectedAddress={setSelectedAddress} title={t('Voter')} 
+      text={ <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />} />
 
-      <Grid item sx={{ fontSize: 12, p: '0px 40px 20px', textAlign: 'right' }} xs={12}>
+      {/* <Grid item sx={{ fontSize: 12, p: '0px 40px 20px', textAlign: 'right' }} xs={12}>
         <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />
-      </Grid>
+      </Grid> */}
 
-      <Grid item sx={{ p: '0px 40px 20px' }} xs={12}>
+      <Grid item sx={{ p: '40px 40px 20px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
           InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}

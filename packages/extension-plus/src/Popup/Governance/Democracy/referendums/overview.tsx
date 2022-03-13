@@ -15,7 +15,7 @@ import { VOTE_MAP } from '../../../../util/constants';
 import getLogo from '../../../../util/getLogo';
 import { ChainInfo, Conviction } from '../../../../util/plusTypes';
 import { amountToHuman, formatMeta, remainingTime } from '../../../../util/plusUtils';
-import VoteReferendum from './VoteReferendum';
+import VoteReferendum from './Vote';
 
 interface Props {
   referendums: DeriveReferendumExt[];
