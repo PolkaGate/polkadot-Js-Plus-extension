@@ -22,7 +22,7 @@ import { Chain } from '../../../../extension-chains/src/types';
 import { AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
-import { ConfirmButton, Password, PlusHeader, Popup } from '../../components';
+import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
 import Hint from '../../components/Hint';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
@@ -97,19 +97,6 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
 
     setTotal(fixFloatingPoint(total));
   }, [chainInfo?.decimals, newFee, transferAmount]);
-
-  function makeAddressShort(_address: string): React.ReactElement {
-    return (
-      <Box
-        component='span'
-        fontFamily='Monospace'
-      // fontStyle='oblique'
-      // fontWeight='fontWeightBold'
-      >
-        {toShortAddress(_address)}
-      </Box>
-    );
-  }
 
   const handleConfirmModaClose = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -192,11 +179,11 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
         />
       </Grid>
       <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={6}>
-        <Grid item sx={{ fontSize: 14, textAlign: 'left' }} xs={12}>
-          {name || makeAddressShort(String(address))}
+        <Grid item sx={{ fontSize: 14, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
+          {name || <ShortAddress address={address} />}
         </Grid>
-        {name && <Grid item sx={{ fontSize: 13, textAlign: 'left', color: grey[500] }} xs={12}>
-          {makeAddressShort(String(address))}
+        {name && <Grid item sx={{ color: grey[500], fontSize: 13, textAlign: 'left' }} xs={12}>
+          <ShortAddress address={address} />
         </Grid>
         }
       </Grid>
