@@ -382,9 +382,10 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   }, [handleConfirmStakingModaOpen, state]);
 
   const handleWithdrowUnbound = useCallback(() => {
+    if (!redeemable) return;
     if (!state) setState('withdrawUnbound');
     handleConfirmStakingModaOpen();
-  }, [handleConfirmStakingModaOpen, state]);
+  }, [handleConfirmStakingModaOpen, redeemable, state]);
 
   const getAmountToConfirm = useCallback(() => {
     switch (state) {
