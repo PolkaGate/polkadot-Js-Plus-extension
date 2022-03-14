@@ -373,7 +373,6 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
               endAdornment: (
                 <InputAdornment position='end'>
                   <IconButton
-                    // eslint-disable-next-line react/jsx-no-bind
                     onClick={handleClearRecepientAddress}
                   >
                     {recepient !== null ? <ClearIcon /> : ''}
@@ -390,7 +389,6 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
             fullWidth
             helperText={t('Reciever and sender must be on the same network')}
             label={t('Recipient')}
-            // eslint-disable-next-line react/jsx-no-bind
             onChange={handleRecepientAddressChange}
             placeholder={t('Search, Public address')}
             size='medium'
