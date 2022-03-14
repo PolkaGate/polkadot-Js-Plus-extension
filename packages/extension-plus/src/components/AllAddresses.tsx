@@ -97,14 +97,14 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
       <Grid item xs={11}>
         {freeSolo
           ? <Autocomplete
+            ListboxProps={{ sx: { fontSize: 12 } }}
             freeSolo
             id='Select-account'
-            onChange={handleChange}
             onBlur={handleBlur}
-            ListboxProps={{ sx: { fontSize: 12 } }}
-            sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 12 } }}
+            onChange={handleChange}
             options={allAddresesOnThisChain?.map((option) => `${option?.name} :    ${option.address}`)}
             renderInput={(params) => <TextField {...params} label={title} />}
+            sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 12 } }}
           />
 
           : <FormControl fullWidth>
@@ -113,9 +113,8 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
               label='Select address'
               native
               onChange={handleAddressChange}
-              sx={{ fontSize: 12, height: 50 }}
+              sx={{ fontSize: 12, height: 50, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}
               value={selectedAddress}
-
             >
               {allAddresesOnThisChain?.map((a) => (
                 // <MenuItem key={address} value={address}>
@@ -150,7 +149,7 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
               {text}
             </Grid>
             {setAvailableBalance &&
-              <Grid item data-testid='balance'>
+              <Grid data-testid='balance' item>
                 {t('Balance')}{': '}
                 {availableBalance
                   ? `${amountToHuman(availableBalance, chainInfo?.decimals)}  ${chainInfo?.coin}`
