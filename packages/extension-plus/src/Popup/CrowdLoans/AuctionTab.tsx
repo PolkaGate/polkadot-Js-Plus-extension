@@ -82,18 +82,25 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
         <Grid item sx={{ fontSize: 15, fontWeight: 'fontWeightBold' }} xs={3}>
           {t('Auction')}
         </Grid>
-        <Grid item sx={{ fontSize: 12, textAlign: 'center' }} xs={4}>
-          <b> {t('Lease')}</b><br /> {firstLease} {' - '}{firstLease + lastLease}
+        <Grid item sx={{ fontSize: 12, fontWeight: 600, textAlign: 'left' }} xs={2}>
+          {t('Lease')}<br />
+          {t('Current block')}<br />
+          {t('Auction stage')}  <br />
+          {t('Ending stage')}
         </Grid>
-        <Grid item sx={{ fontSize: 12, textAlign: 'right' }} xs={4}>
-          <b> {t('Current block')}</b><br />{currentBlock}
+        <Grid item sx={{ fontSize: 12, textAlign: 'right' }} xs={5}>
+          {firstLease} {' - '}{firstLease + lastLease}<br />
+          {currentBlock}<br />
+          {AUCTION_START_BLOCK}{' - '}{candlePhaseStartBlock}<br />
+          {candlePhaseStartBlock}{' - '}{candlePhaseStartBlock + endingPeriod}
         </Grid>
-        <Grid item sx={{ fontSize: 12, textAlign: 'center' }} xs={6}>
-          <b> {t('Auction stage')}</b> <br /> {AUCTION_START_BLOCK}{' - '}{candlePhaseStartBlock}
+        <Grid item sx={{ color: grey[600], fontSize: 12, textAlign: 'right' }} xs={1}>
+          {t('slots')}<br />
+          {t('block')}<br />
+          {t('blocks')}<br />
+          {t('blocks')}<br />
         </Grid>
-        <Grid item sx={{ fontSize: 12, textAlign: 'center' }} xs={6}>
-          <b>{t('Ending stage')} </b> <br /> {candlePhaseStartBlock}{' - '}{candlePhaseStartBlock + endingPeriod}
-        </Grid>
+
         <Grid item sx={{ pt: '20px' }} xs={12}>
           <LinearProgress
             color='warning'
