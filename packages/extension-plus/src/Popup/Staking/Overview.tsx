@@ -39,9 +39,9 @@ interface BalanceProps {
 
 function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
   return (<>
-    <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }}>
+    <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }} xs={12}>
       {label}
-    </div>
+    </Grid>
     {amount === null || amount === 'NaN' || amount === undefined
       ? <Skeleton sx={{ display: 'inline-block', fontWeight: '400', lineHeight: '16px', width: '70px' }} />
       : <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.6px', lineHeight: '16px' }}>
@@ -69,19 +69,27 @@ export default function Overview({ availableBalanceInHuman, chainInfo, currently
           <Grid item xs={4}>
             <Balance amount={totalReceivedReward} label={t('Reward')} coin={chainInfo?.coin} />
           </Grid>
-          <Grid container item xs={4}>
-            {redeemable && <Grid item xs={12}>
-              <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
-                <IconButton disabled={!redeemable} edge='start' onClick={handleWithdrowUnbound} size='small'>
-                  <RedeemIcon color={redeemable ? 'warning' : 'disabled'} fontSize='inherit' />
-                </IconButton>
-              </Hint>
-            </Grid>
-            }
-            <Grid item xs={12}>
-              <Balance amount={amountToHuman(String(redeemable), chainInfo?.decimals)} label={t('Redeemable')} coin={chainInfo?.coin} />
+
+          <Grid container item justifyContent='center' xs={4}>
+            <Grid container item justifyContent='center' xs={12}>
+              <Balance
+                amount={amountToHuman(String(redeemable), chainInfo?.decimals)}
+                label={
+                  <Grid container item justifyContent='center'>
+                    <Grid item >
+                      {t('Redeemable')}
+                    </Grid>
+                    <Grid item>
+                      <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
+                        <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                      </Hint>
+                    </Grid>
+                  </Grid>
+                }
+                coin={chainInfo?.coin} />
             </Grid>
           </Grid>
+
           <Grid item xs={4}>
             <Balance amount={amountToHuman(String(unlockingAmount), chainInfo?.decimals)} label={t('Unstaking')} coin={chainInfo?.coin} />
           </Grid>
