@@ -349,7 +349,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
           <Grid item sx={{ color: grey[800], fontSize: 13, textAlign: 'left' }} xs={1}>
             {t('Sender')}:
           </Grid>
-          <Grid item xs={1} sx={{ textAlign: 'center' }}>
+          <Grid item sx={{ textAlign: 'center' }} xs={1}>
             <Identicon
               prefix={chain?.ss58Format ?? 42}
               size={20}
@@ -357,8 +357,8 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
               value={sender.address}
             />
           </Grid>
-          <Grid container direction='column' item xs={10} sx={{ fontSize: 14, textAlign: 'left' }}>
-            <Grid item sx={{ fontSize: 14, textAlign: 'left' }}>
+          <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={10}>
+            <Grid item sx={{ fontSize: 14, overflow: 'hidden', textAlign: 'left', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
               {sender.name}
             </Grid>
             <Grid item sx={{ fontSize: 14, textAlign: 'left' }}>
