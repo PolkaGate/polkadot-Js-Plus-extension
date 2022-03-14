@@ -141,7 +141,7 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
         </Hint>
       </Grid>
 
-      <Grid container item sx={{ p: '25px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{ p: '15px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}
