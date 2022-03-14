@@ -397,8 +397,8 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
             />
           }
         </Grid>
-        <Grid container id='filteringItems' item justifyContent='center' sx={{ p: '10px 20px 0px' }} xs={12}>
-          <Grid item sx={{ fontSize: 13, textAlign: 'right' }} xs={3}>
+        <Grid container id='filteringItems' item justifyContent='space-between' sx={{ p: '10px 28px' }} xs={12}>
+          <Grid item sx={{ fontSize: 13, textAlign: 'right' }}  >
             <FormControlLabel
               control={<Checkbox
                 color='default'
@@ -410,7 +410,7 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
               label={<Box fontSize={11} sx={{ color: 'green' }}>{t('only have an ID')}</Box>}
             />
           </Grid>
-          <Grid item sx={{ fontSize: 13, textAlign: 'center' }} xs={3}>
+          <Grid item sx={{ fontSize: 13, textAlign: 'center' }}  >
             <FormControlLabel
               control={<Checkbox
                 color='default'
@@ -422,7 +422,7 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
               label={<Box fontSize={11} sx={{ color: 'red' }}>{t('no ')}{DEFAULT_VALIDATOR_COMMISION_FILTER}+ {t(' comm.')}</Box>}
             />
           </Grid>
-          <Grid item sx={{ fontSize: 13, textAlign: 'left' }} xs={3}>
+          <Grid item sx={{ fontSize: 13, textAlign: 'left' }}  >
             <FormControlLabel
               control={<Checkbox
                 color='default'
@@ -431,10 +431,10 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
                 size='small'
               />
               }
-              label={<Box fontSize={11} sx={{ color: 'red' }}>{t('no oversubscribd')}</Box>}
+              label={<Box fontSize={11} sx={{ color: 'red', whiteSpace: 'nowrap' }}>{t('no oversubscribed')}</Box>}
             />
           </Grid>
-          <Grid item sx={{ fontSize: 13, textAlign: 'left' }} xs={3}>
+          <Grid item sx={{ fontSize: 13, textAlign: 'left' }}  >
             <FormControlLabel
               control={<Checkbox
                 color='default'
