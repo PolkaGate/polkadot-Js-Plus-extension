@@ -47,7 +47,7 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
     <Paper elevation={2} key={key} sx={{ backgroundColor: rowBackground, borderRadius: '10px', margin: '5px 0px 1px', p: '1px' }}>
       <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
-        <Grid alignItems='center' item xs={1}>
+        <Grid alignItems='center' item xs={1} sx={{ textAlign: 'center' }}>
           <IconButton aria-label='more info' component='span' size='small' onClick={() => handleMoreInfo(validator)}>
             <MoreVertIcon fontSize={showSwitch ? 'medium' : 'small'} />
           </IconButton>
