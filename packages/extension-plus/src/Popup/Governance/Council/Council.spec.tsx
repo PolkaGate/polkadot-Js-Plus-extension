@@ -1,9 +1,6 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import '@polkadot/extension-mocks/chrome';
 
 import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
@@ -19,7 +16,7 @@ import getCouncil from '../../../util/api/getCouncil';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo, CouncilInfo, PersonsInfo } from '../../../util/plusTypes';
-import { amountToHuman, handleAccountBalance } from '../../../util/plusUtils';
+import { amountToHuman, handleAccountBalance, remainingTime } from '../../../util/plusUtils';
 import { accounts, chain, makeShortAddr } from '../../../util/test/testHelper';
 import Motions from './motions/Motions';
 import CouncilCouncilors from './overview/Overview';
@@ -177,13 +174,13 @@ describe('Testing Council component', () => {
     );
 
     expect('Vote').toBeTruthy();
-    expect(queryByText('Voter account')).toBeTruthy();
-    // expect(queryByText('Select voter')).toBeTruthy();
+    expect(queryByText('Voter')).toBeTruthy();
     await waitFor(() => {
-      expect(queryByTestId('available')?.textContent).toEqual(`Balance: ${amountToHuman(String(availableBalance), chainInfo.decimals)}  ${chainInfo.coin}`);
+      expect(queryByTestId('balance')?.textContent).toEqual(`Balance: ${amountToHuman(String(availableBalance), chainInfo.decimals)}  ${chainInfo.coin}`);
     }, { timeout: 15000 });
     expect(queryByText('Voting bond:')).toBeTruthy();
     expect(queryByText('Accounts to vote')).toBeTruthy();
+    expect(queryByText('will be locked and used in elections')).toBeTruthy();
 
     for (const councilInfo of allCouncilInfo.infos) {
       if (councilInfo.identity.display && councilInfo.identity.displayParent) {
@@ -216,9 +213,9 @@ describe('Testing Council component', () => {
     );
 
     expect(queryByText('Index')).toBeTruthy();
-    expect(queryByText('Voting end')).toBeTruthy();
-    expect(queryByText('Vots')).toBeTruthy();
-    expect(queryByText('Threshold')).toBeTruthy();
+    expect(queryByText(`Voting end${remainingTime(currentBlockNumber, motions[0].votes.end)}#${motions[0].votes.end}`)).toBeTruthy();
+    expect(queryByText(`VotsAye ${motions[0].votes.ayes.length}/${motions[0].votes.threshold}`)).toBeTruthy();
+    expect(queryByText(`Threshold${motions[0].votes.threshold}`)).toBeTruthy();
     expect(queryAllByRole('link')).toHaveLength(2);
   });
 });

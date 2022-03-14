@@ -1,10 +1,6 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable no-return-assign */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import '@polkadot/extension-mocks/chrome';
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -26,7 +22,6 @@ ReactDOM.createPortal = jest.fn((modal) => modal);
 const decimals = 12;
 const validAmountToStake = 10;
 const amountToUnstake = 7;
-const invalidAmountToStake = 14.99;
 const redeemAmount = 5;
 const availableBalanceInHuman = 15; // WND
 const balanceInfo: BalanceType = {
@@ -89,7 +84,7 @@ describe('Testing ConfirmStaking component', () => {
     expect(queryByText('More')).toBeTruthy();
     expect(queryByText('Identity')).toBeTruthy();
     expect(queryByText('Staked')).toBeTruthy();
-    expect(queryByText('Commission')).toBeTruthy();
+    expect(queryByText('Comm.')).toBeTruthy();
     expect(queryByText('Nominators')).toBeTruthy();
 
     for (const validator of validatorsList) {

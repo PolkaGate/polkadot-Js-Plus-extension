@@ -80,12 +80,12 @@ describe('Testing TransferFund index', () => {
   });
 
   test('Checking component functionality with invalid address', () => {
-    fireEvent.change(screen.queryByLabelText('Recipient'), { target: { value: invalidAddress } });
+    fireEvent.change(screen.queryByLabelText('Recipient') as Element, { target: { value: invalidAddress } });
     expect(screen.queryAllByText('Recipient address is invalid')).toHaveLength(1);
   });
 
   test('Checking component functionality with valid address but invalid amount', () => {
-    fireEvent.change(screen.queryByLabelText('Recipient'), { target: { value: recepientAddress } });
+    fireEvent.change(screen.queryByLabelText('Recipient') as Element, { target: { value: recepientAddress } });
     expect(screen.queryAllByText('Recipient address is invalid')).toHaveLength(0);
 
     expect(rendered.container.querySelector('#transferBody')).not.toBeNull();
@@ -95,20 +95,20 @@ describe('Testing TransferFund index', () => {
     expect(screen.queryAllByText('Amount:')).toHaveLength(1);
     expect(screen.queryAllByLabelText('Transfer Amount')).toHaveLength(1);
 
-    fireEvent.change(screen.queryByLabelText('Transfer Amount'), { target: { value: invalidAmount } });
-    expect(screen.queryByTestId('nextButton').children.item(0).textContent).toEqual('Insufficient Balance');
-    expect(screen.queryByTestId('nextButton').children.item(0).hasAttribute('disabled')).toBe(true);
+    fireEvent.change(screen.queryByLabelText('Transfer Amount') as Element, { target: { value: invalidAmount } });
+    expect(screen.queryByTestId('nextButton')?.children.item(0)?.textContent).toEqual('Insufficient Balance');
+    expect(screen.queryByTestId('nextButton')?.children.item(0)?.hasAttribute('disabled')).toBe(true);
   });
 
   test('Checking component functionality with valid address and valid amount', () => {
-    fireEvent.change(screen.queryByLabelText('Recipient'), { target: { value: recepientAddress } });
-    fireEvent.change(screen.queryByLabelText('Transfer Amount'), { target: { value: transferAmountInHuman } });
-    expect(screen.queryByTestId('nextButton').children.item(0).textContent).toEqual('Next');
-    expect(screen.queryByTestId('nextButton').children.item(0).hasAttribute('disabled')).toBe(false);
+    fireEvent.change(screen.queryByLabelText('Recipient') as Element, { target: { value: recepientAddress } });
+    fireEvent.change(screen.queryByLabelText('Transfer Amount') as Element, { target: { value: transferAmountInHuman } });
+    expect(screen.queryByTestId('nextButton')?.children.item(0)?.textContent).toEqual('Next');
+    expect(screen.queryByTestId('nextButton')?.children.item(0)?.hasAttribute('disabled')).toBe(false);
 
-    expect(screen.queryByTestId('allButton').children.item(0).textContent).toEqual('All');
-    expect(screen.queryByTestId('safeMaxButton').children.item(0).textContent).toEqual('Max');
-    fireEvent.click(screen.queryByTestId('nextButton').children.item(0));
+    expect(screen.queryByTestId('allButton')?.children.item(0)?.textContent).toEqual('All');
+    expect(screen.queryByTestId('safeMaxButton')?.children.item(0)?.textContent).toEqual('Max');
+    fireEvent.click(screen.queryByTestId('nextButton')?.children.item(0) as Element);
     expect(screen.queryAllByText('Confirm Transfer')).toHaveLength(1);
   });
 });
@@ -121,6 +121,8 @@ describe('Testing transferFund with real account', () => {
   const secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
 
   beforeAll(async () => {
+    chainInfo = await getChainInfo(props.chain.name);
+
     extension = await createExtension();
     const firstAddress = await createAccount(firstSuri, extension);
 
@@ -134,10 +136,8 @@ describe('Testing transferFund with real account', () => {
     };
   });
 
-  beforeEach(async () => {
-    const chainInfo = await getChainInfo(props.chain.name);
-
-    render(
+  test('checking All button', async () => {
+    const { container, queryAllByText, queryByLabelText, queryByTestId } = render(
       <TransferFund
         chain={props.chain}
         chainInfo={chainInfo}
@@ -146,27 +146,34 @@ describe('Testing transferFund with real account', () => {
         transferModalOpen={true}
       />
     );
-  });
 
-  test('checking All button', async () => {
-    fireEvent.change(screen.queryByLabelText('Recipient'), { target: { value: secondAddress } });
-    expect(screen.queryByTestId('allButton').children.item(0).textContent).toEqual('All');
-    fireEvent.click(screen.queryByTestId('allButton').children.item(0).children.item(0));
+    fireEvent.change(queryByLabelText('Recipient') as Element, { target: { value: secondAddress } });
+    expect(queryByTestId('allButton')?.children.item(0)?.textContent).toEqual('All');
+    fireEvent.click(container.querySelector('button[name=All]') as Element);
+    await waitFor(() => expect(queryByTestId('nextButton')?.children.item(0)?.hasAttribute('disabled')).toBe(false), { timeout: 20000 });// wait enough to receive fee from blockchain
 
-    await waitFor(() => expect(screen.queryByTestId('nextButton').children.item(0).hasAttribute('disabled')).toBe(false), { timeout: 10000 });// wait enough to receive fee from blockchain
-
-    fireEvent.click(screen.queryByTestId('nextButton').children.item(0));
-    expect(screen.queryAllByText('Confirm Transfer')).toHaveLength(1);
+    fireEvent.click(screen.queryByTestId('nextButton')?.children.item(0) as Element);
+    expect(queryAllByText('Confirm Transfer')).toHaveLength(1);
   });
 
   test('checking Max button', async () => {
-    fireEvent.change(screen.queryByLabelText('Recipient'), { target: { value: secondAddress } });
+    const { container, queryAllByText, queryByLabelText, queryByTestId } = render(
+      <TransferFund
+        chain={props.chain}
+        chainInfo={chainInfo}
+        givenType={props.givenType}
+        sender={realSender}
+        transferModalOpen={true}
+      />
+    );
 
-    expect(screen.queryByTestId('safeMaxButton').children.item(0).textContent).toEqual('Max');
-    fireEvent.click(screen.queryByTestId('safeMaxButton').children.item(0).children.item(0));
-    await waitFor(() => expect(screen.queryByTestId('nextButton').children.item(0).hasAttribute('disabled')).toBe(false), { timeout: 10000 });
+    fireEvent.change(queryByLabelText('Recipient') as Element, { target: { value: secondAddress } });
 
-    fireEvent.click(screen.queryByTestId('nextButton').children.item(0));
-    expect(screen.queryAllByText('Confirm Transfer')).toHaveLength(1);
+    expect(queryByTestId('safeMaxButton')?.children.item(0)?.textContent).toEqual('Max');
+    fireEvent.click(container.querySelector('button[name=Max]') as Element);
+    await waitFor(() => expect(queryByTestId('nextButton')?.children.item(0)?.hasAttribute('disabled')).toBe(false), { timeout: 25000 });
+
+    fireEvent.click(queryByTestId('nextButton')?.children.item(0) as Element);
+    expect(queryAllByText('Confirm Transfer')).toHaveLength(1);
   });
 });

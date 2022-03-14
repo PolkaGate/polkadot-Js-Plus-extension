@@ -1,9 +1,5 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable header/header */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable no-return-assign */
 
 import '@polkadot/extension-mocks/chrome';
 
@@ -90,15 +86,13 @@ describe('Testing Nominations component', () => {
     expect(queryByText('More')).toBeTruthy();
     expect(queryByText('Identity')).toBeTruthy();
     expect(queryByText('Staked')).toBeTruthy();
-    expect(queryByText('Commission')).toBeTruthy();
+    expect(queryByText('Comm.')).toBeTruthy();
     expect(queryByText('Nominators')).toBeTruthy();
 
     for (const nominatedValidator of nominatedValidators) {
-      console.log('hey uuuuu');
       validatorsIdentities.map((acc) => {
         if (acc.accountId === nominatedValidator.accountId) {
           expect(queryByText(acc.identity.display)).toBeTruthy();
-          console.log('yohoooo');
         }
       });
       expect(queryByText(nominatedValidator.exposure.total.toLocaleString())).toBeTruthy();
