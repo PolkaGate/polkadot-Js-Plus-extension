@@ -1318,7 +1318,7 @@ export async function createExtension (): Promise<Extension> {
 export const accounts = [
   { address: '14fyMNdvtG6FiqQ1c4YiVr33kXeRGj5Nv4wceNyRV3ePeMw7', genesisHash: westendGenesisHash, name: 'Amir', type: 'sr25519' },
   { address: '5GYmFzQCuC5u3tQNiMZNbFGakrz3Jq31NmMg4D2QAkSoQ2g5', genesisHash: westendGenesisHash, name: 'Kami', type: 'sr25519' },
-  { address: '5D2TPhGEy2FhznvzaNYW9AkuMBbg3cyRemnPsBvBY4ZhkZXA', genesisHash: westendGenesisHash, name: 'Mary', type: 'sr25519' }
+  { address: '5FbSap4BsWfjyRhCchoVdZHkDnmDm3NEgLZ25mesq4aw2WvX', genesisHash: westendGenesisHash, name: 'Mary', type: 'sr25519' }
 ] as AccountJson[];
 
 export const chain: Chain = {
