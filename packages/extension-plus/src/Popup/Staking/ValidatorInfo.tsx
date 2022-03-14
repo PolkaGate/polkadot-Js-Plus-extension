@@ -48,7 +48,7 @@ export default function ValidatorInfo({ chain, chainInfo, info, setShowValidator
           <Paper elevation={3}>
             <Grid container item justifyContent='center' sx={{ fontSize: 12, textAlign: 'center', p: '20px 10px 20px' }}>
               <Grid item sx={{ height: '40px' }} xs={12}>
-                {accountInfo && <Identity accountInfo={accountInfo} chain={chain} iconSize={40} limitLength={false} showAddress={true} />}
+                {accountInfo && <Identity accountInfo={accountInfo} chain={chain} iconSize={40} showAddress={true} />}
               </Grid>
               <Grid item sx={{ p: '10px 0px 20px' }} xs={12}>
                 <Divider />
