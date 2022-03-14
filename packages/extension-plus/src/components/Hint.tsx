@@ -19,7 +19,7 @@ export interface Props {
   icon?: boolean;
 }
 
-function Hint ({ children, effect = 'float', icon = false, id, place = 'right', tip }: Props): React.ReactElement<Props> {
+function Hint({ children, effect = 'float', icon = false, id, place = 'right', tip }: Props): React.ReactElement<Props> {
   return (
     <>
       <a
@@ -31,18 +31,18 @@ function Hint ({ children, effect = 'float', icon = false, id, place = 'right', 
         <Grid
           container
           item
-          spacing={icon && 0.2}
+          spacing={icon ? 0.2 : 0}
         >
           <Grid item>
             {icon && <HelpIcon
               color='disabled'
               fontSize='small'
               sx={{ pr: '3px' }}
-                     />}
+            />}
           </Grid>
           <Grid
             item
-            sx={icon && { pb: '7px' }}
+            sx={icon ? { pb: '7px' } : {}}
           >
             {children}
           </Grid>
