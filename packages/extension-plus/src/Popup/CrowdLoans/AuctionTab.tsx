@@ -46,6 +46,7 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
   const currentBlock = Number(auction.currentBlockNumber)
   const start = currentBlock < candlePhaseStartBlock ? AUCTION_START_BLOCK : candlePhaseStartBlock;
   const end = currentBlock < candlePhaseStartBlock ? candlePhaseStartBlock : candlePhaseStartBlock + endingPeriod;
+  const stageInHuman = currentBlock < candlePhaseStartBlock ? t('auction stage') : t('ending stage');
 
   const ShowBids = (): React.ReactElement => {
     const winning = auction?.winning.find((x) => x);
@@ -82,16 +83,16 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
           {t('Auction')}
         </Grid>
         <Grid item sx={{ fontSize: 12, textAlign: 'center' }} xs={4}>
-          {t('Lease')}: {' '} {firstLease} {' - '}{firstLease + lastLease}
+          <b> {t('Lease')}</b><br /> {firstLease} {' - '}{firstLease + lastLease}
         </Grid>
         <Grid item sx={{ fontSize: 12, textAlign: 'right' }} xs={4}>
-          {t('Current block')}{': '}{currentBlock}
+          <b> {t('Current block')}</b><br />{currentBlock}
         </Grid>
-        <Grid item sx={{ fontSize: 12, textAlign: 'right' }} xs={12}>
-          {t('Auction stage')} {': '} {AUCTION_START_BLOCK}{' - '}{candlePhaseStartBlock}
+        <Grid item sx={{ fontSize: 12, textAlign: 'center' }} xs={6}>
+          <b> {t('Auction stage')}</b> <br /> {AUCTION_START_BLOCK}{' - '}{candlePhaseStartBlock}
         </Grid>
-        <Grid item sx={{ fontSize: 12, textAlign: 'right' }} xs={12}>
-          {t('Ending stage')} {': '} {candlePhaseStartBlock}{' - '}{candlePhaseStartBlock + endingPeriod}
+        <Grid item sx={{ fontSize: 12, textAlign: 'center' }} xs={6}>
+          <b>{t('Ending stage')} </b> <br /> {candlePhaseStartBlock}{' - '}{candlePhaseStartBlock + endingPeriod}
         </Grid>
         <Grid item sx={{ pt: '20px' }} xs={12}>
           <LinearProgress
@@ -101,9 +102,14 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
             variant='determinate'
           />
         </Grid>
-        <Grid item sx={{ fontSize: 12, textAlign: 'center', color: 'green' }} xs={12}>
-          {t('Remaining Time')}{': '} {remainingTime(currentBlock, end)}
-          {/* + endingPeriod)} */}
+
+        <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }} xs={12}>
+          <Grid item sx={{ color: 'green' }}>
+            {t('Remaining Time')}{': '} {remainingTime(currentBlock, end)}
+          </Grid>
+          <Grid item sx={{ color: grey[600] }}>
+            {t('in')} {stageInHuman}
+          </Grid>
         </Grid>
       </Grid>
     </Paper>
