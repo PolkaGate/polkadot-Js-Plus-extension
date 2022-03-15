@@ -221,7 +221,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         setAmountNeedsAdjust(true);
       }
     } else {
-      setConfirmButtonDisabled(false);
+      // setConfirmButtonDisabled(false);
       setConfirmButtonText(t('Confirm'));
     }
   }, [surAmount, estimatedFee, availableBalance, stakingConsts?.existentialDeposit, state, t, confirmingState]);
@@ -318,7 +318,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           }
 
           if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
-            console.log('the selected and previously nominated validators are the same, no need to renominate');
+            console.log('selected and previously nominated validators are the same, no need to renominate');
 
             setConfirmingState('success');
 
@@ -574,7 +574,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         <Password
           autofocus={!['confirming', 'failed', 'success'].includes(confirmingState)}
           handleIt={handleConfirm}
-          isDisabled={!ledger}
+          isDisabled={!ledger || confirmButtonDisabled || !estimatedFee || Number(totalStakedInHuman) < stakingConsts?.minNominatorBond}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
