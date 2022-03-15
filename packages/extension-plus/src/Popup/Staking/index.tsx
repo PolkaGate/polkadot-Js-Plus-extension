@@ -52,6 +52,8 @@ interface Props {
 
 const workers: Worker[] = [];
 
+BigInt.prototype.toJSON = function () { return this.toString() };
+
 export default function EasyStaking({ account, chain, chainInfo, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
@@ -76,12 +78,32 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   const [unlockingAmount, setUnlockingAmount] = useState<bigint>(0n);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number>(0);
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
+  const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
+  const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
+  const [storeIsUpdate, setStroreIsUpdate] = useState<boolean>(false);
 
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   }, []);
+
+  useEffect((): void => {
+    if (!chainInfo) { return }
+
+    // eslint-disable-next-line no-void
+    void chainInfo.api.query.staking.currentEra().then((ce) => {
+      console.log(`current era index is ${Number(ce)}`);
+      setCurrentEraIndex(Number(ce));
+    });
+  }, [chainInfo]);
+
+  useEffect((): void => {
+    if (!currentEraIndex || !currentEraIndexOfStore) { return }
+
+    setStroreIsUpdate(currentEraIndex === currentEraIndexOfStore);
+  }, [currentEraIndex, currentEraIndexOfStore]);
+
 
   useEffect((): void => {
     if (!chain || !account || !staker) {
@@ -94,11 +116,12 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     // * retrive staking consts from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    // const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
+    const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
 
-    // if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-    //   setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
-    // }
+    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
+      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
+      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
+    }
 
     // *** retrive nominated validators from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -110,10 +133,10 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     // **** retrive validators identities from local storage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validarorsIdentitiesFromLocalStorage: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
+    const validarorsIdentitiesFromStore: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
 
-    if (validarorsIdentitiesFromLocalStorage && validarorsIdentitiesFromLocalStorage?.chainName === chainName) {
-      setValidatorsIdentities(validarorsIdentitiesFromLocalStorage.metaData as DeriveAccountInfo[]);
+    if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
+      setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
     }
   }, []);
 
@@ -133,20 +156,21 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     getStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const consts: StakingConsts = e.data;
+      const sConsts: StakingConsts = e.data;
 
-      if (consts) {
-        setStakingConsts(consts);
+      if (sConsts) {
+        setStakingConsts(sConsts);
 
         setgettingStakingConstsFromBlockchain(false);
 
-        // if (staker?.address) {
-        //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
+        if (staker?.address) {
+          //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
 
-        //   // eslint-disable-next-line no-void
-        //   void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', stringifiedStakingConsts));
-        // }
+          // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
+          // eslint-disable-next-line no-void
+          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
+        }
       }
 
       getStakingConstsWorker.terminate();
@@ -154,11 +178,15 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     /** 2.1 retrive validatorInfo from local sorage */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validatorsInfoFromLocalStorage: savedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
+    const validatorsInfoFromStore: savedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
 
-    if (validatorsInfoFromLocalStorage && validatorsInfoFromLocalStorage?.chainName === chainName) {
-      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromLocalStorage.metaData?.current?.length} waiting:${validatorsInfoFromLocalStorage.metaData?.waiting?.length}`);
-      setValidatorsInfo(validatorsInfoFromLocalStorage.metaData as Validators);
+    if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
+      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
+      setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
+
+      setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
+      console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
+      on chain: ${validatorsInfoFromStore?.chainName}`);
     }
 
     /** 2.2 get validators info, including current and waiting */
@@ -175,13 +203,14 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     getValidatorsInfoWorker.onmessage = (e) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const fetchedValidatorsInfo: Validators | null = e.data;
+
       setGettingNominatedValidatorsInfoFromBlockchain(false);
 
-      console.log(`got validators from blockchain, current: ${fetchedValidatorsInfo?.current?.length} waiting ${fetchedValidatorsInfo?.waiting?.length} `);
+      console.log(`validatorsfrom chain (era:${fetchedValidatorsInfo?.currentEraIndex}), current: ${fetchedValidatorsInfo?.current?.length} waiting ${fetchedValidatorsInfo?.waiting?.length} `);
 
-      if (fetchedValidatorsInfo && JSON.stringify(validatorsInfoFromLocalStorage?.metaData) !== JSON.stringify(fetchedValidatorsInfo)) {
+      if (fetchedValidatorsInfo && JSON.stringify(validatorsInfoFromStore?.metaData) !== JSON.stringify(fetchedValidatorsInfo)) {
         setValidatorsInfo(fetchedValidatorsInfo);
-        console.log(`save validators to local storage, old was current: ${validatorsInfoFromLocalStorage?.metaData?.current?.length} waiting ${validatorsInfoFromLocalStorage?.metaData?.waiting?.length} `);
+        console.log(`save validators to local storage, old was current: ${validatorsInfoFromStore?.metaData?.current?.length} waiting ${validatorsInfoFromStore?.metaData?.waiting?.length} `);
 
         // eslint-disable-next-line no-void
         void updateMeta(account.address, prepareMetaData(chain, 'validatorsInfo', fetchedValidatorsInfo));
@@ -465,7 +494,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               ledger={ledger}
-              nextToStakeButtonBusy={(!ledger || !validatorsInfoIsUpdated) && state !== ''}
+              nextToStakeButtonBusy={(!ledger || !(validatorsInfoIsUpdated || storeIsUpdate)) && state !== ''}
               nominatedValidators={nominatedValidators}
               setStakeAmount={setStakeAmount}
               setState={setState}
@@ -476,8 +505,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
             <Unstake
-              chainInfo={chainInfo}
               availableBalance={staker?.balanceInfo?.available}
+              chainInfo={chainInfo}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
               ledger={ledger}
