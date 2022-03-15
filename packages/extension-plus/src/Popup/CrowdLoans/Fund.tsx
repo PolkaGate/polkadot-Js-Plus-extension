@@ -3,7 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component render an individual crowdloan's information*/
+/**
+ * @description
+ *  this component render an individual crowdloan's information
+ * */
 
 import { Email, LaunchRounded, SendTimeExtensionOutlined, Twitter } from '@mui/icons-material';
 import { Avatar, Button, Grid, Link, Paper } from '@mui/material';
