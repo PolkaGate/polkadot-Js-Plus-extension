@@ -492,7 +492,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       <Grid alignItems='center' container>
         <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
 
-          <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, justifyContent: 'flex-start', p: '5px 10px 5px', textAlign: 'center', fontVariant: 'small-caps' }}>
+          <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center', fontVariant: 'small-caps' }}>
             {stateInHuman(confirmingState || state)}
           </Grid>
           <Grid container data-testid='amount' item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 20, height: '25px', textAlign: 'center' }} xs={12}>
@@ -504,7 +504,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
             </Grid>
           </Grid>
 
-          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '10px', textAlign: 'center' }} xs={12} >
+          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12} >
             <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={5}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Currently staked')}
