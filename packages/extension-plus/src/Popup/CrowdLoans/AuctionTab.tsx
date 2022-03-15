@@ -59,14 +59,12 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
 
     return (
       <Grid container>
-        <Grid item xs={12}>
-          <Paper elevation={3}>
-            <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, paddingLeft: '10px' }}>
-              {t('Bids')}
-            </Grid>
-            <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} />
+        <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15 }} xs={12}>
+          <Paper elevation={1} sx={{paddingLeft: '10px'}}>
+            {t('Bids')}
           </Paper>
         </Grid>
+        <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} />
       </Grid>
     );
   };
