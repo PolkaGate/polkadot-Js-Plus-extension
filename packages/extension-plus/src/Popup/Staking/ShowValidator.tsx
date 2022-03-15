@@ -41,7 +41,7 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
   const getAccountInfo = (id: AccountId): DeriveAccountInfo => validatorsIdentities?.find((v) => v.accountId === id);
   const nominatorCount = validator.exposure.others.length;
   const isActive = validator.accountId === activeValidator?.accountId;
-  const isOverSubscribed = validator.exposure.others.length > stakingConsts.maxNominatorRewardedPerValidator;
+  const isOverSubscribed = validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
 
   return (
     <Paper elevation={2} key={key} sx={{ backgroundColor: rowBackground, borderRadius: '10px', margin: '5px 0px 1px', p: '1px' }}>
