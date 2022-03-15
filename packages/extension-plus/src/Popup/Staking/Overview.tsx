@@ -12,7 +12,7 @@
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { Redeem as RedeemIcon } from '@mui/icons-material';
-import { Grid, IconButton, Paper, Skeleton } from '@mui/material';
+import { Grid, Paper, Skeleton } from '@mui/material';
 import React from 'react';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -32,12 +32,12 @@ interface Props {
 }
 
 interface BalanceProps {
-  label: string;
+  label: string | Element;
   amount: string | null;
   coin: string;
 }
 
-function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
+function Balance ({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
   return (<>
     <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }} xs={12}>
       {label}
@@ -59,24 +59,25 @@ export default function Overview({ availableBalanceInHuman, chainInfo, currently
       <Grid container item>
         <Grid alignItems='center' container item justifyContent='space-between' sx={{ pb: '20px', textAlign: 'center' }}>
           <Grid item xs={4}>
-            <Balance amount={availableBalanceInHuman} label={t('Available')} coin={chainInfo?.coin} />
+            <Balance amount={availableBalanceInHuman} coin={chainInfo?.coin} label={t('Available')} />
           </Grid>
           <Grid item xs={4}>
-            <Balance amount={currentlyStakedInHuman} label={t('Staked')} coin={chainInfo?.coin} />
+            <Balance amount={currentlyStakedInHuman} coin={chainInfo?.coin} label={t('Staked')} />
           </Grid>
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
           <Grid item xs={4}>
-            <Balance amount={totalReceivedReward} label={t('Reward')} coin={chainInfo?.coin} />
+            <Balance amount={totalReceivedReward} coin={chainInfo?.coin} label={t('Reward')} />
           </Grid>
 
           <Grid container item justifyContent='center' xs={4}>
             <Grid container item justifyContent='center' xs={12}>
               <Balance
                 amount={amountToHuman(String(redeemable), chainInfo?.decimals)}
+                coin={chainInfo?.coin}
                 label={
                   <Grid container item justifyContent='center'>
-                    <Grid item >
+                    <Grid item>
                       {t('Redeemable')}
                     </Grid>
                     <Grid item>
@@ -86,12 +87,12 @@ export default function Overview({ availableBalanceInHuman, chainInfo, currently
                     </Grid>
                   </Grid>
                 }
-                coin={chainInfo?.coin} />
+              />
             </Grid>
           </Grid>
 
           <Grid item xs={4}>
-            <Balance amount={amountToHuman(String(unlockingAmount), chainInfo?.decimals)} label={t('Unstaking')} coin={chainInfo?.coin} />
+            <Balance amount={amountToHuman(String(unlockingAmount), chainInfo?.decimals)} coin={chainInfo?.coin} label={t('Unstaking')} />
           </Grid>
         </Grid>
       </Grid>
