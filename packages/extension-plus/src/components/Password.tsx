@@ -68,7 +68,7 @@ export default function Password({ autofocus = false, handleIt, helper = 'Please
         label={t('Password')}
         onChange={handleSavePassword}
         onKeyPress={(event) => {
-          if (event.key === 'Enter') { handleIt(); }
+          if (event.key === 'Enter' && !isDisabled) { handleIt(); }
         }}
         size='medium'
         type='password'
