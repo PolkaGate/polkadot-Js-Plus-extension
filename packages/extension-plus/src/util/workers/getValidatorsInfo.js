@@ -43,7 +43,7 @@ async function getAllValidators (_chain) {
 
     return JSON.parse(JSON.stringify({
       current: nextElectedInfo,
-      currentEraIndex: currentEra.toHuman(),
+      currentEraIndex: Number(currentEra),
       waiting: waitingInfo
     }));
   } catch (error) {
