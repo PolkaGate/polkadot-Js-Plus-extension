@@ -140,7 +140,7 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
     <Popup handleClose={handleConfirmModaClose} showModal={contributeModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<AllOutIcon fontSize='small' />} title={'Contribute'} />
 
-      <Grid container item sx={{ padding: '10px 30px 40px' }} xs={12}>
+      <Grid container item sx={{ padding: '20px 30px 40px' }} xs={12}>
         {chain && <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} />}
       </Grid>
 

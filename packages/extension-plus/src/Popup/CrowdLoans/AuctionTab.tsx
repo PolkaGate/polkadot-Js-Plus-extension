@@ -92,7 +92,7 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
           {AUCTION_START_BLOCK}{' - '}{candlePhaseStartBlock}<br />
           {candlePhaseStartBlock}{' - '}{candlePhaseStartBlock + endingPeriod}
         </Grid>
-        <Grid item sx={{ color: grey[600], fontSize: 12, textAlign: 'right' }} xs={1}>
+        <Grid item sx={{ color: grey[600], fontSize: 12, textAlign: 'left', pl:'5px' }} xs={1}>
           {t('slots')}<br />
           {t('block')}<br />
           {t('blocks')}<br />
