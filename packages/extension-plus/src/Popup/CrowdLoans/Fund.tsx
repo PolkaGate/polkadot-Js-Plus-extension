@@ -110,26 +110,26 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
             <b>{Number(amountToHuman(crowdloan.fund.raised, decimals, 0)).toLocaleString()}</b>/{Number(amountToHuman(crowdloan.fund.cap, decimals)).toLocaleString()}{' '}<br />
           </Grid>
 
-          <Grid sx={{ color: grey[600], fontSize: 11, textAlign: 'left',  pl:'5px' }} xs={1}>
-          {t('slots')}<br />
-          {t('blocks')}<br />
-          {coin}<br />
-        </Grid>
-
-        {isActive && handleContribute &&
-          <Grid item sx={{ textAlign: 'center' }} xs={12}>
-            <Button
-              color='warning'
-              endIcon={<SendTimeExtensionOutlined />}
-              // eslint-disable-next-line react/jsx-no-bind
-              onClick={() => handleContribute(crowdloan)}
-              variant='outlined'
-            >
-              {t('Next')}
-            </Button>
+          <Grid sx={{ color: grey[600], fontSize: 11, textAlign: 'left', pl: '5px' }} xs={1}>
+            {t('slots')}<br />
+            {t('blocks')}<br />
+            {coin}<br />
           </Grid>
-        }
-    </Grid>
+
+          {isActive && handleContribute &&
+            <Grid item sx={{ textAlign: 'center' }} xs={12}>
+              <Button
+                color='warning'
+                endIcon={<SendTimeExtensionOutlined />}
+                // eslint-disable-next-line react/jsx-no-bind
+                onClick={() => handleContribute(crowdloan)}
+                variant='outlined'
+              >
+                {t('Next')}
+              </Button>
+            </Grid>
+          }
+        </Grid>
       </Paper >
     </Grid >
   );
