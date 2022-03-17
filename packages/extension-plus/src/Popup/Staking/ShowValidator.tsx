@@ -42,16 +42,12 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
   const isActive = validator.accountId === activeValidator?.accountId;
   const isOverSubscribed = validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
 
-  console.log('showValidator ...');
-
   return (
-    <Paper elevation={2} sx={{ backgroundColor: rowBackground, borderRadius: '10px', margin: '5px 0px 1px', p: '1px' }}>
+    <Paper elevation={2} sx={{ backgroundColor: rowBackground, borderRadius: '10px', mt: '4px', p: '1px 10px 2px 0px' }}>
       <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
-        <Grid alignItems='center' item xs={1} sx={{ textAlign: 'center' }}>
-          <IconButton aria-label='more info' component='span' size='small' onClick={() => handleMoreInfo(validator)}>
-            <MoreVertIcon fontSize={showSwitch ? 'medium' : 'small'} />
-          </IconButton>
+        <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
+          <MoreVertIcon fontSize={showSwitch ? 'medium' : 'small'} onClick={() => handleMoreInfo(validator)} sx={{ cursor: 'pointer' }} />
         </Grid>
 
         <Grid item sx={{ fontSize: 11 }} xs={6}>
@@ -76,7 +72,7 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
           {Number(validator.validatorPrefs.commission) / (10 ** 7) < 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
         </Grid>
 
-        <Grid alignItems='center' container spacing={0} direction='column' item xs={2}>
+        <Grid alignItems='center' container item justifyContent={showSwitch ? 'center' : 'flex-end'} xs={2}>
           <Grid item>
             {!!nominatorCount && isActive &&
               <Hint id='active' place='left' tip='Active'>
