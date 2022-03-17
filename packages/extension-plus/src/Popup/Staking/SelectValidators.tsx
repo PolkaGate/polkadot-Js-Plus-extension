@@ -13,7 +13,7 @@ import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, Del
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
 import { grey, pink } from '@mui/material/colors';
 import Typography from '@mui/material/Typography';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 
@@ -27,6 +27,7 @@ import { AccountsBalanceType, ChainInfo, StakingConsts, Validators } from '../..
 import ConfirmStaking from './ConfirmStaking';
 import ShowValidator from './ShowValidator';
 import ValidatorInfo from './ValidatorInfo';
+import { FixedSizeList as List } from "react-window";
 
 interface Props {
   chain?: Chain | null;
@@ -57,7 +58,7 @@ interface TableRowProps {
   chainInfo: ChainInfo;
   nominatedValidators: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts;
-  searchedValidators: DeriveStakingQuery[] | null;
+  searchedValidators: DeriveStakingQuery[];
   setSearchedValidators: React.Dispatch<React.SetStateAction<DeriveStakingQuery[] | null>>;
   selected: DeriveStakingQuery[];
   setSelected: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
@@ -167,17 +168,24 @@ const TableToolbar = (props: ToolbarProps) => {
   );
 };
 
-function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, searchedValidators, searching, selected, setSearchedValidators, setSearching, setSelected, stakingConsts, validators, validatorsIdentities }: TableRowProps) {
+function SelectionTable({ chain, chainInfo, nominatedValidators, searchedValidators, searching, selected, setSearchedValidators, setSearching, setSelected, stakingConsts, validators, validatorsIdentities }: TableRowProps) {
   const { t } = useTranslation();
-
-  let notSelectedValidators = searching ? searchedValidators : validators;
-
-  notSelectedValidators = notSelectedValidators?.filter((v) => !selected.filter((s) => s.accountId === v.accountId).length);
-
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('name');
   const [showValidatorInfoModal, setShowValidatorInfoModal] = useState<boolean>(false);
   const [info, setInfo] = useState<DeriveStakingQuery>();
+  const isSelected = useCallback((v: DeriveStakingQuery) => selected.indexOf(v) !== -1, [selected]);
+  const isInNominatedValidators = useCallback((v: DeriveStakingQuery) => !!(nominatedValidators?.find((n) => n.accountId === v.accountId)), [nominatedValidators]);
+  const [combined, setCombined] = useState<DeriveStakingQuery[]>();
+
+  const v = searching ? searchedValidators : validators;
+  const notSelected = useMemo(() => v?.length ? v.filter((i) => !selected.filter((s) => s.accountId === i.accountId).length) : [], [selected, v]);
+
+  useEffect(() => {
+    selected.sort(getComparator(order, orderBy));
+    notSelected.sort(getComparator(order, orderBy));
+    setCombined(selected.concat(notSelected));
+  }, [selected, notSelected, order, orderBy]);
 
   const handleRequestSort = (_event: React.MouseEvent<unknown>, property: keyof Data) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -206,16 +214,12 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
     setSelected([...newSelected]);
   }, [selected, setSelected, stakingConsts.maxNominations]);
 
-  const isSelected = useCallback((v: DeriveStakingQuery) => selected.indexOf(v) !== -1, [selected]);
-
-  const isInNominatedValidators = useCallback((v: DeriveStakingQuery) => !!(nominatedValidators?.find((n) => n.accountId === v.accountId)), [nominatedValidators]);
-
   const handleMoreInfo = useCallback((info: DeriveStakingQuery) => {
     setShowValidatorInfoModal(true);
     setInfo(info);
   }, []);
 
-  const Header = () => (
+  const TableHeader = () => (
     <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 15px 5px' }}>
       <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
         <Grid item xs={1}>
@@ -248,39 +252,38 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
   );
 
   return (
-    <Container sx={{ overflowY: 'hidden', padding: '5px 10px', width: '100%' }}>
-      <TableToolbar numSelected={selected.length} setSearchedValidators={setSearchedValidators} setSearching={setSearching} setSelected={setSelected} stakingConsts={stakingConsts} validators={notSelectedValidators} validatorsIdentities={validatorsIdentities} />
+    <Container sx={{ padding: '5px 10px', width: '100%' }}>
+      <TableToolbar numSelected={selected.length} setSearchedValidators={setSearchedValidators} setSearching={setSearching} setSelected={setSelected} stakingConsts={stakingConsts} validators={notSelected} validatorsIdentities={validatorsIdentities} />
 
-      <Header />
-
-      <Container disableGutters sx={{ height: 325, overflowY: 'auto', scrollbarWidth: 'none' }}>
-        {selected && selected.sort(getComparator(order, orderBy)).map((validator, index) =>
-          <ShowValidator
-            chain={chain}
-            handleMoreInfo={handleMoreInfo}
-            handleSwitched={handleSwitched}
-            isInNominatedValidators={isInNominatedValidators}
-            isSelected={isSelected}
-            key={index}
-            showSwitch={true}
-            stakingConsts={stakingConsts}
-            validator={validator}
-            validatorsIdentities={validatorsIdentities}
-          />)}
-
-        {notSelectedValidators && notSelectedValidators.sort(getComparator(order, orderBy)).map((validator, index) =>
-          <ShowValidator
-            chain={chain}
-            handleMoreInfo={handleMoreInfo}
-            handleSwitched={handleSwitched}
-            isInNominatedValidators={isInNominatedValidators}
-            isSelected={isSelected}
-            key={index}
-            showSwitch={true}
-            stakingConsts={stakingConsts}
-            validator={validator}
-            validatorsIdentities={validatorsIdentities}
-          />)}
+      <TableHeader />
+      <Container disableGutters sx={{ height: 325 }}>
+        {!!combined?.length &&
+          <List
+            height={325}
+            itemCount={combined.length}
+            itemSize={46}
+            width={'100%'}
+          >
+            {({ index, key, style }) => (
+              <div>
+                <div key={key} style={style}>
+                  <ShowValidator
+                    chain={chain}
+                    handleMoreInfo={handleMoreInfo}
+                    handleSwitched={handleSwitched}
+                    isInNominatedValidators={isInNominatedValidators}
+                    isSelected={isSelected}
+                    showSwitch={true}
+                    stakingConsts={stakingConsts}
+                    validator={combined[index]}
+                    validatorsIdentities={validatorsIdentities}
+                  />
+                </div>
+              </div>
+            )
+            }
+          </List>
+        }
       </Container>
 
       {showValidatorInfoModal && info &&
@@ -300,7 +303,7 @@ function ValidatorSelectionTable({ chain, chainInfo, nominatedValidators, search
 export default function SelectValidators({ chain, chainInfo, ledger, nominatedValidators, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
-  const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[] | null>(null);
+  const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
   const [searching, setSearching] = useState<boolean>(false);
   const [filterHighCommissionsState, setFilterHighCommissions] = useState(true);
   const [filterOverSubscribedsState, setFilterOverSubscribeds] = useState(true);
@@ -381,7 +384,7 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
 
         <Grid item sx={{ textAlign: 'left' }} xs={12}>
           {validatorsInfo &&
-            <ValidatorSelectionTable
+            <SelectionTable
               chain={chain}
               chainInfo={chainInfo}
               nominatedValidators={nominatedValidators}
@@ -397,8 +400,9 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
             />
           }
         </Grid>
-        <Grid container id='filteringItems' item justifyContent='space-between' sx={{ p: '10px 28px' }} xs={12}>
-          <Grid item sx={{ fontSize: 13, textAlign: 'right' }}  >
+
+        <Grid container id='filteringItems' item justifyContent='space-between' sx={{ p: '5px 28px' }} xs={12}>
+          <Grid item sx={{ fontSize: 13, textAlign: 'right' }}>
             <FormControlLabel
               control={<Checkbox
                 color='default'
@@ -410,7 +414,7 @@ export default function SelectValidators({ chain, chainInfo, ledger, nominatedVa
               label={<Box fontSize={11} sx={{ color: 'green' }}>{t('only have an ID')}</Box>}
             />
           </Grid>
-          <Grid item sx={{ fontSize: 13, textAlign: 'center' }}  >
+          <Grid item sx={{ fontSize: 13, textAlign: 'center' }}>
             <FormControlLabel
               control={<Checkbox
                 color='default'
