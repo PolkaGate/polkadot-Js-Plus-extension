@@ -22,7 +22,6 @@ import Identity from '../../components/Identity';
 import { StakingConsts } from '../../util/plusTypes';
 
 interface Props {
-  key: number;
   chain: Chain;
   stakingConsts: StakingConsts | null;
   validator: DeriveStakingQuery;
@@ -35,7 +34,7 @@ interface Props {
   activeValidator?: DeriveStakingQuery;
 }
 
-export default function showValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, key, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
+function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? '#fffbed' : '');
   const getAccountInfo = (id: AccountId): DeriveAccountInfo => validatorsIdentities?.find((v) => v.accountId === id);
@@ -43,8 +42,10 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
   const isActive = validator.accountId === activeValidator?.accountId;
   const isOverSubscribed = validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
 
+  console.log('showValidator ...');
+
   return (
-    <Paper elevation={2} key={key} sx={{ backgroundColor: rowBackground, borderRadius: '10px', margin: '5px 0px 1px', p: '1px' }}>
+    <Paper elevation={2} sx={{ backgroundColor: rowBackground, borderRadius: '10px', margin: '5px 0px 1px', p: '1px' }}>
       <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
         <Grid alignItems='center' item xs={1} sx={{ textAlign: 'center' }}>
@@ -104,3 +105,5 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
     </Paper>
   );
 }
+
+export default React.memo(ShowValidator);
