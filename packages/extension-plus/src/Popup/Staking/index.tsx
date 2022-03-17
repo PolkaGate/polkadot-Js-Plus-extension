@@ -93,7 +93,6 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     // eslint-disable-next-line no-void
     void chainInfo.api.query.staking.currentEra().then((ce) => {
-      console.log(`current era index is ${Number(ce)}`);
       setCurrentEraIndex(Number(ce));
     });
   }, [chainInfo]);
@@ -541,12 +540,12 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
         </Grid>
       </Grid>
 
-      {stakingConsts && validatorsInfo && tabValue === 2 &&
+      {stakingConsts && validatorsInfo &&
         <SelectValidators
           chain={chain}
           chainInfo={chainInfo}
           ledger={ledger}
-          nominatedValidators={nominatedValidators}// {selectedValidators}
+          nominatedValidators={nominatedValidators}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
           setState={setState}
           showSelectValidatorsModal={showSelectValidatorsModal}
