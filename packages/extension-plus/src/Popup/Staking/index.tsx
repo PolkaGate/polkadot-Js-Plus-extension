@@ -541,7 +541,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
         </Grid>
       </Grid>
 
-      {stakingConsts && validatorsInfo &&
+      {stakingConsts && validatorsInfo && tabValue === 2 &&
         <SelectValidators
           chain={chain}
           chainInfo={chainInfo}
