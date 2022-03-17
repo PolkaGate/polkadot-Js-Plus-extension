@@ -14,8 +14,8 @@ import Identicon from '@polkadot/react-identicon';
 
 import { Chain } from '../../../extension-chains/src/types';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
-import { ShortAddress } from '.';
 import Hint from './Hint';
+import { ShortAddress } from '.';
 
 interface Props {
   accountInfo: DeriveAccountInfo;
@@ -26,7 +26,7 @@ interface Props {
   totalStaked?: string;
 }
 
-export default function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, title = '', totalStaked = '' }: Props): React.ReactElement<Props> {
+function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, title = '', totalStaked = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const hasIcons = accountInfo?.identity.twitter || accountInfo?.identity.web || accountInfo?.identity.email;
 
@@ -138,3 +138,5 @@ export default function Identity({ accountInfo, chain, iconSize = 24, showAddres
     </>
   );
 }
+
+export default React.memo(Identity);
