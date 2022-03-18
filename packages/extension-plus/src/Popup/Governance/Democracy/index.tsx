@@ -7,8 +7,6 @@ import { BatchPrediction as BatchPredictionIcon, HowToVote as HowToVoteIcon, Whe
 import { Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
-import { DeriveReferendumExt } from '@polkadot/api-derive/types';
-
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../../components';
@@ -16,7 +14,7 @@ import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getProposals from '../../../util/api/getProposals';
 import getReferendums from '../../../util/api/getReferendums';
 import createConvictions from '../../../util/createConvictions';
-import { ChainInfo, Conviction, ProposalsInfo } from '../../../util/plusTypes';
+import { ChainInfo, Conviction, ProposalsInfo, Referendum } from '../../../util/plusTypes';
 import Proposals from './proposals/overview';
 import Referendums from './referendums/overview';
 
@@ -30,14 +28,14 @@ interface Props {
 export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen, showDemocracyModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('referendums');
-  const [referendums, setReferenduns] = useState<DeriveReferendumExt[] | undefined | null>();
+  const [referendums, setReferenduns] = useState<Referendum[] | undefined | null>();
   const [proposalsInfo, setProposalsInfo] = useState<ProposalsInfo | undefined | null>();
   const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const [convictions, setConvictions] = useState<Conviction[]>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
   useEffect(() => {
-    if (!referendums) return;
+    if (!referendums || !chain) return;
 
     // eslint-disable-next-line no-void
     void createConvictions(chain, t).then((c) => {
@@ -83,7 +81,7 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
 
         {tabValue === 'referendums'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {chainInfo && referendums !== undefined
+            {chainInfo && referendums !== undefined && chain && convictions
               ? <Referendums chain={chain} chainInfo={chainInfo} convictions={convictions} currentBlockNumber={currentBlockNumber} referendums={referendums} />
               : <Progress title={'Loading referendums ...'} />}
           </Grid>
@@ -91,7 +89,7 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
 
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
-            {chainInfo && proposalsInfo !== undefined
+            {chainInfo && proposalsInfo !== undefined && chain
               ? <Proposals chain={chain} chainInfo={chainInfo} proposalsInfo={proposalsInfo} />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>
