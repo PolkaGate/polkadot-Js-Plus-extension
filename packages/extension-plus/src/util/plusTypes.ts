@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 /* eslint-disable camelcase */
-import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveReferendumExt, DeriveElectionsInfo, DeriveProposal, DeriveStakingQuery } from '@polkadot/api-derive/types';
 
 import { ApiPromise } from '@polkadot/api';
 import { Balance } from '@polkadot/types/interfaces';
@@ -241,4 +241,8 @@ type TransactionType = 'chill' | 'bond' | 'unbond' | 'nominate' | 'bondExtra' | 
 export interface TransactionFee {
   transactionType: TransactionType;
   estimatedFee: Balance;
+}
+
+export interface Referendum extends DeriveReferendumExt {
+  proposerInfo: DeriveAccountInfo;
 }
