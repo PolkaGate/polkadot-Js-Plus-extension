@@ -113,7 +113,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
           <Grid sx={{ color: grey[600], fontSize: 11, textAlign: 'left', pl: '5px' }} xs={1}>
             {t('slots')}<br />
             {t('blocks')}<br />
-            {coin}<br />
+            {coin}s<br />
           </Grid>
 
           {isActive && handleContribute &&
