@@ -1,24 +1,28 @@
-/* eslint-disable react/jsx-max-props-per-line */
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
+/* eslint-disable react/jsx-max-props-per-line */
+
+/** 
+ * @description
+ * This shows a list of active referendums
+*/
 
 import { CheckCircleOutline as CheckCircleOutlineIcon, RemoveCircleOutline as RemoveCircleOutlineIcon, ThumbDownAlt as ThumbDownAltIcon, ThumbUpAlt as ThumbUpAltIcon } from '@mui/icons-material';
 import { Avatar, Button, Divider, Grid, LinearProgress, Link, Paper } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 
-import { DeriveReferendumExt } from '@polkadot/api-derive/types';
-
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
+import Identity from '../../../../components/Identity';
 import { VOTE_MAP } from '../../../../util/constants';
 import getLogo from '../../../../util/getLogo';
-import { ChainInfo, Conviction } from '../../../../util/plusTypes';
+import { ChainInfo, Conviction, Referendum } from '../../../../util/plusTypes';
 import { amountToHuman, formatMeta, remainingTime } from '../../../../util/plusUtils';
 import VoteReferendum from './Vote';
 
 interface Props {
-  referendums: DeriveReferendumExt[];
+  referendums: Referendum[] | null;
   chain: Chain;
   chainInfo: ChainInfo;
   currentBlockNumber: number;
@@ -101,9 +105,6 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
                 <Divider />
               </Grid>
 
-              {/* <Grid item sx={{ color: 'green', fontSize: 11 }} xs={12}>
-                {t('Remaining Time')}{': '} {remainingTime(currentBlockNumber, r.status.end)}
-              </Grid> */}
               <Grid container justifyContent='space-between' sx={{ fontSize: 11, paddingTop: 1, color: 'red' }}>
                 <Grid item>
                   {t('End')}{': #'}{r.status.end.toString()}
@@ -120,10 +121,11 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
                 {description}
               </Grid>
 
-              {/* <Grid item xs={12} sx={{ border: '1px dotted', borderRadius: '10px', padding: 1, margin: '20px 1px 20px' }}>
-                {t('Hash')}<br />
-                {r.imageHash.toString()}
-              </Grid> */}
+              <Grid item sx={{ fontSize: 12, py: 1, textAlign: 'left' }} xs={12}>
+                {r?.proposerInfo &&
+                  <Identity accountInfo={r?.proposerInfo} chain={chain} showAddress title={t('Proposer')} />
+                }
+              </Grid>
 
               <Grid container justifyContent='space-between' sx={{ fontSize: 12, paddingTop: 1 }}>
                 <Grid item>
