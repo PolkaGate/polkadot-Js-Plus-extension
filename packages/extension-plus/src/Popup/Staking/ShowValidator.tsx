@@ -58,7 +58,7 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
               iconSize={showSwitch ? 24 : 20}
               totalStaked={validator.exposure.total && showSwitch ? `Total staked: ${Number(validator.exposure.total).toLocaleString()}` : ''}
             />
-            : <ShortAddress address={String(validator?.accountId)} />
+            : <ShortAddress address={String(validator?.accountId)} fontSize={11} />
           }
         </Grid>
 
