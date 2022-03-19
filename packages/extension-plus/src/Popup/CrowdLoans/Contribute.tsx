@@ -95,7 +95,7 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
 
       const params = [crowdloan.fund.paraId, contributingAmountInMachine, null];
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, selectedAddress);
 
       setConfirmingState(status);
 
