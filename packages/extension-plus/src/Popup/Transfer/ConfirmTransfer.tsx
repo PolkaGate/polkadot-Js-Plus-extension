@@ -65,13 +65,14 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
   const [transferAmountInHuman, setTransferAmountInHuman] = useState('');
   const { hierarchy } = useContext(AccountContext);
   const [state, setState] = useState<string>('');
-
+  const { api, coin, decimals } = chainInfo;
+  
   /** transferAll for Max, when Keep_Alive is true will transfer all available balance, probably because the sender has some unlocking funds */
-  const transfer = transferAllType === 'All' ? (chainInfo?.api.tx.balances.transferAll) : (chainInfo?.api.tx.balances.transfer);
+  const transfer = transferAllType === 'All' ? (api.tx.balances.transferAll) : (api.tx.balances.transfer);
 
   useEffect(() => {
-    setTransferAmountInHuman(amountToHuman(String(transferAmount), chainInfo?.decimals));
-  }, [chain, chainInfo?.decimals, transferAmount]);
+    setTransferAmountInHuman(amountToHuman(String(transferAmount), decimals));
+  }, [chain, decimals, transferAmount]);
 
   useEffect(() => {
     setTransferAllAlert(['All', 'Max'].includes(transferAllType));
@@ -93,10 +94,10 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
   useEffect(() => {
     if (!newFee) return;
 
-    const total = amountToHuman((newFee.toBigInt() + transferAmount).toString(), chainInfo?.decimals);
+    const total = amountToHuman((newFee.toBigInt() + transferAmount).toString(), decimals);
 
     setTotal(fixFloatingPoint(total));
-  }, [chainInfo?.decimals, newFee, transferAmount]);
+  }, [decimals, newFee, transferAmount]);
 
   const handleConfirmModaClose = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -130,18 +131,18 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
     setState('confirming');
 
     try {
-      const signer = keyring.getPair(String(sender.address));
+      const signer = keyring.getPair(sender.address);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
       // const KeepAlive = transferAllType === 'Max';
       const params = transferAllType === 'All' ? [recepient.address, false] : [recepient.address, transferAmount];
 
-      const { block, failureText, fee, status, txHash } = await broadcast(chainInfo?.api, transfer, params, signer);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, transfer, params, signer, sender.address);
 
       const currentTransactionDetail: TransactionDetail = {
         action: 'send',
-        amount: amountToHuman(String(transferAmount), chainInfo?.decimals),
+        amount: amountToHuman(String(transferAmount), decimals),
         block: block,
         date: Date.now(),
         fee: fee || '',
@@ -159,7 +160,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [chain, chainInfo?.api, chainInfo?.decimals, hierarchy, password, recepient.address, sender.address, transfer, transferAllType, transferAmount]);
+  }, [chain, api, decimals, hierarchy, password, recepient.address, sender.address, transfer, transferAllType, transferAmount]);
 
   // function disable(flag: boolean) {
   //   return {
@@ -219,7 +220,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
               {transferAmountInHuman}
             </Grid>
             <Grid item>
-              {chainInfo?.coin}
+              {coin}
             </Grid>
           </Grid>
         </Grid>
@@ -242,7 +243,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
             </Grid>
           </Grid>
           <Grid item sx={{ fontSize: 13, textAlign: 'right' }} xs={6}>
-            {Number(amountToHuman(newFee?.toString(), chainInfo?.decimals, 5)) || <CircularProgress color='inherit' size={12} thickness={2} />}
+            {Number(amountToHuman(newFee?.toString(), decimals, 5)) || <CircularProgress color='inherit' size={12} thickness={2} />}
             <Box fontSize={11} sx={{ color: 'gray' }}>
               {newFee ? 'estimated' : 'estimating'}
             </Box>
@@ -266,7 +267,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
               {total || ' ... '}
             </Grid>
             <Grid item>
-              {chainInfo?.coin}
+              {coin}
             </Grid>
           </Grid>
         </Grid>
