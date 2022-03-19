@@ -36,7 +36,7 @@ import ConfirmTx from './ConfirmTransfer';
 
 interface Props {
   actions?: React.ReactNode;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   sender: AccountsBalanceType;
   transferModalOpen: boolean;
   chain?: Chain | null;
@@ -544,7 +544,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
             </NextStepButton>
           </Grid>
 
-          {recepient &&
+          {recepient && chainInfo &&
             <ConfirmTx
               chain={chain}
               chainInfo={chainInfo}
