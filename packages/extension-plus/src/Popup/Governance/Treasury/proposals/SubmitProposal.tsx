@@ -78,7 +78,7 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, proposerAddress);
 
       // TODO can save to history here
       setState(status);
