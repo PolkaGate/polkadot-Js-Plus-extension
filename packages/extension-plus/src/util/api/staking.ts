@@ -153,56 +153,6 @@ export async function getStakingReward(_chain: Chain | null | undefined, _staker
   });
 }
 
-export async function unbond(
-  _chain: Chain | null | undefined,
-  _controllerAccountId: string | null,
-  _signer: KeyringPair,
-  _value: bigint): Promise<TxInfo> {
-  try {
-    console.log('unbond is called!');
-
-    if (!_controllerAccountId) {
-      console.log('unbond:  _controllerAccountId is empty!');
-
-      return { status: 'failed' };
-    }
-
-    const { api } = await getChainInfo(_chain);
-
-    const unbonded = api.tx.staking.unbond(_value);
-
-    return signAndSend(api, unbonded, _signer);
-  } catch (error) {
-    console.log('Something went wrong while unbond', error);
-
-    return { status: 'failed' };
-  }
-}
-
-export async function nominate(
-  _chain: Chain | null | undefined,
-  _stashAccountId: string | null,
-  _signer: KeyringPair,
-  _selectedValidators: string[] | null)
-  : Promise<TxInfo> {
-  try {
-    if (!_stashAccountId || !_selectedValidators || !_chain) {
-      console.log('Nominate: validators, controller, or chain is empty!');
-
-      return { status: 'failed' };
-    }
-
-    const { api } = await getChainInfo(_chain);
-    const nominated = api.tx.staking.nominate(_selectedValidators);
-
-    return signAndSend(api, nominated, _signer);
-  } catch (error) {
-    console.log('Something went wrong while bond/nominate', error);
-
-    return { status: 'failed' };
-  }
-}
-
 export async function getCurrentEraIndex(_chain: Chain | null | undefined): Promise<number | null> {
   try {
     console.log('getCurrentEraIndex is called!');
@@ -261,58 +211,9 @@ export async function bondOrBondExtra(
       bonded = api.tx.staking.bond(_stashAccountId, _value, payee);
     }
 
-    return signAndSend(api, bonded, _signer);
+    return signAndSend(api, bonded, _signer, _stashAccountId);
   } catch (error) {
     console.log('Something went wrong while bond/nominate', error);
-
-    return { status: 'failed' };
-  }
-}
-
-export async function chill(
-  _chain: Chain | null | undefined,
-  _controllerId: string | null,
-  _signer: KeyringPair): Promise<TxInfo> {
-  try {
-    console.log('chill is called!');
-
-    if (!_controllerId) {
-      console.log('chill:  controller is empty!');
-
-      return { status: 'failed' };
-    }
-
-    const { api } = await getChainInfo(_chain);
-    const chilled = api.tx.staking.chill();
-
-    return signAndSend(api, chilled, _signer);
-  } catch (error) {
-    console.log('Something went wrong while chill', error);
-
-    return { status: 'failed' };
-  }
-}
-
-export async function withdrawUnbonded(_chain: Chain | null | undefined, _controllerId: string | null, _signer: KeyringPair): Promise<TxInfo> {
-  try {
-    console.log('withdrawUnbonded is called!');
-
-    if (!_controllerId) {
-      console.log('withdrawUnbonded:  controller is empty!');
-
-      return { status: 'failed' };
-    }
-
-    const { api } = await getChainInfo(_chain);
-
-    const optSpans = await api.query.staking.slashingSpans(_controllerId);
-    const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
-
-    const withdraw = api.tx.staking.withdrawUnbonded(spanCount || 0);
-
-    return signAndSend(api, withdraw, _signer);
-  } catch (error) {
-    console.log('Something went wrong while withdrawUnbonded', error);
 
     return { status: 'failed' };
   }
