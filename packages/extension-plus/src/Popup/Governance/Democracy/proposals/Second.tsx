@@ -71,7 +71,7 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, selectedAddress);
 
       // TODO: can save to history here
       setState(status);
