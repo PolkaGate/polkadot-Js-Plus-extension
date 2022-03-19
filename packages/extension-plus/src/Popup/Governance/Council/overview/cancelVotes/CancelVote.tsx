@@ -79,7 +79,7 @@ export default function CancelVote({ allCouncilInfo, chain, chainInfo, setShowMy
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer, selectedAddress);
 
       // TODO: can save to history here
 
