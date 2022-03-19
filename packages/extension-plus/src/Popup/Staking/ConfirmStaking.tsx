@@ -25,7 +25,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Password, PlusHeader, Popup } from '../../components';
 import Hint from '../../components/Hint';
 import broadcast from '../../util/api/broadcast';
-import { bondOrBondExtra, chill, nominate, unbond } from '../../util/api/staking';
+import { bondOrBondExtra } from '../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../util/constants';
 import { AccountsBalanceType, ChainInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
@@ -65,17 +65,18 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<bigint>(0n);
 
+  const { api, coin, decimals } = chainInfo;
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
   const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
   /** list of available trasaction types */
-  const chilled = chainInfo?.api.tx.staking.chill;
-  const unbonded = chainInfo?.api.tx.staking.unbond;
-  const nominated = chainInfo?.api.tx.staking.nominate;
-  const bondExtra = chainInfo?.api.tx.staking.bondExtra;
-  const bond = chainInfo?.api.tx.staking.bond;
-  const redeem = chainInfo?.api.tx.staking.withdrawUnbonded;
+  const chilled = api.tx.staking.chill;
+  const unbonded = api.tx.staking.unbond;
+  const nominated = api.tx.staking.nominate;
+  const bondExtra = api.tx.staking.bondExtra;
+  const bond = api.tx.staking.bond;
+  const redeem = api.tx.staking.withdrawUnbonded;
   const bonding = currentlyStaked ? bondExtra : bond;
 
   async function saveHistory(chain: Chain | null, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
@@ -120,7 +121,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
     }
 
     /** defaults for many states */
-    setTotalStakedInHuman(amountToHuman(String(currentlyStaked), chainInfo?.decimals));
+    setTotalStakedInHuman(amountToHuman(String(currentlyStaked), decimals));
 
     /** set fees and stakeAmount */
     let params;
@@ -149,14 +150,14 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         }
         );
 
-        setTotalStakedInHuman(amountToHuman((currentlyStaked + surAmount).toString(), chainInfo?.decimals));
+        setTotalStakedInHuman(amountToHuman((currentlyStaked + surAmount).toString(), decimals));
         break;
       case ('stakeKeepNominated'):
         params = [surAmount];
 
         // eslint-disable-next-line no-void
         void bondExtra(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-        setTotalStakedInHuman(amountToHuman((currentlyStaked + surAmount).toString(), chainInfo?.decimals));
+        setTotalStakedInHuman(amountToHuman((currentlyStaked + surAmount).toString(), decimals));
         break;
       case ('unstake'):
         params = [surAmount];
@@ -170,7 +171,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
             void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee((fee.add(j?.partialFee) as Balance)));
           } else { setEstimatedFee(fee); }
         });
-        setTotalStakedInHuman(amountToHuman((currentlyStaked - surAmount).toString(), chainInfo?.decimals));
+        setTotalStakedInHuman(amountToHuman((currentlyStaked - surAmount).toString(), decimals));
         break;
       case ('stopNominating'):
         // eslint-disable-next-line no-void
@@ -283,7 +284,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
 
         history.push({
           action: alreadyBondedAmount ? 'bond_extra' : 'bond',
-          amount: amountToHuman(String(surAmount), chainInfo?.decimals),
+          amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),
           fee: fee || '',
@@ -326,7 +327,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           }
         }
 
-        const { block, failureText, fee, status, txHash } = await nominate(chain, staker.address, signer, selectedValidatorsAccountId);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, [selectedValidatorsAccountId], signer, staker.address);
 
         history.push({
           action: 'nominate',
@@ -346,7 +347,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       if (localState === 'unstake' && surAmount > 0n) {
         if (surAmount === currentlyStaked) {
           /**  if unstaking all, should chill first */
-          const { failureText, fee, status, txHash } = await chill(chain, staker.address, signer);
+          const { failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
 
           history.push({
             action: 'chill',
@@ -370,11 +371,11 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           }
         }
 
-        const { block, failureText, fee, status, txHash } = await unbond(chain, staker.address, signer, surAmount);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, unbonded, [surAmount], signer, staker.address);
 
         history.push({
           action: 'unbond',
-          amount: amountToHuman(String(surAmount), chainInfo?.decimals),
+          amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),
           fee: fee || '',
@@ -389,14 +390,14 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       }
 
       if (localState === 'withdrawUnbound' && surAmount > 0n) {
-        const optSpans = await chainInfo?.api.query.staking.slashingSpans(staker.address);
+        const optSpans = await api.query.staking.slashingSpans(staker.address);
         const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
 
-        const { block, failureText, fee, status, txHash } = await broadcast(chainInfo.api, redeem, [spanCount || 0], signer);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, [spanCount || 0], signer, staker.address);
 
         history.push({
           action: 'redeem',
-          amount: amountToHuman(String(surAmount), chainInfo?.decimals),
+          amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),
           fee: fee || '',
@@ -411,7 +412,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       }
 
       if (localState === 'stopNominating') {
-        const { block, failureText, fee, status, txHash } = await broadcast(chainInfo.api, chilled, [], signer);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
 
         history.push({
           action: 'stop_nominating',
@@ -456,10 +457,10 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         return <Typography sx={{ mt: '50px' }} variant='h6'>
           {t('Available balance after redeem will be')}<br />
           {estimatedFee
-            ? amountToHuman(String(BigInt(surAmount + availableBalance) - BigInt(String(estimatedFee))), chainInfo?.decimals)
+            ? amountToHuman(String(BigInt(surAmount + availableBalance) - BigInt(String(estimatedFee))), decimals)
             : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
           }
-          {' '} {chainInfo?.coin}
+          {' '} {coin}
         </Typography>;
       case ('stopNominating'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
@@ -471,7 +472,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         </Typography>;
     }
     // FIXME: availableBalance change should not change the alert in redeem confirm page!
-  }, [surAmount, chainInfo?.coin, chainInfo?.decimals, estimatedFee, stakingConsts?.bondingDuration, t]);
+  }, [surAmount, coin, decimals, estimatedFee, stakingConsts?.bondingDuration, t]);
 
   const handleAutoAdjust = useCallback((): void => {
     const ED = stakingConsts?.existentialDeposit;
@@ -497,10 +498,10 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           </Grid>
           <Grid container data-testid='amount' item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 20, height: '25px', textAlign: 'center' }} xs={12}>
             <Grid item>
-              {!!surAmount && amountToHuman(surAmount.toString(), chainInfo?.decimals)}
+              {!!surAmount && amountToHuman(surAmount.toString(), decimals)}
             </Grid>
             <Grid item>
-              {!!surAmount && chainInfo?.coin}
+              {!!surAmount && coin}
             </Grid>
           </Grid>
 
@@ -513,9 +514,9 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
                 {!ledger
                   ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
                   : <>
-                    {currentlyStaked ? amountToHuman(currentlyStaked.toString(), chainInfo?.decimals) : '0.00'}
+                    {currentlyStaked ? amountToHuman(currentlyStaked.toString(), decimals) : '0.00'}
                   </>
-                }{' '}{chainInfo?.coin}
+                }{' '}{coin}
               </Grid>
             </Grid>
 
@@ -527,9 +528,9 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
                 {!estimatedFee
                   ? <span><Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '30px' }} /></span>
                   : <>
-                    {amountToHuman(estimatedFee.toString(), chainInfo?.decimals)}
+                    {amountToHuman(estimatedFee.toString(), decimals)}
                   </>
-                }  {' '}{chainInfo?.coin}
+                }  {' '}{coin}
               </Grid>
             </Grid>
 
@@ -543,7 +544,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
                   : <>
                     {totalStakedInHuman !== '0' ? totalStakedInHuman : '0.00'}
                   </>
-                }{' '}{chainInfo?.coin}
+                }{' '}{coin}
               </Grid>
             </Grid>
           </Grid>
