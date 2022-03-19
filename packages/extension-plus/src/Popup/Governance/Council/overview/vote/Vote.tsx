@@ -80,7 +80,7 @@ export default function Vote({ allCouncilInfo, chain, chainInfo, setShowVotesMod
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, selectedAddress);
 
       // TODO: can save to history here
 
