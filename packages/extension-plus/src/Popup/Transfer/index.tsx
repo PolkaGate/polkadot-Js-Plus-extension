@@ -36,7 +36,7 @@ import ConfirmTx from './ConfirmTransfer';
 
 interface Props {
   actions?: React.ReactNode;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   sender: AccountsBalanceType;
   transferModalOpen: boolean;
   chain?: Chain | null;
@@ -83,7 +83,6 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
 
   useEffect(() => {
     if (!chainInfo || !transfer) return;
-
 
     // eslint-disable-next-line no-void
     void transfer(sender.address, transferAmount).paymentInfo(sender.address)
@@ -350,7 +349,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
           <Grid item sx={{ color: grey[800], fontSize: 13, textAlign: 'left' }} xs={1}>
             {t('Sender')}:
           </Grid>
-          <Grid item xs={1} sx={{ textAlign: 'center' }}>
+          <Grid item sx={{ textAlign: 'center' }} xs={1}>
             <Identicon
               prefix={chain?.ss58Format ?? 42}
               size={20}
@@ -358,8 +357,8 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
               value={sender.address}
             />
           </Grid>
-          <Grid container direction='column' item xs={10} sx={{ fontSize: 14, textAlign: 'left' }}>
-            <Grid item sx={{ fontSize: 14, textAlign: 'left' }}>
+          <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={10}>
+            <Grid item sx={{ fontSize: 14, overflow: 'hidden', textAlign: 'left', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
               {sender.name}
             </Grid>
             <Grid item sx={{ fontSize: 14, textAlign: 'left' }}>
@@ -374,7 +373,6 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
               endAdornment: (
                 <InputAdornment position='end'>
                   <IconButton
-                    // eslint-disable-next-line react/jsx-no-bind
                     onClick={handleClearRecepientAddress}
                   >
                     {recepient !== null ? <ClearIcon /> : ''}
@@ -391,7 +389,6 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
             fullWidth
             helperText={t('Reciever and sender must be on the same network')}
             label={t('Recipient')}
-            // eslint-disable-next-line react/jsx-no-bind
             onChange={handleRecepientAddressChange}
             placeholder={t('Search, Public address')}
             size='medium'
@@ -547,7 +544,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
             </NextStepButton>
           </Grid>
 
-          {recepient &&
+          {recepient && chainInfo &&
             <ConfirmTx
               chain={chain}
               chainInfo={chainInfo}

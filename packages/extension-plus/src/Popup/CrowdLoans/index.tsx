@@ -61,6 +61,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
       const result: Auction = e.data;
 
       if (result.blockchain === selectedChain) {
+        console.log('Auction:', result);
         setAuction(result);
       }
 
@@ -82,7 +83,18 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
       getCrowdloands(selectedChain);
 
       // eslint-disable-next-line no-void
-      void getChainInfo(selectedChain).then((i) => setChainInfo(i));
+      void getChainInfo(selectedChain).then((i) => {
+
+        // i.api.derive.crowdloan.contributions(2000).then((res) => {
+        //   console.log('all contributions:', res);
+        // });
+
+        // void i.api.derive.crowdloan.ownContributions(2000, ['0x0001fc7c29f4d64e844543e32d3834d8c59c95c7dec2fc5dee10fda0f611e436']).then((res) => {
+        //   console.log('contribution of :', res);
+        // });
+
+        setChainInfo(i);
+      });
 
       const endPoint = allEndpoints.find((e: LinkOption) => (String(e.text).toLowerCase() === selectedChain.toLowerCase())) as LinkOption;
       const endpoints = allEndpoints.filter((e) => (e.genesisHashRelay === endPoint?.genesisHash));
@@ -108,7 +120,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
 
   return (
     <>
-      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Crowdloan')} />
+      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Crowdloans')} />
       <Grid alignItems='center' container id='selectRelyChain' sx={{ padding: '5px 35px' }}>
 
         <Grid item xs={12}>
@@ -127,15 +139,15 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
         <Progress title={t('Loading Auction/Crowdloans of ') + ` ${selectedChain.charAt(0).toUpperCase()}${selectedChain.slice(1)} ...`} />
       }
 
-      {auction && tabValue === 'auction' &&
+      {auction && tabValue === 'auction' && chainInfo &&
         <AuctionTab auction={auction} chainInfo={chainInfo} endpoints={endpoints} />
       }
 
-      {auction && tabValue === 'crowdloan' &&
+      {auction && tabValue === 'crowdloan' && chainInfo &&
         <CrowdloanTab auction={auction} chainInfo={chainInfo} endpoints={endpoints} handleContribute={handleContribute} />
       }
 
-      {contributeModal && auction && contributingTo &&
+      {contributeModal && auction && contributingTo && chainInfo &&
         <Contribute
           auction={auction}
           chainInfo={chainInfo}

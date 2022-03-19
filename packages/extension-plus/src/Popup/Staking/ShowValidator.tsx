@@ -22,7 +22,6 @@ import Identity from '../../components/Identity';
 import { StakingConsts } from '../../util/plusTypes';
 
 interface Props {
-  key: number;
   chain: Chain;
   stakingConsts: StakingConsts | null;
   validator: DeriveStakingQuery;
@@ -35,25 +34,23 @@ interface Props {
   activeValidator?: DeriveStakingQuery;
 }
 
-export default function showValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, key, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
+function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? '#fffbed' : '');
   const getAccountInfo = (id: AccountId): DeriveAccountInfo => validatorsIdentities?.find((v) => v.accountId === id);
   const nominatorCount = validator.exposure.others.length;
   const isActive = validator.accountId === activeValidator?.accountId;
-  const isOverSubscribed = validator.exposure.others.length > stakingConsts.maxNominatorRewardedPerValidator;
+  const isOverSubscribed = validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
 
   return (
-    <Paper elevation={2} key={key} sx={{ backgroundColor: rowBackground, borderRadius: '10px', margin: '5px 0px 1px', p: '1px' }}>
+    <Paper elevation={2} sx={{ backgroundColor: rowBackground, borderRadius: '10px', mt: '4px', p: '1px 10px 2px 0px' }}>
       <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
-        <Grid alignItems='center' item xs={1}>
-          <IconButton aria-label='more info' component='span' onClick={() => handleMoreInfo(validator)}>
-            <MoreVertIcon fontSize={showSwitch ? 'medium' : 'small'} />
-          </IconButton>
+        <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
+          <MoreVertIcon fontSize={showSwitch ? 'medium' : 'small'} onClick={() => handleMoreInfo(validator)} sx={{ cursor: 'pointer' }} />
         </Grid>
 
-        <Grid item sx={{ fontSize: 11 }} xs={showSwitch ? 6 : 5}>
+        <Grid item sx={{ fontSize: 11 }} xs={6}>
           {validatorsIdentities
             ? <Identity
               accountInfo={getAccountInfo(validator?.accountId)}
@@ -61,7 +58,7 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
               iconSize={showSwitch ? 24 : 20}
               totalStaked={validator.exposure.total && showSwitch ? `Total staked: ${Number(validator.exposure.total).toLocaleString()}` : ''}
             />
-            : <ShortAddress address={String(validator?.accountId)} />
+            : <ShortAddress address={String(validator?.accountId)} fontSize={11} />
           }
         </Grid>
 
@@ -71,27 +68,26 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
           </Grid>
         }
 
-        <Grid item sx={{ textAlign: 'center' }} xs={2}>
-          {Number(validator.validatorPrefs.commission) === 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
+        <Grid item sx={{ textAlign: 'center' }} xs={showSwitch ? 2 : 1}>
+          {Number(validator.validatorPrefs.commission) / (10 ** 7) < 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
         </Grid>
 
-        <Grid alignItems='center' item xs={2}>
-          <Grid item sx={{ textAlign: 'center' }} xs={6}>
-            {!!nominatorCount &&
-              <>
-                {isActive &&
-                  <Hint id='active' place='left' tip='Active'>
-                    <DirectionsRunIcon color='primary' sx={{ fontSize: '20px' }} />
-                  </Hint>
-                }
-                {isOverSubscribed &&
-                  <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
-                    <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '20px' }} />
-                  </Hint>
-                }
-              </>}
+        <Grid alignItems='center' container item justifyContent={showSwitch ? 'center' : 'flex-end'} xs={2}>
+          <Grid item>
+            {!!nominatorCount && isActive &&
+              <Hint id='active' place='left' tip='Active'>
+                <DirectionsRunIcon color='primary' sx={{ fontSize: '17px' }} />
+              </Hint>
+            }
           </Grid>
-          <Grid item sx={{ textAlign: 'center' }} xs={6}>
+          <Grid item>
+            {!!nominatorCount && isOverSubscribed &&
+              <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
+                <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '17px' }} />
+              </Hint>
+            }
+          </Grid>
+          <Grid item>
             {nominatorCount || 'waiting'}
           </Grid>
         </Grid>
@@ -105,3 +101,5 @@ export default function showValidator({ activeValidator, chain, handleMoreInfo, 
     </Paper>
   );
 }
+
+export default React.memo(ShowValidator);

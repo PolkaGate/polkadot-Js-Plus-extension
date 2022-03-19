@@ -27,7 +27,7 @@ function PlusHeader({ action, chain, closeText, icon, title }: Props): React.Rea
   return (
     <>
       <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 15, padding: '20px 20px 1px' }}>
-        <Grid item sx={{ paddingBottom: '5px' }} xs={1}>
+        <Grid item sx={{ pb: '5px' }} xs={1}>
           <Avatar
             alt={'logo'}
             src={getLogo(chain)}
@@ -38,7 +38,7 @@ function PlusHeader({ action, chain, closeText, icon, title }: Props): React.Rea
           <Grid item>
             {icon}
           </Grid>
-          <Grid item sx={{ paddingBottom: '7px' }}>
+          <Grid item sx={{ pb: '7px' }}>
             {t<string>(title)}
           </Grid>
         </Grid>

@@ -1,24 +1,28 @@
-/* eslint-disable react/jsx-max-props-per-line */
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
+/* eslint-disable react/jsx-max-props-per-line */
+
+/** 
+ * @description
+ * This shows a list of active referendums
+*/
 
 import { CheckCircleOutline as CheckCircleOutlineIcon, RemoveCircleOutline as RemoveCircleOutlineIcon, ThumbDownAlt as ThumbDownAltIcon, ThumbUpAlt as ThumbUpAltIcon } from '@mui/icons-material';
 import { Avatar, Button, Divider, Grid, LinearProgress, Link, Paper } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 
-import { DeriveReferendumExt } from '@polkadot/api-derive/types';
-
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
+import Identity from '../../../../components/Identity';
 import { VOTE_MAP } from '../../../../util/constants';
 import getLogo from '../../../../util/getLogo';
-import { ChainInfo, Conviction } from '../../../../util/plusTypes';
+import { ChainInfo, Conviction, Referendum } from '../../../../util/plusTypes';
 import { amountToHuman, formatMeta, remainingTime } from '../../../../util/plusUtils';
-import VoteReferendum from './VoteReferendum';
+import VoteReferendum from './Vote';
 
 interface Props {
-  referendums: DeriveReferendumExt[];
+  referendums: Referendum[] | null;
   chain: Chain;
   chainInfo: ChainInfo;
   currentBlockNumber: number;
@@ -31,6 +35,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
   const [voteInfo, setVoteInfo] = useState<{ voteType: number, refId: string }>();
 
   const chainName = chain?.name.replace(' Relay Chain', '');
+  const { coin, decimals } = chainInfo;
 
   const handleVote = useCallback((voteType: number, refId: string) => {
     setShowVoteReferendumModal(true);
@@ -40,6 +45,8 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
   const handleVoteReferendumModalClose = useCallback(() => {
     setShowVoteReferendumModal(false);
   }, []);
+
+  if (!referendums) return (<></>);
 
   return (
     <>
@@ -51,7 +58,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
 
           return (
             <Paper elevation={8} key={index} sx={{ borderRadius: '10px', margin: '20px 30px 10px', p: '10px 20px' }}>
-              <Grid container justifyContent='space-between'>
+              <Grid container justifyContent='space-between' sx={{ fontSize: 11 }}>
                 {value
                   ? <Grid item sx={{ fontSize: 11 }} xs={4}>
                     {meta.section}. {meta.method}
@@ -98,10 +105,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
                 <Divider />
               </Grid>
 
-              <Grid item sx={{ color: 'green' }} xs={12}>
-                {t('Remaining Time')}{': '} {remainingTime(currentBlockNumber, r.status.end)}
-              </Grid>
-              <Grid container justifyContent='space-between' sx={{ paddingTop: 1, color: 'red' }}>
+              <Grid container justifyContent='space-between' sx={{ fontSize: 11, paddingTop: 1, color: 'red' }}>
                 <Grid item>
                   {t('End')}{': #'}{r.status.end.toString()}
                 </Grid>
@@ -117,14 +121,15 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
                 {description}
               </Grid>
 
-              {/* <Grid item xs={12} sx={{ border: '1px dotted', borderRadius: '10px', padding: 1, margin: '20px 1px 20px' }}>
-                {t('Hash')}<br />
-                {r.imageHash.toString()}
-              </Grid> */}
+              <Grid item sx={{ fontSize: 12, py: 1, textAlign: 'left' }} xs={12}>
+                {r?.proposerInfo &&
+                  <Identity accountInfo={r?.proposerInfo} chain={chain} showAddress title={t('Proposer')} />
+                }
+              </Grid>
 
-              <Grid container justifyContent='space-between' sx={{ paddingTop: 1 }}>
+              <Grid container justifyContent='space-between' sx={{ fontSize: 12, paddingTop: 1 }}>
                 <Grid item>
-                  {t('Aye')}
+                  {t('Aye')}{`(${r?.allAye?.length})`}
                 </Grid>
                 <Grid item>
                   {r?.isPassing
@@ -139,19 +144,22 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
                   }
                 </Grid>
                 <Grid item>
-                  {t('Nay')}
+                  {t('Nay')}{`(${r?.allNay?.length})`}
                 </Grid>
               </Grid>
 
-              <Grid container justifyContent='space-between' sx={{ paddingTop: 1 }}>
+              <Grid container justifyContent='space-between' sx={{ fontSize: 11, paddingTop: 1 }}>
                 <Grid item xs={12}>
                   <LinearProgress color='warning' sx={{ backgroundColor: 'black' }} value={100 * (Number(r.status.tally.ayes) / (Number(r.status.tally.nays) + Number(r.status.tally.ayes)))} variant='determinate' />
                 </Grid>
                 <Grid item>
-                  {Number(amountToHuman(r.status.tally.ayes.toString(), chainInfo.decimals)).toLocaleString()}{' '}{chainInfo.coin}
+                  {Number(amountToHuman(r.status.tally.ayes.toString(), decimals)).toLocaleString()}{' '}{coin}
+                </Grid>
+                <Grid item sx={{ color: 'green', fontSize: 11 }}>
+                  {t('Remaining Time')}{': '} {remainingTime(currentBlockNumber, r.status.end)}
                 </Grid>
                 <Grid item>
-                  {Number(amountToHuman(Number(r.status.tally.nays).toString(), chainInfo.decimals)).toLocaleString()}{' '}{chainInfo.coin}
+                  {Number(amountToHuman(Number(r.status.tally.nays).toString(), decimals)).toLocaleString()}{' '}{coin}
                 </Grid>
               </Grid>
 
@@ -166,11 +174,11 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
 
             </Paper>);
         })
-        : <Grid sx={{ textAlign: 'center', paddingTop: 3 }} xs={12}>
+        : <Grid sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
           {t('No active referendum')}
         </Grid>}
 
-      {showVoteReferendumModal &&
+      {showVoteReferendumModal && convictions && voteInfo &&
         <VoteReferendum
           chain={chain}
           chainInfo={chainInfo}

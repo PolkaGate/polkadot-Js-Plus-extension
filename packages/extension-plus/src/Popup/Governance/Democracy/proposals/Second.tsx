@@ -5,21 +5,20 @@
 
 import type { DeriveProposal } from '@polkadot/api-derive/types';
 
-import { ThumbsUpDown as ThumbsUpDownIcon } from '@mui/icons-material';
+import { RecommendOutlined as RecommendOutlinedIcon } from '@mui/icons-material';
 import { Grid, Typography } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import { grey } from '@mui/material/colors';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup } from '../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
-import getChainInfo from '../../../../util/getChainInfo';
 import { ChainInfo } from '../../../../util/plusTypes';
 import { formatMeta } from '../../../../util/plusUtils';
-
 
 interface Props {
   selectedProposal: DeriveProposal;
@@ -36,18 +35,27 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<string>();
+  const [estimatedFee, setEstimatedFee] = useState<bigint | null>(null);
 
   const value = selectedProposal.image?.proposal;
   const meta = value?.registry.findMetaCall(value.callIndex);
   const description = formatMeta(meta?.meta);
+  const { api, coin, decimals } = chainInfo;
+
+  const tx = api.tx.democracy.second;
+
+  const params = useMemo(() => api.tx.democracy.second.meta.args.length === 2
+    ? [selectedProposal.index, selectedProposal.seconds.length]
+    : [selectedProposal.index], [chainInfo, selectedProposal]);
 
   useEffect(() => {
-    if (!selectedAddress || !chain) return;
+    if (!chainInfo || !tx || !selectedAddress) return;
+
     // eslint-disable-next-line no-void
-    // void getBalanceAll(selectedAddress, chain).then((b) => {
-    //   setVotingBalance(b?.votingBalance.toString());
-    // });
-  }, [chain, selectedAddress]);
+    void tx(...params).paymentInfo(selectedAddress)
+      .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
+      .catch(console.error);
+  }, [chainInfo, params, selectedAddress, tx]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -63,16 +71,9 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { api } = await getChainInfo(chain);
-      const tx = api.tx.democracy.second;
-      const params = api.tx.democracy.second.meta.args.length === 2
-        ? [selectedProposal.index, selectedProposal.seconds.length]
-        : [selectedProposal.index];
-
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, selectedAddress);
 
       // TODO: can save to history here
-
       setState(status);
     } catch (e) {
       console.log('error in VoteProposal :', e);
@@ -83,17 +84,21 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
 
   return (
     <Popup handleClose={handleVoteProposalModalClose} showModal={showVoteProposalModal}>
-      <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<ThumbsUpDownIcon fontSize='small' />} title={'Second'} />
+      <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Second'} />
 
-      <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo}  setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedAddress} setSelectedAddress={setSelectedAddress} text={t('Select voter account')} />
+      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} text={t('Select voter')} />
 
-      <Grid container item justifyContent='center' sx={{ height: '275px' }} xs={12}>
-        <Grid item sx={{ fontWeight: '600', textAlign: 'center', pt: '50px' }} xs={12}>
+      <Grid sx={{ color: grey[600], fontSize: 11, p: '0px 40px 20px', textAlign: 'right' }} xs={12}>
+        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title='Fee' />
+      </Grid>
+
+      <Grid container item justifyContent='center' sx={{ height: '260px' }} xs={12}>
+        <Grid item sx={{ fontWeight: '600', pt: '50px', textAlign: 'center' }} xs={12}>
           <Typography variant='h6'>
             {t('Proposal')}{': #'}{String(selectedProposal?.index)}
           </Typography>
         </Grid>
-        <Grid item sx={{ textAlign: 'center', p: '0px 30px' }} xs={12}>
+        <Grid item sx={{ p: '0px 30px', textAlign: 'center' }} xs={12}>
           <Typography variant='subtitle1'>
             {description}
           </Typography>

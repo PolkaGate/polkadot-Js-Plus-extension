@@ -59,7 +59,6 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
   const { accounts } = useContext(AccountContext);
   const { t } = useTranslation();
   const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''))
-
   const [balanceChangeSubscribed, setBalanceChangeSubscribed] = useState<string>('');
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [showQRcodeModalOpen, setQRcodeModalOpen] = useState(false);
@@ -131,7 +130,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       // ** get redeemable amount
       callRedeemable();
     }
-  }, [callGetLedgerWorker, callRedeemable, chain, sender.balanceInfo]);
+  }, [chain]);
 
   function getBalanceFromMetaData(_account: AccountJson, _chain: Chain): AccountsBalanceType | null {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

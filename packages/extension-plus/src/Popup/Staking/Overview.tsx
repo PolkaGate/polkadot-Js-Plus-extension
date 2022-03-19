@@ -3,12 +3,16 @@
 /* eslint-disable react/jsx-max-props-per-line */
 /* eslint-disable header/header */
 
-/** NOTE render an overview of current staking state of an account like currently staked/redemmable amount, total reward received, etc.  */
+/**
+ * @description
+ *  render an overview of current staking state of an account like currently staked/redemmable amount,
+ *  total reward received, etc.
+ * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { Redeem as RedeemIcon } from '@mui/icons-material';
-import { Box, Grid, IconButton, Paper, Skeleton } from '@mui/material';
+import { Grid, Paper, Skeleton } from '@mui/material';
 import React from 'react';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -27,52 +31,68 @@ interface Props {
   unlockingAmount: bigint;
 }
 
+interface BalanceProps {
+  label: string | Element;
+  amount: string | null;
+  coin: string;
+}
+
+function Balance ({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
+  return (<>
+    <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }} xs={12}>
+      {label}
+    </Grid>
+    {amount === null || amount === 'NaN' || amount === undefined
+      ? <Skeleton sx={{ display: 'inline-block', fontWeight: '400', lineHeight: '16px', width: '70px' }} />
+      : <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.6px', lineHeight: '16px' }}>
+        {amount === '0' ? '0.00' : Number(amount).toLocaleString()}{' '}  {coin}
+      </div>
+    }
+  </>);
+}
+
 export default function Overview({ availableBalanceInHuman, chainInfo, currentlyStakedInHuman, handleWithdrowUnbound, ledger, redeemable, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
- 
+
   return (
-    <Paper elevation={4} sx={{ fontSize: 12, borderRadius: '10px', margin: '25px 30px 10px', p: 3, width: '90%' }}>
+    <Paper elevation={4} sx={{ borderRadius: '10px', fontSize: 12, height: 95, margin: '25px 30px 10px', p: 2, width: '90%' }}>
       <Grid container item>
-        <Grid container item justifyContent='space-between' sx={{ padding: '10px 0px 20px' }}>
-          <Grid item>
-            <b> {t('Available')}: </b> <Box component='span' sx={{ fontWeight: 600 }}> {availableBalanceInHuman}</Box>
+        <Grid alignItems='center' container item justifyContent='space-between' sx={{ pb: '20px', textAlign: 'center' }}>
+          <Grid item xs={4}>
+            <Balance amount={availableBalanceInHuman} coin={chainInfo?.coin} label={t('Available')} />
           </Grid>
-          <Grid item>
-            <b> {t('Staked')}: </b> {!ledger
-              ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
-              : <Box component='span' sx={{ fontWeight: 600 }}>
-                {currentlyStakedInHuman !== '0' ? currentlyStakedInHuman : '0.00'}
-              </Box>
-            }
+          <Grid item xs={4}>
+            <Balance amount={currentlyStakedInHuman} coin={chainInfo?.coin} label={t('Staked')} />
           </Grid>
         </Grid>
-        <Grid container item justifyContent='space-between'>
-          <Grid item>
-            <b> {t('Reward')}: </b>{!totalReceivedReward
-              ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-              : <Box component='span' sx={{ fontWeight: 600 }}> {totalReceivedReward}</Box>
-            }
+        <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
+          <Grid item xs={4}>
+            <Balance amount={totalReceivedReward} coin={chainInfo?.coin} label={t('Reward')} />
           </Grid>
-          <Grid item>
-            <b>{t('Redeemable')} : </b>{redeemable === null
-              ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-              : <Box component='span' sx={{ fontWeight: 600 }}>
-                {redeemable ? amountToHuman(String(redeemable), chainInfo?.decimals) : '0.00'}   {' '}
-              </Box>
-            }
-            <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
-              <IconButton disabled={!redeemable} edge='start' onClick={handleWithdrowUnbound} size='small'>
-                <RedeemIcon color={redeemable ? 'warning' : 'disabled'} fontSize='inherit' />
-              </IconButton>
-            </Hint>
+
+          <Grid container item justifyContent='center' xs={4}>
+            <Grid container item justifyContent='center' xs={12}>
+              <Balance
+                amount={amountToHuman(String(redeemable), chainInfo?.decimals)}
+                coin={chainInfo?.coin}
+                label={
+                  <Grid container item justifyContent='center'>
+                    <Grid item>
+                      {t('Redeemable')}
+                    </Grid>
+                    <Grid item>
+                      <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
+                        <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                      </Hint>
+                    </Grid>
+                  </Grid>
+                }
+              />
+            </Grid>
           </Grid>
-          <Grid item>
-            <b> {t('Unstaking')}:</b> {!ledger
-              ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-              : <Box component='span' sx={{ fontWeight: 600 }}>
-                {unlockingAmount ? amountToHuman(String(unlockingAmount), chainInfo?.decimals) : '0.00'}
-              </Box>
-            }
+
+          <Grid item xs={4}>
+            <Balance amount={amountToHuman(String(unlockingAmount), chainInfo?.decimals)} coin={chainInfo?.coin} label={t('Unstaking')} />
           </Grid>
         </Grid>
       </Grid>

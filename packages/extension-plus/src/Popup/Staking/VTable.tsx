@@ -44,16 +44,16 @@ export default function VTable({ activeValidator, chain, setInfo, setShowValidat
           <Grid alignItems='center' item xs={1}>
             {t('More')}
           </Grid>
-          <Grid item sx={{ fontSize: 12 }} xs={5}>
+          <Grid item sx={{ textAlign: 'left' }} xs={6}>
             {t('Identity')}
           </Grid>
           <Grid item sx={{ textAlign: 'left' }} xs={2}>
             {t('Staked')}
           </Grid>
-          <Grid item sx={{ textAlign: 'left' }} xs={2}>
-            {t('Commission')}
+          <Grid item sx={{ textAlign: 'left' }} xs={1}>
+            {t('Comm.')}
           </Grid>
-          <Grid alignItems='center' item xs={2}>
+          <Grid sx={{ textAlign: 'center' }} item xs={2}>
             {t('Nominators')}
           </Grid>
         </Grid>

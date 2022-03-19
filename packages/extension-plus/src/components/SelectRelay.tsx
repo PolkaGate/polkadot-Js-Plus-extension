@@ -28,7 +28,7 @@ interface Props {
             src={getLogo(selectedChain)}
             sx={{ height: 32, width: 32 }}
           />
-          : <HelpOutlineOutlinedIcon sx={{ fontSize: 36, paddingBottom: '15px' }} />
+          : <HelpOutlineOutlinedIcon color='action' sx={{ fontSize: 36, paddingBottom: '15px' }} />
         }
       </Grid>
 

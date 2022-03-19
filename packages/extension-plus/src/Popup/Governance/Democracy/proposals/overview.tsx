@@ -11,14 +11,14 @@ import React, { useCallback, useState } from 'react';
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import Hint from '../../../../components/Hint';
+import Identity from '../../../../components/Identity';
 import getLogo from '../../../../util/getLogo';
 import { ChainInfo, ProposalsInfo } from '../../../../util/plusTypes';
 import { amountToHuman, formatMeta } from '../../../../util/plusUtils';
-import Identity from '../../../../components/Identity';
 import Second from './Second';
 
 interface Props {
-  proposalsInfo: ProposalsInfo;
+  proposalsInfo: ProposalsInfo | null;
   chain: Chain;
   chainInfo: ChainInfo;
 }
@@ -27,11 +27,12 @@ const secondToolTip = 'Express your backing. Proposals with greater interest mov
 
 export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const { accountsInfo, proposals } = proposalsInfo;
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const [showVoteProposalModal, setShowVoteProposalModal] = useState<boolean>(false);
   const [selectedProposal, setSelectedProposal] = useState<DeriveProposal>();
+
+  const { coin, decimals } = chainInfo;
 
   const handleSecond = useCallback((p: DeriveProposal): void => {
     setShowVoteProposalModal(true);
@@ -41,6 +42,10 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
   const handleVoteProposalModalClose = useCallback(() => {
     setShowVoteProposalModal(false);
   }, []);
+
+  if (!proposalsInfo) return (<></>);
+
+  const { accountsInfo, proposals } = proposalsInfo;
 
   return (
     <>
@@ -101,10 +106,10 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
 
               <Grid container justifyContent='space-between' sx={{ fontSize: 11, paddingTop: 1, color: 'red' }}>
                 <Grid item>
-                  {t('Locked')}{': '}{Number(amountToHuman(p.balance.toString(), chainInfo.decimals)).toLocaleString()} {' '}{chainInfo.coin}
+                  {t('Locked')}{': '}{Number(amountToHuman(p.balance.toString(), decimals)).toLocaleString()} {' '}{coin}
                 </Grid>
                 <Grid item>
-                  {t('Deposit')}{': '}{amountToHuman(p.image.balance.toString(), chainInfo.decimals, 6)} {' '}{chainInfo.coin}
+                  {t('Deposit')}{': '}{amountToHuman(p.image.balance.toString(), decimals, 6)} {' '}{coin}
                 </Grid>
                 <Grid item>
                   {t('Seconds')}{': '}{p.seconds.length - 1}
@@ -115,9 +120,12 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
                 {description}
               </Grid>
 
-              {p?.proposer &&
-                <Identity accountInfo={accountsInfo[index]} chain={chain} showAddress title={t('Proposer')} />
-              }
+              <Grid item sx={{ fontSize: 12 }} xs={12}>
+                {p?.proposer &&
+                  <Identity accountInfo={accountsInfo[index]} chain={chain} showAddress title={t('Proposer')} />
+                }
+              </Grid>
+
 
               {/* <Grid item xs={12} sx={{ border: '1px dotted', borderRadius: '10px', padding: 1, margin: '20px 1px 20px' }}>
                 {t('Hash')}<br />
@@ -133,11 +141,11 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
               </Grid>
             </Paper>);
         })
-        : <Grid sx={{ paddingTop: 3, textAlign: 'center' }} xs={12}>
-          {t('No active proposals')}
+        : <Grid sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
+          {t('No active proposal')}
         </Grid>}
 
-      {showVoteProposalModal &&
+      {selectedProposal && showVoteProposalModal &&
         <Second
           chain={chain}
           chainInfo={chainInfo}

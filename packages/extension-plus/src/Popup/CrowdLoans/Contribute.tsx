@@ -95,7 +95,7 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
 
       const params = [crowdloan.fund.paraId, contributingAmountInMachine, null];
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, selectedAddress);
 
       setConfirmingState(status);
 
@@ -140,11 +140,11 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
     <Popup handleClose={handleConfirmModaClose} showModal={contributeModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<AllOutIcon fontSize='small' />} title={'Contribute'} />
 
-      <Grid container item sx={{ padding: '10px 30px 40px' }} xs={12}>
+      <Grid container item sx={{ padding: '20px 30px 40px' }} xs={12}>
         {chain && <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} />}
       </Grid>
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} text={t('Select account to contribute')} />
+      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} title={t('Contributer')} />
 
       <Grid item sx={{ p: '10px 40px 35px 80px' }} xs={12}>
         <TextField

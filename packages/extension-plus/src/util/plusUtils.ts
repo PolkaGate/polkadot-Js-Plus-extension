@@ -1,8 +1,8 @@
-/* eslint-disable camelcase */
 
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
+/* eslint-disable camelcase */
 
 import type { Text } from '@polkadot/types';
 import type { AccountId } from '@polkadot/types/interfaces';
@@ -90,7 +90,6 @@ export function getFormattedAddress(_address: string | null | undefined, _chain:
 }
 
 export function handleAccountBalance(balance: any): { available: bigint, feeFrozen: bigint, miscFrozen: bigint, reserved: bigint, total: bigint } {
-
   return {
     available: BigInt(String(balance.free)) - BigInt(String(balance.miscFrozen)),
     feeFrozen: BigInt(String(balance.feeFrozen)),
@@ -118,8 +117,9 @@ export function prepareMetaData(chain: Chain | null, label: string, metaData: an
 export function getTransactionHistoryFromLocalStorage(
   chain: Chain | null,
   hierarchy: AccountWithChildren[],
-  accountSubstrateAddress: string,
+  address: string,
   _chainName?: string): TransactionDetail[] {
+  const accountSubstrateAddress = getSubstrateAddress(address);
   const account = hierarchy.find((h) => h.address === accountSubstrateAddress);
 
   if (!account) {
@@ -174,7 +174,6 @@ export function remainingTime(currentBlockNumber: number, end: number): string {
 
   if (days && days !== 1) { time = days + ' days ' + time; }
 
-
   return time;
 }
 
@@ -225,4 +224,3 @@ export const isEqual = (a1: any[] | null, a2: any[] | null): boolean => {
 
   return JSON.stringify(a1Sorted) === JSON.stringify(a2Sorted);
 }
-

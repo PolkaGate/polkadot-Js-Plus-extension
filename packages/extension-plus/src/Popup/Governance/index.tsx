@@ -3,6 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+/**
+ * @description list all governance options e.g., Democracy, Council, Treasury, etc.
+*/
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { AccountBalance, Groups as GroupsIcon, HowToVote } from '@mui/icons-material';
@@ -22,6 +25,7 @@ import getLogo from '../../util/getLogo';
 import { ChainInfo } from '../../util/plusTypes';
 import CouncilIndex from './Council/index';
 import Democracy from './Democracy/index';
+import Treasury from './Treasury/index';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -32,13 +36,14 @@ function Governance({ className }: Props): React.ReactElement<Props> {
   const [selectedChain, setSelectedChain] = useState<string>('polkadot');
   const [showDemocracyModal, setDemocracyModalOpen] = useState<boolean>(false);
   const [showCouncilModal, setCouncilModalOpen] = useState<boolean>(false);
+  const [showTreasuryModal, setTreasuryModalOpen] = useState<boolean>(false);
   const [chainInfo, setChainInfo] = useState<ChainInfo>();
 
   useEffect(() => {
     // eslint-disable-next-line no-void
     void cryptoWaitReady().then(() => {
       keyring.loadAll({ store: new AccountsStore() });
-    });
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -58,6 +63,10 @@ function Governance({ className }: Props): React.ReactElement<Props> {
 
   const handleCouncilModal = useCallback(() => {
     setCouncilModalOpen(true);
+  }, []);
+
+  const handleTreasuryModal = useCallback(() => {
+    setTreasuryModalOpen(true);
   }, []);
 
   return (
@@ -105,7 +114,7 @@ function Governance({ className }: Props): React.ReactElement<Props> {
             </Grid>
           </Grid>
         </Paper>
-        <Paper elevation={4} sx={{ borderRadius: '10px', cursor: 'pointer', margin: '20px 30px 10px', p: '20px 40px' }}>
+        <Paper elevation={4} onClick={handleTreasuryModal} sx={{ borderRadius: '10px', cursor: 'pointer', margin: '20px 30px 10px', p: '20px 40px' }}>
           <Grid container>
             <Grid item xs={4}>
               <AccountBalance color='secondary' fontSize='large' />
@@ -162,6 +171,15 @@ function Governance({ className }: Props): React.ReactElement<Props> {
           chainName={selectedChain}
           setCouncilModalOpen={setCouncilModalOpen}
           showCouncilModal={showCouncilModal}
+        />
+      }
+
+      {showTreasuryModal &&
+        <Treasury
+          chainInfo={chainInfo}
+          chainName={selectedChain}
+          setTreasuryModalOpen={setTreasuryModalOpen}
+          showTreasuryModal={showTreasuryModal}
         />
       }
     </>

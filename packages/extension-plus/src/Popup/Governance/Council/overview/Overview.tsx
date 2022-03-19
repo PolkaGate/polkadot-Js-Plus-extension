@@ -9,9 +9,9 @@ import React, { useCallback, useState } from 'react';
 
 import useMetadata from '../../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { CouncilInfo, ChainInfo } from '../../../../util/plusTypes';
-import MyVotes from './cancelVotes/MyVotes';
-import Votes from './vote/Vote';
+import { ChainInfo, CouncilInfo } from '../../../../util/plusTypes';
+import CancelVote from './cancelVotes/CancelVote';
+import Vote from './vote/Vote';
 import Members from './Members';
 
 interface Props {
@@ -21,19 +21,11 @@ interface Props {
 
 export default function Overview({ chainInfo, councilInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const chain = useMetadata(chainInfo?.genesisHash, true);
+  const chain = useMetadata(chainInfo.genesisHash, true);
   const [showMyVotesModal, setShowMyVotesModal] = useState<boolean>(false);
   const [showVotesModal, setShowVotesModal] = useState<boolean>(false);
 
-  const {
-    accountInfos,
-    candidateCount,
-    candidates,
-    desiredRunnersUp,
-    desiredSeats,
-    members,
-    runnersUp
-  } = councilInfo;
+  const { accountInfos, candidateCount, candidates, desiredRunnersUp, desiredSeats, members, runnersUp } = councilInfo;
 
   const membersInfo = {
     backed: members.map((m) => m[1].toString()),
@@ -116,9 +108,23 @@ export default function Overview({ chainInfo, councilInfo }: Props): React.React
         </Grid>
       }
 
-      {showMyVotesModal && <MyVotes allCouncilInfo={allCouncilInfo} chain={chain} chainInfo={chainInfo} setShowMyVotesModal={setShowMyVotesModal} showMyVotesModal={showMyVotesModal} />}
+      {showMyVotesModal &&
+        <CancelVote
+          allCouncilInfo={allCouncilInfo}
+          chain={chain}
+          chainInfo={chainInfo}
+          setShowMyVotesModal={setShowMyVotesModal}
+          showMyVotesModal={showMyVotesModal} />
+      }
 
-      {showVotesModal && <Votes allCouncilInfo={allCouncilInfo} chain={chain} chainInfo={chainInfo} setShowVotesModal={setShowVotesModal} showVotesModal={showVotesModal} />}
+      {showVotesModal &&
+        <Vote
+          allCouncilInfo={allCouncilInfo}
+          chain={chain}
+          chainInfo={chainInfo}
+          setShowVotesModal={setShowVotesModal}
+          showVotesModal={showVotesModal} />
+      }
     </Container>
   );
 }

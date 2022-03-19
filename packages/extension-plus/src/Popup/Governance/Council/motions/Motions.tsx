@@ -3,18 +3,19 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
+
 import { Avatar, Container, Grid, Link, Paper } from '@mui/material';
 import React from 'react';
 
 import useMetadata from '../../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import getLogo from '../../../../util/getLogo';
-import { ChainInfo, MotionsInfo } from '../../../../util/plusTypes';
+import { ChainInfo } from '../../../../util/plusTypes';
 import { remainingTime } from '../../../../util/plusUtils';
-import Identity from '../../../../components/Identity';
 
 interface Props {
-  motions: MotionsInfo;
+  motions: DeriveCollectiveProposal[];
   chainInfo: ChainInfo;
   currentBlockNumber: number;
 }
@@ -25,12 +26,10 @@ export default function Motions({ chainInfo, currentBlockNumber, motions }: Prop
   const chain = useMetadata(chainInfo.genesisHash, true);
   const chainName = chain?.name.replace(' Relay Chain', '');
 
-  const { accountInfo, proposalInfo, proposals } = pMotions;
-
   return (
-    <Container disableGutters maxWidth='md'>
-      {proposals.length
-        ? proposals.map((p, index) => (
+    <Container disableGutters maxWidth='md' sx={{ fontSize: 12 }}>
+      {motions.length
+        ? motions.map((p, index) => (
           <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '20px 30px 10px', p: '10px 20px' }}>
             <Grid container justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item>
@@ -83,9 +82,18 @@ export default function Motions({ chainInfo, currentBlockNumber, motions }: Prop
               </Grid>
             </Grid>
 
-            {proposalInfo[index]?.proposer &&
-              <Identity accountInfo={accountInfo[index]} chain={chain} showAddress title={t('Proposer')} />
-            }
+            {/* <Grid item sx={{ pt: '20px' }} xs={12}>
+              <LinearProgress
+                color='warning'
+                sx={{ backgroundColor: 'black' }}
+                value={100 * (Number(currentBlock) - start) / (end - start)}
+                variant='determinate'
+              />
+            </Grid>
+            <Grid item sx={{ color: 'green', fontSize: 12 }} xs={12}>
+              {t('Remaining Time')}{': '} {{ remainingTime(currentBlockNumber, p.votes.end)}}
+            </Grid> */}
+
           </Paper>
         ))
         : <Grid sx={{ paddingTop: 3, textAlign: 'center' }} xs={12}>

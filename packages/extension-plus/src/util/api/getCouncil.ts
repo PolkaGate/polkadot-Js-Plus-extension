@@ -16,7 +16,5 @@ export default async function getCouncil(_chain: string): Promise<CouncilInfo> {
   // eslint-disable-next-line dot-notation
   info['accountInfos'] = await Promise.all(ids.map((a) => api.derive.accounts.info(a) ));
 
-  console.log('council ids:', ids);
-
   return info as CouncilInfo;
 }

@@ -13,13 +13,13 @@ import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, GBalance, Password, PlusHeader, Popup, Progress } from '../../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, Progress, ShowBalance } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
 import getVotes from '../../../../../util/api/getVotes';
 import { PASS_MAP } from '../../../../../util/constants';
-import getChainInfo from '../../../../../util/getChainInfo';
 import { ChainInfo, PersonsInfo } from '../../../../../util/plusTypes';
 import Members from '../Members';
+import { grey } from '@mui/material/colors';
 
 interface Props {
   chain: Chain;
@@ -29,7 +29,7 @@ interface Props {
   setShowMyVotesModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function MyVotes({ allCouncilInfo, chain, chainInfo, setShowMyVotesModal, showMyVotesModal }: Props): React.ReactElement<Props> {
+export default function CancelVote({ allCouncilInfo, chain, chainInfo, setShowMyVotesModal, showMyVotesModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [selectedAddress, setSelectedAddress] = useState<string>('');
   const [votesInfo, seVotesInfo] = useState<DeriveCouncilVote>();
@@ -38,6 +38,18 @@ export default function MyVotes({ allCouncilInfo, chain, chainInfo, setShowMyVot
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<string>();
+  const [estimatedFee, setEstimatedFee] = useState<bigint>();
+  const { api } = chainInfo;
+  const electionApi = api.tx.phragmenElection ?? api.tx.electionsPhragmen ?? api.tx.elections;
+  const tx = electionApi.removeVoter;
+
+  useEffect(() => {
+    if (!selectedAddress) return;
+    // eslint-disable-next-line no-void
+    void tx().paymentInfo(selectedAddress)
+      .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
+      .catch(console.error);
+  }, [selectedAddress, tx]);
 
   const handleClose = useCallback((): void => {
     setShowMyVotesModal(false);
@@ -47,11 +59,11 @@ export default function MyVotes({ allCouncilInfo, chain, chainInfo, setShowMyVot
     seVotesInfo(undefined); // reset votes when change address
 
     // eslint-disable-next-line no-void
-    void getVotes(chain, selectedAddress).then((v) => {
-      console.log('v:', v);
+    void api.derive.council.votesOf(selectedAddress).then((v) => {
+      console.log('v:', v.toString());
       seVotesInfo(v);
     });
-  }, [selectedAddress, chain]);
+  }, [selectedAddress, api]);
 
   useEffect(() => {
     if (!votesInfo || !allCouncilInfo) return;
@@ -67,11 +79,7 @@ export default function MyVotes({ allCouncilInfo, chain, chainInfo, setShowMyVot
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { api } = await getChainInfo(chain);
-      const electionApi = api.tx.phragmenElection ?? api.tx.electionsPhragmen ?? api.tx.elections;
-      const tx = electionApi.removeVoter;
-
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer, selectedAddress);
 
       // TODO: can save to history here
 
@@ -88,11 +96,21 @@ export default function MyVotes({ allCouncilInfo, chain, chainInfo, setShowMyVot
     <Popup handleClose={handleClose} showModal={showMyVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<GroupRemoveIcon fontSize='small' />} title={'My Votes'} />
 
-      <AllAddresses availableBalance={availableBalance} chainInfo={chainInfo}  setAvailableBalance={setAvailableBalance} chain={chain} selectedAddress={selectedAddress} setSelectedAddress={setSelectedAddress} text={t('select account to view votes')} />
+      <AllAddresses
+        availableBalance={availableBalance}
+        chain={chain} chainInfo={chainInfo}
+        selectedAddress={selectedAddress}
+        setAvailableBalance={setAvailableBalance}
+        setSelectedAddress={setSelectedAddress}
+        text={<ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />}
+        title={t('Voter')}
+      />
 
-      <GBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />
+      <Grid item sx={{ color: grey[600], fontSize: 12, p: '0px 40px 0px 80px', textAlign: 'right' }}>
+        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} title={t('Fee')} />
+      </Grid>
 
-      <Container id='scrollArea' sx={{ height: '250px', overflowY: 'auto' }}>
+      <Container id='scrollArea' sx={{ height: '255px', overflowY: 'auto' }}>
         {votesInfo && filteredPersonsInfo
           ? <Members chain={chain} chainInfo={chainInfo} membersType={t('Votes')} personsInfo={filteredPersonsInfo} />
           : <Progress title={t('Loading votes ...')} />

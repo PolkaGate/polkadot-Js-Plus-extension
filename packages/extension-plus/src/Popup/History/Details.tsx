@@ -3,8 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component shows a detailed information of an individual transaction including sender/reciver addresses if applicable,
- *  amount, type of transaction, hashes and etc. */
+/** 
+ * @description this component shows a detailed information of an individual transaction including sender/reciver addresses if applicable,
+ *  amount, type of transaction, hashes and etc. 
+ * */
 
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -159,7 +161,7 @@ export default function Details({
                 {t('Fees')}
               </Grid>
               <Grid item sx={{ fontWeight: '600', textAlign: 'right', pb: '10px' }} xs={6}>
-                {amountToHuman(transaction.fee, decimals)} {' '}{coin}
+                {amountToHuman(transaction.fee, decimals, 6)} {' '}{coin}
               </Grid>
 
               <Grid item sx={{ textAlign: 'left' }} xs={2}>

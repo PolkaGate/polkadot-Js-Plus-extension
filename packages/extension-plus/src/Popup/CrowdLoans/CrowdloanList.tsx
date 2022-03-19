@@ -44,7 +44,7 @@ export default function CrowdloanList({ chainInfo, crowdloans, description, endp
           </Grid>
         </Grid>
       </AccordionSummary>
-      <AccordionDetails sx={{ height: height, overflowY: 'auto' }}>
+      <AccordionDetails sx={{ height: height, overflowY: 'auto', p: 0 }}>
         {crowdloans?.length
           ? crowdloans.map((c) => (
             <Grid container item key={c.fund.paraId} xs={12}>

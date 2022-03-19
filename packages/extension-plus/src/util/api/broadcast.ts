@@ -14,14 +14,15 @@ export default async function broadcast(
   api: ApiPromise,
   tx: ((...args: any[]) => SubmittableExtrinsic<'promise'>) | null,
   params: unknown[] | (() => unknown[]) | null,
-  signer: KeyringPair
+  signer: KeyringPair,
+  senderAddress: string
 ): Promise<Promise<TxInfo>> {
   try {
     console.log('broadcasting a tx ....');
 
     const b = tx(...params);
 
-    return signAndSend(api, b, signer);
+    return signAndSend(api, b, signer, senderAddress);
   } catch (e) {
     console.log('something went wrong while broadcasting', e);
 
