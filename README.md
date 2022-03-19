@@ -50,12 +50,12 @@ Once added, you can create an account (via a generated seed) or import via an ex
 
 #### To test on westend:
 
-1- add genesis of wetend to '@polkadot/networks/genesis.js':
+1- check wheather westend genesis exists in './node_modules/@polkadot/networks/genesis.js', if not add the following:
 
     westend:['0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e'] 
 
 
-2- add network info of westend to '@substrate/ss58-registry/index.js':
+2- check wheather westend network info exists in './node_modules/@substrate/ss58-registry/index.js', if not add the following:
 
 {
 		"prefix": 42,
