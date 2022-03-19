@@ -41,7 +41,7 @@ import Unstake from './Unstake';
 interface Props {
   account: AccountJson,
   chain?: Chain | null;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   ledger: StakingLedger | null;
   redeemable: bigint | null;
   name: string;
@@ -81,7 +81,6 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
   const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
   const [storeIsUpdate, setStroreIsUpdate] = useState<boolean>(false);
-
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
@@ -102,7 +101,6 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     setStroreIsUpdate(currentEraIndex === currentEraIndexOfStore);
   }, [currentEraIndex, currentEraIndexOfStore]);
-
 
   useEffect((): void => {
     if (!chain || !account || !staker) {
@@ -557,7 +555,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') &&
+      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && chainInfo &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           chain={chain}
