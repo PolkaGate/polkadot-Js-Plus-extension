@@ -4,16 +4,20 @@
 
 import React from 'react';
 
+import { AccountId } from '@polkadot/types/interfaces/runtime';
+
+import { SHORT_ADDRESS_CHARACTERS } from '../util/constants';
+
 interface Props {
-  address: string;
+  address: string | AccountId;
   charsCount?: number;
   fontSize?: number;
 }
 
-export default function ShortAddress({ address, charsCount = 4, fontSize = 14 }: Props): React.ReactElement {
+export default function ShortAddress({ address, charsCount = SHORT_ADDRESS_CHARACTERS, fontSize = 14 }: Props): React.ReactElement {
   return (
     <span style={{ fontFamily: 'Monospace', fontSize: fontSize }}>
-      {address.slice(0, charsCount) + '...' + address.slice(-1 * charsCount)}
+      {address.slice(0, charsCount) + '...' + address.slice(-charsCount)}
     </span>
   );
 }
