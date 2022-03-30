@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /** NOTE this component provides icons related to each action, which is depicted in transaction history */
-import { AcUnit as AcUnitIcon, Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, AllOut as AllOutIcon, CallMade as CallMadeIcon, CallReceived as CallReceivedIcon, Check as CheckIcon, Link as LinkIcon, NotificationsNone as NotificationsNoneIcon, Redeem as RedeemIcon, Remove as RemoveIcon, StopCircle as StopCircleIcon } from '@mui/icons-material';
+import { AcUnit as AcUnitIcon, Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, Adjust as AdjustIcon,  AllOut as AllOutIcon, CallMade as CallMadeIcon, CallReceived as CallReceivedIcon, Check as CheckIcon, Link as LinkIcon, NotificationsNone as NotificationsNoneIcon, Redeem as RedeemIcon, Remove as RemoveIcon, StopCircle as StopCircleIcon } from '@mui/icons-material';
 import React from 'react';
 
 export function getTxIcon(action: string): React.ReactNode {
@@ -61,6 +61,11 @@ export function getTxIcon(action: string): React.ReactNode {
       return <LinkIcon
         fontSize='small'
         sx={{ color: 'blue' }}
+      />;
+    case ('tuneup'):
+      return <AdjustIcon
+        fontSize='small'
+        sx={{ color: 'red' }}
       />;
     default:
       return <NotificationsNoneIcon
