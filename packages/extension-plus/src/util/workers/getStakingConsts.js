@@ -20,7 +20,7 @@ async function getStackingConsts (_chain) {
       existentialDeposit: BigInt(existentialDeposit), // FIXME, sometimes make issue while reading from local storge
       maxNominations: maxNominations,
       maxNominatorRewardedPerValidator: maxNominatorRewardedPerValidator,
-      minNominatorBond: Number(minNominatorBond) / (10 ** decimals)
+      minNominatorBond: BigInt(minNominatorBond)
     };
   } catch (error) {
     console.log('something went wrong while getStackingConsts. err: ' + error);
