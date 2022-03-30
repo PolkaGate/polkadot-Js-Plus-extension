@@ -17,7 +17,7 @@ async function gChainInfo(_chain: Chain | string): Promise<ChainInfo> {
   const chainName = (_chain as Chain)?.name?.replace(' Relay Chain', '') ?? _chain as string;
 
   // if (!chainName) return null;
-
+  // console.log('allEndpoints',allEndpoints)
   const endpoint = allEndpoints.find((e) => (String(e.text)?.toLowerCase() === chainName?.toLowerCase()));
   // const endpoints = allEndpoints.filter((e) => (String(e.text)?.toLowerCase() === chainName?.toLowerCase()));
   // const onfinalityEndpoint = endpoints.find((e) => e.value.includes('onfinality'));
