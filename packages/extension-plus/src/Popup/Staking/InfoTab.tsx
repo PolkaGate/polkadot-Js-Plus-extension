@@ -9,53 +9,87 @@ import { grey } from '@mui/material/colors';
 import React from 'react';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Progress } from '../../components';
+import { Progress, ShowBalance, ShowValue } from '../../components';
 import { ChainInfo, StakingConsts } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
 
 interface Props {
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   stakingConsts: StakingConsts | null;
+  minNominated: bigint | undefined;
+  currentEraIndex: number | undefined;
 }
 
-function InfoTab({ chainInfo, stakingConsts }: Props): React.ReactElement<Props> {
+function InfoTab({ chainInfo, currentEraIndex, minNominated, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (
-    <Grid container data-testid='info' sx={{ paddingTop: '20px', textAlign: 'center' }}>
+    <Grid container data-testid='info' sx={{ paddingTop: '15px', textAlign: 'center' }}>
       <Grid sx={{ color: grey[600], fontSize: 15, fontWeight: '600' }} xs={12}>
         {t('Welcome to Staking')}
       </Grid>
-      <Grid sx={{ fontSize: 11 }} xs={12}>
+      <Grid sx={{ fontSize: 11, pt: '5px', pb: 2 }} xs={12}>
         {t('Information you need to know about')}
-      </Grid>
-      <Grid sx={{ p: '5px 70px 40px' }} xs={12}>
         <Divider light />
       </Grid>
-      {stakingConsts && chainInfo
-        ? <>
-          <Grid sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-            {t('Maximum validators you can select: ')}<Box component='span' sx={{ fontWeight: 'bold' }}>  {stakingConsts?.maxNominations}</Box>
+
+      <Grid container item sx={{ px: '5px' }} xs={12}>
+
+        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('Maximum validators you can select: ')}
           </Grid>
-          <Grid sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-            {t('Minimum')} {chainInfo.coin}s {t('to be a staker: ')} <Box component='span' sx={{ fontWeight: 'bold' }}> {stakingConsts?.minNominatorBond}</Box> {chainInfo.coin}s
+          <Grid item>
+            <ShowValue value={stakingConsts?.maxNominations} />
           </Grid>
-          <Grid sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-            {t('Maximum stakers of a validator, who receives rewards: ')} <Box component='span' sx={{ fontWeight: 'bold' }}> {stakingConsts?.maxNominatorRewardedPerValidator}</Box>
+        </Grid>
+
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('Minimum {{symbol}}s to be a staker (threshold): ', { replace: { symbol: chainInfo?.coin } })}
           </Grid>
-          <Grid sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-            {t('Days it takes to receive your funds back after unstaking:  ')}<Box component='span' sx={{ fontWeight: 'bold' }}>  {stakingConsts?.bondingDuration}</Box>  {t('days')}
+          <Grid item>
+            <ShowBalance balance={stakingConsts?.minNominatorBond} chainInfo={chainInfo} />
           </Grid>
-          <Grid sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-            {t('Minimum')} {chainInfo.coin}s {t('that must remain in you account: ')}
-            <Box component='span' sx={{ fontWeight: 'bold' }}>
-              {stakingConsts.existentialDeposit ? amountToHuman(stakingConsts.existentialDeposit.toString(), chainInfo.decimals, 6) : ''}
-            </Box>
-            {' '}{chainInfo.coin}s {t('plus some fees')}
+        </Grid>
+
+        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('Minimum {{symbol}}s to recieve rewards today (era: {{eraIndex}})', { replace: { symbol: chainInfo?.coin, eraIndex: currentEraIndex } })}:
           </Grid>
-        </>
-        : <Progress title={'Loading information ...'} />
-      }
+          <Grid item>
+            <ShowBalance balance={minNominated} chainInfo={chainInfo} decimalDigits={4} />
+          </Grid>
+        </Grid>
+
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('Maximum nominators of a validator, who may receive rewards: ')}
+          </Grid>
+          <Grid item>
+            <ShowValue value={stakingConsts?.maxNominatorRewardedPerValidator} />
+          </Grid>
+        </Grid>
+
+        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('Days it takes to receive your funds back after unstaking:  ')}
+          </Grid>
+          <Grid item>
+            <ShowValue unit={t('days')} value={stakingConsts?.bondingDuration} />
+          </Grid>
+        </Grid>
+
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('Minimum {{symbol}}s that must remain in your account (existential deposit): ', { replace: { symbol: chainInfo?.coin } })}
+          </Grid>
+          <Grid item>
+            <ShowBalance balance={stakingConsts?.existentialDeposit} chainInfo={chainInfo} />
+            {/* <span>{`s ${t('plus some fees')}`}</span> */}
+          </Grid>
+        </Grid>
+      </Grid>
     </Grid>
   );
 }
