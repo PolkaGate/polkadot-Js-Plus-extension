@@ -16,8 +16,8 @@ interface Props {
 
 export default function ShortAddress({ address, charsCount = SHORT_ADDRESS_CHARACTERS, fontSize = 14 }: Props): React.ReactElement {
   return (
-    <span style={{ fontFamily: 'Monospace', fontSize: fontSize }}>
-      {address.slice(0, charsCount) + '...' + address.slice(-charsCount)}
+    <span style={{ fontFamily: 'Source Sans Pro, Arial, sans-serif', fontSize: fontSize }}>
+      {address.slice(0, charsCount)}...{address.slice(-charsCount)}
     </span>
   );
 }
