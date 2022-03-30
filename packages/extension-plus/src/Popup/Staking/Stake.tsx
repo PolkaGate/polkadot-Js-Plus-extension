@@ -113,7 +113,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
     if (!stakingConsts) return;
     const ED = Number(amountToHuman(stakingConsts?.existentialDeposit.toString(), chainInfo?.decimals));
     let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 2 * ED));
-    let min = stakingConsts?.minNominatorBond;
+    let min =  Number(amountToHuman(stakingConsts?.minNominatorBond, chainInfo?.decimals));
 
     if (Number(ledger?.active)) { // TODO: check if it is below minNominatorBond
       min = MIN_EXTRA_BOND;
