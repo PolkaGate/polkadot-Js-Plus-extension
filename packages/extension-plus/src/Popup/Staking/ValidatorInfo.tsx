@@ -100,7 +100,7 @@ export default function ValidatorInfo({ chain, chainInfo, info, setShowValidator
                   />
                 </Grid>
                 <Grid item sx={{ textAlign: 'left' }} xs={6}>
-                  <ShortAddress address={who} charsCount={8} />
+                  <ShortAddress address={who} charsCount={8} fontSize={13} />
                 </Grid>
                 <Grid item sx={{ textAlign: 'right' }} xs={5}>
                   {Number(amountToHuman(value, chainInfo?.decimals)).toLocaleString()} {' '}{chainInfo?.coin}
