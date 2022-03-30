@@ -22,6 +22,7 @@ interface Props {
 
 export default function ConfirmButton({ handleBack, handleConfirm, handleReject, isDisabled = false, state, text = 'Confirm' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const isBusy: boolean = state === 'confirming';
 
   return (
     <Grid container data-testid='confirmButton' item justifyContent='space-between' sx={{ m: 1 }} xs={12}>
@@ -33,10 +34,10 @@ export default function ConfirmButton({ handleBack, handleConfirm, handleReject,
         </Grid>
         : <>
           <Grid item xs={1}>
-            <BackButton onClick={handleBack} />
+            <BackButton onClick={!isBusy && handleBack} />
           </Grid>
           <Grid item sx={{ paddingLeft: '10px' }} xs={11}>
-            <Button data-button-action='' isBusy={state === 'confirming'} isDisabled={isDisabled} onClick={handleConfirm}>
+            <Button data-button-action='' isBusy={isBusy} isDisabled={isDisabled} onClick={handleConfirm}>
               {t(text)}
             </Button>
           </Grid>
