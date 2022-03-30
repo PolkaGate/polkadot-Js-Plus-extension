@@ -3,13 +3,13 @@
 
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
- * @description here users confirm their staking related orders (e.g., stake, unstake, redeem, etc.) 
+/**
+ * @description here users confirm their staking related orders (e.g., stake, unstake, redeem, etc.)
  * */
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
-import { Grid, IconButton, Skeleton, Typography } from '@mui/material';
+import { Avatar, Grid, IconButton, Link, Skeleton, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -22,12 +22,13 @@ import keyring from '@polkadot/ui-keyring';
 
 import { AccountContext } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Password, PlusHeader, Popup } from '../../components';
+import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
 import Hint from '../../components/Hint';
 import broadcast from '../../util/api/broadcast';
 import { bondOrBondExtra } from '../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../util/constants';
-import { AccountsBalanceType, ChainInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
+import getLogo from '../../util/getLogo';
+import { AccountsBalanceType, ChainInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
 import ValidatorsList from './ValidatorsList';
 
@@ -47,9 +48,10 @@ interface Props {
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
   selectedValidators: DeriveStakingQuery[] | null;
+  rebagInfo: RebagInfo;
 }
 
-export default function ConfirmStaking({ amount, chain, chainInfo, handleEasyStakingModalClose, ledger, nominatedValidators, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, chain, chainInfo, handleEasyStakingModalClose, ledger, nominatedValidators, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -65,6 +67,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<bigint>(0n);
 
+  const chainName = chain?.name.replace(' Relay Chain', '');
   const { api, coin, decimals } = chainInfo;
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
@@ -78,6 +81,8 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   const bond = api.tx.staking.bond;
   const redeem = api.tx.staking.withdrawUnbonded;
   const bonding = currentlyStaked ? bondExtra : bond;
+  const rebaged = api.tx.bagsList.rebag;
+  const putInFrontOf = api.tx.bagsList.putInFrontOf;
 
   async function saveHistory(chain: Chain | null, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!chain || !history.length) return false;
@@ -108,10 +113,11 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         }
 
         setNote(t('The selected and previously nominated validators are the same, no need to renominate'));
-      } else {
-        setConfirmButtonDisabled(false);
-        setNote('');
       }
+      // else {
+      //   setConfirmButtonDisabled(false);
+      //   setNote('');
+      // }
     }
   }, [selectedValidatorsAccountId, state, nominatedValidatorsId, t, confirmingState]);
 
@@ -190,13 +196,25 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         // eslint-disable-next-line no-void
         void redeem(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         break;
+      case ('tuneUp'):
+        if (rebagInfo.shouldRebag) {
+          params = [staker.address];
+          // eslint-disable-next-line no-void
+          void rebaged(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+        } else if (rebagInfo.shouldPutInFrontOf && rebagInfo.lighter) {
+          params = [rebagInfo.lighter];
+          // eslint-disable-next-line no-void
+          void putInFrontOf(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+        }
+
+        break;
       default:
     }
 
     // return () => {
     //   setEstimatedFee(undefined);
     // };
-  }, [surAmount, currentlyStaked, chainInfo, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, ledger]);
+  }, [surAmount, currentlyStaked, chainInfo, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, ledger, decimals, rebagInfo]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !stakingConsts?.existentialDeposit) { return; }
@@ -216,9 +234,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       setConfirmButtonDisabled(true);
       setConfirmButtonText(t('Account reap issue, consider fee!'));
 
-      if (
-        // staker.balanceInfo?.available - (partialSubtrahend + fee) > 0 && // might be even negative!!
-        ['stakeAuto', 'stakeManual', 'stakeKeepNominated'].includes(state)) {
+      if (['stakeAuto', 'stakeManual', 'stakeKeepNominated'].includes(state)) {
         setAmountNeedsAdjust(true);
       }
     } else {
@@ -428,6 +444,24 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         setConfirmingState(status);
       }
 
+      if (localState === 'tuneUp') {
+        const tx = rebagInfo.shouldRebag ? rebaged : putInFrontOf;
+        const target = rebagInfo.shouldRebag ? staker.address : rebagInfo.lighter;
+        const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [target], signer, staker.address);
+
+        history.push({
+          action: 'tuneUp',
+          block: block,
+          date: Date.now(),
+          fee: fee || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, staker.address, history);
     } catch (e) {
@@ -463,16 +497,62 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           {' '} {coin}
         </Typography>;
       case ('stopNominating'):
-        return <Typography sx={{ mt: '50px' }} variant='h6'>
+        return <Typography sx={{ mt: '30px' }} variant='h6'>
           {t('Declaring no desire to nominate validators')}
         </Typography>;
+      case ('tuneUp'):
+        return <>
+          {rebagInfo.shouldRebag &&
+            <Grid item xs={12} sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }}>
+              {t('Declaring that your account has sufficiently changed its score that should fall into a different bag.')}
+            </Grid>
+          }
+          {!rebagInfo.shouldRebag && rebagInfo.shouldPutInFrontOf &&
+            <Grid item xs={12} sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }}>
+              {t('Changing your accout\'s position to a better one')}
+            </Grid>
+          }
+
+          <Grid container justifyContent='space-between' sx={{ fontSize: 11, p: '15px 30px' }} item xs={12}>
+            <Grid item>
+              {t('Current bag threshold')}
+            </Grid>
+            <Grid item>
+              {rebagInfo.currentBagThreshold?.toHuman()}
+            </Grid>
+
+          </Grid>
+          {rebagInfo.shouldRebag &&
+            <Grid item xs={12} sx={{ fontSize: 11, pt: '10px' }}>
+              {t('You will probably need another tune up after this one!')}
+            </Grid>
+          }
+          {!rebagInfo.shouldRebag && rebagInfo.shouldPutInFrontOf &&
+            <Grid container justifyContent='space-between' sx={{ fontSize: 11, p: '5px 30px' }} item xs={12}>
+              <Grid item>
+                {t('Account to overtake')}
+              </Grid>
+              <Grid container item justifyContent='flex-end' spacing={0.5} xs={5}>
+                <Grid item>
+                  <Link href={`https://${chainName}.subscan.io/account/${rebagInfo.lighter?.toHuman()}?tab=reward`} rel='noreferrer' target='_blank' underline='none'>
+                    <Avatar alt={'subscan'} src={getLogo('subscan')} sx={{ height: 11, width: 11 }} />
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <ShortAddress address={rebagInfo.lighter?.toHuman()} fontSize={11} />
+                </Grid>
+              </Grid>
+            </Grid>
+          }
+        </>;
       default:
         return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>
           {note}
         </Typography>;
     }
-    // FIXME: availableBalance change should not change the alert in redeem confirm page!
-  }, [surAmount, coin, decimals, estimatedFee, stakingConsts?.bondingDuration, t]);
+    // Note: availableBalance change should not change the alert in redeem confirm page!
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [surAmount, coin, decimals, estimatedFee, stakingConsts?.bondingDuration, t, rebagInfo]);
 
   const handleAutoAdjust = useCallback((): void => {
     const ED = stakingConsts?.existentialDeposit;
@@ -484,6 +564,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
 
     setSurAmount(adjustedAmount);
     setAmountNeedsAdjust(false);
+    setConfirmButtonDisabled(false);
   }, [estimatedFee, availableBalance, stakingConsts?.existentialDeposit]);
 
   return (
@@ -565,7 +646,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               />
             </Grid>
           </>
-          : <Grid item sx={{ height: '120px', m: '50px 30px 50px', textAlign: 'center' }} xs={12}>
+          : <Grid item sx={{ height: '115px', m: '50px 30px 50px', textAlign: 'center' }} xs={12}>
             {writeAppropiateMessage(state, note)}
           </Grid>
         }
@@ -575,7 +656,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         <Password
           autofocus={!['confirming', 'failed', 'success'].includes(confirmingState)}
           handleIt={handleConfirm}
-          isDisabled={!ledger || confirmButtonDisabled || !estimatedFee || Number(totalStakedInHuman) < stakingConsts?.minNominatorBond}
+          isDisabled={!stakingConsts || !ledger || confirmButtonDisabled || !estimatedFee}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
@@ -588,7 +669,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!ledger || confirmButtonDisabled || !estimatedFee || Number(totalStakedInHuman) < stakingConsts?.minNominatorBond}
+              isDisabled={!stakingConsts || !ledger || confirmButtonDisabled || !estimatedFee}
               state={confirmingState}
               text={confirmButtonText}
             />
