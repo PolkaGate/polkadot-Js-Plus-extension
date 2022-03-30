@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable react/jsx-max-props-per-line */
 /* eslint-disable header/header */
+/* eslint-disable react/jsx-first-prop-new-line */
 
 /**
  * @description
@@ -11,7 +12,7 @@
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
-import { Redeem as RedeemIcon } from '@mui/icons-material';
+import { BarChart as BarChartIcon, Redeem as RedeemIcon } from '@mui/icons-material';
 import { Grid, Paper, Skeleton } from '@mui/material';
 import React from 'react';
 
@@ -26,9 +27,11 @@ interface Props {
   ledger: StakingLedger | null;
   redeemable: bigint | null;
   currentlyStakedInHuman: string | null;
-  totalReceivedReward: string | null;
+  totalReceivedReward: string | undefined;
   handleWithdrowUnbound: () => void;
+  handleViewChart: () => void;
   unlockingAmount: bigint;
+  rewardSlashes: any | undefined;
 }
 
 interface BalanceProps {
@@ -37,7 +40,7 @@ interface BalanceProps {
   coin: string;
 }
 
-function Balance ({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
+function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
   return (<>
     <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }} xs={12}>
       {label}
@@ -51,7 +54,7 @@ function Balance ({ amount, coin, label }: BalanceProps): React.ReactElement<Bal
   </>);
 }
 
-export default function Overview({ availableBalanceInHuman, chainInfo, currentlyStakedInHuman, handleWithdrowUnbound, ledger, redeemable, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ availableBalanceInHuman, chainInfo, currentlyStakedInHuman, handleViewChart, handleWithdrowUnbound, ledger, redeemable, rewardSlashes, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (
@@ -67,7 +70,20 @@ export default function Overview({ availableBalanceInHuman, chainInfo, currently
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
           <Grid item xs={4}>
-            <Balance amount={totalReceivedReward} coin={chainInfo?.coin} label={t('Reward')} />
+            <Balance amount={totalReceivedReward} coin={chainInfo?.coin}
+              label={
+                <Grid container item justifyContent='center'>
+                  <Grid item>
+                    {t('Rewards')}
+                  </Grid>
+                  <Grid item>
+                    <Hint id='redeem' place='top' tip={t('View chart')}>
+                      <BarChartIcon color={rewardSlashes?.length ? 'warning' : 'disabled'} onClick={handleViewChart} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                    </Hint>
+                  </Grid>
+                </Grid>
+              }
+            />
           </Grid>
 
           <Grid container item justifyContent='center' xs={4}>
