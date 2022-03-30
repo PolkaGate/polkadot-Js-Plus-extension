@@ -20,7 +20,7 @@ import VTable from './VTable';
 interface Props {
   activeValidator?: DeriveStakingQuery;
   chain?: Chain | null;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   validatorsInfo: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts;
   validatorsIdentities: DeriveAccountInfo[] | null;
@@ -46,7 +46,7 @@ export default function ValidatorsList({ activeValidator, height, chain, chainIn
 
   return (
     <>
-      <Grid item sx={{p: '0px 10px' }} xs={12}>
+      <Grid item sx={{ p: '0px 10px' }} xs={12}>
         {validatorsInfo
           ? <VTable
             activeValidator={activeValidator}
@@ -63,7 +63,7 @@ export default function ValidatorsList({ activeValidator, height, chain, chainIn
         }
       </Grid>
 
-      {showValidatorInfoModal && info &&
+      {showValidatorInfoModal && info && chainInfo &&
         <ValidatorInfo
           chain={chain}
           chainInfo={chainInfo}
