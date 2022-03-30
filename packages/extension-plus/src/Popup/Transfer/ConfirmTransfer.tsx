@@ -27,7 +27,7 @@ import Hint from '../../components/Hint';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { AccountsBalanceType, ChainInfo, TransactionDetail } from '../../util/plusTypes';
-import { amountToHuman, fixFloatingPoint, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData, toShortAddress } from '../../util/plusUtils';
+import { amountToHuman, fixFloatingPoint, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 
 interface Props {
   actions?: React.ReactNode;
@@ -171,7 +171,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
 
   const addressWithIdenticon = (name: string | null, address: string): React.ReactElement => (
     <>
-      <Grid item sx={{ textAlign: 'center' }} xs={4}>
+      <Grid item sx={{ textAlign: 'center' }} xs={3}>
         <Identicon
           prefix={chain?.ss58Format ?? 42}
           size={30}
@@ -179,7 +179,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
           value={address}
         />
       </Grid>
-      <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={6}>
+      <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={7}>
         <Grid item sx={{ fontSize: 14, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
           {name || <ShortAddress address={address} />}
         </Grid>
