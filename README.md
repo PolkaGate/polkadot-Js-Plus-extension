@@ -19,6 +19,8 @@ Currently, the following features are added:
 
 # ![polkadot{.js} plus extension intro](packages/extension-plus/docs/intro.png)
 
+### More photos [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki/How-To's)
+
 
 ## Installation 
 
