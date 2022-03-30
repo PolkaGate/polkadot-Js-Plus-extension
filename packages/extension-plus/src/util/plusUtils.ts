@@ -6,6 +6,7 @@
 
 import type { Text } from '@polkadot/types';
 import type { AccountId } from '@polkadot/types/interfaces';
+import type { Compact, u128 } from '@polkadot/types-codec';
 
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -53,7 +54,8 @@ export function balanceToHuman(_balance: AccountsBalanceType | null, _type: stri
   }
 }
 
-export function amountToHuman(_amount: string | undefined, _decimals: number, decimalDigits?: number, commify?: boolean): string {
+// const amountToHuman = (x: bigint): string => api.createType('Balance', x).toHuman();
+export function amountToHuman(_amount: string | bigint| Compact<u128> | undefined, _decimals: number, decimalDigits?: number, commify?: boolean): string {
   if (!_amount) return '';
 
   _amount = String(_amount).replace(/,/g, '');
