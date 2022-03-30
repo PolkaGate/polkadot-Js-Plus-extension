@@ -55,8 +55,8 @@ export default function Unstake({ chainInfo, currentlyStakedInHuman, handleNextT
 
     console.log(`remainStaked ${remainStaked}  currentlyStaked ${currentlyStaked} amountToMachine(value, chainInfo?.decimals) ${amountToMachine(value, chainInfo?.decimals)}`);
 
-    if (remainStakedInHuman > 0 && remainStakedInHuman < stakingConsts?.minNominatorBond) {
-      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), chainInfo?.decimals)} should not be less than ${stakingConsts?.minNominatorBond} ${chainInfo?.coin}`);
+    if (remainStakedInHuman > 0 && remainStakedInHuman < Number(amountToHuman(stakingConsts?.minNominatorBond, chainInfo?.decimals))) {
+      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), chainInfo?.decimals)} should not be less than ${amountToHuman(stakingConsts?.minNominatorBond, chainInfo?.decimals)} ${chainInfo?.coin}`);
 
       return;
     }
