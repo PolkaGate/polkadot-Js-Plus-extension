@@ -1262,7 +1262,7 @@ export const stakingConsts: StakingConsts = {
   existentialDeposit: 10000000000n,
   maxNominations: 16,
   maxNominatorRewardedPerValidator: 64,
-  minNominatorBond: 1
+  minNominatorBond: 1000000000000n
 };
 
 export const nominatedValidators: DeriveStakingQuery[] = [
