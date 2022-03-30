@@ -19,17 +19,21 @@ import { amountToHuman } from '../util/plusUtils';
 export interface Props {
   balance: Balance | bigint | string | number | null | undefined;
   chainInfo: ChainInfo;
-  title: string;
+  title?: string;
   decimalDigits?: number;
 }
 
+
 function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
+  const amountToHuman = (x: bigint): string => chainInfo?.api.createType('Balance', x).toHuman();
+
   return (
     <div data-testid='showBalance'>
-      {title}:{' '}
-      {balance
+      {title && <> {title}:{' '}</>}
+      
+      {balance && chainInfo
         ? <>
-          {Number(amountToHuman(balance.toString(), chainInfo.decimals, decimalDigits)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: decimalDigits })}{' '}{chainInfo.coin}
+          {amountToHuman(balance)}
         </>
         : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
       }
