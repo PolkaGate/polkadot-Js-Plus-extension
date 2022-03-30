@@ -75,4 +75,11 @@ Once added, you can create an account (via a generated seed) or import via an ex
 
 ## More information 
 
-for more information about the extension and how it worsk, please go to the wiki page [here](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki) 
+for more information about the extension and how it worsk, please go to the project [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki) 
+
+## To support 
+
+
+<img src="./packages/extension-plus/docs/logos/dot.svg" width="20" />  17VdcY2F3WvhSLFHBGZreubzQNQ3NZzLbQsugGzHmzzprSG
+
+<img src="./packages/extension-plus/docs/logos/ksm.svg" width="20" />  Cgp9bcq1dGP1Z9B6F2ccTSTHNez9jq2iUX993ZbDVByPSU2
