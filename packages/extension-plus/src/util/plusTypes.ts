@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 /* eslint-disable camelcase */
-import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveReferendumExt, DeriveElectionsInfo, DeriveProposal, DeriveStakingQuery } from '@polkadot/api-derive/types';
+
+import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveReferendumExt, DeriveStakingQuery } from '@polkadot/api-derive/types';
 
 import { ApiPromise } from '@polkadot/api';
-import { Balance } from '@polkadot/types/interfaces';
+import { AccountId, Balance } from '@polkadot/types/interfaces';
 
 export interface TransactionStatus {
   blockNumber: string | null;
@@ -37,7 +38,7 @@ export interface StakingConsts {
   existentialDeposit: bigint,
   maxNominations: number,
   maxNominatorRewardedPerValidator: number,
-  minNominatorBond: number,
+  minNominatorBond: bigint,
   bondingDuration: number
 }
 
@@ -245,4 +246,11 @@ export interface TransactionFee {
 
 export interface Referendum extends DeriveReferendumExt {
   proposerInfo: DeriveAccountInfo;
+}
+
+export interface RebagInfo {
+  shouldRebag?: boolean;
+  currentBagThreshold?: Balance;
+  shouldPutInFrontOf?: boolean;
+  lighter?: AccountId;
 }
