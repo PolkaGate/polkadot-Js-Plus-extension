@@ -32,9 +32,10 @@ interface Props {
   isInNominatedValidators?: (arg0: DeriveStakingQuery) => boolean;
   validatorsIdentities: DeriveAccountInfo[] | null;
   activeValidator?: DeriveStakingQuery;
+  showSocial?: boolean;
 }
 
-function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
+function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSwitch = false, showSocial = true, stakingConsts, validator, validatorsIdentities }: Props) {
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? '#fffbed' : '');
   const getAccountInfo = (id: AccountId): DeriveAccountInfo => validatorsIdentities?.find((v) => v.accountId === id);
@@ -56,6 +57,7 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
               accountInfo={getAccountInfo(validator?.accountId)}
               chain={chain}
               iconSize={showSwitch ? 24 : 20}
+              showSocial={showSocial}
               totalStaked={validator.exposure.total && showSwitch ? `Total staked: ${Number(validator.exposure.total).toLocaleString()}` : ''}
             />
             : <ShortAddress address={String(validator?.accountId)} fontSize={11} />
@@ -72,23 +74,23 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
           {Number(validator.validatorPrefs.commission) / (10 ** 7) < 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
         </Grid>
 
-        <Grid alignItems='center' container item justifyContent={showSwitch ? 'center' : 'flex-end'} xs={2}>
-          <Grid item>
+        <Grid alignItems='center' container item justifyContent='center' xs={2}>
+          <Grid item xs={2} sx={{ textAlign: 'right' }}>
             {!!nominatorCount && isActive &&
               <Hint id='active' place='left' tip='Active'>
                 <DirectionsRunIcon color='primary' sx={{ fontSize: '17px' }} />
               </Hint>
             }
           </Grid>
-          <Grid item>
+          <Grid item xs={'auto'} sx={{ textAlign: 'center' }} >
+            {nominatorCount || 'waiting'}
+          </Grid>
+          <Grid item xs={2} sx={{ textAlign: 'left' }}>
             {!!nominatorCount && isOverSubscribed &&
               <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
                 <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '17px' }} />
               </Hint>
             }
-          </Grid>
-          <Grid item>
-            {nominatorCount || 'waiting'}
           </Grid>
         </Grid>
 
