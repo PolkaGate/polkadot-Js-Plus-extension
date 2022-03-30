@@ -15,7 +15,7 @@ import ReactDOM from 'react-dom';
 
 import getChainInfo from '../../util/getChainInfo';
 import { AccountsBalanceType, ChainInfo } from '../../util/plusTypes';
-import { amountToMachine } from '../../util/plusUtils';
+import { amountToHuman, amountToMachine } from '../../util/plusUtils';
 import { nominatedValidators, stakingConsts } from '../../util/test/testHelper';
 import Stake from './Stake';
 
@@ -74,7 +74,7 @@ describe('Testing EasyStaking component', () => {
 
     fireEvent.click(minButton);
     expect(nextStepButton.hasAttribute('disabled')).toBe(false);
-    expect(Number(amountInput.value)).toEqual(stakingConsts.minNominatorBond);
+    expect(Number(amountInput.value)).toEqual(Number(amountToHuman(stakingConsts.minNominatorBond, chainInfo?.decimals)));
 
     fireEvent.click(maxButton);
     expect(nextStepButton.hasAttribute('disabled')).toBe(false);
