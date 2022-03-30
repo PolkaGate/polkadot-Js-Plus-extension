@@ -3,9 +3,14 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE here nominated validators are listed, which shows very usefull information/notifications like current active nominator,
- *  oversubscribds, noActive in this era, stuff like that, and also stop/change nomination is provided. */
-import { StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
+/**
+ * @description here nominated validators are listed, which shows very usefull information/notifications like current active nominator,
+ *  oversubscribds, noActive in this era, stuff like that, and also stop/change nomination is provided. 
+ * */
+
+import type { StakingLedger } from '@polkadot/types/interfaces';
+
+import { Adjust as AdjustIcon, StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
 import { Button as MuiButton, Grid } from '@mui/material';
 import React, { useCallback } from 'react';
 
@@ -15,27 +20,33 @@ import { Chain } from '../../../../extension-chains/src/types';
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../components';
-import { ChainInfo, StakingConsts, Validators } from '../../util/plusTypes';
+import { ChainInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
   activeValidator: DeriveStakingQuery | undefined;
-  currentlyStakedInHuman: string | null;
+  ledger: StakingLedger | null;
   nominatedValidators: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts | null;
   noNominatedValidators: boolean;
   chain: Chain;
-  chainInfo: ChainInfo;
+  chainInfo: ChainInfo | undefined;
   validatorsIdentities: DeriveAccountInfo[] | null;
   validatorsInfo: Validators | null;
   state: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
   handleSelectValidatorsModalOpen: (isSetNominees: boolean) => void;
   handleStopNominating: () => void;
+  handleRebag: () => void;
+  gettingNominatedValidatorsInfoFromChain: boolean;
+  nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
+  rebagInfo: RebagInfo;
 }
 
-export default function Nominations({ activeValidator, chain, chainInfo, currentlyStakedInHuman, handleSelectValidatorsModalOpen, handleStopNominating, noNominatedValidators, nominatedValidators, setState, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function Nominations({ activeValidator, chain, chainInfo, gettingNominatedValidatorsInfoFromChain, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, rebagInfo, setState, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+
+  const tuneUpButtonEnable = !noNominatedValidators && nominatorInfo && !nominatorInfo?.isInList && (rebagInfo.shouldRebag || rebagInfo.shouldPutInFrontOf);
 
   const handleSetNominees = useCallback((): void => {
     setState('setNominees');
@@ -57,18 +68,34 @@ export default function Nominations({ activeValidator, chain, chainInfo, current
               validatorsInfo={nominatedValidators}
             />
           </Grid>
-          <Grid container item justifyContent='space-between' sx={{ padding: '10px 10px 0px' }} xs={12}>
-            <Grid item xs={5}>
+
+          <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
+            <Grid item xs={4}>
               <MuiButton
                 onClick={handleStopNominating}
                 size='medium'
                 startIcon={<StopCircleIcon />}
                 sx={{ color: 'black', textTransform: 'none' }}
-                variant='text'>
+                variant='text'
+              >
                 {t('Stop nominating')}
               </MuiButton>
             </Grid>
-            <Grid item sx={{ textAlign: 'right' }} xs={6}>
+            {/* <Hint id='rebag' tip='If it takes more than '> */}
+            <Grid item xs={4} sx={{ textAlign: 'center' }}>
+              <MuiButton
+                disabled={!tuneUpButtonEnable}
+                onClick={handleRebag}
+                size='medium'
+                startIcon={<AdjustIcon />}
+                sx={{ color: 'red', textTransform: 'none' }}
+                variant='text'
+              >
+                {t('Tune up')}
+              </MuiButton>
+            </Grid>
+            {/* </Hint> */}
+            <Grid item sx={{ textAlign: 'right' }} xs={4}>
               <MuiButton
                 color='warning'
                 onClick={() => handleSelectValidatorsModalOpen(false)}
@@ -89,7 +116,7 @@ export default function Nominations({ activeValidator, chain, chainInfo, current
               {t('No nominated validators found')}
             </Grid>
             <Grid item>
-              {Number(currentlyStakedInHuman) >= stakingConsts?.minNominatorBond &&
+              {chainInfo && stakingConsts && ledger.active >= stakingConsts?.minNominatorBond &&
                 <NextStepButton
                   data-button-action='Set Nominees'
                   isBusy={validatorsInfo && state === 'setNominees'}
