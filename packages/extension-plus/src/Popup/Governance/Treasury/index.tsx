@@ -47,7 +47,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
   useEffect(() => {
     // get all treasury tips
     // eslint-disable-next-line no-void
-    void getTips(chainName, 1, 10).then((res) => {
+    void getTips(chainName, 0, 10).then((res) => {
       console.log('tips:', res);
       setTips(res?.data?.list);
     }).catch(console.error);
