@@ -25,14 +25,18 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { PlusHeader, Popup } from '../../components';
 import Hint from '../../components/Hint';
+import getRewardsSlashes from '../../util/api/getRewardsSlashes';
+import needsPutInFrontOf from '../../util/api/needsPutInFrontOf';
+import needsRebag from '../../util/api/needsRebag';
 import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
-import { AccountsBalanceType, ChainInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo, RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
 import Nominations from './Nominations';
 import Overview from './Overview';
+import RewardChart from './RewardChart';
 import SelectValidators from './SelectValidators';
 import Stake from './Stake';
 import TabPanel from './TabPanel';
@@ -50,6 +54,13 @@ interface Props {
   staker: AccountsBalanceType;
 }
 
+interface RewardInfo {
+  era: number;
+  reward: bigint;
+  timeStamp?: number;
+  event?: string;
+}
+
 const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
@@ -58,9 +69,10 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   const { t } = useTranslation();
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
-  const [gettingNominatedValidatorsInfoFromBlockchain, setGettingNominatedValidatorsInfoFromBlockchain] = useState<boolean>(true);
+  const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
+  const [showChartModal, setChartModalOpen] = useState<boolean>(false);
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
   const [stakeAmount, setStakeAmount] = useState<bigint>(0n);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
@@ -80,12 +92,57 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
   const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
+  const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
   const [storeIsUpdate, setStroreIsUpdate] = useState<boolean>(false);
+  const [nominatorInfo, setNominatorInfo] = useState<{ minNominated: bigint, isInList: boolean } | undefined>();
+  const [rebagInfo, setRebagInfo] = useState<RebagInfo>();
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   }, []);
+
+  async function checkRebagStatus(api: ApiPromise) {
+    const at = await api.rpc.chain.getFinalizedHead();
+    const finalizedApi = await api.at(at);
+    // const bagThresholds = finalizedApi.consts.bagsList.bagThresholds.map((x) => api.createType('Balance', x));
+
+    const res = await needsRebag(api, finalizedApi, staker.address);
+    const lighter = await needsPutInFrontOf(api, finalizedApi, staker.address);
+
+    console.log(`Lighter : ${lighter}`);
+    setRebagInfo({ ...res, shouldPutInFrontOf: !!lighter, lighter: lighter });
+  }
+
+  useEffect((): void => {
+    if (!chainInfo) { return; }
+
+    /** to check if rebag and putInFrontOf is needed */
+    checkRebagStatus(chainInfo.api)
+
+    /**  get nominator staking info to consider rebag ,... */
+    const getNominatorInfo: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
+
+    workers.push(getNominatorInfo);
+
+    const stakerAddress = staker.address;
+
+    getNominatorInfo.postMessage({ chain, stakerAddress });
+
+    getNominatorInfo.onerror = (err) => {
+      console.log(err);
+    };
+
+    getNominatorInfo.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const nominatorInfo = e.data;
+
+      console.log('nominatorInfo:', nominatorInfo);
+
+      setNominatorInfo(nominatorInfo);
+      getNominatorInfo.terminate();
+    };
+  }, [chainInfo]);
 
   useEffect((): void => {
     if (!chainInfo) { return }
@@ -94,10 +151,51 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     void chainInfo.api.query.staking.currentEra().then((ce) => {
       setCurrentEraIndex(Number(ce));
     });
-  }, [chainInfo]);
+
+    /**  get some staking rewards ,... */
+    const getRewards: Worker = new Worker(new URL('../../util/workers/getRewards.js', import.meta.url));
+
+    workers.push(getRewards);
+
+    const stakerAddress = staker.address;
+
+    getRewards.postMessage({ chain, stakerAddress });
+
+    getRewards.onerror = (err) => {
+      console.log(err);
+    };
+
+    getRewards.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const rewards: RewardInfo[] = e.data;
+
+      setRewardSlashes((r) => r.concat(rewards));
+      console.log('REWARDS:', rewards);
+
+      getRewards.terminate();
+    };
+
+    // eslint-disable-next-line no-void
+    void getRewardsSlashes(chainName, 0, 10, staker.address).then((r) => {
+      const rewardsFromSubscan = r?.data.list?.map((d): RewardInfo => {
+        return {
+          reward: d.amount,
+          era: d.era,
+          timeStamp: d.block_timestamp,
+          event: d.event_id
+        };
+      });
+
+
+      if (rewardsFromSubscan?.length) {
+        setRewardSlashes((getRewardsSlashes) => getRewardsSlashes.concat(rewardsFromSubscan));
+      }
+      console.log('rewards from subscan:', r);
+    });
+  }, [chain, chainInfo, staker.address]);
 
   useEffect((): void => {
-    if (!currentEraIndex || !currentEraIndexOfStore) { return }
+    if (!currentEraIndex || !currentEraIndexOfStore) { return; }
 
     setStroreIsUpdate(currentEraIndex === currentEraIndexOfStore);
   }, [currentEraIndex, currentEraIndexOfStore]);
@@ -201,7 +299,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const fetchedValidatorsInfo: Validators | null = e.data;
 
-      setGettingNominatedValidatorsInfoFromBlockchain(false);
+      setGettingNominatedValidatorsInfoFromChain(false);
 
       console.log(`validatorsfrom chain (era:${fetchedValidatorsInfo?.currentEraIndex}), current: ${fetchedValidatorsInfo?.current?.length} waiting ${fetchedValidatorsInfo?.waiting?.length} `);
 
@@ -331,7 +429,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
         .filter((v: DeriveStakingQuery) => nominatedValidatorsId.includes(String(v.accountId)));
 
       setNominatedValidatorsInfo(nominatedValidatorsIds);
-      // setGettingNominatedValidatorsInfoFromBlockchain(false);
+      // setGettingNominatedValidatorsInfoFromChain(false);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominatedValidatorsIds));
@@ -407,11 +505,22 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     if (!state) setState('stopNominating');
   }, [handleConfirmStakingModaOpen, state]);
 
+  const handleRebag = useCallback((): void => {
+    handleConfirmStakingModaOpen();
+
+    if (!state) setState('tuneUp');
+  }, [handleConfirmStakingModaOpen, state]);
+
   const handleWithdrowUnbound = useCallback(() => {
     if (!redeemable) return;
     if (!state) setState('withdrawUnbound');
     handleConfirmStakingModaOpen();
   }, [handleConfirmStakingModaOpen, redeemable, state]);
+
+  const handleViewChart = useCallback(() => {
+    if (!rewardSlashes) return;
+    setChartModalOpen(true);
+  }, [setChartModalOpen, rewardSlashes]);
 
   const getAmountToConfirm = useCallback(() => {
     switch (state) {
@@ -434,6 +543,26 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     setActiveValidator(active);
   }, [nominatedValidators, staker.address]);
 
+  const NominationsIcon = () => (
+    gettingNominatedValidatorsInfoFromChain
+      ? <CircularProgress size={12} thickness={2} sx={{ pr: '3px' }} />
+      : Number(currentlyStakedInHuman) && !nominatedValidators?.length
+        ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
+          <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
+        </Hint>
+        : !activeValidator && nominatedValidators?.length
+          ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
+            <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
+          </Hint>
+          : oversubscribedsCount
+            ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
+              <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
+                <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
+              </Badge>
+            </Hint>
+            : <CheckOutlined fontSize='small' />
+  );
+
   return (
     <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
 
@@ -445,9 +574,11 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
             availableBalanceInHuman={availableBalanceInHuman}
             chainInfo={chainInfo}
             currentlyStakedInHuman={currentlyStakedInHuman}
+            handleViewChart={handleViewChart}
             handleWithdrowUnbound={handleWithdrowUnbound}
             ledger={ledger}
             redeemable={redeemable}
+            rewardSlashes={rewardSlashes}
             totalReceivedReward={totalReceivedReward}
             unlockingAmount={unlockingAmount}
           />
@@ -457,28 +588,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
             <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
               <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
-              <Tab
-                icon={gettingNominatedValidatorsInfoFromBlockchain
-                  ? <CircularProgress size={12} thickness={2} />
-                  : oversubscribedsCount
-                    ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
-                      <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
-                        <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
-                      </Badge>
-                    </Hint>
-                    : Number(currentlyStakedInHuman) && !nominatedValidators?.length
-                      ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
-                        <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
-                      </Hint>
-                      : !activeValidator && nominatedValidators?.length
-                        ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
-                          <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
-                        </Hint>
-                        : <CheckOutlined fontSize='small' />
-                }
-
-                iconPosition='start' label='Nominations' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }}
-              />
+              <Tab icon={<NominationsIcon />} iconPosition='start' label='Nominations' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
               <Tab
                 icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlined fontSize='small' />}
                 iconPosition='start' label='Info' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }}
@@ -517,11 +627,15 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
               activeValidator={activeValidator}
               chain={chain}
               chainInfo={chainInfo}
-              currentlyStakedInHuman={currentlyStakedInHuman}
+              gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
+              handleRebag={handleRebag}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               handleStopNominating={handleStopNominating}
+              ledger={ledger}
               noNominatedValidators={noNominatedValidators}
               nominatedValidators={nominatedValidators}
+              nominatorInfo={nominatorInfo}
+              rebagInfo={rebagInfo}
               setState={setState}
               stakingConsts={stakingConsts}
               state={state}
@@ -532,6 +646,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           <TabPanel index={3} value={tabValue}>
             <InfoTab
               chainInfo={chainInfo}
+              currentEraIndex={currentEraIndex}
+              minNominated={nominatorInfo?.minNominated}
               stakingConsts={stakingConsts}
             />
           </TabPanel>
@@ -571,6 +687,17 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           stakingConsts={stakingConsts}
           state={state}
           validatorsIdentities={validatorsIdentities}
+          rebagInfo={rebagInfo}
+        />
+      }
+
+      {rewardSlashes && showChartModal &&
+        <RewardChart
+          chain={chain}
+          chainInfo={chainInfo}
+          rewardSlashes={rewardSlashes}
+          setChartModalOpen={setChartModalOpen}
+          showChartModal={showChartModal}
         />
       }
     </Popup>
