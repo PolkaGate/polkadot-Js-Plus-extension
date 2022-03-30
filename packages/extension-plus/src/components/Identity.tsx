@@ -24,11 +24,12 @@ interface Props {
   showAddress?: boolean;
   title?: string;
   totalStaked?: string;
+  showSocial?: boolean;
 }
 
-function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, title = '', totalStaked = '' }: Props): React.ReactElement<Props> {
+function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, showSocial = true, title = '', totalStaked = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const hasIcons = accountInfo?.identity.twitter || accountInfo?.identity.web || accountInfo?.identity.email;
+  const hasSocial = accountInfo?.identity.twitter || accountInfo?.identity.web || accountInfo?.identity.email;
 
   // to check if the account has a judgement to set a verified green tick
   const judgement = accountInfo?.identity?.judgements && JSON.stringify(accountInfo?.identity?.judgements).match(/reasonable|knownGood/gi);
@@ -55,8 +56,9 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, titl
             </Grid>
 
             <Grid alignItems='center' container item sx={{ paddingLeft: '5px' }} xs={11}>
-              <Grid alignItems='center' container item justifyContent='flex-start' spacing={0.3} xs={12}>
-                <Grid container item sx={{ flexWrap: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={hasIcons ? 9 : 12}>
+              <Grid alignItems='center' id='namesAndSocials' container item justifyContent='flex-start' spacing={0.3} xs={12}>
+
+                <Grid container id='names' item sx={{ flexWrap: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={hasSocial && showSocial ? 9 : 12}>
                   <Grid item sx={{ pr: '5px' }}>
                     {judgement
                       ? <Hint id='judgement' tip={judgement}><CheckCircleRoundedIcon color='success' sx={{ fontSize: 15 }} /></Hint>
@@ -75,13 +77,13 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, titl
                   }
                   {!(accountInfo?.identity.displayParent || accountInfo?.identity.display) &&
                     <Grid item sx={{ textAlign: 'letf' }}>
-                      {accountInfo?.accountId && <ShortAddress address={String(accountInfo?.accountId)} />}
+                      {accountInfo?.accountId && <ShortAddress address={String(accountInfo?.accountId)} fontSize={11} />}
                     </Grid>
                   }
 
                 </Grid>
 
-                <Grid container item justifyContent='flex-start' xs={hasIcons ? 3 : 0} >
+                {showSocial && <Grid container item id='socials' justifyContent='flex-start' xs={hasSocial ? 3 : 0}>
                   {accountInfo?.identity.twitter &&
                     <Grid item>
                       <Link href={`https://TwitterIcon.com/${accountInfo?.identity.twitter}`}>
@@ -117,8 +119,9 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, titl
                     </Grid>
                   }
                 </Grid>
+                }
               </Grid>
-              <Grid alignItems='center' container item justifyContent='flex-start' sx={{ paddingLeft: '18px' }} xs={12}>
+              <Grid alignItems='center' id='totalStaked' container item justifyContent='flex-start' sx={{ paddingLeft: '18px' }} xs={12}>
                 {showAddress &&
                   <Grid item sx={{ color: grey[500], textAlign: 'left' }} xs={12}>
                     {String(accountInfo?.accountId)}
