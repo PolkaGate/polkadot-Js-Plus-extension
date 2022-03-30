@@ -15,10 +15,10 @@ import Identicon from '@polkadot/react-identicon';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShortAddress } from '../../components';
+import Identity from '../../components/Identity';
 import getLogo from '../../util/getLogo';
 import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
-import Identity from '../../components/Identity';
 
 interface Props {
   chain: Chain;
