@@ -28,7 +28,7 @@ import broadcast from '../../util/api/broadcast';
 import { bondOrBondExtra } from '../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../util/constants';
 import getLogo from '../../util/getLogo';
-import { AccountsBalanceType, ChainInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo, StakingConsts, TransactionDetail, RebagInfo, PutInFrontInfo } from '../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
 import ValidatorsList from './ValidatorsList';
 
@@ -48,10 +48,11 @@ interface Props {
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
   selectedValidators: DeriveStakingQuery[] | null;
-  rebagInfo: RebagInfo;
+  putInFrontInfo: PutInFrontInfo | undefined;
+  rebagInfo: RebagInfo | undefined;
 }
 
-export default function ConfirmStaking({ amount, chain, chainInfo, handleEasyStakingModalClose, ledger, nominatedValidators, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, chain, chainInfo, rebagInfo, handleEasyStakingModalClose, ledger, putInFrontInfo, nominatedValidators, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -197,12 +198,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         void redeem(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         break;
       case ('tuneUp'):
-        if (rebagInfo.shouldRebag) {
+        if (rebagInfo?.shouldRebag) {
           params = [staker.address];
           // eslint-disable-next-line no-void
           void rebaged(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-        } else if (rebagInfo.shouldPutInFrontOf && rebagInfo.lighter) {
-          params = [rebagInfo.lighter];
+        } else if (putInFrontInfo.shouldPutInFront) {
+          params = [putInFrontInfo.lighter];
           // eslint-disable-next-line no-void
           void putInFrontOf(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         }
@@ -445,9 +446,9 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       }
 
       if (localState === 'tuneUp') {
-        const tx = rebagInfo.shouldRebag ? rebaged : putInFrontOf;
-        const target = rebagInfo.shouldRebag ? staker.address : rebagInfo.lighter;
-        const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [target], signer, staker.address);
+        const tx = rebagInfo?.shouldRebag ? rebaged : putInFrontOf;
+        const params = rebagInfo?.shouldRebag ? staker.address : putInFrontInfo.lighter;
+        const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [params], signer, staker.address);
 
         history.push({
           action: 'tuneUp',
@@ -502,12 +503,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
         </Typography>;
       case ('tuneUp'):
         return <>
-          {rebagInfo.shouldRebag &&
+          {rebagInfo?.shouldRebag &&
             <Grid item xs={12} sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }}>
               {t('Declaring that your account has sufficiently changed its score that should fall into a different bag.')}
             </Grid>
           }
-          {!rebagInfo.shouldRebag && rebagInfo.shouldPutInFrontOf &&
+          {!rebagInfo?.shouldRebag && putInFrontInfo.shouldPutInFront &&
             <Grid item xs={12} sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }}>
               {t('Changing your accout\'s position to a better one')}
             </Grid>
@@ -518,28 +519,28 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               {t('Current bag threshold')}
             </Grid>
             <Grid item>
-              {rebagInfo.currentBagThreshold}
+              {rebagInfo?.currentBagThreshold}
             </Grid>
 
           </Grid>
-          {rebagInfo.shouldRebag &&
+          {rebagInfo?.shouldRebag &&
             <Grid item xs={12} sx={{ fontSize: 11, pt: '10px' }}>
               {t('You will probably need another tune up after this one!')}
             </Grid>
           }
-          {!rebagInfo.shouldRebag && rebagInfo.shouldPutInFrontOf &&
+          {!rebagInfo?.shouldRebag && putInFrontInfo.shouldPutInFront &&
             <Grid container justifyContent='space-between' sx={{ fontSize: 11, p: '5px 30px' }} item xs={12}>
               <Grid item>
                 {t('Account to overtake')}
               </Grid>
               <Grid container item justifyContent='flex-end' spacing={0.5} xs={5}>
                 <Grid item>
-                  <Link href={`https://${chainName}.subscan.io/account/${rebagInfo.lighter}?tab=reward`} rel='noreferrer' target='_blank' underline='none'>
+                  <Link href={`https://${chainName}.subscan.io/account/${putInFrontInfo.lighter}?tab=reward`} rel='noreferrer' target='_blank' underline='none'>
                     <Avatar alt={'subscan'} src={getLogo('subscan')} sx={{ height: 11, width: 11 }} />
                   </Link>
                 </Grid>
                 <Grid item>
-                  <ShortAddress address={rebagInfo.lighter} fontSize={11} />
+                  <ShortAddress address={putInFrontInfo.lighter} fontSize={11} />
                 </Grid>
               </Grid>
             </Grid>
