@@ -67,3 +67,5 @@ export const PASS_MAP = {
   // eslint-disable-next-line sort-keys
   CORRECT: 1
 };
+
+export const SELECTED_COLOR = '#fffbed';
