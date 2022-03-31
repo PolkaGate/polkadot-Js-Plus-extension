@@ -29,7 +29,7 @@ describe('Testing Info component', () => {
 
     expect(queryByText('Welcome to Staking')).toBeTruthy();
     expect(queryByText('Information you need to know about')).toBeTruthy();
-    expect(queryByText('Loading information ...')).toBeTruthy();
+    // expect(queryByText('Loading information ...')).toBeTruthy();
   });
 
   test('Checking the existence of elements when loading is done', async () => {
