@@ -19,7 +19,7 @@ import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/type
 import { Chain } from '../../../../extension-chains/src/types';
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Progress } from '../../components';
+import { Hint, Progress } from '../../components';
 import { ChainInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
 import ValidatorsList from './ValidatorsList';
 
@@ -38,15 +38,14 @@ interface Props {
   handleSelectValidatorsModalOpen: (isSetNominees: boolean) => void;
   handleStopNominating: () => void;
   handleRebag: () => void;
-  gettingNominatedValidatorsInfoFromChain: boolean;
   nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
   rebagInfo: RebagInfo;
 }
 
-export default function Nominations({ activeValidator, chain, chainInfo, gettingNominatedValidatorsInfoFromChain, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, rebagInfo, setState, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function Nominations({ activeValidator, chain, chainInfo, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, rebagInfo, setState, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-
-  const tuneUpButtonEnable = !noNominatedValidators && nominatorInfo && !nominatorInfo?.isInList && (rebagInfo.shouldRebag || rebagInfo.shouldPutInFrontOf);
+  const currentlyStaked = BigInt(ledger ? ledger.active.toString() : '0');
+  const tuneUpButtonEnable = !noNominatedValidators && nominatorInfo && !nominatorInfo?.isInList && (rebagInfo?.shouldRebag || rebagInfo?.shouldPutInFrontOf);
 
   const handleSetNominees = useCallback((): void => {
     setState('setNominees');
@@ -70,7 +69,7 @@ export default function Nominations({ activeValidator, chain, chainInfo, getting
           </Grid>
 
           <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
-            <Grid item xs={4}>
+            <Grid item xs={5}>
               <MuiButton
                 onClick={handleStopNominating}
                 size='medium'
@@ -81,20 +80,22 @@ export default function Nominations({ activeValidator, chain, chainInfo, getting
                 {t('Stop nominating')}
               </MuiButton>
             </Grid>
-            {/* <Hint id='rebag' tip='If it takes more than '> */}
-            <Grid item xs={4} sx={{ textAlign: 'center' }}>
-              <MuiButton
-                disabled={!tuneUpButtonEnable}
-                onClick={handleRebag}
-                size='medium'
-                startIcon={<AdjustIcon />}
-                sx={{ color: 'red', textTransform: 'none' }}
-                variant='text'
-              >
-                {t('Tune up')}
-              </MuiButton>
+
+            <Grid item xs={3} sx={{ textAlign: 'center' }}>
+              <Hint id='rebag' place='top' tip='Rebag/putInFrontOf if needed'>
+                <MuiButton
+                  disabled={!tuneUpButtonEnable}
+                  onClick={handleRebag}
+                  size='medium'
+                  startIcon={<AdjustIcon />}
+                  sx={{ color: 'red', textTransform: 'none' }}
+                  variant='text'
+                >
+                  {t('Tune up')}
+                </MuiButton>
+              </Hint>
             </Grid>
-            {/* </Hint> */}
+
             <Grid item sx={{ textAlign: 'right' }} xs={4}>
               <MuiButton
                 color='warning'
@@ -112,11 +113,11 @@ export default function Nominations({ activeValidator, chain, chainInfo, getting
         : !noNominatedValidators
           ? <Progress title={'Loading ...'} />
           : <Grid container justifyContent='center'>
-            <Grid sx={{ fontSize: 13, margin: '60px 10px 30px', textAlign: 'center' }} xs={12}>
+            <Grid item sx={{ fontSize: 13, margin: '60px 10px 30px', textAlign: 'center' }} xs={12}>
               {t('No nominated validators found')}
             </Grid>
             <Grid item>
-              {chainInfo && stakingConsts && ledger.active >= stakingConsts?.minNominatorBond &&
+              {chainInfo && stakingConsts && currentlyStaked >= stakingConsts?.minNominatorBond &&
                 <NextStepButton
                   data-button-action='Set Nominees'
                   isBusy={validatorsInfo && state === 'setNominees'}
