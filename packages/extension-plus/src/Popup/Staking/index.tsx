@@ -15,12 +15,11 @@ import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
-import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
-import { AccountId } from '@polkadot/types/interfaces/runtime';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
@@ -29,7 +28,7 @@ import Hint from '../../components/Hint';
 import getRewardsSlashes from '../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
-import { AccountsBalanceType, ChainInfo, RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo, PutInFrontInfo,RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
@@ -94,7 +93,9 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
   const [storeIsUpdate, setStroreIsUpdate] = useState<boolean>(false);
   const [nominatorInfo, setNominatorInfo] = useState<{ minNominated: bigint, isInList: boolean } | undefined>();
-  const [rebagInfo, setRebagInfo] = useState<RebagInfo>();
+  const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
+  const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
+
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
@@ -119,18 +120,10 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     needsRebag.onmessage = (e: MessageEvent<any>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const newRebagInfo: RebagInfo = e.data;
+      const info: RebagInfo | undefined = e.data;
 
-      setRebagInfo((r) => {
-        if (r) {
-          r.shouldRebag = newRebagInfo.shouldRebag;
-          r.currentBagThreshold = newRebagInfo.currentBagThreshold;
-        } else {
-          r = { currentBagThreshold: newRebagInfo.currentBagThreshold, shouldRebag: newRebagInfo.shouldRebag }
-        }
+      setRebagInfo(info);
 
-        return r;
-      });
       needsRebag.terminate();
     };
   };
@@ -148,19 +141,11 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
     needsPutInFrontOf.onmessage = (e: MessageEvent<any>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const lighter: AccountId | undefined = e.data;
+      const lighter: string | undefined = e.data;
 
       console.log('lighter:', lighter);
-      setRebagInfo((r) => {
-        if (r) {
-          r.shouldPutInFrontOf = !!lighter;
-          r.lighter = lighter;
-        } else {
-          r = { lighter: lighter, shouldPutInFrontOf: !!lighter };
-        }
 
-        return r;
-      });
+      setPutInFrontOfInfo({ lighter: lighter, shouldPutInFront: !!lighter });
       needsPutInFrontOf.terminate();
     };
   };
@@ -597,8 +582,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     setActiveValidator(active);
   }, [nominatedValidators, staker.address]);
 
-  const NominationsIcon = () => (
-    gettingNominatedValidatorsInfoFromChain || (rebagInfo?.shouldRebag === undefined || rebagInfo?.shouldPutInFrontOf === undefined)
+  const NominationsIcon = useMemo((): React.ReactElement<any> => (
+    gettingNominatedValidatorsInfoFromChain || !rebagInfo || !putInFrontInfo
       ? <CircularProgress size={12} sx={{ pr: '5px' }} thickness={2} />
       : Number(currentlyStakedInHuman) && !nominatedValidators?.length
         ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
@@ -615,7 +600,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
               </Badge>
             </Hint>
             : <CheckOutlined fontSize='small' />
-  );
+  ), [gettingNominatedValidatorsInfoFromChain, rebagInfo, putInFrontInfo, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
   return (
     <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
@@ -642,7 +627,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
             <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
               <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
-              <Tab icon={<NominationsIcon />} iconPosition='start' label='Nominations' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
+              <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
               <Tab
                 icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlined fontSize='small' />}
                 iconPosition='start' label='Info' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }}
@@ -688,12 +673,14 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
               noNominatedValidators={noNominatedValidators}
               nominatedValidators={nominatedValidators}
               nominatorInfo={nominatorInfo}
+              putInFrontInfo={putInFrontInfo}
               rebagInfo={rebagInfo}
               setState={setState}
               stakingConsts={stakingConsts}
               state={state}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={validatorsInfo}
+              staker={staker}
             />
           </TabPanel>
           <TabPanel index={3} value={tabValue}>
@@ -732,6 +719,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           handleEasyStakingModalClose={handleEasyStakingModalClose}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
+          putInFrontInfo={putInFrontInfo}
           rebagInfo={rebagInfo}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
