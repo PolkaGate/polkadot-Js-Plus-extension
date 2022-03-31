@@ -518,7 +518,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               {t('Current bag threshold')}
             </Grid>
             <Grid item>
-              {rebagInfo.currentBagThreshold?.toHuman()}
+              {rebagInfo.currentBagThreshold}
             </Grid>
 
           </Grid>
@@ -534,12 +534,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               </Grid>
               <Grid container item justifyContent='flex-end' spacing={0.5} xs={5}>
                 <Grid item>
-                  <Link href={`https://${chainName}.subscan.io/account/${rebagInfo.lighter?.toHuman()}?tab=reward`} rel='noreferrer' target='_blank' underline='none'>
+                  <Link href={`https://${chainName}.subscan.io/account/${rebagInfo.lighter}?tab=reward`} rel='noreferrer' target='_blank' underline='none'>
                     <Avatar alt={'subscan'} src={getLogo('subscan')} sx={{ height: 11, width: 11 }} />
                   </Link>
                 </Grid>
                 <Grid item>
-                  <ShortAddress address={rebagInfo.lighter?.toHuman()} fontSize={11} />
+                  <ShortAddress address={rebagInfo.lighter} fontSize={11} />
                 </Grid>
               </Grid>
             </Grid>
