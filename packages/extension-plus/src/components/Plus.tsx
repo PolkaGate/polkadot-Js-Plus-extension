@@ -405,7 +405,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           showTxHistoryModal={showTxHistoryModal}
         />
       }
-      {showStakingModal && sender && account &&
+      {showStakingModal && sender && account && chain &&
         <EasyStaking
           account={account}
           chain={chain}
