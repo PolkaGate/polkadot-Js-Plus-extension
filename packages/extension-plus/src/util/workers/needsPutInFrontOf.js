@@ -27,7 +27,7 @@ async function needsPutInFrontOf (chain, target) {
   let lighterUnwrapped = targetBag.head;
 
   while (lighterUnwrapped.isSome) {
-   const mayLighter = lighterUnwrapped.unwrap();
+    const mayLighter = lighterUnwrapped.unwrap();
 
     if (mayLighter.eq(targetAccount)) {
       console.log('No lighter ');
