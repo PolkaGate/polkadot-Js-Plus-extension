@@ -5,8 +5,8 @@
 
 /**
  * @description
- *  this component provides access to allstaking stuff,including stake, 
- *  unstake, redeem, change validators, staking generak info,etc. 
+ *  this component provides access to allstaking stuff,including stake,
+ *  unstake, redeem, change validators, staking generak info,etc.
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -20,14 +20,13 @@ import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } fro
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
+import { AccountId } from '@polkadot/types/interfaces/runtime';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { PlusHeader, Popup } from '../../components';
 import Hint from '../../components/Hint';
 import getRewardsSlashes from '../../util/api/getRewardsSlashes';
-import needsPutInFrontOf from '../../util/api/needsPutInFrontOf';
-import needsRebag from '../../util/api/needsRebag';
 import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
 import { AccountsBalanceType, ChainInfo, RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
@@ -44,7 +43,7 @@ import Unstake from './Unstake';
 
 interface Props {
   account: AccountJson,
-  chain?: Chain | null;
+  chain: Chain;
   chainInfo: ChainInfo | undefined;
   ledger: StakingLedger | null;
   redeemable: bigint | null;
@@ -102,62 +101,76 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     setTabValue(newValue);
   }, []);
 
-  async function checkRebagStatus(api: ApiPromise) {
-    const at = await api.rpc.chain.getFinalizedHead();
-    const finalizedApi = await api.at(at);
-    // const bagThresholds = finalizedApi.consts.bagsList.bagThresholds.map((x) => api.createType('Balance', x));
+  const checkNeedsTuneUp = (chain: Chain, stakerAddress: string) => {
+    checkNeedsRebag(chain, stakerAddress);
+    checkNeedsPutInFrontOf(chain, stakerAddress);
+  };
 
-    const res = await needsRebag(api, finalizedApi, staker.address);
-    const lighter = await needsPutInFrontOf(api, finalizedApi, staker.address);
+  const checkNeedsRebag = (chain: Chain, stakerAddress: string) => {
+    const needsRebag: Worker = new Worker(new URL('../../util/workers/needsRebag.js', import.meta.url));
 
-    console.log(`Lighter : ${lighter}`);
-    setRebagInfo({ ...res, shouldPutInFrontOf: !!lighter, lighter: lighter });
-  }
+    workers.push(needsRebag);
 
-  useEffect((): void => {
-    if (!chainInfo) { return; }
+    needsRebag.postMessage({ chain, stakerAddress });
 
-    /** to check if rebag and putInFrontOf is needed */
-    checkRebagStatus(chainInfo.api)
-
-    /**  get nominator staking info to consider rebag ,... */
-    const getNominatorInfo: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
-
-    workers.push(getNominatorInfo);
-
-    const stakerAddress = staker.address;
-
-    getNominatorInfo.postMessage({ chain, stakerAddress });
-
-    getNominatorInfo.onerror = (err) => {
+    needsRebag.onerror = (err) => {
       console.log(err);
     };
 
-    getNominatorInfo.onmessage = (e: MessageEvent<any>) => {
+    needsRebag.onmessage = (e: MessageEvent<any>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const nominatorInfo = e.data;
+      const newRebagInfo: RebagInfo = e.data;
 
-      console.log('nominatorInfo:', nominatorInfo);
+      setRebagInfo((r) => {
+        if (r) {
+          r.shouldRebag = newRebagInfo.shouldRebag;
+          r.currentBagThreshold = newRebagInfo.currentBagThreshold;
+        } else {
+          r = { currentBagThreshold: newRebagInfo.currentBagThreshold, shouldRebag: newRebagInfo.shouldRebag }
+        }
 
-      setNominatorInfo(nominatorInfo);
-      getNominatorInfo.terminate();
+        return r;
+      });
+      needsRebag.terminate();
     };
-  }, [chainInfo]);
+  };
 
-  useEffect((): void => {
-    if (!chainInfo) { return }
+  const checkNeedsPutInFrontOf = (chain: Chain, stakerAddress: string) => {
+    const needsPutInFrontOf: Worker = new Worker(new URL('../../util/workers/needsPutInFrontOf.js', import.meta.url));
 
-    // eslint-disable-next-line no-void
-    void chainInfo.api.query.staking.currentEra().then((ce) => {
-      setCurrentEraIndex(Number(ce));
-    });
+    workers.push(needsPutInFrontOf);
 
+    needsPutInFrontOf.postMessage({ chain, stakerAddress });
+
+    needsPutInFrontOf.onerror = (err) => {
+      console.log(err);
+    };
+
+    needsPutInFrontOf.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const lighter: AccountId | undefined = e.data;
+
+      console.log('lighter:', lighter);
+      setRebagInfo((r) => {
+        if (r) {
+          r.shouldPutInFrontOf = !!lighter;
+          r.lighter = lighter;
+        } else {
+          r = { lighter: lighter, shouldPutInFrontOf: !!lighter };
+        }
+
+        return r;
+      });
+      needsPutInFrontOf.terminate();
+    };
+  };
+
+  const getStakingRewardsFromChain = (chain: Chain, stakerAddress: string) => {
+    // TODO: does not work on polkadot/kusama but Westend!!
     /**  get some staking rewards ,... */
     const getRewards: Worker = new Worker(new URL('../../util/workers/getRewards.js', import.meta.url));
 
     workers.push(getRewards);
-
-    const stakerAddress = staker.address;
 
     getRewards.postMessage({ chain, stakerAddress });
 
@@ -174,70 +187,31 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
       getRewards.terminate();
     };
+  };
 
-    // eslint-disable-next-line no-void
-    void getRewardsSlashes(chainName, 0, 10, staker.address).then((r) => {
-      const rewardsFromSubscan = r?.data.list?.map((d): RewardInfo => {
-        return {
-          reward: d.amount,
-          era: d.era,
-          timeStamp: d.block_timestamp,
-          event: d.event_id
-        };
-      });
+  const getNominations = (chain: Chain, stakerAddress: string) => {
+    const getNominatorsWorker: Worker = new Worker(new URL('../../util/workers/getNominations.js', import.meta.url));
 
+    workers.push(getNominatorsWorker);
 
-      if (rewardsFromSubscan?.length) {
-        setRewardSlashes((getRewardsSlashes) => getRewardsSlashes.concat(rewardsFromSubscan));
-      }
-      console.log('rewards from subscan:', r);
-    });
-  }, [chain, chainInfo, staker.address]);
+    getNominatorsWorker.postMessage({ chain, stakerAddress });
 
-  useEffect((): void => {
-    if (!currentEraIndex || !currentEraIndexOfStore) { return; }
+    getNominatorsWorker.onerror = (err) => {
+      console.log(err);
+    };
 
-    setStroreIsUpdate(currentEraIndex === currentEraIndexOfStore);
-  }, [currentEraIndex, currentEraIndexOfStore]);
+    getNominatorsWorker.onmessage = (e) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const targets: string[] = e.data;
 
-  useEffect((): void => {
-    if (!chain || !account || !staker) {
-      console.log(' no account or chain, wait for it...!..');
+      setNoNominatedValidators(!targets); // show that nominators are fetched and is empty or not
 
-      return;
-    }
+      setNominatedValidatorsId(targets);
+      getNominatorsWorker.terminate();
+    };
+  };
 
-    console.log('account in staking stake:', account);
-
-    // * retrive staking consts from local sorage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
-
-    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
-      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
-    }
-
-    // *** retrive nominated validators from local sorage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const nominatedValidatorsInfoFromLocalStrorage: savedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
-
-    if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
-      setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
-    }
-
-    // **** retrive validators identities from local storage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validarorsIdentitiesFromStore: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
-
-    if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
-      setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!chain) { return; }
-
+  const getStakingConsts = (chain: Chain) => {
     /** 1- get some staking constant like min Nominator Bond ,... */
     const getStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getStakingConsts.js', import.meta.url));
 
@@ -270,21 +244,31 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
       getStakingConstsWorker.terminate();
     };
+  };
 
-    /** 2.1 retrive validatorInfo from local sorage */
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validatorsInfoFromStore: savedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
+  const getNominatorInfo = (chain: Chain, stakerAddress: string) => {
+    const getNominatorInfoWorker: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
 
-    if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
-      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
-      setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
+    workers.push(getNominatorInfoWorker);
 
-      setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
-      console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
-      on chain: ${validatorsInfoFromStore?.chainName}`);
-    }
+    getNominatorInfoWorker.postMessage({ chain, stakerAddress });
 
-    /** 2.2 get validators info, including current and waiting */
+    getNominatorInfoWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getNominatorInfoWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const nominatorInfo = e.data;
+
+      console.log('nominatorInfo:', nominatorInfo);
+
+      setNominatorInfo(nominatorInfo);
+      getNominatorInfoWorker.terminate();
+    };
+  };
+
+  const getValidatorsInfo = (chain: Chain, validatorsInfoFromStore: savedMetaData) => {
     const getValidatorsInfoWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsInfo.js', import.meta.url));
 
     workers.push(getValidatorsInfoWorker);
@@ -314,7 +298,69 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
       setValidatorsInfoIsUpdated(true);
       getValidatorsInfoWorker.terminate();
     };
-  }, [chain]);
+  };
+
+  useEffect((): void => {
+    // eslint-disable-next-line no-void
+    chainInfo && void chainInfo.api.query.staking.currentEra().then((ce) => {
+      setCurrentEraIndex(Number(ce));
+    });
+
+    // staker.address && getStakingRewardsFromChain(chain, staker.address);
+
+    // eslint-disable-next-line no-void
+    staker.address && void getRewardsSlashes(chainName, 0, 10, staker.address).then((r) => {
+      const rewardsFromSubscan = r?.data.list?.map((d): RewardInfo => {
+        return {
+          reward: d.amount,
+          era: d.era,
+          timeStamp: d.block_timestamp,
+          event: d.event_id
+        };
+      });
+
+      if (rewardsFromSubscan?.length) {
+        setRewardSlashes((getRewardsSlashes) => getRewardsSlashes.concat(rewardsFromSubscan));
+      }
+      console.log('rewards from subscan:', r);
+    });
+  }, [chainInfo, chainName, staker.address]);
+
+  useEffect((): void => {
+    if (!currentEraIndex || !currentEraIndexOfStore) { return; }
+
+    setStroreIsUpdate(currentEraIndex === currentEraIndexOfStore);
+  }, [currentEraIndex, currentEraIndexOfStore]);
+
+  useEffect(() => {
+    /** get some staking constant like min Nominator Bond ,... */
+    getStakingConsts(chain);
+
+    /**  get nominator staking info to consider rebag ,... */
+    getNominatorInfo(chain, staker.address);
+
+    // *** get nominated validators list
+    getNominations(chain, staker.address);
+
+    /** to check if rebag and putInFrontOf is needed */
+    checkNeedsTuneUp(chain, staker.address);
+
+    /** retrive validatorInfo from local sorage */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const validatorsInfoFromStore: savedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
+
+    if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
+      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
+      setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
+
+      setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
+      console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
+      on chain: ${validatorsInfoFromStore?.chainName}`);
+    }
+
+    /** get validators info, including current and waiting */
+    getValidatorsInfo(chain, validatorsInfoFromStore);
+  }, []);
 
   useEffect(() => {
     if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
@@ -351,7 +397,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   }, [validatorsInfoIsUpdated, validatorsInfo]);
 
   useEffect(() => {
-    if (!chainInfo || !chain || !staker.address) return;
+    if (!chainInfo) return;
 
     // // eslint-disable-next-line no-void
     // void chainInfo.api.derive.staking.stakerRewards(staker.address).then((t) =>
@@ -375,7 +421,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
       reward = amountToHuman(String(reward), chainInfo?.decimals) === '0' ? '0.00' : amountToHuman(reward, chainInfo?.decimals);
       setTotalReceivedReward(reward);
     });
-  }, [chain, chainInfo, staker.address]);
+  }, [chainInfo]);
 
   useEffect(() => {
     if (!ledger || !chainInfo) { return; }
@@ -391,31 +437,39 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   }, [ledger, chainInfo, redeemable]);
 
   useEffect(() => {
-    if (!chain) { return; }
+    if (!account) {
+      console.log(' no account, wait for it...!..');
 
-    // *** get nominated validators list
-    const getNominatorsWorker: Worker = new Worker(new URL('../../util/workers/getNominations.js', import.meta.url));
+      return;
+    }
 
-    workers.push(getNominatorsWorker);
+    console.log('account in staking stake:', account);
 
-    const stakerAddress = staker.address;
+    // * retrive staking consts from local sorage
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
 
-    getNominatorsWorker.postMessage({ chain, stakerAddress });
+    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
+      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
+      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
+    }
 
-    getNominatorsWorker.onerror = (err) => {
-      console.log(err);
-    };
+    // *** retrive nominated validators from local sorage
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const nominatedValidatorsInfoFromLocalStrorage: savedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
 
-    getNominatorsWorker.onmessage = (e) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const targets: string[] = e.data;
+    if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
+      setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
+    }
 
-      setNoNominatedValidators(!targets); // show that nominators are fetched and is empty or not
+    // **** retrive validators identities from local storage
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const validarorsIdentitiesFromStore: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
 
-      setNominatedValidatorsId(targets);
-      getNominatorsWorker.terminate();
-    };
-  }, [chain, staker]);
+    if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
+      setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
+    }
+  }, []);
 
   useEffect((): void => {
     setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
@@ -544,8 +598,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   }, [nominatedValidators, staker.address]);
 
   const NominationsIcon = () => (
-    gettingNominatedValidatorsInfoFromChain
-      ? <CircularProgress size={12} thickness={2} sx={{ pr: '3px' }} />
+    gettingNominatedValidatorsInfoFromChain || (rebagInfo?.shouldRebag === undefined || rebagInfo?.shouldPutInFrontOf === undefined)
+      ? <CircularProgress size={12} sx={{ pr: '5px' }} thickness={2} />
       : Number(currentlyStakedInHuman) && !nominatedValidators?.length
         ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
           <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
@@ -627,7 +681,6 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
               activeValidator={activeValidator}
               chain={chain}
               chainInfo={chainInfo}
-              gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
               handleRebag={handleRebag}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               handleStopNominating={handleStopNominating}
@@ -679,6 +732,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           handleEasyStakingModalClose={handleEasyStakingModalClose}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
+          rebagInfo={rebagInfo}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setState={setState}
@@ -687,7 +741,6 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           stakingConsts={stakingConsts}
           state={state}
           validatorsIdentities={validatorsIdentities}
-          rebagInfo={rebagInfo}
         />
       }
 
