@@ -4,8 +4,8 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description here nominated validators are listed, which shows very usefull information/notifications like current active nominator,
- *  oversubscribds, noActive in this era, stuff like that, and also stop/change nomination is provided. 
+ * @description here nominated validators are listed, which shows usefull information/notifications like current active nominator,
+ *  oversubscribds, noActive in this era, Tune up to do rebag or putInFrontOf if needed, and also stop/change nominations are provided.
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -20,7 +20,7 @@ import { Chain } from '../../../../extension-chains/src/types';
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, Progress } from '../../components';
-import { ChainInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
@@ -39,13 +39,15 @@ interface Props {
   handleStopNominating: () => void;
   handleRebag: () => void;
   nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
-  rebagInfo: RebagInfo;
+  putInFrontInfo: PutInFrontInfo | undefined;
+  rebagInfo: RebagInfo | undefined;
+  staker: AccountsBalanceType;
 }
 
-export default function Nominations({ activeValidator, chain, chainInfo, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, rebagInfo, setState, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function Nominations({ activeValidator, chain, chainInfo, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, putInFrontInfo, rebagInfo, setState, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const currentlyStaked = BigInt(ledger ? ledger.active.toString() : '0');
-  const tuneUpButtonEnable = !noNominatedValidators && nominatorInfo && !nominatorInfo?.isInList && (rebagInfo?.shouldRebag || rebagInfo?.shouldPutInFrontOf);
+  const tuneUpButtonEnable = !noNominatedValidators && nominatorInfo && !nominatorInfo?.isInList && (rebagInfo?.shouldRebag || putInFrontInfo?.shouldPutInFront);
 
   const handleSetNominees = useCallback((): void => {
     setState('setNominees');
@@ -62,6 +64,7 @@ export default function Nominations({ activeValidator, chain, chainInfo, handleR
               chain={chain}
               chainInfo={chainInfo}
               height={220}
+              staker={staker}
               stakingConsts={stakingConsts}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={nominatedValidators}
@@ -81,7 +84,7 @@ export default function Nominations({ activeValidator, chain, chainInfo, handleR
               </MuiButton>
             </Grid>
 
-            <Grid item xs={3} sx={{ textAlign: 'center' }}>
+            <Grid item sx={{ textAlign: 'center' }} xs={3}>
               <Hint id='rebag' place='top' tip='Rebag/putInFrontOf if needed'>
                 <MuiButton
                   disabled={!tuneUpButtonEnable}
