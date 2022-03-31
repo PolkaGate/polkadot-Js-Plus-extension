@@ -27,7 +27,6 @@ Currently, the following features are added:
 ### Add-on
 
 The beta version of Plus extension for firefox can be downloaded from [here](https://addons.mozilla.org/en-US/firefox/addon/polkadot-js-plus-extension/)
- - open downloaded file with firefox
 
 
 ### Development version
