@@ -16,8 +16,9 @@ import Identicon from '@polkadot/react-identicon';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShortAddress } from '../../components';
 import Identity from '../../components/Identity';
+import { SELECTED_COLOR } from '../../util/constants';
 import getLogo from '../../util/getLogo';
-import { ChainInfo } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
 
 interface Props {
@@ -27,9 +28,10 @@ interface Props {
   setShowValidatorInfoModal: Dispatch<SetStateAction<boolean>>;
   info: DeriveStakingQuery;
   validatorsIdentities: DeriveAccountInfo[] | null;
+  staker: AccountsBalanceType;
 }
 
-export default function ValidatorInfo({ chain, chainInfo, info, setShowValidatorInfoModal, showValidatorInfoModal, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ValidatorInfo({ chain, chainInfo, info, setShowValidatorInfoModal, showValidatorInfoModal, staker, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const accountInfo = validatorsIdentities?.find((v) => v.accountId === info?.accountId);
   const chainName = chain?.name.replace(' Relay Chain', '');
@@ -40,29 +42,20 @@ export default function ValidatorInfo({ chain, chainInfo, info, setShowValidator
       setShowValidatorInfoModal(false);
     }, [setShowValidatorInfoModal]);
 
+  const sortedNominators = info?.exposure?.others.sort((a, b) => b.value - a.value);
+  const myIndex = sortedNominators.findIndex((n) => n.who.toString() === staker.address);
+
   return (
     <Popup handleClose={handleDetailsModalClose} id='scrollArea' showModal={showValidatorInfoModal}>
       <PlusHeader action={handleDetailsModalClose} chain={chain} closeText={'Close'} icon={<BubbleChartIcon fontSize='small' />} title={'Validator Info'} />
       <Container sx={{ p: '0px 20px' }}>
         <Grid item sx={{ p: 1 }} xs={12}>
           <Paper elevation={3}>
-            <Grid container item justifyContent='center' sx={{ fontSize: 12, textAlign: 'center', p: '20px 10px 20px' }}>
-              <Grid item sx={{ height: '40px' }} xs={12}>
+            <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, textAlign: 'center', p: '20px 10px 20px' }}>
+              <Grid item sx={{ height: '40px' }} xs={11}>
                 {accountInfo && <Identity accountInfo={accountInfo} chain={chain} iconSize={40} showAddress={true} />}
               </Grid>
-              <Grid item sx={{ p: '10px 0px 20px' }} xs={12}>
-                <Divider />
-              </Grid>
-              <Grid item sx={{ textAlign: 'left', pl: 3 }} xs={6}>
-                {t('Own')}{': '}{Number(info?.exposure.own || info?.stakingLedger.active).toLocaleString()} {' '}{chainInfo?.coin}
-              </Grid>
-              <Grid item sx={{ textAlign: 'right', pr: 3 }} xs={6}>
-                {t('Total')}{': '}{Number(info?.exposure.total).toLocaleString()}{' '}{chainInfo?.coin}
-              </Grid>
-              <Grid item sx={{ textAlign: 'left', pt: 1, pl: 3 }} xs={11}>
-                {t('Commission')}{': '}   {info.validatorPrefs.commission === 1 ? 0 : info.validatorPrefs.commission / (10 ** 7)}%
-              </Grid>
-              <Grid item sx={{ pt: 1, pr: 3 }} xs={1}>
+              <Grid item sx={{ pr: 3, pt: 1 }} xs={1}>
                 <Link
                   href={`https://${chainName}.subscan.io/account/${info?.accountId}`}
                   rel='noreferrer'
@@ -76,20 +69,37 @@ export default function ValidatorInfo({ chain, chainInfo, info, setShowValidator
                   />
                 </Link>
               </Grid>
+              <Grid item sx={{ p: '10px 0px 20px' }} xs={12}>
+                <Divider />
+              </Grid>
+              <Grid item sx={{ pl: 3, textAlign: 'left' }} xs={6}>
+                {t('Own')}{': '}{Number(info?.exposure.own || info?.stakingLedger.active).toLocaleString()} {' '}{chainInfo?.coin}
+              </Grid>
+              <Grid item sx={{ pr: 3, textAlign: 'right' }} xs={6}>
+                {t('Total')}{': '}{Number(info?.exposure.total).toLocaleString()}{' '}{chainInfo?.coin}
+              </Grid>
+              <Grid item sx={{ pl: 3, pt: 1, textAlign: 'left' }} xs={6}>
+                {t('Commission')}{': '}   {info.validatorPrefs.commission === 1 ? 0 : info.validatorPrefs.commission / (10 ** 7)}%
+              </Grid>
+              {myIndex !== -1 &&
+                <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
+                  {t('Your rank')}{': '}{myIndex + 1}
+                </Grid>
+              }
             </Grid>
           </Paper>
         </Grid>
         <Grid container item justifyContent='center' spacing={1} xs={12}>
-          <Grid item sx={{ textAlign: 'center', color: grey[600], fontFamily: 'fantasy', fontSize: 15, padding: '10px 0px 5px' }}>
+          <Grid item sx={{ color: grey[600], textAlign: 'center', fontFamily: 'fantasy', fontSize: 15, padding: '10px 0px 5px' }}>
             {t('Nominators')}
           </Grid>
-          <Grid item sx={{ fontSize: 12 }} >
+          <Grid item sx={{ fontSize: 12 }}>
             ({info?.exposure?.others?.length})
           </Grid>
         </Grid>
         <Grid item sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: 2 }} xs={12}>
-          {info?.exposure?.others.map(({ value, who }) => (
-            <Paper elevation={2} key={who} sx={{ p: 1, m: 1 }}>
+          {sortedNominators.map(({ value, who }, index) => (
+            <Paper elevation={2} key={index} sx={{ bgcolor: index === myIndex && SELECTED_COLOR, my: 1, p: '5px' }}>
               <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
                 <Grid item xs={1}>
                   <Identicon
@@ -100,7 +110,7 @@ export default function ValidatorInfo({ chain, chainInfo, info, setShowValidator
                   />
                 </Grid>
                 <Grid item sx={{ textAlign: 'left' }} xs={6}>
-                  <ShortAddress address={who} charsCount={8} fontSize={13} />
+                  <ShortAddress address={who} charsCount={8} fontSize={12} />
                 </Grid>
                 <Grid item sx={{ textAlign: 'right' }} xs={5}>
                   {Number(amountToHuman(value, chainInfo?.decimals)).toLocaleString()} {' '}{chainInfo?.coin}
