@@ -13,7 +13,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../components';
-import { ChainInfo, StakingConsts } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo, StakingConsts } from '../../util/plusTypes';
 import ValidatorInfo from './ValidatorInfo';
 import VTable from './VTable';
 
@@ -25,24 +25,24 @@ interface Props {
   stakingConsts: StakingConsts;
   validatorsIdentities: DeriveAccountInfo[] | null;
   height: number;
+  staker: AccountsBalanceType;
+
 }
 
-export default function ValidatorsList({ activeValidator, height, chain, chainInfo, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function ValidatorsList({ activeValidator, chain, chainInfo, height, staker, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showValidatorInfoModal, setShowValidatorInfoModal] = useState<boolean>(false);
   const [info, setInfo] = useState<DeriveStakingQuery | null>(null);
 
-  useEffect(() => {
-    if (!activeValidator || !validatorsInfo?.length) return;
+  // put active validator at the top of list
+  React.useMemo(() => {
+    const index = validatorsInfo?.findIndex((v) => v.accountId === activeValidator?.accountId);
 
-    // put active validator at the top of list
-    const index = validatorsInfo.findIndex((v) => v.accountId === activeValidator?.accountId);
-
-    if (index === -1) { return; }
-
-    validatorsInfo.splice(index, 1);
-    validatorsInfo.unshift(activeValidator);
-  }, [activeValidator, validatorsInfo]);
+    if (index !== -1) {
+      validatorsInfo.splice(index, 1);
+      validatorsInfo.unshift(activeValidator);
+    }
+  }, [validatorsInfo, activeValidator]);
 
   return (
     <>
@@ -70,6 +70,7 @@ export default function ValidatorsList({ activeValidator, height, chain, chainIn
           info={info}
           setShowValidatorInfoModal={setShowValidatorInfoModal}
           showValidatorInfoModal={showValidatorInfoModal}
+          staker={staker}
           validatorsIdentities={validatorsIdentities}
         />
       }
