@@ -90,8 +90,6 @@ export default function RewardChart({ chain, chainInfo, rewardSlashes, setChartM
   const sortedRewards = [...rewardSlashes];
   sortedRewards.sort((a, b) => a.era - b.era);
 
-  console.log('sortedRewards', sortedRewards);
-
   // TODO: needs a refactore
   // remove duplicate eras
   const dataset = [];
