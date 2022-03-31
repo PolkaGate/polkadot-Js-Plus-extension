@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
-import { Grid, InputAdornment, Skeleton, TextField } from '@mui/material';
+import { Grid, InputAdornment, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import keyring from '@polkadot/ui-keyring';
@@ -13,11 +13,11 @@ import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
+import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo } from '../../../../util/plusTypes';
 import { amountToHuman, amountToMachine } from '../../../../util/plusUtils';
-import Hint from '../../../../components/Hint';
 
 interface Props {
   chain: Chain;
