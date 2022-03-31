@@ -251,6 +251,9 @@ export interface Referendum extends DeriveReferendumExt {
 export interface RebagInfo {
   shouldRebag?: boolean;
   currentBagThreshold?: string;
-  shouldPutInFrontOf?: boolean;
+}
+
+export interface PutInFrontInfo {
+  shouldPutInFront?: boolean;
   lighter?: string;
 }
