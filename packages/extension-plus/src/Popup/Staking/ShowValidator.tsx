@@ -10,7 +10,7 @@
 import type { AccountId } from '@polkadot/types/interfaces';
 
 import { DirectionsRun as DirectionsRunIcon, MoreVert as MoreVertIcon, ReportProblemOutlined as ReportProblemOutlinedIcon } from '@mui/icons-material';
-import { Grid, IconButton, Paper, Switch } from '@mui/material';
+import { Grid, Paper, Switch } from '@mui/material';
 import React from 'react';
 
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
@@ -19,6 +19,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 import { ShortAddress } from '../../components';
 import Hint from '../../components/Hint';
 import Identity from '../../components/Identity';
+import { SELECTED_COLOR } from '../../util/constants';
 import { StakingConsts } from '../../util/plusTypes';
 
 interface Props {
@@ -37,7 +38,7 @@ interface Props {
 
 function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSwitch = false, showSocial = true, stakingConsts, validator, validatorsIdentities }: Props) {
   const isItemSelected = isSelected && isSelected(validator);
-  const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? '#fffbed' : '');
+  const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? SELECTED_COLOR : '');
   const getAccountInfo = (id: AccountId): DeriveAccountInfo => validatorsIdentities?.find((v) => v.accountId === id);
   const nominatorCount = validator.exposure.others.length;
   const isActive = validator.accountId === activeValidator?.accountId;
