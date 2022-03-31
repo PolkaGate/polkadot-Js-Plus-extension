@@ -250,7 +250,7 @@ export interface Referendum extends DeriveReferendumExt {
 
 export interface RebagInfo {
   shouldRebag?: boolean;
-  currentBagThreshold?: Balance;
+  currentBagThreshold?: string;
   shouldPutInFrontOf?: boolean;
-  lighter?: AccountId;
+  lighter?: string;
 }
