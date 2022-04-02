@@ -29,22 +29,28 @@ import { Auction, ChainInfo, Crowdloan } from '../../util/plusTypes';
 import AuctionTab from './AuctionTab';
 import Contribute from './Contribute';
 import CrowdloanTab from './CrowdloanTab';
+import { useParams } from 'react-router';
 
 interface Props extends ThemeProps {
   className?: string;
 }
 
+interface AddressState {
+  genesisHash: string;
+  address: string;
+}
 const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
 
 function Crowdloans({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [contributingTo, setContributingTo] = useState<Crowdloan | null>(null);
   const [auction, setAuction] = useState<Auction | null>(null);
-  const [selectedChain, setSelectedChain] = useState<string>('');
   const [tabValue, setTabValue] = React.useState('auction');
   const [contributeModal, setContributeModalOpen] = useState<boolean>(false);
   const [endpoints, setEndpoints] = useState<LinkOption[]>([]);
   const [chainInfo, setChainInfo] = useState<ChainInfo>();
+
+  const { address, genesisHash } = useParams<AddressState>();
 
   function getCrowdloands(_selectedBlockchain: string) {
     const crowdloanWorker: Worker = new Worker(new URL('../../util/workers/getCrowdloans.js', import.meta.url));
@@ -60,10 +66,8 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result: Auction = e.data;
 
-      if (result.blockchain === selectedChain) {
-        console.log('Auction:', result);
-        setAuction(result);
-      }
+      console.log('Auction:', result);
+      setAuction(result);
 
       crowdloanWorker.terminate();
     };
@@ -77,36 +81,20 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
   }, []);
 
   useEffect(() => {
-    if (selectedChain) {
+    // eslint-disable-next-line no-void
+    void getChainInfo(genesisHash).then((chainInfo) => {
+      setChainInfo(chainInfo);
+
       setAuction(null);
       setContributingTo(null);
-      getCrowdloands(selectedChain);
+      getCrowdloands(chainInfo.chainName);
 
-      // eslint-disable-next-line no-void
-      void getChainInfo(selectedChain).then((i) => {
-
-        // i.api.derive.crowdloan.contributions(2000).then((res) => {
-        //   console.log('all contributions:', res);
-        // });
-
-        // void i.api.derive.crowdloan.ownContributions(2000, ['0x0001fc7c29f4d64e844543e32d3834d8c59c95c7dec2fc5dee10fda0f611e436']).then((res) => {
-        //   console.log('contribution of :', res);
-        // });
-
-        setChainInfo(i);
-      });
-
-      const endPoint = allEndpoints.find((e: LinkOption) => (String(e.text).toLowerCase() === selectedChain.toLowerCase())) as LinkOption;
-      const endpoints = allEndpoints.filter((e) => (e.genesisHashRelay === endPoint?.genesisHash));
+      const endpoints = allEndpoints.filter((e) => (e.genesisHashRelay === genesisHash));
 
       setEndpoints(endpoints);
-    }
+    }).catch(console.error);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedChain]);
-
-  const handleChainChange = useCallback((event: SelectChangeEvent) => {
-    setSelectedChain(event.target.value);
-  }, []);
+  }, [genesisHash]);
 
   const handleContribute = useCallback((crowdloan: Crowdloan): void => {
     setContributingTo(crowdloan);
@@ -121,11 +109,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
   return (
     <>
       <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Crowdloans')} />
-      <Grid alignItems='center' container id='selectRelyChain' sx={{ padding: '5px 35px' }}>
-
-        <Grid item xs={12}>
-          <SelectRelay handleChainChange={handleChainChange} hasEmpty selectedChain={selectedChain} />
-        </Grid>
+      <Grid alignItems='center' container id='selectRelyChain' sx={{ p: '0px 35px' }}>
 
         <Grid item xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
@@ -135,8 +119,8 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
         </Grid>
       </Grid>
 
-      {!auction && selectedChain &&
-        <Progress title={t('Loading Auction/Crowdloans of ') + ` ${selectedChain.charAt(0).toUpperCase()}${selectedChain.slice(1)} ...`} />
+      {!auction &&
+        <Progress title={t('Loading Auction/Crowdloans ...')} />
       }
 
       {auction && tabValue === 'auction' && chainInfo &&
@@ -150,6 +134,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
       {contributeModal && auction && contributingTo && chainInfo &&
         <Contribute
           auction={auction}
+          address={address}
           chainInfo={chainInfo}
           contributeModal={contributeModal}
           crowdloan={contributingTo}
