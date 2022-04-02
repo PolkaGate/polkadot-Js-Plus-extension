@@ -40,9 +40,12 @@ export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose,
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<bigint>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
+
   const { api, coin, decimals } = chainInfo;
   const tx = api.tx.tips.reportAwesome;
+
   const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
+  
   const reportDeposit = useMemo(() => BigInt(String(api.consts.tips.tipReportDepositBase)) + BigInt(String(api.consts.tips.dataDepositPerByte)) * BigInt(reason.length), [reason]);
   const maximumReasonLength = api.consts.tips.maximumReasonLength.toString();
   const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
