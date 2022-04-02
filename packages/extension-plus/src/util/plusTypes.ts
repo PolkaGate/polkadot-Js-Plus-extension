@@ -224,6 +224,7 @@ export interface ChainInfo {
   decimals: number;
   url: string;
   genesisHash: string;
+  chainName?: string;
 }
 
 export interface ProposalsInfo {
