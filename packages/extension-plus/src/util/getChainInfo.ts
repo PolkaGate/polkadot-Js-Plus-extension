@@ -12,13 +12,15 @@ import { createWsEndpoints } from '@polkadot/apps-config';
 import { ChainInfo } from './plusTypes';
 
 const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
+console.log('allEndpoints:', allEndpoints);
 
-async function gChainInfo(_chain: Chain | string): Promise<ChainInfo> {
-  const chainName = (_chain as Chain)?.name?.replace(' Relay Chain', '') ?? _chain as string;
+async function gChainInfo(searchKeyWord: Chain | string): Promise<ChainInfo> {
+  const chainName = (searchKeyWord as Chain)?.name?.replace(' Relay Chain', '') ?? searchKeyWord as string;
 
   // if (!chainName) return null;
   // console.log('allEndpoints',allEndpoints)
-  const endpoint = allEndpoints.find((e) => (String(e.text)?.toLowerCase() === chainName?.toLowerCase()));
+  const endpoint = allEndpoints.find((e) => String(e.text)?.toLowerCase() === chainName?.toLowerCase() ||
+    e.genesisHash === searchKeyWord);
   // const endpoints = allEndpoints.filter((e) => (String(e.text)?.toLowerCase() === chainName?.toLowerCase()));
   // const onfinalityEndpoint = endpoints.find((e) => e.value.includes('onfinality'));
   // console.log('endpoints:', endpoints)
@@ -29,6 +31,7 @@ async function gChainInfo(_chain: Chain | string): Promise<ChainInfo> {
 
   return {
     api: api,
+    chainName: String(endpoint?.text),
     coin: api.registry.chainTokens[0],
     decimals: api.registry.chainDecimals[0],
     genesisHash: endpoint?.genesisHash as string,
