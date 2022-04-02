@@ -12,7 +12,7 @@ import ReactDOM from 'react-dom';
 import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
 
-import getCouncil from '../../../util/api/getCouncil';
+import getCouncilAll from '../../../util/api/getCouncilAll';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo, CouncilInfo, PersonsInfo } from '../../../util/plusTypes';
@@ -55,7 +55,7 @@ describe('Testing Council component', () => {
       availableBalance = available;
     });
 
-    await getCouncil(chain.name).then((c) => {
+    await getCouncilAll(chain.name).then((c) => {
       councilInfo = c;
     });
 
