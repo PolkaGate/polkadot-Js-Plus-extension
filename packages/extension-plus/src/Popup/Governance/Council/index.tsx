@@ -11,7 +11,7 @@ import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } fro
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../../components';
-import getCouncil from '../../../util/api/getCouncil';
+import getCouncilAll from '../../../util/api/getCouncilAll';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import { ChainInfo, CouncilInfo } from '../../../util/plusTypes';
 import Motions from './motions/Motions';
@@ -54,7 +54,7 @@ export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen
 
   useEffect(() => {
     // eslint-disable-next-line no-void
-    void getCouncil(chainName).then((c) => {
+    void getCouncilAll(chainName).then((c) => {
       setCouncilInfo(c);
     });
 
