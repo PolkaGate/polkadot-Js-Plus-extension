@@ -3,17 +3,26 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
-import { Avatar, Button, Divider, Grid, Link, Paper, Stack } from '@mui/material';
+import { AddCircleRounded as AddCircleRoundedIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { Accordion, AccordionDetails, AccordionSummary, Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useState } from 'react';
+
+import { PalletTipsOpenTip } from '@polkadot/types/lookup';
+import { Option } from '@polkadot/types-codec';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import Identity from '../../../../components/Identity';
 import getLogo from '../../../../util/getLogo';
+import getCouncilMembersInfo from '../../../../util/api/getCouncilMembersInfo';
+
 import { ChainInfo } from '../../../../util/plusTypes';
 import { amountToHuman } from '../../../../util/plusUtils';
 import SubmitTip from './SubmitTip';
+import { AccountId32 } from '@polkadot/types/interfaces/runtime';
+import { u128 } from '@polkadot/types-codec';
+import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
 interface Judgment {
   index: number;
@@ -53,8 +62,40 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
   const [showSubmitTipModal, setShowSubmitTipModal] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<number>(-1);
+  const [tippers, setTippers] = useState<[DeriveAccountInfo, u128][][]>();
+
+  const { api } = chainInfo;
+
   const handleSubmitTip = useCallback(() => { setShowSubmitTipModal(true); }, []);
   const handleSubmitTipModalClose = useCallback(() => { setShowSubmitTipModal(false); }, []);
+
+  const handleAccordionChange = useCallback((panel: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : -1);
+  }, []);
+
+  // eslint-disable-next-line no-void
+  void React.useMemo(async () => {
+    const wrappedTips: Option<PalletTipsOpenTip>[] = await Promise.all(tips?.map((tip) => api.query.tips.tips(tip.hash)));
+    const councilMembersInfo: DeriveAccountInfo[] = await getCouncilMembersInfo(chainName);
+
+    if (!councilMembersInfo.length) return;
+
+    console.log('councilMembersInfo:', councilMembersInfo);
+
+    const unWrappedTips = wrappedTips?.map((t) => t.isSome && t.unwrap());
+
+    const tipInfos = unWrappedTips?.map((tip: PalletTipsOpenTip): [DeriveAccountInfo, u128][] => {
+      return tip?.tips?.map((accountVal: [AccountId32, u128]): [DeriveAccountInfo, u128] => {
+        return [councilMembersInfo.find((c) => c.accountId.toString() === accountVal[0].toString()), api.createType('Balance', accountVal[1])];
+      });
+    });
+
+    setTippers(tipInfos);
+  }, [api.query.tips, chainName, tips]);
+
+
+  console.log('tippers:', tippers);
 
   if (!tips) {
     return (
@@ -79,24 +120,38 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
         const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } };
 
         return (
-          <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '10px 30px 10px', p: '10px 20px' }}>
-            <Grid alignItems='center' container justifyContent='space-between'>
+          <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '10px 30px 10px' }}>
 
-              <Grid container item justifyContent='space-between' sx={{ fontSize: 12, pb: '5px' }} xs={12}>
-                <Grid item>
-                  {t('Status')}{': '}{tip.status}
+            <Accordion disableGutters expanded={expanded === index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Grid container justifyContent='space-between' xs={12}>
+                  <Grid item>
+                    {t('Status')}{': '}{tip.status}
+                  </Grid>
+                  <Grid item>
+                    {t('Amount')}{': '}{amountToHuman(tip.amount, chainInfo.decimals)}{' '}{chainInfo.coin}
+                  </Grid>
+                  <Grid item>
+                    {t('Tippers')}{': '}{tip.tipper_num}
+                  </Grid>
                 </Grid>
-                <Grid item>
-                  {t('Tippers')}{': '}{tip.tipper_num}
-                </Grid>
-                <Grid item>
-                  {t('Amount')}{': '}{amountToHuman(tip.amount, chainInfo.decimals)}{' '}{chainInfo.coin}
-                </Grid>
-              </Grid>
+              </AccordionSummary>
+              <AccordionDetails sx={{ backgroundColor: grey[200], p: 0 }}>
 
-              <Grid item xs={12}>
-                <Divider />
-              </Grid>
+                {tippers && !!tippers[index]?.length && tippers[index]?.map((t: [DeriveAccountInfo, u128], index: number) => (
+                  <Grid container justifyContent='space-between' key={index} xs={12}>
+                    <Grid item xs={9} sx={{ textAlign: 'left' }}>
+                      <Identity accountInfo={t[0]} chain={chain} showSocial={false} />
+                    </Grid>
+                    <Grid item sx={{ pr: 1, textAlign: 'right' }} xs={3}>
+                      {t[1].toHuman()}
+                    </Grid>
+                  </Grid>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+
+            <Grid alignItems='center' container justifyContent='space-between' sx={{ p: '10px 20px' }}>
 
               <Grid container item justifyContent='flex-end' spacing={1} xs={12}>
                 <Grid item>
