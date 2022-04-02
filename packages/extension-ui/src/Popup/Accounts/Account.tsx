@@ -25,7 +25,7 @@ interface EditState {
   toggleActions: number;
 }
 
-function Account ({ address, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, suri, type }: Props): React.ReactElement<Props> {
+function Account({ address, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, suri, type }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [{ isEditing, toggleActions }, setEditing] = useState<EditState>({ isEditing: false, toggleActions: 0 });
   const [editedName, setName] = useState<string | undefined | null>(name);
@@ -71,12 +71,22 @@ function Account ({ address, className, genesisHash, isExternal, isHardware, isH
           {t<string>('Derive New Account')}
         </Link>
       )}
-        {/* <Link // added for plus
+      {/* added for plus */}
+      <MenuDivider />
+
+      {/* <Link  
         className='menuItem'
         to={`/endecrypt/${address}`}
       >
         {t<string>('En/Decrypt')}
       </Link> */}
+      <Link
+        className='menuItem'
+        to={`/crowdloans/${genesisHash}/${address}`}
+      >
+        {t<string>('Crowdloans')}
+      </Link>
+
       <MenuDivider />
       {!isExternal && (
         <Link
