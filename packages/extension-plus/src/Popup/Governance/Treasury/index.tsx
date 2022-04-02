@@ -49,6 +49,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
     // eslint-disable-next-line no-void
     void getTips(chainName, 0, 10).then((res) => {
       console.log('tips:', res);
+
       setTips(res?.data?.list);
     }).catch(console.error);
 
