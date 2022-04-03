@@ -11,7 +11,9 @@ import { PHISHING_PAGE_REDIRECT } from '@polkadot/extension-base/defaults';
 import { canDerive } from '@polkadot/extension-base/utils';
 import uiSettings from '@polkadot/ui-settings';
 
+
 import CrowdLoans from '../../../extension-plus/src/Popup/CrowdLoans';// added for plus
+
 import EnDecrypt from '../../../extension-plus/src/Popup/Encryption';// added for plus
 import Governance from '../../../extension-plus/src/Popup/Governance';// added for plus
 
@@ -40,7 +42,7 @@ import Welcome from './Welcome';
 const startSettings = uiSettings.get();
 
 // Request permission for video, based on access we can hide/show import
-async function requestMediaAccess (cameraOn: boolean): Promise<boolean> {
+async function requestMediaAccess(cameraOn: boolean): Promise<boolean> {
   if (!cameraOn) {
     return false;
   }
@@ -56,7 +58,7 @@ async function requestMediaAccess (cameraOn: boolean): Promise<boolean> {
   return false;
 }
 
-function initAccountContext (accounts: AccountJson[]): AccountsContext {
+function initAccountContext(accounts: AccountJson[]): AccountsContext {
   const hierarchy = buildHierarchy(accounts);
   const master = hierarchy.find(({ isExternal, type }) => !isExternal && canDerive(type));
 
@@ -67,7 +69,7 @@ function initAccountContext (accounts: AccountJson[]): AccountsContext {
   };
 }
 
-export default function Popup (): React.ReactElement {
+export default function Popup(): React.ReactElement {
   const [accounts, setAccounts] = useState<null | AccountJson[]>(null);
   const [accountCtx, setAccountCtx] = useState<AccountsContext>({ accounts: [], hierarchy: [] });
   const [authRequests, setAuthRequests] = useState<null | AuthorizeRequest[]>(null);
@@ -103,7 +105,7 @@ export default function Popup (): React.ReactElement {
     });
 
     _onAction();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect((): void => {
@@ -116,7 +118,7 @@ export default function Popup (): React.ReactElement {
       .catch(console.error);
   }, [cameraOn]);
 
-  function wrapWithErrorBoundary (component: React.ReactElement, trigger?: string): React.ReactElement {
+  function wrapWithErrorBoundary(component: React.ReactElement, trigger?: string): React.ReactElement {
     return <ErrorBoundary trigger={trigger}>{component}</ErrorBoundary>;
   }
 
@@ -143,7 +145,8 @@ export default function Popup (): React.ReactElement {
                       <Switch>
 
                         {/* // added for plus */}
-                        <Route path='/auction-crowdloans'>{wrapWithErrorBoundary(<CrowdLoans />, 'auction-crowdloans')}</Route>
+                        {/* <Route path='/auction-crowdloans'>{wrapWithErrorBoundary(<CrowdLoans />, 'auction-crowdloans')}</Route> */}
+                        <Route path='/crowdloans/:genesisHash/:address'>{wrapWithErrorBoundary(<CrowdLoans />, 'crowdloans')}</Route>
                         <Route path='/governance'>{wrapWithErrorBoundary(<Governance />, 'governance')}</Route>
                         <Route path='/endecrypt/:address'>{wrapWithErrorBoundary(<EnDecrypt />, 'encrypt-decrypt')}</Route>
 

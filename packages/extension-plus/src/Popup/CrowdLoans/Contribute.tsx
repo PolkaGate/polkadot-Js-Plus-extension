@@ -6,7 +6,8 @@
 /** NOTE this component renders contribute page where users can easily contribute to an active crowdloan */
 
 import { AllOut as AllOutIcon } from '@mui/icons-material';
-import { Grid, InputAdornment, Skeleton, TextField } from '@mui/material';
+import { Box, Grid, InputAdornment, Skeleton, TextField } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
@@ -19,7 +20,7 @@ import keyring from '@polkadot/ui-keyring';
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup } from '../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowAddress } from '../../components';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { Auction, ChainInfo, Crowdloan, TransactionDetail } from '../../util/plusTypes';
@@ -33,9 +34,15 @@ interface Props {
   setContributeModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   endpoints: LinkOption[];
   chainInfo: ChainInfo;
+  address: string;
 }
 
-export default function Contribute({ auction, chainInfo, contributeModal, crowdloan, endpoints, setContributeModalOpen }: Props): React.ReactElement<Props> {
+interface nameAddress {
+  name?: string;
+  address: string;
+}
+
+export default function Contribute({ address, auction, chainInfo, contributeModal, crowdloan, endpoints, setContributeModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
 
@@ -45,10 +52,10 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
   const [password, setPassword] = useState<string>('');
   const [contributionAmountInHuman, setContributionAmountInHuman] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
-  const [selectedAddress, setSelectedAddress] = useState<string>('');
+  const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [confirmingState, setConfirmingState] = useState<string>('');
-  const [estimatedFee, setEstimatedFee] = useState<Balance>();
-  const [availableBalance, setAvailableBalance] = useState<string>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
+  const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
 
   const { hierarchy } = useContext(AccountContext);
 
@@ -57,19 +64,22 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
   const tx = api.tx.crowdloan.contribute;
 
   useEffect(() => {
-    if (!selectedAddress) { return; }
+    if (!encodedAddressInfo) {
+      console.log('no encodedAddressInfo');
+      return;
+    }
 
     const contributingAmountInMachine = amountToMachine(contributionAmountInHuman, chainInfo.decimals);
 
     const dummyParams = ['2000', contributingAmountInMachine, null];
 
     // eslint-disable-next-line no-void
-    void tx(...dummyParams).paymentInfo(selectedAddress)
+    void tx(...dummyParams).paymentInfo(encodedAddressInfo.address)
       .then((i) => {
         setEstimatedFee(i?.partialFee);
-        console.log('estimatedFeeInHuman', amountToHuman(String(i?.partialFee), chainInfo?.decimals, 5));
+        console.log('estimatedFeeInHuman', i?.partialFee.toHuman());
       }).catch(console.error);
-  }, [auction.minContribution, selectedAddress, contributionAmountInHuman]);
+  }, [auction.minContribution, encodedAddressInfo, contributionAmountInHuman, chainInfo.decimals, tx]);
 
   const handleConfirmModaClose = useCallback((): void => {
     setContributeModalOpen(false);
@@ -87,7 +97,7 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
   const handleConfirm = async (): Promise<void> => {
     try {
       setConfirmingState('confirming');
-      const signer = keyring.getPair(selectedAddress);
+      const signer = keyring.getPair(encodedAddressInfo?.address);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
@@ -95,7 +105,7 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
 
       const params = [crowdloan.fund.paraId, contributingAmountInMachine, null];
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, selectedAddress);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, encodedAddressInfo.address);
 
       setConfirmingState(status);
 
@@ -105,14 +115,14 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
         block: block,
         date: Date.now(),
         fee: fee || '',
-        from: selectedAddress,
+        from: encodedAddressInfo.address,
         hash: txHash || '',
         status: failureText || status,
-        to: crowdloan.fund.paraId 
+        to: crowdloan.fund.paraId
       };
 
       // eslint-disable-next-line no-void
-      void saveHistory(chain, hierarchy, selectedAddress, history);
+      void saveHistory(chain, hierarchy, encodedAddressInfo.address, history);
     } catch (e) {
       console.log('error:', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
@@ -142,44 +152,68 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
 
       <Grid container item sx={{ padding: '20px 30px 40px' }} xs={12}>
         {chain && <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} />}
+
       </Grid>
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} title={t('Contributer')} />
-
-      <Grid item sx={{ p: '10px 40px 35px 80px' }} xs={12}>
-        <TextField
-          InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
-          autoFocus
-          color='warning'
-          // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
-          fullWidth
-          helperText={
-            <Grid container item justifyContent='space-between' xs={12}>
-              <Grid item>
-                {t('Minimum contribution: ') + auctionMinContributionInHuman + ' ' + chainInfo.coin}
-              </Grid>
-              <Grid item>
-                {t('Fee')} {': '}
-                {estimatedFee
-                  ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
-                  : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-                }
-              </Grid>
-            </Grid>
-          }
-          label={t('Amount')}
-          margin='dense'
-          name='contributionAmount'
-          onChange={(event) => handleChange(event.target.value)}
-          placeholder={auctionMinContributionInHuman}
-          size='medium'
-          type='number'
-          value={contributionAmountInHuman}
-          variant='outlined'
-        />
+      <Grid container item xs={12} sx={{ p: '20px 30px' }}>
+        <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={2}>
+          {t('Contributor:')}
+        </Grid>
+        <Grid item xs={10} sx={{ px: '30px' }}>
+          <Box sx={{ border: '1px groove silver', borderRadius: '10px', p: 1 }}>
+            <ShowAddress
+              address={address}
+              availableBalance={availableBalance}
+              chain={chain} chainInfo={chainInfo}
+              encodedAddressInfo={encodedAddressInfo}
+              setAvailableBalance={setAvailableBalance}
+              setEncodedAddressInfo={setEncodedAddressInfo}
+              title={t('Contributer')}
+            />
+          </Box>
+        </Grid>
       </Grid>
-      <Grid container item sx={{ p: '0px 20px' }} xs={12}>
+
+      <Grid container item xs={12} sx={{ p: '10px 30px' }}>
+        <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={2}>
+          {t('Amount:')}
+        </Grid>
+        <Grid item xs={10} sx={{ px: '30px' }} >
+          <TextField
+            InputLabelProps={{ shrink: true }}
+            InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
+            autoFocus
+            color='warning'
+            // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
+            fullWidth
+            helperText={
+              <Grid container item justifyContent='space-between' xs={12}>
+                <Grid item>
+                  {t('Minimum contribution: ') + auctionMinContributionInHuman + ' ' + chainInfo.coin}
+                </Grid>
+                <Grid item>
+                  {t('Fee')} {': '}
+                  {estimatedFee
+                    ? `${estimatedFee.toHuman()}`
+                    : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+                  }
+                </Grid>
+              </Grid>
+            }
+            label={t('Contribution amount')}
+            margin='dense'
+            name='contributionAmount'
+            onChange={(event) => handleChange(event.target.value)}
+            placeholder={auctionMinContributionInHuman}
+            size='medium'
+            type='number'
+            value={contributionAmountInHuman}
+            variant='outlined'
+          />
+        </Grid>
+      </Grid>
+
+      <Grid container item sx={{ p: '20px 20px' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}
@@ -192,8 +226,8 @@ export default function Contribute({ auction, chainInfo, contributeModal, crowdl
           handleBack={handleBack}
           handleConfirm={handleConfirm}
           handleReject={handleBack}
-          isDisabled={Number(contributionAmountInHuman) < Number(auctionMinContributionInHuman) ||
-            Number(contributionAmountInHuman) >= Number(amountToHuman(String(BigInt(availableBalance) - estimatedFee.toBigInt()), chainInfo?.decimals))
+          isDisabled={!estimatedFee || !availableBalance || Number(contributionAmountInHuman) < Number(auctionMinContributionInHuman) ||
+            Number(contributionAmountInHuman) >= Number(amountToHuman(String(BigInt(availableBalance) - BigInt(estimatedFee)), chainInfo?.decimals))
           }
           state={confirmingState}
         />

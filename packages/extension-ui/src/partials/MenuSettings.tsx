@@ -167,14 +167,14 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
       </MenuItem>
       <MenuDivider />
       {/* // added for plus */}
-      <MenuItem className='setting'>
+      {/* <MenuItem className='setting'>
         <ActionText
           className='crowdloans'
           icon={faCompass}
           onClick={_goToCrowdloans}
           text={t<string>('Crowdloans')}
         />
-      </MenuItem>
+      </MenuItem> */}
       <MenuItem className='setting'>
         <ActionText
           className='governance'
