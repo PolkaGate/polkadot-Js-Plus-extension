@@ -18,29 +18,38 @@ import Motions from './motions/Motions';
 import Overview from './overview/Overview';
 
 interface Props {
-  chainName: string;
+  address: string;
   chainInfo: ChainInfo | undefined;
   showCouncilModal: boolean;
   setCouncilModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen, showCouncilModal }: Props): React.ReactElement<Props> {
+export default function CouncilIndex({ address, chainInfo, setCouncilModalOpen, showCouncilModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('council');
   const [councilInfo, setCouncilInfo] = useState<CouncilInfo>();
-  // const [motions, setMotions] = useState<MotionsInfo>();
   const [motions, setMotions] = useState<DeriveCollectiveProposal[]>();
   const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const [totalMotionsSofar, setTotalMotionsSofar] = useState<number>(0);
   const [currentMotionsCount, setCurrentMotionsCount] = useState<number>(0);
 
   useEffect(() => {
-    if (!chainInfo) return;
+    if (!chainInfo?.chainName) return;
+
+    // eslint-disable-next-line no-void
+    void getCouncilAll(chainInfo.chainName).then((c) => {
+      setCouncilInfo(c);
+    }).catch(console.error);
+
+    // eslint-disable-next-line no-void
+    void getCurrentBlockNumber(chainInfo.chainName).then((n) => {
+      setCurrentBlockNumber(n);
+    }).catch(console.error);
 
     // eslint-disable-next-line no-void
     void chainInfo.api.query.council.proposalCount().then((c) => {
       setTotalMotionsSofar(c.toNumber());
-    });
+    }).catch(console.error);
 
     // eslint-disable-next-line no-void
     void chainInfo.api.derive.council?.proposals().then((p) => {
@@ -52,25 +61,6 @@ export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen
     });
   }, [chainInfo]);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-void
-    void getCouncilAll(chainName).then((c) => {
-      setCouncilInfo(c);
-    });
-
-    // // eslint-disable-next-line no-void
-    // void getMotions(chainName).then((m) => {
-    //   setMotions(m);
-
-    //   if (m?.proposals?.length) { setCurrentMotionsCount(m?.proposals?.length); }
-    // });
-
-    // eslint-disable-next-line no-void
-    void getCurrentBlockNumber(chainName).then((n) => {
-      setCurrentBlockNumber(n);
-    });
-  }, []);
-
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   }, []);
@@ -81,7 +71,7 @@ export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen
 
   return (
     <Popup handleClose={handleCouncilModalClose} showModal={showCouncilModal}>
-      <PlusHeader action={handleCouncilModalClose} chain={chainName} closeText={'Close'} icon={<GroupsIcon />} title={'Council'} />
+      <PlusHeader action={handleCouncilModalClose} chain={chainInfo?.chainName} closeText={'Close'} icon={<GroupsIcon />} title={'Council'} />
       <Grid container>
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
@@ -91,7 +81,7 @@ export default function CouncilIndex({ chainInfo, chainName, setCouncilModalOpen
         </Grid>
         {tabValue === 'council'
           ? <>{chainInfo && councilInfo
-            ? <Overview chainInfo={chainInfo} councilInfo={councilInfo} />
+            ? <Overview address={address} chainInfo={chainInfo} councilInfo={councilInfo} />
             : <Progress title={'Loading members info ...'} />}
           </>
           : ''}

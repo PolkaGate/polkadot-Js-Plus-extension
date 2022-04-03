@@ -16,13 +16,14 @@ import styled from 'styled-components';
 import { AccountsStore } from '@polkadot/extension-base/stores';
 import keyring from '@polkadot/ui-keyring';
 import { cryptoWaitReady } from '@polkadot/util-crypto';
+import { useParams } from 'react-router';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
 import SelectRelay from '../../components/SelectRelay';
 import getChainInfo from '../../util/getChainInfo';
 import getLogo from '../../util/getLogo';
-import { ChainInfo } from '../../util/plusTypes';
+import { AddressState, ChainInfo } from '../../util/plusTypes';
 import CouncilIndex from './Council/index';
 import Democracy from './Democracy/index';
 import Treasury from './Treasury/index';
@@ -33,11 +34,12 @@ interface Props extends ThemeProps {
 
 function Governance({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [selectedChain, setSelectedChain] = useState<string>('polkadot');
   const [showDemocracyModal, setDemocracyModalOpen] = useState<boolean>(false);
   const [showCouncilModal, setCouncilModalOpen] = useState<boolean>(false);
   const [showTreasuryModal, setTreasuryModalOpen] = useState<boolean>(false);
   const [chainInfo, setChainInfo] = useState<ChainInfo>();
+
+  const { address, genesisHash } = useParams<AddressState>();
 
   useEffect(() => {
     // eslint-disable-next-line no-void
@@ -48,14 +50,10 @@ function Governance({ className }: Props): React.ReactElement<Props> {
 
   useEffect(() => {
     // eslint-disable-next-line no-void
-    void getChainInfo(selectedChain).then((i) => {
-      setChainInfo(i);
-    });
-  }, [selectedChain]);
-
-  const handleChainChange = useCallback((event: SelectChangeEvent) => {
-    setSelectedChain(event.target.value);
-  }, []);
+    void getChainInfo(genesisHash).then((chainInfo) => {
+      setChainInfo(chainInfo);
+    }).catch(console.error);
+  }, [genesisHash]);
 
   const handleDemocracyModal = useCallback(() => {
     setDemocracyModalOpen(true);
@@ -79,10 +77,6 @@ function Governance({ className }: Props): React.ReactElement<Props> {
         text={t<string>('Governance')}
       />
       <Container data-testid='governance'>
-
-        <Grid item sx={{ p: '0px 30px' }} xs={12}>
-          <SelectRelay handleChainChange={handleChainChange} selectedChain={selectedChain} />
-        </Grid>
 
         <Paper elevation={4} onClick={handleDemocracyModal} sx={{ borderRadius: '10px', cursor: 'pointer', margin: '20px 30px 10px', p: '20px 40px' }}>
           <Grid container>
@@ -130,7 +124,7 @@ function Governance({ className }: Props): React.ReactElement<Props> {
           </Grid>
         </Paper>
         <Link
-          href={`https://${selectedChain}.polkassembly.io`}
+          href={`https://${chainInfo?.chainName}.polkassembly.io`}
           rel='noreferrer'
           target='_blank'
           underline='none'
@@ -158,8 +152,8 @@ function Governance({ className }: Props): React.ReactElement<Props> {
 
       {showDemocracyModal &&
         <Democracy
+          address={address}
           chainInfo={chainInfo}
-          chainName={selectedChain}
           setDemocracyModalOpen={setDemocracyModalOpen}
           showDemocracyModal={showDemocracyModal}
         />
@@ -167,8 +161,8 @@ function Governance({ className }: Props): React.ReactElement<Props> {
 
       {showCouncilModal &&
         <CouncilIndex
+          address={address}
           chainInfo={chainInfo}
-          chainName={selectedChain}
           setCouncilModalOpen={setCouncilModalOpen}
           showCouncilModal={showCouncilModal}
         />
@@ -177,7 +171,6 @@ function Governance({ className }: Props): React.ReactElement<Props> {
       {showTreasuryModal &&
         <Treasury
           chainInfo={chainInfo}
-          chainName={selectedChain}
           setTreasuryModalOpen={setTreasuryModalOpen}
           showTreasuryModal={showTreasuryModal}
         />

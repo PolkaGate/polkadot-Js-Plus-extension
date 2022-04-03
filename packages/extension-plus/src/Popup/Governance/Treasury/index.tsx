@@ -19,13 +19,12 @@ import ProposalOverview from './proposals/Overview';
 import TipOverview from './tips/Overview';
 
 interface Props {
-  chainName: string;
   showTreasuryModal: boolean;
   chainInfo: ChainInfo | undefined;
   setTreasuryModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
+export default function Treasury({ chainInfo, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('proposals');
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
@@ -45,19 +44,20 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
   }, [chainInfo]);
 
   useEffect(() => {
+    if (!chainInfo?.chainName) return;
     // get all treasury tips
     // eslint-disable-next-line no-void
-    void getTips(chainName, 0, 10).then((res) => {
+    void getTips(chainInfo.chainName, 0, 10).then((res) => {
       console.log('tips:', res);
 
       setTips(res?.data?.list);
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
-    void getCurrentBlockNumber(chainName).then((n) => {
+    void getCurrentBlockNumber(chainInfo.chainName).then((n) => {
       setCurrentBlockNumber(n);
     });
-  }, [chainName]);
+  }, [chainInfo]);
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -69,7 +69,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
 
   return (
     <Popup handleClose={handleTreasuryModalClose} showModal={showTreasuryModal}>
-      <PlusHeader action={handleTreasuryModalClose} chain={chainName} closeText={'Close'} icon={<AccountBalanceIcon fontSize='small' />} title={'Treasury'} />
+      <PlusHeader action={handleTreasuryModalClose} chain={chainInfo?.chainName} closeText={'Close'} icon={<AccountBalanceIcon fontSize='small' />} title={'Treasury'} />
       <Grid container>
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>

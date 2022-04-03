@@ -19,13 +19,13 @@ import Proposals from './proposals/overview';
 import Referendums from './referendums/overview';
 
 interface Props {
-  chainName: string;
+  address: string;
   showDemocracyModal: boolean;
   chainInfo: ChainInfo | undefined;
   setDemocracyModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen, showDemocracyModal }: Props): React.ReactElement<Props> {
+export default function Democracy({ address, chainInfo, setDemocracyModalOpen, showDemocracyModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('referendums');
   const [referendums, setReferenduns] = useState<Referendum[] | undefined | null>();
@@ -44,21 +44,22 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
   }, [chain, t, referendums]);
 
   useEffect(() => {
+    if (!chainInfo?.chainName) return;
     // eslint-disable-next-line no-void
-    void getReferendums(chainName).then((r) => {
+    void getReferendums(chainInfo.chainName).then((r) => {
       setReferenduns(r);
     });
 
     // eslint-disable-next-line no-void
-    void getProposals(chainName).then((r) => {
+    void getProposals(chainInfo.chainName).then((r) => {
       setProposalsInfo(r);
     });
 
     // eslint-disable-next-line no-void
-    void getCurrentBlockNumber(chainName).then((n) => {
+    void getCurrentBlockNumber(chainInfo.chainName).then((n) => {
       setCurrentBlockNumber(n);
     });
-  }, [chainName]);
+  }, [chainInfo]);
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -70,7 +71,7 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
 
   return (
     <Popup handleClose={handleDemocracyModalClose} showModal={showDemocracyModal}>
-      <PlusHeader action={handleDemocracyModalClose} chain={chainName} closeText={'Close'} icon={<HowToVoteIcon fontSize='small' />} title={'Democracy'} />
+      <PlusHeader action={handleDemocracyModalClose} chain={chainInfo?.chainName} closeText={'Close'} icon={<HowToVoteIcon fontSize='small' />} title={'Democracy'} />
       <Grid container>
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
@@ -82,11 +83,13 @@ export default function Democracy({ chainInfo, chainName, setDemocracyModalOpen,
         {tabValue === 'referendums'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && referendums !== undefined && chain && convictions
-              ? <Referendums chain={chain} chainInfo={chainInfo} convictions={convictions} currentBlockNumber={currentBlockNumber} referendums={referendums} />
+              ? <Referendums address={address} chain={chain} chainInfo={chainInfo} convictions={convictions} currentBlockNumber={currentBlockNumber} referendums={referendums} />
               : <Progress title={'Loading referendums ...'} />}
           </Grid>
-          : ''}
+          : ''
+        }
 
+        {/* TODO: Proposals needs to be rewrite after menue movement */}
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && proposalsInfo !== undefined && chain
