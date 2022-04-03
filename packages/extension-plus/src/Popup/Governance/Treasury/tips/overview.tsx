@@ -94,9 +94,6 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
     setTippers(tipInfos);
   }, [api.query.tips, chainName, tips]);
 
-
-  console.log('tippers:', tippers);
-
   if (!tips) {
     return (
       <Grid sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
@@ -110,7 +107,7 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
       <Grid container justifyContent='flex-end' xs={12}>
         <Grid item sx={{ p: '10px 30px' }}>
           <Button color='warning' onClick={handleSubmitTip} size='small' startIcon={<AddCircleRoundedIcon />} variant='outlined'>
-            {t('Submit')}
+            {t('Propose tip')}
           </Button>
         </Grid>
       </Grid>

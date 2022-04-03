@@ -194,7 +194,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
         <FormHelperText>{'The conviction to use for this vote with appropriate lock period'}</FormHelperText>
       </Grid>
 
-      <Grid container item sx={{ p: '35px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{ p: '40px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}

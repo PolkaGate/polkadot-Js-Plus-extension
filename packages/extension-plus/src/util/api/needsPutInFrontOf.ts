@@ -18,7 +18,7 @@ export default async function needsPutInFrontOf(baseApi: ApiPromise, api: ApiDec
   const targetBag: PalletBagsListListBag = (await api.query.bagsList.listBags(targetNode.bagUpper)).unwrap();
 
   let lighterUnwrapped: Option<AccountId> = targetBag.head;
-  let lighter: AccountId | undefined = undefined;
+  let lighter: AccountId | undefined;
 
   while (lighterUnwrapped.isSome) {
     lighter = lighterUnwrapped.unwrap() as AccountId;

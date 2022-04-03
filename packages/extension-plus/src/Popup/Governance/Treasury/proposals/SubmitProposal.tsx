@@ -6,14 +6,14 @@
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Balance } from '@polkadot/types/interfaces';
 
+import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, Participator, PlusHeader, Popup, ShowBalance } from '../../../../components';
+import { AllAddresses, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
@@ -36,42 +36,47 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
-  const [value, setValue] = useState<string>();
+  const [value, setValue] = useState<bigint | undefined>();
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
-  const [estimatedFee, setEstimatedFee] = useState<bigint>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
-  const { api, coin, decimals } = chainInfo;
-  const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
+
+  const { api, decimals } = chainInfo;
   const tx = api.tx.treasury.proposeSpend;
+
   const bondPercentage = useMemo((): number => (api.consts.treasury.proposalBond.mul(BN_HUNDRED).div(BN_MILLION)).toNumber(), [chainInfo]);
-  const minimumBond = BigInt(String(api.consts.treasury.proposalBondMinimum));
-  const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
+  const proposalBondMinimum = api.createType('Balance', api.consts.treasury.proposalBondMinimum);
 
   useEffect(() => {
-    if (!chainInfo || !tx || !encodedAddressInfo) return;
-    const valueInMachine = amountToMachine(value, chainInfo.decimals);
-    const params = [valueInMachine, beneficiaryAddress];
+    if (!chainInfo || !tx || !encodedAddressInfo?.address) return;
+    const params = [value, beneficiaryAddress];
 
     setParams(params);
 
     // eslint-disable-next-line no-void
-    beneficiaryAddress && void tx(...params).paymentInfo(encodedAddressInfo.address)
-      .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
+    beneficiaryAddress && void tx(...params).paymentInfo(encodedAddressInfo?.address)
+      .then((i) => setEstimatedFee(i?.partialFee))
       .catch(console.error);
   }, [beneficiaryAddress, chainInfo, encodedAddressInfo, tx, value]);
 
   useEffect(() => {
-    if (!estimatedFee) { setIsDisabled(true); }
+    if (!estimatedFee || !value || !availableBalance || !bondPercentage) { setIsDisabled(true); }
     else {
-      const valueInMachine = amountToMachine(value, decimals);
-      const valuePercentage = BigInt(bondPercentage) * valueInMachine / 100n;
-      const minBond = BigInt(valuePercentage > minimumBond ? valuePercentage : minimumBond);
+      /** account must have available balance to bond */
+      const valuePercentage = BigInt(bondPercentage) * value / 100n;
+      const minBond = valuePercentage > proposalBondMinimum.toBigInt() ? valuePercentage : proposalBondMinimum.toBigInt();
 
-      setIsDisabled(minBond + estimatedFee >= BigInt(availableBalance));
+      setIsDisabled(minBond + estimatedFee.toBigInt() >= availableBalance.toBigInt());
     }
-  }, [availableBalance, bondPercentage, decimals, estimatedFee, minimumBond, value]);
+  }, [availableBalance, bondPercentage, decimals, estimatedFee, proposalBondMinimum, value]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
+    if (!encodedAddressInfo?.address) {
+      console.log(' address is not encoded');
+
+      return;
+    }
+
     setState('confirming');
 
     try {
@@ -97,17 +102,19 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   }, [handleSubmitProposalModalClose]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setValue(event.target.value);
+    setValue(amountToMachine(event.target.value, decimals));
   }, []);
 
   const HelperText = () => (
     <Grid container item justifyContent='space-between' xs={12}>
       <Grid item>
-        {t('The amount will be allocated to the beneficiary if approved')}
+        {t('will be allocated to the beneficiary if approved')}
       </Grid>
-      <Grid item>
+      {!!beneficiaryAddress &&
+        <Grid item>
         <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
-      </Grid>
+        </Grid>
+      }
     </Grid>
   );
 
@@ -126,17 +133,18 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
+      <Grid item sx={{ pt: 3 }} xs={12}>
+        <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
+      </Grid>
 
-      <Grid item sx={{ p: '20px 40px 20px' }} xs={12}>
+      <Grid item sx={{ p: '15px 40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
           InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
           autoFocus
           color='warning'
           fullWidth
-          helperText={<HelperText />
-          }
+          helperText={<HelperText />}
           label={t('Value')}
           margin='dense'
           name='value'
@@ -144,12 +152,11 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
           placeholder='0'
           size='medium'
           type='number'
-          value={value}
           variant='outlined'
         />
       </Grid>
 
-      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, p: '10px 40px 10px' }} xs={12}>
+      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, p: '55px 40px 0px' }} xs={12}>
         <Grid item>
           <Hint icon={true} id='pBond' place='right' tip='% of value would need to be put up as collateral'>
             {t('Proposal bond')}{': '} {bondPercentage.toFixed(2)} %
@@ -157,12 +164,12 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
         </Grid>
         <Grid item>
           <Hint icon={true} id='mBond' place='left' tip='the minimum to put up as collateral'>
-            {t('Minimum bond')}{': '} {toHuman(minimumBond)}
+            {t('Minimum bond')}{': '} {proposalBondMinimum.toHuman()}
           </Hint>
         </Grid>
       </Grid>
 
-      <Grid container item sx={{ p: '25px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{ p: '10px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}

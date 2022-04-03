@@ -67,7 +67,7 @@ export default function Participator({ address, availableBalance, chain, chainIn
 
   return (
     <Grid container item sx={{ p: '20px 40px 0px' }} xs={12}>
-      <Grid item sx={{ color: grey[800], fontSize: '14px', fontWeight: '600', marginTop: '20px', textAlign: 'left' }} xs={2}>
+      <Grid item sx={{ color: grey[800], fontSize: '13px', fontWeight: '600', marginTop: '20px', textAlign: 'left' }} xs={2}>
         {role}:
       </Grid>
       <Grid item xs={10}>
@@ -85,16 +85,16 @@ export default function Participator({ address, availableBalance, chain, chainIn
                   />
                 </Grid>
                 <Grid container item justifyContent='flex-start' sx={{ fontSize: 14, pl: 1 }} xs={11}>
-                  <Grid item sx={{ fontSize: 14, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={8}>
+                  <Grid item sx={{ fontSize: 13, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
                     {encodedAddressInfo?.name || <ShortAddress address={encodedAddressInfo?.address} />}
                   </Grid>
-                  {encodedAddressInfo?.name && <Grid item sx={{ color: grey[500], fontSize: 13, textAlign: 'left' }} xs={8}>
+                  {encodedAddressInfo?.name && <Grid item sx={{ color: grey[500], fontSize: 13, textAlign: 'left' }} xs={7}>
                     <ShortAddress address={encodedAddressInfo?.address} />
                   </Grid>
                   }
 
                   {setAvailableBalance &&
-                    <Grid data-testid='balance' item xs={4} sx={{ fontSize: 11, textAlign: 'right' }}>
+                    <Grid data-testid='balance' item xs={5} sx={{ fontSize: 11, textAlign: 'right' }}>
                       {t('Available')}{': '}
                       {availableBalance
                         ? `${availableBalance?.toHuman()}`

@@ -55,7 +55,7 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
   }, [chain, settings]);
 
   useEffect(() => {
-    if (allAddresesOnThisChain.length) { setSelectedAddress(allAddresesOnThisChain[0].address); }
+    if (allAddresesOnThisChain.length && !freeSolo) { setSelectedAddress(allAddresesOnThisChain[0].address); }
   }, [allAddresesOnThisChain]);
 
   useEffect(() => {
@@ -85,13 +85,14 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
 
   return (
     <Grid alignItems='center' container sx={{ padding: '20px 40px 0px' }}>
-      <Grid item sx={{ paddingBottom: 2 }} xs={1}>
-        <Identicon
-          prefix={chain?.ss58Format ?? 42}
-          size={40}
-          theme={chain?.icon || 'polkadot'}
-          value={selectedAddress}
-        />
+      <Grid item sx={{ paddingBottom: !freeSolo ? 2 : 0 }} xs={1}>
+        {!!selectedAddress &&
+          <Identicon
+            prefix={chain?.ss58Format ?? 42}
+            size={40}
+            theme={chain?.icon || 'polkadot'}
+            value={selectedAddress}
+          />}
       </Grid>
 
       <Grid item xs={11}>
@@ -113,7 +114,7 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
               label='Select address'
               native
               onChange={handleAddressChange}
-              sx={{ fontSize: 12, height: 50, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}
+              sx={{ fontSize: 12, height: 50, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               value={selectedAddress}
             >
               {allAddresesOnThisChain?.map((a) => (

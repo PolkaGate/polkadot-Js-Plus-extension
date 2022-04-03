@@ -9,17 +9,17 @@
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Balance } from '@polkadot/types/interfaces';
 
+import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
+import { AllAddresses, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
-import { ChainInfo } from '../../../../util/plusTypes';
+import { ChainInfo, nameAddress } from '../../../../util/plusTypes';
 import { amountToHuman } from '../../../../util/plusUtils';
 
 interface Props {
@@ -32,56 +32,64 @@ interface Props {
 
 export default function SubmitTip({ address, chain, chainInfo, handleSubmitTipModalClose, showSubmitTipModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [proposerAddress, setProposerAddress] = useState<string>('');
+  const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
+  const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
   const [reason, setReason] = useState<string>('');
-  const [availableBalance, setAvailableBalance] = useState<string>('');
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
-  const [estimatedFee, setEstimatedFee] = useState<bigint>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
 
   const { api, coin, decimals } = chainInfo;
   const tx = api.tx.tips.reportAwesome;
 
-  const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
-  
-  const reportDeposit = useMemo(() => BigInt(String(api.consts.tips.tipReportDepositBase)) + BigInt(String(api.consts.tips.dataDepositPerByte)) * BigInt(reason.length), [reason]);
+  const reportDeposit = useMemo((): Balance =>
+    api.createType('Balance',
+      (api.consts.tips.tipReportDepositBase).add((api.consts.tips.dataDepositPerByte).muln(reason.length))
+    ), [api, reason.length]);
+
   const maximumReasonLength = api.consts.tips.maximumReasonLength.toString();
-  const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
 
   useEffect(() => {
-    if (!tx || !proposerAddress || !beneficiaryAddress) return;
+    if (!tx || !encodedAddressInfo?.address || !beneficiaryAddress) return;
     const params = [reason, beneficiaryAddress];
 
     setParams(params);
 
     // eslint-disable-next-line no-void
-    void tx(...params).paymentInfo(proposerAddress)
-      .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
+    void tx(...params).paymentInfo(encodedAddressInfo?.address)
+      .then((i) => setEstimatedFee(i?.partialFee))
       .catch(console.error);
-  }, [beneficiaryAddress, decimals, proposerAddress, tx, reason]);
+  }, [beneficiaryAddress, decimals, encodedAddressInfo?.address, tx, reason]);
+
 
   useEffect(() => {
-    if (!estimatedFee) {
+    if (!estimatedFee || !availableBalance) {
       setIsDisabled(true);
     } else {
-      setIsDisabled(!(reason && beneficiaryAddress && estimatedFee + reportDeposit < BigInt(availableBalance)));
+      setIsDisabled(!(reason && beneficiaryAddress && estimatedFee.add(reportDeposit).lt(availableBalance)));
     }
   }, [availableBalance, beneficiaryAddress, estimatedFee, reason, reportDeposit]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
     setState('confirming');
 
+    if (!encodedAddressInfo) {
+      console.log('no encded address');
+
+      return;
+    }
+
     try {
-      const pair = keyring.getPair(proposerAddress);
+      const pair = keyring.getPair(encodedAddressInfo?.address);
 
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, proposerAddress);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
 
       // TODO can save to history here
       setState(status);
@@ -90,7 +98,7 @@ export default function SubmitTip({ address, chain, chainInfo, handleSubmitTipMo
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [api, params, password, proposerAddress, tx]);
+  }, [api, params, password, encodedAddressInfo, tx]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -106,18 +114,32 @@ export default function SubmitTip({ address, chain, chainInfo, handleSubmitTipMo
       <Grid item>
         {t('why the recipient deserves a tip payout?')}
       </Grid>
-      <Grid item>
-        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
-      </Grid>
+      {!!beneficiaryAddress &&
+        <Grid item>
+          <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
+        </Grid>
+      }
     </Grid>);
 
   return (
     <Popup handleClose={handleSubmitTipModalClose} showModal={showSubmitTipModal}>
-      <PlusHeader action={handleSubmitTipModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit tip request')} />
+      <PlusHeader action={handleSubmitTipModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Propose tip')} />
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={proposerAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setProposerAddress} title={t('Proposer')} />
+      <Participator
+        address={address}
+        availableBalance={availableBalance}
+        chain={chain}
+        chainInfo={chainInfo}
+        encodedAddressInfo={encodedAddressInfo}
+        role={t('Proposer')}
+        setAvailableBalance={setAvailableBalance}
+        setEncodedAddressInfo={setEncodedAddressInfo}
+      />
 
-      <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
+      <Grid item sx={{ pt: 3 }} xs={12}>
+        <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
+      </Grid>
+
 
       <Grid item sx={{ p: '10px 40px' }} xs={12}>
         <TextField
@@ -142,7 +164,7 @@ export default function SubmitTip({ address, chain, chainInfo, handleSubmitTipMo
 
       <Grid item sx={{ fontSize: 13, p: '15px 50px', textAlign: 'right' }} xs={12}>
         <Hint icon={true} id='reportDeposit' place='left' tip={t('held on deposit for placing the tip report')}>
-          {t('Report deposit')}{': '} {toHuman(reportDeposit)}
+          {t('Report deposit')}{': '} {reportDeposit.toHuman()}
         </Hint>
       </Grid>
 

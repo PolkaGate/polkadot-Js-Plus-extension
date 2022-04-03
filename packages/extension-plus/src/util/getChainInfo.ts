@@ -12,7 +12,6 @@ import { createWsEndpoints } from '@polkadot/apps-config';
 import { ChainInfo } from './plusTypes';
 
 const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
-console.log('allEndpoints:', allEndpoints);
 
 async function gChainInfo(searchKeyWord: Chain | string): Promise<ChainInfo> {
   const chainName = (searchKeyWord as Chain)?.name?.replace(' Relay Chain', '') ?? searchKeyWord as string;

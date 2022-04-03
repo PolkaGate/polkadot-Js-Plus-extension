@@ -20,7 +20,7 @@ import keyring from '@polkadot/ui-keyring';
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Password, PlusHeader, Popup, ShowAddress } from '../../components';
+import { ConfirmButton, Password, PlusHeader, Popup, Participator } from '../../components';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { Auction, ChainInfo, Crowdloan, nameAddress, TransactionDetail } from '../../util/plusTypes';
@@ -150,65 +150,52 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
 
       </Grid>
 
-      <Grid container item xs={12} sx={{ p: '20px 30px' }}>
-        <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={2}>
-          {t('Contributor:')}
-        </Grid>
-        <Grid item xs={10} sx={{ px: '30px' }}>
-          <Box sx={{ border: '1px groove silver', borderRadius: '10px', p: 1 }}>
-            <ShowAddress
-              address={address}
-              availableBalance={availableBalance}
-              chain={chain}
-              chainInfo={chainInfo}
-              encodedAddressInfo={encodedAddressInfo}
-              setAvailableBalance={setAvailableBalance}
-              setEncodedAddressInfo={setEncodedAddressInfo}
-            />
-          </Box>
-        </Grid>
-      </Grid>
+      <Participator
+        address={address}
+        availableBalance={availableBalance}
+        chain={chain}
+        chainInfo={chainInfo}
+        encodedAddressInfo={encodedAddressInfo}
+        role={t('Contributor')}
+        setAvailableBalance={setAvailableBalance}
+        setEncodedAddressInfo={setEncodedAddressInfo}
+      />
 
-      <Grid container item xs={12} sx={{ p: '10px 30px' }}>
-        <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={2}>
-          {t('Amount:')}
-        </Grid>
-        <Grid item xs={10} sx={{ px: '30px' }} >
-          <TextField
-            InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
-            autoFocus
-            color='warning'
-            // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
-            fullWidth
-            helperText={
-              <Grid container item justifyContent='space-between' xs={12}>
-                <Grid item>
-                  {t('Minimum contribution: ') + auctionMinContributionInHuman + ' ' + chainInfo.coin}
-                </Grid>
-                <Grid item>
-                  {t('Fee')} {': '}
-                  {estimatedFee
-                    ? `${estimatedFee.toHuman()}`
-                    : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-                  }
-                </Grid>
+      <Grid container item xs={12} sx={{ p: '25px 40px 30px' }}>
+        <TextField
+          InputLabelProps={{ shrink: true }}
+          InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
+          autoFocus
+          color='warning'
+          // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
+          fullWidth
+          helperText={
+            <Grid container item justifyContent='space-between' xs={12}>
+              <Grid item>
+                {t('Minimum contribution: ') + auctionMinContributionInHuman + ' ' + chainInfo.coin}
               </Grid>
-            }
-            label={t('Contribution amount')}
-            margin='dense'
-            name='contributionAmount'
-            onChange={(event) => handleChange(event.target.value)}
-            placeholder={auctionMinContributionInHuman}
-            size='medium'
-            type='number'
-            value={contributionAmountInHuman}
-            variant='outlined'
-          />
-        </Grid>
+              <Grid item>
+                {t('Fee')} {': '}
+                {estimatedFee
+                  ? `${estimatedFee.toHuman()}`
+                  : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+                }
+              </Grid>
+            </Grid>
+          }
+          label={t('Contribution amount')}
+          margin='dense'
+          name='contributionAmount'
+          onChange={(event) => handleChange(event.target.value)}
+          placeholder={auctionMinContributionInHuman}
+          size='medium'
+          type='number'
+          value={contributionAmountInHuman}
+          variant='outlined'
+        />
       </Grid>
 
-      <Grid container item sx={{ p: '20px 20px' }} xs={12}>
+      <Grid container item sx={{ p: '20px' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}
