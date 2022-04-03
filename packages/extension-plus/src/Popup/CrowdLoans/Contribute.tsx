@@ -20,10 +20,10 @@ import keyring from '@polkadot/ui-keyring';
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowAddress } from '../../components';
+import { ConfirmButton, Password, PlusHeader, Popup, ShowAddress } from '../../components';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
-import { Auction, ChainInfo, Crowdloan, TransactionDetail } from '../../util/plusTypes';
+import { Auction, ChainInfo, Crowdloan, nameAddress, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, fixFloatingPoint, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 import Fund from './Fund';
 
@@ -37,11 +37,6 @@ interface Props {
   address: string;
 }
 
-interface nameAddress {
-  name?: string;
-  address: string;
-}
-
 export default function Contribute({ address, auction, chainInfo, contributeModal, crowdloan, endpoints, setContributeModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
@@ -49,23 +44,23 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
   const chain = useMetadata(chainInfo.genesisHash, true);
   const auctionMinContributionInHuman = amountToHuman(auction.minContribution, chainInfo.decimals);
 
-  const [password, setPassword] = useState<string>('');
-  const [contributionAmountInHuman, setContributionAmountInHuman] = useState<string>('');
-  const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
-  const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
-  const [confirmingState, setConfirmingState] = useState<string>('');
-  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
+  const [confirmingState, setConfirmingState] = useState<string>('');
+  const [contributionAmountInHuman, setContributionAmountInHuman] = useState<string>('');
+  const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
+  const [password, setPassword] = useState<string>('');
+  const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
 
   const { hierarchy } = useContext(AccountContext);
 
-  const FEE_DECIMAL_DIGITS = chainInfo?.coin === 'DOT' ? 4 : 6;
   const api = chainInfo.api;
   const tx = api.tx.crowdloan.contribute;
 
   useEffect(() => {
     if (!encodedAddressInfo) {
       console.log('no encodedAddressInfo');
+
       return;
     }
 
@@ -164,11 +159,11 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
             <ShowAddress
               address={address}
               availableBalance={availableBalance}
-              chain={chain} chainInfo={chainInfo}
+              chain={chain}
+              chainInfo={chainInfo}
               encodedAddressInfo={encodedAddressInfo}
               setAvailableBalance={setAvailableBalance}
               setEncodedAddressInfo={setEncodedAddressInfo}
-              title={t('Contributer')}
             />
           </Box>
         </Grid>
