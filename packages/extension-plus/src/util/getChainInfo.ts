@@ -35,7 +35,7 @@ async function gChainInfo(searchKeyWord: Chain | string): Promise<ChainInfo> {
     coin: api.registry.chainTokens[0],
     decimals: api.registry.chainDecimals[0],
     genesisHash: endpoint?.genesisHash as string,
-    url: endpoint?.value as string
+    url: (endpoint?.value as string).toLowerCase()
   };
 }
 
