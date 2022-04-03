@@ -9,6 +9,7 @@
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Balance } from '@polkadot/types/interfaces';
 
 import keyring from '@polkadot/ui-keyring';
 
@@ -22,13 +23,14 @@ import { ChainInfo } from '../../../../util/plusTypes';
 import { amountToHuman } from '../../../../util/plusUtils';
 
 interface Props {
+  address: string;
   chain: Chain;
   chainInfo: ChainInfo;
   showSubmitTipModal: boolean;
   handleSubmitTipModalClose: () => void;
 }
 
-export default function SubmitTip({ chain, chainInfo, handleSubmitTipModalClose, showSubmitTipModal }: Props): React.ReactElement<Props> {
+export default function SubmitTip({ address, chain, chainInfo, handleSubmitTipModalClose, showSubmitTipModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [proposerAddress, setProposerAddress] = useState<string>('');
   const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');

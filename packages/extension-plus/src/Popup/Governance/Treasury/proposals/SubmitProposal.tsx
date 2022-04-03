@@ -6,35 +6,37 @@
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Balance } from '@polkadot/types/interfaces';
 
 import keyring from '@polkadot/ui-keyring';
 import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
+import { AllAddresses, ConfirmButton, Password, Participator, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
-import { ChainInfo } from '../../../../util/plusTypes';
+import { ChainInfo, nameAddress } from '../../../../util/plusTypes';
 import { amountToHuman, amountToMachine } from '../../../../util/plusUtils';
 
 interface Props {
+  address: string;
   chain: Chain;
   chainInfo: ChainInfo;
   showSubmitProposalModal: boolean;
   handleSubmitProposalModalClose: () => void;
 }
 
-export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalModalClose, showSubmitProposalModal }: Props): React.ReactElement<Props> {
+export default function SubmitProposal({ address, chain, chainInfo, handleSubmitProposalModalClose, showSubmitProposalModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [proposerAddress, setProposerAddress] = useState<string>('');
+  const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
+  const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
   const [value, setValue] = useState<string>();
-  const [availableBalance, setAvailableBalance] = useState<string>('');
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<bigint>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
@@ -46,17 +48,17 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
   const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
 
   useEffect(() => {
-    if (!chainInfo || !tx || !proposerAddress) return;
+    if (!chainInfo || !tx || !encodedAddressInfo) return;
     const valueInMachine = amountToMachine(value, chainInfo.decimals);
     const params = [valueInMachine, beneficiaryAddress];
 
     setParams(params);
 
     // eslint-disable-next-line no-void
-    beneficiaryAddress && void tx(...params).paymentInfo(proposerAddress)
+    beneficiaryAddress && void tx(...params).paymentInfo(encodedAddressInfo.address)
       .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
       .catch(console.error);
-  }, [beneficiaryAddress, chainInfo, proposerAddress, tx, value]);
+  }, [beneficiaryAddress, chainInfo, encodedAddressInfo, tx, value]);
 
   useEffect(() => {
     if (!estimatedFee) { setIsDisabled(true); }
@@ -73,12 +75,12 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
     setState('confirming');
 
     try {
-      const pair = keyring.getPair(proposerAddress);
+      const pair = keyring.getPair(encodedAddressInfo?.address);
 
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, proposerAddress);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
 
       // TODO can save to history here
       setState(status);
@@ -87,7 +89,7 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [api, params, password, proposerAddress, tx]);
+  }, [api, params, password, encodedAddressInfo, tx]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -113,7 +115,16 @@ export default function SubmitProposal({ chain, chainInfo, handleSubmitProposalM
     <Popup handleClose={handleSubmitProposalModalClose} showModal={showSubmitProposalModal}>
       <PlusHeader action={handleSubmitProposalModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit proposal')} />
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={proposerAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setProposerAddress} title={t('Proposer')} />
+      <Participator
+        address={address}
+        availableBalance={availableBalance}
+        chain={chain}
+        chainInfo={chainInfo}
+        encodedAddressInfo={encodedAddressInfo}
+        role={t('Proposer')}
+        setAvailableBalance={setAvailableBalance}
+        setEncodedAddressInfo={setEncodedAddressInfo}
+      />
 
       <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
 

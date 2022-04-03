@@ -52,13 +52,13 @@ interface Tip {
 }
 
 interface Props {
+  address: string;
   tips: Tip[];
   chain: Chain;
   chainInfo: ChainInfo;
-  currentBlockNumber: number;
 }
 
-export default function Overview({ chain, chainInfo, currentBlockNumber, tips }: Props): React.ReactElement<Props> {
+export default function Overview({ address, chain, chainInfo, tips }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
   const [showSubmitTipModal, setShowSubmitTipModal] = useState<boolean>(false);
@@ -192,6 +192,7 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, tips }:
 
       {showSubmitTipModal &&
         <SubmitTip
+          address={address}
           chain={chain}
           chainInfo={chainInfo}
           handleSubmitTipModalClose={handleSubmitTipModalClose}

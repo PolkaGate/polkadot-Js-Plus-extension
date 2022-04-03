@@ -170,6 +170,7 @@ function Governance({ className }: Props): React.ReactElement<Props> {
 
       {showTreasuryModal &&
         <Treasury
+          address={address}
           chainInfo={chainInfo}
           setTreasuryModalOpen={setTreasuryModalOpen}
           showTreasuryModal={showTreasuryModal}

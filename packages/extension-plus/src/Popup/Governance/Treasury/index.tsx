@@ -19,17 +19,17 @@ import ProposalOverview from './proposals/Overview';
 import TipOverview from './tips/Overview';
 
 interface Props {
+  address: string;
   showTreasuryModal: boolean;
   chainInfo: ChainInfo | undefined;
   setTreasuryModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Treasury({ chainInfo, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
+export default function Treasury({ address, chainInfo, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('proposals');
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
   const [tips, setTips] = useState<any[]>();
-  const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
   useEffect(() => {
@@ -54,9 +54,9 @@ export default function Treasury({ chainInfo, setTreasuryModalOpen, showTreasury
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
-    void getCurrentBlockNumber(chainInfo.chainName).then((n) => {
-      setCurrentBlockNumber(n);
-    });
+    // void getCurrentBlockNumber(chainInfo.chainName).then((n) => {
+    //   setCurrentBlockNumber(n);
+    // });
   }, [chainInfo]);
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
@@ -81,7 +81,7 @@ export default function Treasury({ chainInfo, setTreasuryModalOpen, showTreasury
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && proposals !== undefined
-              ? <ProposalOverview chain={chain} chainInfo={chainInfo} currentBlockNumber={currentBlockNumber} proposalsInfo={proposals} />
+              ? <ProposalOverview address={address} chain={chain} chainInfo={chainInfo} proposalsInfo={proposals} />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>
           : ''}
@@ -89,7 +89,7 @@ export default function Treasury({ chainInfo, setTreasuryModalOpen, showTreasury
         {tabValue === 'tips'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && tips !== undefined
-              ? <TipOverview chain={chain} chainInfo={chainInfo} tips={tips} />
+              ? <TipOverview address={address} chain={chain} chainInfo={chainInfo} tips={tips} />
               : <Progress title={'Loading tips ...'} />}
           </Grid>
           : ''}

@@ -15,13 +15,13 @@ import Proposals from './Proposals';
 import SubmitProposal from './SubmitProposal';
 
 interface Props {
+  address: string;
   proposalsInfo: DeriveTreasuryProposals | null;
   chain: Chain;
   chainInfo: ChainInfo;
-  currentBlockNumber: number;
 }
 
-export default function Overview({ chain, chainInfo, currentBlockNumber, proposalsInfo }: Props): React.ReactElement<Props> {
+export default function Overview({ address, chain, chainInfo, proposalsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showSubmitProposalModal, setShowSubmitProposalModal] = useState<boolean>(false);
 
@@ -50,6 +50,7 @@ export default function Overview({ chain, chainInfo, currentBlockNumber, proposa
 
       {showSubmitProposalModal &&
         <SubmitProposal
+          address={address}
           chain={chain}
           chainInfo={chainInfo}
           handleSubmitProposalModalClose={handleSubmitProposalModalClose}
