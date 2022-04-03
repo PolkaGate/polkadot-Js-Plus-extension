@@ -31,7 +31,6 @@ interface Props {
   availableBalance?: Balance | undefined;
   setAvailableBalance?: React.Dispatch<React.SetStateAction<Balance | undefined>>;
   chainInfo?: ChainInfo;
-  text?: string | Element;
   title?: string;
 }
 
@@ -68,7 +67,7 @@ export default function ShowAddresses({ address, availableBalance, chain, chainI
   }, [chainInfo, encodedAddressInfo, setAvailableBalance]);
 
   return (
-    <Grid alignItems='center' container sx={{ padding: '20px 40px 0px' }} xs={12}>
+    <Grid alignItems='center' container xs={12}>
 
       {encodedAddressInfo &&
         <Grid container item xs={12}>
@@ -80,7 +79,7 @@ export default function ShowAddresses({ address, availableBalance, chain, chainI
               value={encodedAddressInfo?.address}
             />
           </Grid>
-          <Grid container item justifyContent='flex-start' sx={{ fontSize: 14 }} xs={11}>
+          <Grid container item justifyContent='flex-start' sx={{ fontSize: 14, pl: 1 }} xs={11}>
             <Grid item sx={{ fontSize: 14, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={8}>
               {encodedAddressInfo?.name || <ShortAddress address={encodedAddressInfo?.address} />}
             </Grid>
