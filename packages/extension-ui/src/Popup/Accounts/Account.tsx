@@ -9,6 +9,8 @@ import styled from 'styled-components';
 import { canDerive } from '@polkadot/extension-base/utils';
 import { ThemeProps } from '@polkadot/extension-ui/types';
 
+// added for plus
+import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS } from '../../../../extension-plus/src/util/constants';
 import { Address, Dropdown, Link, MenuDivider } from '../../components';
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useTranslation from '../../hooks/useTranslation';
@@ -57,6 +59,32 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
 
   const _actions = useMemo(() => (
     <>
+      {/* added for plus */}
+      {/* {(GOVERNANCE_CHAINS.includes(genesisHash) || CROWDLOANS_CHAINS.includes(genesisHash)) &&
+        <MenuDivider />} */}
+      {CROWDLOANS_CHAINS.includes(genesisHash) &&
+        <Link
+          className='menuItem'
+          to={`/crowdloans/${genesisHash}/${address}`}
+        >
+          {t<string>('Crowdloans')}
+        </Link>
+      }
+      {GOVERNANCE_CHAINS.includes(genesisHash) &&
+        <Link
+          className='menuItem'
+          to={`/governance/${genesisHash}/${address}`}
+        >
+          {t<string>('Governance')}
+        </Link>
+      }
+      {/* <Link  
+        className='menuItem'
+        to={`/endecrypt/${address}`}
+      >
+        {t<string>('En/Decrypt')}
+      </Link> */}
+
       <Link
         className='menuItem'
         onClick={_toggleEdit}
@@ -71,21 +99,6 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
           {t<string>('Derive New Account')}
         </Link>
       )}
-      {/* added for plus */}
-      <MenuDivider />
-
-      {/* <Link  
-        className='menuItem'
-        to={`/endecrypt/${address}`}
-      >
-        {t<string>('En/Decrypt')}
-      </Link> */}
-      <Link
-        className='menuItem'
-        to={`/crowdloans/${genesisHash}/${address}`}
-      >
-        {t<string>('Crowdloans')}
-      </Link>
 
       <MenuDivider />
       {!isExternal && (
