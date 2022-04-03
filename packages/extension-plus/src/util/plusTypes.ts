@@ -258,3 +258,13 @@ export interface PutInFrontInfo {
   shouldPutInFront?: boolean;
   lighter?: string;
 }
+
+export interface AddressState {
+  genesisHash: string;
+  address: string;
+}
+
+export interface nameAddress {
+  name?: string;
+  address: string;
+}
