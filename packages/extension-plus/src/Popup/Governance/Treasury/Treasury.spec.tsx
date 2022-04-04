@@ -3,32 +3,30 @@
 
 import '@polkadot/extension-mocks/chrome';
 
+import type { Codec } from '@polkadot/types/types';
+
 import { render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { DeriveTreasuryProposals, DeriveTreasuryProposal } from '@polkadot/api-derive/types';
-import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
-import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
-import Extension from '../../../../../extension-base/src/background/handlers/Extension';
-
-import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
-import getChainInfo from '../../../util/getChainInfo';
-import { ChainInfo } from '../../../util/plusTypes';
-import { amountToHuman, formatMeta, handleAccountBalance, remainingTime } from '../../../util/plusUtils';
-import { accounts, chain, convictions, firstSuri, createExtension, createAcc } from '../../../util/test/testHelper';
-import TipsOverview from './tips/overview';
-import ProposalsOverview from './proposals/overview';
-import Vote from './referendums/Vote';
+import { DeriveTreasuryProposal,DeriveTreasuryProposals } from '@polkadot/api-derive/types';
 import { Balance } from '@polkadot/types/interfaces';
-import type { Codec } from '@polkadot/types/types';
-import getProposals from 'extension-plus/src/util/api/getProposals';
+
+import Extension from '../../../../../extension-base/src/background/handlers/Extension';
+import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
+import getTips from '../../../util/api/getTips';
+import getChainInfo from '../../../util/getChainInfo';
+import { ChainInfo, Tip } from '../../../util/plusTypes';
+import { accounts, chain, createAcc,createExtension, firstSuri } from '../../../util/test/testHelper';
+import ProposalsOverview from './proposals/overview';
+import TipsOverview from './tips/Overview';
 
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
 let chainInfo: ChainInfo;
 let proposal: DeriveTreasuryProposal;
+let tips: Tip[];
 let availableBalance: Balance;
 let proposalsInfo: DeriveTreasuryProposals | null;
 let currentBlockNumber: number;
@@ -55,9 +53,14 @@ describe('Testing Treasury component', () => {
     proposalsInfo = await chainInfo.api.derive.treasury.proposals();
 
     const { proposals } = proposalsInfo;
-
-    console.log(proposalsInfo)
     if (proposals) proposal = proposals[0];
+
+    // eslint-disable-next-line no-void
+    // void getTips(chain.name, 0, 10).then((res) => {
+    //   console.log('tips:', res);
+
+    //   tips = res?.data?.list as Tip[];
+    // }).catch(console.error);
   });
 
   test('Checking the Proposals\'s tab elements, with no proposal', () => {
@@ -99,7 +102,7 @@ describe('Testing Treasury component', () => {
   });
 
   // Tips tab
-  // test('Checking the Tips\' tab elements, with no tips', () => {
+  // test.only('Checking the Tips\' tab elements, with no tips', () => {
   //   const { queryByText } = render(
   //     <TipsOverview
   //       address={''}
