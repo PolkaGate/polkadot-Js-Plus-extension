@@ -24,8 +24,6 @@ describe('Testing Governance Home page', () => {
     );
 
     expect(queryByText('Governance')).toBeTruthy();
-    expect(queryByText('Relay chain')).toBeTruthy();
-    expect(queryAllByRole('option')).toHaveLength(3);
 
     expect(queryByText('Democracy')).toBeTruthy();
     expect(queryByText('Proposals and referendums voting')).toBeTruthy();
@@ -40,7 +38,7 @@ describe('Testing Governance Home page', () => {
     expect(queryByText('Discussion platform for polkadot Governance')).toBeTruthy();
 
     //   Democracy
-    const democarcy = queryByTestId('governance')?.children.item(1) as Element;
+    const democarcy = queryByTestId('governance')?.children.item(0) as Element;
 
     fireEvent.click(democarcy);
     expect(queryByText('Referendums')).toBeTruthy();
@@ -53,7 +51,7 @@ describe('Testing Governance Home page', () => {
     fireEvent.click(queryByText('Close') as HTMLElement);
 
     //  Council
-    const council = queryByTestId('governance')?.children.item(2) as Element;
+    const council = queryByTestId('governance')?.children.item(1) as Element;
 
     fireEvent.click(council);
 

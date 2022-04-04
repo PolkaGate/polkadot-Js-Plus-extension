@@ -213,19 +213,22 @@ describe('Testing Council component', () => {
   });
 
   test('Checking the motions\'s tab elements', () => {
-    motions.length = 1;
     const { queryAllByRole, queryByText } = render(
       <Motions
         chainInfo={chainInfo}
         currentBlockNumber={currentBlockNumber}
-        motions={motions}
+        motions={motions?.length ? [motions[0]] : []}
       />
     );
 
-    expect(queryByText('Index')).toBeTruthy();
-    expect(queryByText(`Voting end${remainingTime(currentBlockNumber, motions[0].votes.end)}#${motions[0].votes.end}`)).toBeTruthy();
-    expect(queryByText(`VotsAye ${motions[0].votes.ayes.length}/${motions[0].votes.threshold}`)).toBeTruthy();
-    expect(queryByText(`Threshold${motions[0].votes.threshold}`)).toBeTruthy();
-    expect(queryAllByRole('link')).toHaveLength(2);
+    if (motions?.length) {
+      expect(queryByText('Index')).toBeTruthy();
+      expect(queryByText(`Voting end${remainingTime(currentBlockNumber, motions[0].votes.end)}#${motions[0].votes.end}`)).toBeTruthy();
+      expect(queryByText(`VotsAye ${motions[0].votes.ayes.length}/${motions[0].votes.threshold}`)).toBeTruthy();
+      expect(queryByText(`Threshold${motions[0].votes.threshold}`)).toBeTruthy();
+      expect(queryAllByRole('link')).toHaveLength(2);
+    } else {
+      expect(queryByText('No active motion')).toBeTruthy();
+    }
   });
 });
