@@ -8,7 +8,7 @@
  *
 */
 import { ThumbDownAlt as ThumbDownAltIcon, ThumbUpAlt as ThumbUpAltIcon } from '@mui/icons-material';
-import {  FormControl, FormHelperText, Grid, InputAdornment, InputLabel, Select, SelectChangeEvent, Skeleton, TextField } from '@mui/material';
+import { FormControl, FormHelperText, Grid, InputAdornment, InputLabel, Select, SelectChangeEvent, Skeleton, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { Balance } from '@polkadot/types/interfaces';
@@ -47,7 +47,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
-  const { api, coin, decimals } = chainInfo;
+  const { api, decimals } = chainInfo;
 
   const isCurrentVote = !!api.query.democracy.votingOf;
   const tx = api.tx.democracy.vote;
@@ -73,8 +73,9 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, [chainInfo, isCurrentVote, encodedAddressInfo, selectedConviction, tx, voteInfo, voteValue, api.derive.balances]);
 
   useEffect(() => {
-    if (!estimatedFee || !availableBalance) { setIsDisabled(true); }
-    else {
+    if (!estimatedFee || !availableBalance) {
+      setIsDisabled(true);
+    } else {
       setIsDisabled(amountToMachine(voteValue, decimals) + BigInt(String(estimatedFee)) >= BigInt(String(availableBalance)))
     }
   }, [availableBalance, decimals, estimatedFee, voteValue]);
@@ -82,13 +83,19 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   const handleConfirm = useCallback(async (): Promise<void> => {
     setState('confirming');
 
+    if (!encodedAddressInfo?.address) {
+      console.log('no encoded address');
+
+      return;
+    }
+
     try {
       const pair = keyring.getPair(encodedAddressInfo?.address);
 
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
+      const { status } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
 
       // TODO can save to history here
       setState(status);
@@ -191,7 +198,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
             ))}
           </Select>
         </FormControl>
-        <FormHelperText>{'The conviction to use for this vote with appropriate lock period'}</FormHelperText>
+        <FormHelperText>{t('The conviction to use for this vote with appropriate lock period')}</FormHelperText>
       </Grid>
 
       <Grid container item sx={{ p: '40px 30px', textAlign: 'center' }} xs={12}>
@@ -213,5 +220,5 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
       </Grid>
 
     </Popup>
-  )
+  );
 }
