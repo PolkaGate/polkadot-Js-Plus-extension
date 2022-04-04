@@ -34,12 +34,12 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
   const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
   const getHomePage = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.homepage as string);
   const getInfo = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.info as string);
-  const display = crowdloan.identity.info.legal || crowdloan.identity.info.display || getText(crowdloan.fund.paraId);
+  const name = crowdloan.identity.info.display || crowdloan.identity.info.legal || getText(crowdloan.fund.paraId);
   const logo = getLogo(getInfo(crowdloan.fund.paraId)) || getWebsiteFavico(crowdloan.identity.info.web || getHomePage(crowdloan.fund.paraId));
 
   /** FIXME:  new parachains who does not have onchain identity or information in polkadot/apps-config module won't be listed! */
   /** reason: apps-Config needs to be updated regularly buy its developer */
-  if (!display) return (<></>);
+  if (!name) return (<></>);
 
   return (
     <Grid item sx={{ pb: '10px' }} xs={12}>
@@ -56,7 +56,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
             <Grid container item xs={9}>
               <Grid container item xs={12} spacing={1}>
                 <Grid item>
-                  {display?.slice(0, 15)}
+                  {name?.slice(0, 15)}
                 </Grid>
                 {(crowdloan.identity.info.web || getHomePage(crowdloan.fund.paraId)) &&
                   <Grid item>
