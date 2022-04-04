@@ -225,4 +225,4 @@ export const isEqual = (a1: any[] | null, a2: any[] | null): boolean => {
   const a2Sorted = a2?.slice().sort();
 
   return JSON.stringify(a1Sorted) === JSON.stringify(a2Sorted);
-}
+};
