@@ -35,8 +35,8 @@ export default function Overview({ address, chain, chainInfo, proposalsInfo }: P
 
   if (!proposalsInfo) {
     return (
-      <Grid sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
-        {t('No proposals')}
+      <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
+        {t('No active proposals')}
       </Grid>
     );
   }
