@@ -141,7 +141,7 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
               </Grid>
             </Paper>);
         })
-        : <Grid sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
+        : <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
           {t('No active proposal')}
         </Grid>}
 
