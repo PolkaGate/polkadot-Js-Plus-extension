@@ -63,6 +63,18 @@ describe('Testing Governance Home page', () => {
 
     fireEvent.click(queryByText('Close') as Element);
 
-    // TODO: Treasury
+    // Treasury
+    const Treasury = queryByTestId('governance')?.children.item(2) as Element;
+
+    fireEvent.click(Treasury);
+
+    expect(queryByText('Loading proposals ...')).toBeTruthy();
+
+    expect(queryByText('Tips')).toBeTruthy();
+    fireEvent.click(queryByText('Tips') as Element);
+
+    expect(queryByText('Loading tips ...')).toBeTruthy();
+
+    fireEvent.click(queryByText('Close') as Element);
   });
 });
