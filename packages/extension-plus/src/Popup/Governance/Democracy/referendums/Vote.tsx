@@ -20,8 +20,7 @@ import { ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance }
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP, VOTE_MAP } from '../../../../util/constants';
 import { ChainInfo, Conviction, nameAddress } from '../../../../util/plusTypes';
-import { amountToMachine } from '../../../../util/plusUtils';
-
+import { amountToMachine, fixFloatingPoint } from '../../../../util/plusUtils';
 
 interface Props {
   address: string;
@@ -42,21 +41,29 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
   const [votingBalance, setVotingBalance] = useState<Balance | undefined>();
-  const [voteValue, setVoteValue] = useState<string>();
+  const [voteValueInHuman, setVoteValueInHuman] = useState<string>();
+  const [voteValue, setVoteValue] = useState<Balance | undefined>();
+
   const [selectedConviction, setSelectedConviction] = useState<number>(convictions[0].value);
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
-  const { api, decimals } = chainInfo;
+  const { api } = chainInfo;
 
   const isCurrentVote = !!api.query.democracy.votingOf;
   const tx = api.tx.democracy.vote;
 
   useEffect(() => {
+    const voteValueInMachine = amountToMachine(voteValueInHuman, chainInfo.decimals);
+    const voteValueInBalanceType = api.createType('Balance', voteValueInMachine);
+
+    setVoteValue(voteValueInBalanceType);
+  }, [api, chainInfo.decimals, voteValueInHuman]);
+
+  useEffect(() => {
     if (!chainInfo || !tx || !encodedAddressInfo) return;
-    const voteValueInMachine = amountToMachine(voteValue, chainInfo.decimals);
     const p = isCurrentVote
-      ? [voteInfo.refId, { Standard: { vote: { aye: voteInfo.voteType, selectedConviction }, voteValueInMachine } }]
+      ? [voteInfo.refId, { Standard: { vote: { aye: voteInfo.voteType, selectedConviction }, voteValue } }]
       : [voteInfo.refId, { aye: voteInfo.voteType, selectedConviction }];
 
     setParams(p);
@@ -73,12 +80,12 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, [chainInfo, isCurrentVote, encodedAddressInfo, selectedConviction, tx, voteInfo, voteValue, api.derive.balances]);
 
   useEffect(() => {
-    if (!estimatedFee || !availableBalance) {
+    if (!estimatedFee || !availableBalance || voteValue === undefined || !votingBalance) {
       setIsDisabled(true);
     } else {
-      setIsDisabled(amountToMachine(voteValue, decimals) + BigInt(String(estimatedFee)) >= BigInt(String(availableBalance)))
+      setIsDisabled(voteValue.add(estimatedFee).gt(votingBalance));
     }
-  }, [availableBalance, decimals, estimatedFee, voteValue]);
+  }, [availableBalance, estimatedFee, voteValue, votingBalance]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
     setState('confirming');
@@ -112,9 +119,10 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, [handleVoteReferendumModalClose]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = Number(event.target.value) < 0 ? -Number(event.target.value) : Number(event.target.value);
+    const eVal = event.target.value;
+    const value = Number(eVal) < 0 ? String(-Number(eVal)) : eVal;
 
-    setVoteValue(String(value));
+    setVoteValueInHuman(fixFloatingPoint(value));
   }, []);
 
   const handleConvictionChange = useCallback((event: SelectChangeEvent<number>): void => {
@@ -171,12 +179,12 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
           helperText={<HelperText />}
           label={t('Vote value')}
           margin='dense'
-          name='voteValue'
+          name='voteValueInHuman'
           onChange={handleChange}
           placeholder='0'
           size='medium'
           type='number'
-          value={voteValue}
+          value={voteValueInHuman}
           variant='outlined'
         />
       </Grid>
