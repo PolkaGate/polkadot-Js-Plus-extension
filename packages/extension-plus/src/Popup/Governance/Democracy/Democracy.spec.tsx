@@ -10,24 +10,27 @@ import ReactDOM from 'react-dom';
 import { DeriveReferendumExt } from '@polkadot/api-derive/types';
 import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
+import Extension from '../../../../../extension-base/src/background/handlers/Extension';
 
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getReferendums from '../../../util/api/getReferendums';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo } from '../../../util/plusTypes';
 import { amountToHuman, formatMeta, handleAccountBalance, remainingTime } from '../../../util/plusUtils';
-import { accounts, chain, convictions } from '../../../util/test/testHelper';
+import { accounts, chain, convictions, firstSuri, createExtension, createAcc} from '../../../util/test/testHelper';
 import DemocracyProposals from './proposals/overview';
 import ReferendumsOverview from './referendums/overview';
 import Vote from './referendums/Vote';
+import { Balance } from '@polkadot/types/interfaces';
+import type { Codec } from '@polkadot/types/types';
 
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
 let chainInfo: ChainInfo;
-let availableBalance: BigInt;
+let availableBalance: Balance;
 let referendum: DeriveReferendumExt[] | null;
-let votingBalance: string;
+let votingBalance: Balance;
 let currentBlockNumber: number;
 let description: string[];
 let index: string;
@@ -43,25 +46,29 @@ const voteInfo = {
   voteType: 1
 };
 const SettingsStruct = { prefix: 0 };
+let extension: Extension;
+let address: string;
 
 describe('Testing Democracy component', () => {
   beforeAll(async () => {
     currentBlockNumber = await getCurrentBlockNumber(chain.name);
     chainInfo = await getChainInfo(chain.name);
 
-    await chainInfo.api.query.system.account(accounts[0].address).then((result) => {
-      const { available } = handleAccountBalance(result.data);
+    extension = await createExtension();
+    address = await createAcc(firstSuri, chainInfo.genesisHash, extension);
 
-      availableBalance = available;
+    await chainInfo.api.query.system.account(accounts[0].address).then((balance: Codec) => {
+      availableBalance = chainInfo.api.createType('Balance', (balance.data.free).sub(balance.data.miscFrozen));
     });
 
+
     await chainInfo.api.derive.balances?.all(accounts[0].address).then((b) => {
-      votingBalance = b?.votingBalance.toString();
+      votingBalance = b?.votingBalance;
     });
 
     referendum = await getReferendums(chain.name);
 
-    if (referendum && referendum.length) {
+    if (referendum?.length) {
       value = referendum[0].image?.proposal;
       meta = value?.registry.findMetaCall(value.callIndex);
       description = formatMeta(meta?.meta);
@@ -81,7 +88,7 @@ describe('Testing Democracy component', () => {
         chainInfo={chainInfo}
         convictions={convictions}
         currentBlockNumber={currentBlockNumber}
-        referendums={referendum}
+        referendums={[referendum[0]]}
       />
     );
 
@@ -116,6 +123,7 @@ describe('Testing Democracy component', () => {
           }}
         >
           <Vote
+            address={address}
             chain={chain}
             chainInfo={chainInfo}
             convictions={convictions}
@@ -127,15 +135,14 @@ describe('Testing Democracy component', () => {
     );
 
     expect(queryByText('Vote')).toBeTruthy();
-    expect(queryByText('Voter')).toBeTruthy();
-    expect(container.querySelector('select').value).toEqual(accounts[0].address);
-    expect(container.querySelectorAll('option')).toHaveLength(accounts.length + convictions.length);
+    expect(queryByText('Voter:')).toBeTruthy();
+    expect(container.querySelectorAll('option')).toHaveLength(convictions.length);
 
     await waitFor(() => {
-      expect(queryByTestId('balance')?.textContent).toEqual(`Balance: ${amountToHuman(String(availableBalance), chainInfo.decimals)}  ${chainInfo.coin}`);
+      expect(queryByTestId('balance')?.textContent).toEqual(`Available: ${availableBalance.toHuman()}`);
     }, { timeout: 10000 });
     await waitFor(() => {
-      expect(queryByTestId('showBalance')?.textContent).toEqual(`Voting balance: ${Number(amountToHuman(votingBalance.toString(), chainInfo.decimals, 5)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5})} ${chainInfo.coin}`);
+      expect(queryByTestId('showBalance')?.textContent).toEqual(`Voting balance: ${votingBalance.toHuman()}`);
     }, { timeout: 10000 });
     expect(queryByLabelText('Vote value')).toBeTruthy();
     expect(queryByText('This value is locked for the duration of the vote')).toBeTruthy();
