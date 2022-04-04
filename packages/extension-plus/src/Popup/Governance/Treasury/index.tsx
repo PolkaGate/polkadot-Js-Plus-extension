@@ -29,6 +29,8 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('proposals');
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
+  const [activeProposalCount, setActiveProposalCount] = useState<number | undefined>();
+
   const [tips, setTips] = useState<any[]>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
@@ -39,7 +41,8 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
     // get all treasury proposals including approved
     chainInfo?.api.derive.treasury.proposals().then((p) => {
       setProposals(p);
-      console.log('proposals:', JSON.parse(JSON.stringify(p.proposals)))
+      if (p) setActiveProposalCount(p.proposals.length + p.approvals.length);
+      console.log('proposals:', JSON.parse(JSON.stringify(p.proposals)));
     }).catch(console.error);
   }, [chainInfo]);
 
@@ -73,7 +76,7 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
       <Grid container>
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab icon={<SummarizeOutlinedIcon fontSize='small' />} iconPosition='start' label={`Proposals (${proposals?.proposalCount ? proposals?.proposalCount : 0})`} sx={{ fontSize: 11 }} value='proposals' />
+            <Tab icon={<SummarizeOutlinedIcon fontSize='small' />} iconPosition='start' label={`Proposals (${activeProposalCount ?? 0}/${proposals?.proposalCount ?? 0})`} sx={{ fontSize: 11 }} value='proposals' />
             <Tab icon={<VolunteerActivismSharpIcon fontSize='small' />} iconPosition='start' label='Tips' sx={{ fontSize: 11 }} value='tips' />
           </Tabs>
         </Grid>
