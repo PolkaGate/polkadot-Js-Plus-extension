@@ -15,11 +15,12 @@ import Vote from './vote/Vote';
 import Members from './Members';
 
 interface Props {
+  address: string;
   councilInfo: CouncilInfo;
   chainInfo: ChainInfo;
 }
 
-export default function Overview({ chainInfo, councilInfo }: Props): React.ReactElement<Props> {
+export default function Overview({ address, chainInfo, councilInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const chain = useMetadata(chainInfo.genesisHash, true);
   const [showMyVotesModal, setShowMyVotesModal] = useState<boolean>(false);
@@ -110,6 +111,7 @@ export default function Overview({ chainInfo, councilInfo }: Props): React.React
 
       {showMyVotesModal &&
         <CancelVote
+          address={address}
           allCouncilInfo={allCouncilInfo}
           chain={chain}
           chainInfo={chainInfo}
@@ -119,6 +121,7 @@ export default function Overview({ chainInfo, councilInfo }: Props): React.React
 
       {showVotesModal &&
         <Vote
+          address={address}
           allCouncilInfo={allCouncilInfo}
           chain={chain}
           chainInfo={chainInfo}

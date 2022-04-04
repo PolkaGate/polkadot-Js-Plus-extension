@@ -258,3 +258,40 @@ export interface PutInFrontInfo {
   shouldPutInFront?: boolean;
   lighter?: string;
 }
+
+export interface AddressState {
+  genesisHash: string;
+  address: string;
+}
+
+export interface nameAddress {
+  name?: string;
+  address: string;
+}
+
+interface Judgment {
+  index: number;
+  judgement: string;
+}
+
+interface AccountInfo {
+  address: string;
+  display: string;
+  judgements: Judgment[] | null;
+  account_index: string;
+  identity: boolean;
+  parent: string | null
+}
+
+export interface Tip {
+  block_num: number;
+  reason: string;
+  hash: string;
+  extrinsic_index: string;
+  status: string;
+  amount: string;
+  close_block_num: number;
+  tipper_num: number;
+  finder: AccountInfo;
+  beneficiary: AccountInfo;
+}

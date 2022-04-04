@@ -54,8 +54,8 @@ let fee: Balance;
 let availableBalance: string;
 const transferAmountInHuman = '0.1';
 const transferAmount = amountToMachine(transferAmountInHuman, decimals);
-let firstSuri = 'seed sock milk update focus rotate barely fade car face mechanic mercy';
-let secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
+const firstSuri = 'seed sock milk update focus rotate barely fade car face mechanic mercy';
+const secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
 const password = 'passw0rd';
 let chainInfo: ChainInfo;
 

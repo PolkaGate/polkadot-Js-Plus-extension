@@ -10,8 +10,8 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Gavel as GavelIcon, Payments as PaymentsIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 import styled from 'styled-components';
 
 import { createWsEndpoints } from '@polkadot/apps-config';
@@ -23,22 +23,16 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
 import { Progress } from '../../components';
-import SelectRelay from '../../components/SelectRelay';
 import getChainInfo from '../../util/getChainInfo';
-import { Auction, ChainInfo, Crowdloan } from '../../util/plusTypes';
+import { AddressState, Auction, ChainInfo, Crowdloan } from '../../util/plusTypes';
 import AuctionTab from './AuctionTab';
 import Contribute from './Contribute';
 import CrowdloanTab from './CrowdloanTab';
-import { useParams } from 'react-router';
 
 interface Props extends ThemeProps {
   className?: string;
 }
 
-interface AddressState {
-  genesisHash: string;
-  address: string;
-}
 const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
 
 function Crowdloans({ className }: Props): React.ReactElement<Props> {
@@ -108,7 +102,14 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
 
   return (
     <>
-      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Crowdloans')} />
+      <Header
+        showAdd
+        showBackArrow
+        showSettings
+        smallMargin
+        text={`${t<string>('Crowdloans')} ${chainInfo?.chainName ? 'on' : ''} ${chainInfo?.chainName ?? ''}`}
+      />
+      
       <Grid alignItems='center' container id='selectRelyChain' sx={{ p: '0px 35px' }}>
 
         <Grid item xs={12}>

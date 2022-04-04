@@ -22,6 +22,7 @@ import { amountToHuman, formatMeta, remainingTime } from '../../../../util/plusU
 import VoteReferendum from './Vote';
 
 interface Props {
+  address: string;
   referendums: Referendum[] | null;
   chain: Chain;
   chainInfo: ChainInfo;
@@ -29,13 +30,12 @@ interface Props {
   convictions: Conviction[];
 }
 
-export default function Referendums({ chain, chainInfo, convictions, currentBlockNumber, referendums }: Props): React.ReactElement<Props> {
+export default function Referendums({ address, chain, chainInfo, convictions, currentBlockNumber, referendums }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showVoteReferendumModal, setShowVoteReferendumModal] = useState<boolean>(false);
   const [voteInfo, setVoteInfo] = useState<{ voteType: number, refId: string }>();
 
-  const chainName = chain?.name.replace(' Relay Chain', '');
-  const { coin, decimals } = chainInfo;
+  const { chainName, coin, decimals } = chainInfo;
 
   const handleVote = useCallback((voteType: number, refId: string) => {
     setShowVoteReferendumModal(true);
@@ -180,6 +180,7 @@ export default function Referendums({ chain, chainInfo, convictions, currentBloc
 
       {showVoteReferendumModal && convictions && voteInfo &&
         <VoteReferendum
+          address={address}
           chain={chain}
           chainInfo={chainInfo}
           convictions={convictions}

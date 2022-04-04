@@ -8,7 +8,7 @@ import type { DeriveAccountInfo, DeriveTreasuryProposal } from '@polkadot/api-de
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import { Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback,useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
@@ -32,7 +32,7 @@ export default function Proposals({ chain, chainInfo, handleSubmitProposal, prop
   const [identities, setIdentities] = useState<DeriveAccountInfo[]>();
   const { api, coin, decimals } = chainInfo;
   const FEE_DECIMAL_DIGITS = coin === 'DOT' ? 4 : 6;
-  const toHuman = useCallback((value: bigint) => `${amountToHuman(value.toString(), decimals, FEE_DECIMAL_DIGITS)} ${coin}`, [FEE_DECIMAL_DIGITS, coin, decimals]);
+  const toHuman = useCallback((value: bigint) => `${api.createType('Balance', value).toHuman()}`, [api]);
 
   useEffect(() => {
     if (!proposals) return;
@@ -47,7 +47,7 @@ export default function Proposals({ chain, chainInfo, handleSubmitProposal, prop
 
   return (
     <>
-      <Grid container justifyContent='flex-start' xs={12}>
+      <Grid container justifyContent='flex-start'>
         <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, fontWeigth: 'bold', p: '10px 30px 10px', textAlign: 'left' }} xs={4}>
           {showSubmit &&
             <Button onClick={handleSubmitProposal} size='small' startIcon={<AddCircleRoundedIcon />} color='warning' variant='outlined'>

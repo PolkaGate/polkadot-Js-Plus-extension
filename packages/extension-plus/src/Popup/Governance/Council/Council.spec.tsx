@@ -4,6 +4,7 @@
 import '@polkadot/extension-mocks/chrome';
 
 import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
+import type { Codec } from '@polkadot/types/types';
 
 import { render, waitFor } from '@testing-library/react';
 import React from 'react';
@@ -11,13 +12,15 @@ import ReactDOM from 'react-dom';
 
 import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
+import { Balance } from '@polkadot/types/interfaces';
 
+import Extension from '../../../../../extension-base/src/background/handlers/Extension';
 import getCouncilAll from '../../../util/api/getCouncilAll';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo, CouncilInfo, PersonsInfo } from '../../../util/plusTypes';
-import { amountToHuman, handleAccountBalance, remainingTime } from '../../../util/plusUtils';
-import { accounts, chain, makeShortAddr } from '../../../util/test/testHelper';
+import { amountToHuman, remainingTime } from '../../../util/plusUtils';
+import { accounts, chain, createAcc, createExtension, firstSuri, makeShortAddr } from '../../../util/test/testHelper';
 import Motions from './motions/Motions';
 import CouncilCouncilors from './overview/Overview';
 import VoteCouncil from './overview/vote/Vote';
@@ -28,7 +31,7 @@ ReactDOM.createPortal = jest.fn((modal) => modal);
 let chainInfo: ChainInfo;
 let motions: DeriveCollectiveProposal[];
 let currentBlockNumber: number;
-let availableBalance: BigInt;
+let availableBalance: Balance;
 const SettingsStruct = { prefix: 0 };
 let councilInfo: CouncilInfo;
 let accountInfos;
@@ -39,20 +42,24 @@ let membersInfo: { backed: string, infos: string };
 let runnersUpInfo: { backed: string, infos: string };
 let candidatesInfo: { backed: string, infos: string };
 let allCouncilInfo: PersonsInfo;
+let extension: Extension;
+let address: string;
 
 describe('Testing Council component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo(chain.name);
+
+    extension = await createExtension();
+    address = await createAcc(firstSuri, chainInfo.genesisHash, extension);
+
     currentBlockNumber = await getCurrentBlockNumber(chain.name);
 
     await chainInfo.api.derive.council?.proposals().then((p) => {
       if (p) motions = (JSON.parse(JSON.stringify(p)));
     });
 
-    await chainInfo.api.query.system.account(accounts[0].address).then((result) => {
-      const { available } = handleAccountBalance(result.data);
-
-      availableBalance = available;
+    await chainInfo.api.query.system.account(accounts[0].address).then((balance: Codec) => {
+      availableBalance = chainInfo.api.createType('Balance', (balance.data.free).sub(balance.data.miscFrozen));
     });
 
     await getCouncilAll(chain.name).then((c) => {
@@ -87,6 +94,7 @@ describe('Testing Council component', () => {
   test('Checking the COUNCILLORS\'s tab elements', () => {
     const { getByRole, queryAllByText, queryByText } = render(
       <CouncilCouncilors
+        address={address}
         chainInfo={chainInfo}
         councilInfo={councilInfo}
       />
@@ -164,6 +172,7 @@ describe('Testing Council component', () => {
           }}
         >
           <VoteCouncil
+            address={address}
             allCouncilInfo={allCouncilInfo}
             chain={chain}
             chainInfo={chainInfo}
@@ -174,9 +183,10 @@ describe('Testing Council component', () => {
     );
 
     expect('Vote').toBeTruthy();
-    expect(queryByText('Voter')).toBeTruthy();
+
     await waitFor(() => {
-      expect(queryByTestId('balance')?.textContent).toEqual(`Balance: ${amountToHuman(String(availableBalance), chainInfo.decimals)}  ${chainInfo.coin}`);
+      expect(queryByText('Voter:')).toBeTruthy();
+      expect(queryByTestId('balance')?.textContent).toEqual(`Available: ${availableBalance.toHuman()}`);
     }, { timeout: 15000 });
     expect(queryByText('Voting bond:')).toBeTruthy();
     expect(queryByText('Accounts to vote')).toBeTruthy();
@@ -203,19 +213,22 @@ describe('Testing Council component', () => {
   });
 
   test('Checking the motions\'s tab elements', () => {
-    motions.length = 1;
     const { queryAllByRole, queryByText } = render(
       <Motions
         chainInfo={chainInfo}
         currentBlockNumber={currentBlockNumber}
-        motions={motions}
+        motions={motions?.length ? [motions[0]] : []}
       />
     );
 
-    expect(queryByText('Index')).toBeTruthy();
-    expect(queryByText(`Voting end${remainingTime(currentBlockNumber, motions[0].votes.end)}#${motions[0].votes.end}`)).toBeTruthy();
-    expect(queryByText(`VotsAye ${motions[0].votes.ayes.length}/${motions[0].votes.threshold}`)).toBeTruthy();
-    expect(queryByText(`Threshold${motions[0].votes.threshold}`)).toBeTruthy();
-    expect(queryAllByRole('link')).toHaveLength(2);
+    if (motions?.length) {
+      expect(queryByText('Index')).toBeTruthy();
+      expect(queryByText(`Voting end${remainingTime(currentBlockNumber, motions[0].votes.end)}#${motions[0].votes.end}`)).toBeTruthy();
+      expect(queryByText(`VotsAye ${motions[0].votes.ayes.length}/${motions[0].votes.threshold}`)).toBeTruthy();
+      expect(queryByText(`Threshold${motions[0].votes.threshold}`)).toBeTruthy();
+      expect(queryAllByRole('link')).toHaveLength(2);
+    } else {
+      expect(queryByText('No active motion')).toBeTruthy();
+    }
   });
 });

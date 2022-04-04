@@ -177,14 +177,6 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
       </MenuItem> */}
       <MenuItem className='setting'>
         <ActionText
-          className='governance'
-          icon={faLandmark}
-          onClick={_goToGovernance}
-          text={t<string>('Governance')}
-        />
-      </MenuItem>
-      <MenuItem className='setting'>
-        <ActionText
           className='manageWebsiteAccess'
           icon={faTasks}
           onClick={_goToAuthList}

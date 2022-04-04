@@ -19,18 +19,19 @@ import ProposalOverview from './proposals/Overview';
 import TipOverview from './tips/Overview';
 
 interface Props {
-  chainName: string;
+  address: string;
   showTreasuryModal: boolean;
   chainInfo: ChainInfo | undefined;
   setTreasuryModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
+export default function Treasury({ address, chainInfo, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('proposals');
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
+  const [activeProposalCount, setActiveProposalCount] = useState<number | undefined>();
+
   const [tips, setTips] = useState<any[]>();
-  const [currentBlockNumber, setCurrentBlockNumber] = useState<number>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
   useEffect(() => {
@@ -40,24 +41,26 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
     // get all treasury proposals including approved
     chainInfo?.api.derive.treasury.proposals().then((p) => {
       setProposals(p);
-      console.log('proposals:', JSON.parse(JSON.stringify(p.proposals)))
+      if (p) setActiveProposalCount(p.proposals.length + p.approvals.length);
+      console.log('proposals:', JSON.parse(JSON.stringify(p.proposals)));
     }).catch(console.error);
   }, [chainInfo]);
 
   useEffect(() => {
+    if (!chainInfo?.chainName) return;
     // get all treasury tips
     // eslint-disable-next-line no-void
-    void getTips(chainName, 0, 10).then((res) => {
+    void getTips(chainInfo.chainName, 0, 10).then((res) => {
       console.log('tips:', res);
 
       setTips(res?.data?.list);
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
-    void getCurrentBlockNumber(chainName).then((n) => {
-      setCurrentBlockNumber(n);
-    });
-  }, [chainName]);
+    // void getCurrentBlockNumber(chainInfo.chainName).then((n) => {
+    //   setCurrentBlockNumber(n);
+    // });
+  }, [chainInfo]);
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -69,11 +72,11 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
 
   return (
     <Popup handleClose={handleTreasuryModalClose} showModal={showTreasuryModal}>
-      <PlusHeader action={handleTreasuryModalClose} chain={chainName} closeText={'Close'} icon={<AccountBalanceIcon fontSize='small' />} title={'Treasury'} />
+      <PlusHeader action={handleTreasuryModalClose} chain={chainInfo?.chainName} closeText={'Close'} icon={<AccountBalanceIcon fontSize='small' />} title={'Treasury'} />
       <Grid container>
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab icon={<SummarizeOutlinedIcon fontSize='small' />} iconPosition='start' label={`Proposals (${proposals?.proposalCount ? proposals?.proposalCount : 0})`} sx={{ fontSize: 11 }} value='proposals' />
+            <Tab icon={<SummarizeOutlinedIcon fontSize='small' />} iconPosition='start' label={`Proposals (${activeProposalCount ?? 0}/${proposals?.proposalCount ?? 0})`} sx={{ fontSize: 11 }} value='proposals' />
             <Tab icon={<VolunteerActivismSharpIcon fontSize='small' />} iconPosition='start' label='Tips' sx={{ fontSize: 11 }} value='tips' />
           </Tabs>
         </Grid>
@@ -81,7 +84,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
         {tabValue === 'proposals'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && proposals !== undefined
-              ? <ProposalOverview chain={chain} chainInfo={chainInfo} currentBlockNumber={currentBlockNumber} proposalsInfo={proposals} />
+              ? <ProposalOverview address={address} chain={chain} chainInfo={chainInfo} proposalsInfo={proposals} />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>
           : ''}
@@ -89,7 +92,7 @@ export default function Treasury({ chainInfo, chainName, setTreasuryModalOpen, s
         {tabValue === 'tips'
           ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && tips !== undefined
-              ? <TipOverview chain={chain} chainInfo={chainInfo} tips={tips} />
+              ? <TipOverview address={address} chain={chain} chainInfo={chainInfo} tips={tips} />
               : <Progress title={'Loading tips ...'} />}
           </Grid>
           : ''}

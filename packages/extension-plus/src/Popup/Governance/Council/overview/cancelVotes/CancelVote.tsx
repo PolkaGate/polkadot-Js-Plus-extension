@@ -6,22 +6,23 @@
 import type { DeriveCouncilVote } from '@polkadot/api-derive/types';
 
 import { GroupRemove as GroupRemoveIcon } from '@mui/icons-material';
-import { Container, Grid } from '@mui/material';
+import { Box, Container, Grid } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
+import { Balance } from '@polkadot/types/interfaces';
 
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, Progress, ShowBalance } from '../../../../../components';
+import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, Progress, Participator, ShowBalance } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
-import getVotes from '../../../../../util/api/getVotes';
 import { PASS_MAP } from '../../../../../util/constants';
-import { ChainInfo, PersonsInfo } from '../../../../../util/plusTypes';
+import { ChainInfo, nameAddress, PersonsInfo } from '../../../../../util/plusTypes';
 import Members from '../Members';
-import { grey } from '@mui/material/colors';
 
 interface Props {
+  address: string;
   chain: Chain;
   chainInfo: ChainInfo;
   allCouncilInfo: PersonsInfo;
@@ -29,41 +30,42 @@ interface Props {
   setShowMyVotesModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function CancelVote({ allCouncilInfo, chain, chainInfo, setShowMyVotesModal, showMyVotesModal }: Props): React.ReactElement<Props> {
+export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, setShowMyVotesModal, showMyVotesModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [selectedAddress, setSelectedAddress] = useState<string>('');
+
+  const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
+  const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
+
   const [votesInfo, seVotesInfo] = useState<DeriveCouncilVote>();
   const [filteredPersonsInfo, setFilteredPersonsInfo] = useState<PersonsInfo>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
-  const [availableBalance, setAvailableBalance] = useState<string>();
-  const [estimatedFee, setEstimatedFee] = useState<bigint>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
+
   const { api } = chainInfo;
   const electionApi = api.tx.phragmenElection ?? api.tx.electionsPhragmen ?? api.tx.elections;
   const tx = electionApi.removeVoter;
 
   useEffect(() => {
-    if (!selectedAddress) return;
+    if (!encodedAddressInfo) return;
     // eslint-disable-next-line no-void
-    void tx().paymentInfo(selectedAddress)
-      .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
+    void tx().paymentInfo(encodedAddressInfo.address)
+      .then((i) => setEstimatedFee(i?.partialFee))
       .catch(console.error);
-  }, [selectedAddress, tx]);
+
+    seVotesInfo(undefined); // reset votes when change address
+
+    // eslint-disable-next-line no-void
+    void api.derive.council.votesOf(encodedAddressInfo.address).then((v) => {
+      console.log('v:', v.toString());
+      seVotesInfo(v);
+    });
+  }, [api.derive.council, encodedAddressInfo, tx]);
 
   const handleClose = useCallback((): void => {
     setShowMyVotesModal(false);
   }, [setShowMyVotesModal]);
-
-  useEffect(() => {
-    seVotesInfo(undefined); // reset votes when change address
-
-    // eslint-disable-next-line no-void
-    void api.derive.council.votesOf(selectedAddress).then((v) => {
-      console.log('v:', v.toString());
-      seVotesInfo(v);
-    });
-  }, [selectedAddress, api]);
 
   useEffect(() => {
     if (!votesInfo || !allCouncilInfo) return;
@@ -74,12 +76,12 @@ export default function CancelVote({ allCouncilInfo, chain, chainInfo, setShowMy
   const handleCancelVotes = async () => {
     try {
       setState('confirming');
-      const signer = keyring.getPair(selectedAddress);
+      const signer = keyring.getPair(encodedAddressInfo?.address);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer, selectedAddress);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer, encodedAddressInfo?.address);
 
       // TODO: can save to history here
 
@@ -96,21 +98,27 @@ export default function CancelVote({ allCouncilInfo, chain, chainInfo, setShowMy
     <Popup handleClose={handleClose} showModal={showMyVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<GroupRemoveIcon fontSize='small' />} title={'My Votes'} />
 
-      <AllAddresses
+      <Participator
+        address={address}
         availableBalance={availableBalance}
-        chain={chain} chainInfo={chainInfo}
-        selectedAddress={selectedAddress}
+        chain={chain}
+        chainInfo={chainInfo}
+        encodedAddressInfo={encodedAddressInfo}
+        role={t('Voter')}
         setAvailableBalance={setAvailableBalance}
-        setSelectedAddress={setSelectedAddress}
-        text={<ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />}
-        title={t('Voter')}
+        setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <Grid item sx={{ color: grey[600], fontSize: 12, p: '0px 40px 0px 80px', textAlign: 'right' }}>
-        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} title={t('Fee')} />
+      <Grid container justifyContent='space-between' sx={{ color: grey[600], fontSize: 12, p: '0px 40px 10px 120px', textAlign: 'right' }}>
+        <Grid item>
+          <ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />
+        </Grid>
+        <Grid item>
+          <ShowBalance balance={estimatedFee} chainInfo={chainInfo} title={t('Fee')} />
+        </Grid>
       </Grid>
 
-      <Container id='scrollArea' sx={{ height: '255px', overflowY: 'auto' }}>
+      <Container id='scrollArea' sx={{ height: '280px', overflowY: 'auto' }}>
         {votesInfo && filteredPersonsInfo
           ? <Members chain={chain} chainInfo={chainInfo} membersType={t('Votes')} personsInfo={filteredPersonsInfo} />
           : <Progress title={t('Loading votes ...')} />
@@ -130,7 +138,7 @@ export default function CancelVote({ allCouncilInfo, chain, chainInfo, setShowMy
           handleBack={handleClose}
           handleConfirm={handleCancelVotes}
           handleReject={handleClose}
-          isDisabled={!votesInfo?.votes.length}
+          isDisabled={!votesInfo?.votes.length || !estimatedFee ||!availableBalance || estimatedFee.gt(availableBalance)}
           state={state}
           text='Cancel votes'
         />

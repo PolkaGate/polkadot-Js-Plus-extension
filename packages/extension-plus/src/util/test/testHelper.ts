@@ -19,6 +19,9 @@ const westendGenesisHash = '0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd
 const type = 'sr25519';
 const password = 'passw0rd';
 
+export const firstSuri = 'seed sock milk update focus rotate barely fade car face mechanic mercy';
+export const secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
+
 export const auction: Auction = {
   auctionCounter: 10,
   auctionInfo: [
@@ -1272,6 +1275,20 @@ export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[8].address, exposure: { others: others.slice(2), total: 1234.56 }, validatorPrefs: { commission: 90000000 } },
   { accountId: validatorsName[9].address, exposure: { others: others, total: 12345.6 }, validatorPrefs: { commission: 750000000 } }
 ];
+
+export async function createAcc (suri: string, genesisHash: string, extension: Extension): Promise<string> {
+  await extension.handle('id', 'pri(accounts.create.suri)', {
+    genesisHash: genesisHash,
+    name: 'Amir khan',
+    password: password,
+    suri: suri,
+    type: type
+  }, {} as chrome.runtime.Port);
+
+  const { address } = await extension.handle('id', 'pri(seed.validate)', { suri: suri, type: type }, {} as chrome.runtime.Port);
+
+  return address;
+}
 
 export async function createAccount (suri: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
