@@ -12,15 +12,18 @@ import ReactDOM from 'react-dom';
 import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
 
+import Extension from '../../../../../extension-base/src/background/handlers/Extension';
 import getCouncilAll from '../../../util/api/getCouncilAll';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo, CouncilInfo, PersonsInfo } from '../../../util/plusTypes';
 import { amountToHuman, handleAccountBalance, remainingTime } from '../../../util/plusUtils';
-import { accounts, chain, makeShortAddr } from '../../../util/test/testHelper';
+import { accounts, chain, createAcc, createExtension, firstSuri, makeShortAddr } from '../../../util/test/testHelper';
 import Motions from './motions/Motions';
 import CouncilCouncilors from './overview/Overview';
 import VoteCouncil from './overview/vote/Vote';
+import { Balance } from '@polkadot/types/interfaces';
+import type { Codec } from '@polkadot/types/types';
 
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
@@ -28,7 +31,7 @@ ReactDOM.createPortal = jest.fn((modal) => modal);
 let chainInfo: ChainInfo;
 let motions: DeriveCollectiveProposal[];
 let currentBlockNumber: number;
-let availableBalance: BigInt;
+let availableBalance: Balance;
 const SettingsStruct = { prefix: 0 };
 let councilInfo: CouncilInfo;
 let accountInfos;
@@ -39,20 +42,26 @@ let membersInfo: { backed: string, infos: string };
 let runnersUpInfo: { backed: string, infos: string };
 let candidatesInfo: { backed: string, infos: string };
 let allCouncilInfo: PersonsInfo;
+let extension: Extension;
+let address: string;
 
 describe('Testing Council component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo(chain.name);
+
+    extension = await createExtension();
+    address = await createAcc(firstSuri, chainInfo.genesisHash, extension);
+    console.log('aaaadddresss:', address)
+
     currentBlockNumber = await getCurrentBlockNumber(chain.name);
 
     await chainInfo.api.derive.council?.proposals().then((p) => {
       if (p) motions = (JSON.parse(JSON.stringify(p)));
     });
 
-    await chainInfo.api.query.system.account(accounts[0].address).then((result) => {
-      const { available } = handleAccountBalance(result.data);
-
-      availableBalance = available;
+    await chainInfo.api.query.system.account(accounts[0].address).then((balance: Codec) => {
+      availableBalance =chainInfo.api.createType('Balance', (balance.data.free).sub(balance.data.miscFrozen));
+      console.log('availableBalance:', availableBalance)
     });
 
     await getCouncilAll(chain.name).then((c) => {
@@ -87,6 +96,7 @@ describe('Testing Council component', () => {
   test('Checking the COUNCILLORS\'s tab elements', () => {
     const { getByRole, queryAllByText, queryByText } = render(
       <CouncilCouncilors
+        address={address}
         chainInfo={chainInfo}
         councilInfo={councilInfo}
       />
@@ -164,6 +174,7 @@ describe('Testing Council component', () => {
           }}
         >
           <VoteCouncil
+            address={address}
             allCouncilInfo={allCouncilInfo}
             chain={chain}
             chainInfo={chainInfo}
@@ -174,9 +185,10 @@ describe('Testing Council component', () => {
     );
 
     expect('Vote').toBeTruthy();
-    expect(queryByText('Voter')).toBeTruthy();
+
     await waitFor(() => {
-      expect(queryByTestId('balance')?.textContent).toEqual(`Balance: ${amountToHuman(String(availableBalance), chainInfo.decimals)}  ${chainInfo.coin}`);
+      expect(queryByText('Voter:')).toBeTruthy();
+      expect(queryByTestId('balance')?.textContent).toEqual(`Available: ${availableBalance.toHuman()}`);
     }, { timeout: 15000 });
     expect(queryByText('Voting bond:')).toBeTruthy();
     expect(queryByText('Accounts to vote')).toBeTruthy();
