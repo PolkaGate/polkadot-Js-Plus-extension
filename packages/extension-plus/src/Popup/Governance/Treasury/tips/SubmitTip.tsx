@@ -140,21 +140,20 @@ export default function SubmitTip({ address, chain, chainInfo, handleSubmitTipMo
         <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
       </Grid>
 
-
       <Grid item sx={{ p: '10px 40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
+          InputProps={{ style: { fontSize: 14 } }}
           autoFocus
           color='warning'
           fullWidth
-          helperText={<HelperText />
-          }
+          helperText={<HelperText />}
           label={t('Reason')}
           margin='dense'
           multiline
           name='reason'
           onChange={handleChange}
-          rows={2}
+          rows={3}
           size='medium'
           type='text'
           value={reason}
