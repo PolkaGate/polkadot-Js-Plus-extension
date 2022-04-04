@@ -4,6 +4,7 @@
 import '@polkadot/extension-mocks/chrome';
 
 import type { DeriveCollectiveProposal } from '@polkadot/api-derive/types';
+import type { Codec } from '@polkadot/types/types';
 
 import { render, waitFor } from '@testing-library/react';
 import React from 'react';
@@ -11,19 +12,18 @@ import ReactDOM from 'react-dom';
 
 import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
+import { Balance } from '@polkadot/types/interfaces';
 
 import Extension from '../../../../../extension-base/src/background/handlers/Extension';
 import getCouncilAll from '../../../util/api/getCouncilAll';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo, CouncilInfo, PersonsInfo } from '../../../util/plusTypes';
-import { amountToHuman, handleAccountBalance, remainingTime } from '../../../util/plusUtils';
+import { amountToHuman, remainingTime } from '../../../util/plusUtils';
 import { accounts, chain, createAcc, createExtension, firstSuri, makeShortAddr } from '../../../util/test/testHelper';
 import Motions from './motions/Motions';
 import CouncilCouncilors from './overview/Overview';
 import VoteCouncil from './overview/vote/Vote';
-import { Balance } from '@polkadot/types/interfaces';
-import type { Codec } from '@polkadot/types/types';
 
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
@@ -51,7 +51,6 @@ describe('Testing Council component', () => {
 
     extension = await createExtension();
     address = await createAcc(firstSuri, chainInfo.genesisHash, extension);
-    console.log('aaaadddresss:', address)
 
     currentBlockNumber = await getCurrentBlockNumber(chain.name);
 
@@ -60,8 +59,7 @@ describe('Testing Council component', () => {
     });
 
     await chainInfo.api.query.system.account(accounts[0].address).then((balance: Codec) => {
-      availableBalance =chainInfo.api.createType('Balance', (balance.data.free).sub(balance.data.miscFrozen));
-      console.log('availableBalance:', availableBalance)
+      availableBalance = chainInfo.api.createType('Balance', (balance.data.free).sub(balance.data.miscFrozen));
     });
 
     await getCouncilAll(chain.name).then((c) => {
