@@ -96,8 +96,8 @@ export default function Motions({ chainInfo, currentBlockNumber, motions }: Prop
 
           </Paper>
         ))
-        : <Grid sx={{ paddingTop: 3, textAlign: 'center' }} xs={12}>
-          {t('No data')}
+        : <Grid item sx={{ paddingTop: 3, textAlign: 'center' }} xs={12}>
+          {t('No active motion')}
         </Grid>
       }
     </Container>
