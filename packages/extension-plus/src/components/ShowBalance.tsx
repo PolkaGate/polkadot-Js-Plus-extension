@@ -29,8 +29,8 @@ function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React
 
   return (
     <div data-testid='showBalance'>
-      {title && <> {title}:{' '}</>}
-      
+      {title && <>{title}:{' '}</>}
+
       {balance && chainInfo
         ? <>
           {amountToHuman(balance)}
