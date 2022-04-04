@@ -72,7 +72,7 @@ export default function Participator({ address, availableBalance, chain, chainIn
       </Grid>
       <Grid item xs={10}>
         <Box sx={{ border: '1px groove silver', borderRadius: '10px', px: 1 }}>
-          <Grid alignItems='center' container xs={12}>
+          <Grid alignItems='center' container>
 
             {encodedAddressInfo &&
               <Grid alignItems='center' container item xs={12}>
