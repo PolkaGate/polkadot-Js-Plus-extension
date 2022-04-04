@@ -167,7 +167,6 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
           InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
           autoFocus
           color='warning'
-          // error={reapeAlert || noFeeAlert || zeroBalanceAlert}
           fullWidth
           helperText={
             <Grid container item justifyContent='space-between' xs={12}>
