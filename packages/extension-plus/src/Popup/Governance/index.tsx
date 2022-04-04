@@ -74,8 +74,9 @@ function Governance({ className }: Props): React.ReactElement<Props> {
         showBackArrow
         showSettings
         smallMargin
-        text={t<string>('Governance')}
+        text={`${t<string>('Governance')} ${chainInfo?.chainName ? 'on' : ''} ${chainInfo?.chainName ?? ''}`}
       />
+
       <Container data-testid='governance'>
 
         <Paper elevation={4} onClick={handleDemocracyModal} sx={{ borderRadius: '10px', cursor: 'pointer', margin: '20px 30px 10px', p: '20px 40px' }}>
