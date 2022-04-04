@@ -3,57 +3,30 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
+
 import { AddCircleRounded as AddCircleRoundedIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useState } from 'react';
 
+import { AccountId32 } from '@polkadot/types/interfaces/runtime';
 import { PalletTipsOpenTip } from '@polkadot/types/lookup';
-import { Option } from '@polkadot/types-codec';
+import { Option, u128 } from '@polkadot/types-codec';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import Identity from '../../../../components/Identity';
-import getLogo from '../../../../util/getLogo';
 import getCouncilMembersInfo from '../../../../util/api/getCouncilMembersInfo';
-
-import { ChainInfo } from '../../../../util/plusTypes';
+import getLogo from '../../../../util/getLogo';
+import { ChainInfo, Tip } from '../../../../util/plusTypes';
 import { amountToHuman } from '../../../../util/plusUtils';
 import SubmitTip from './SubmitTip';
-import { AccountId32 } from '@polkadot/types/interfaces/runtime';
-import { u128 } from '@polkadot/types-codec';
-import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
-interface Judgment {
-  index: number;
-  judgement: string;
-}
-
-interface AccountInf {
-  address: string;
-  display: string;
-  judgements: Judgment[] | null;
-  account_index: string;
-  identity: boolean;
-  parent: string | null
-}
-
-interface Tip {
-  block_num: number;
-  reason: string;
-  hash: string;
-  extrinsic_index: string;
-  status: string;
-  amount: string;
-  close_block_num: number;
-  tipper_num: number;
-  finder: AccountInf;
-  beneficiary: AccountInf;
-}
 
 interface Props {
   address: string;
-  tips: Tip[];
+  tips: Tip[] | null;
   chain: Chain;
   chainInfo: ChainInfo;
 }
