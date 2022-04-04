@@ -96,8 +96,8 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
 
   if (!tips) {
     return (
-      <Grid sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
-        {t('No tips')}
+      <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
+        {t('No active tips')}
       </Grid>
     );
   }
