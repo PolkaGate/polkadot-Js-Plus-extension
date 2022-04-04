@@ -102,7 +102,14 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
 
   return (
     <>
-      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Crowdloans')} />
+      <Header
+        showAdd
+        showBackArrow
+        showSettings
+        smallMargin
+        text={`${t<string>('Crowdloans')} ${chainInfo?.chainName ? 'on' : ''} ${chainInfo?.chainName ?? ''}`}
+      />
+      
       <Grid alignItems='center' container id='selectRelyChain' sx={{ p: '0px 35px' }}>
 
         <Grid item xs={12}>
