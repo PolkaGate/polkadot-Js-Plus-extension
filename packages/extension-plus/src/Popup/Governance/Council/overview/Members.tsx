@@ -27,7 +27,7 @@ export default function Members({ chain, chainInfo, membersType, personsInfo }: 
 
   return (
     <>
-      <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 14, fontWeigth: 'bold', p: '10px 1px 10px', textAlign: 'center' }} xs={12}>
+      <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 14, fontWeigth: 'bold', p: '10px 1px 10px', textAlign: 'center' }} xs={12}>
         {membersType}
       </Grid>
 
@@ -35,7 +35,7 @@ export default function Members({ chain, chainInfo, membersType, personsInfo }: 
         ? personsInfo.infos.map((p, index) => (
           <Member backed={personsInfo?.backed && personsInfo?.backed[index]} chain={chain} chainInfo={chainInfo} info={p} key={index} />
         ))
-        : <Grid sx={{ fontSize: 12, pt: 2, textAlign: 'center' }} xs={12}>
+        : <Grid item sx={{ fontSize: 12, pt: 2, textAlign: 'center' }} xs={12}>
           {membersType &&
             <>{t('No ')}{membersType.toLowerCase()} {t(' found')}</>
           }
