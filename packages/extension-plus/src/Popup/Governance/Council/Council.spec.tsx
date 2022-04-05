@@ -91,7 +91,7 @@ describe('Testing Council component', () => {
     }
   });
 
-  test('Checking the COUNCILLORS\'s tab elements', () => {
+  test('Checking the COUNCILLORS\' tab elements', () => {
     const { getByRole, queryAllByText, queryByText } = render(
       <CouncilCouncilors
         address={address}
@@ -212,7 +212,7 @@ describe('Testing Council component', () => {
     expect(queryByTestId('confirmButton')).toBeTruthy();
   });
 
-  test('Checking the motions\'s tab elements', () => {
+  test('Checking the MOTIONS\' tab elements', () => {
     const { queryAllByRole, queryByText } = render(
       <Motions
         chainInfo={chainInfo}
