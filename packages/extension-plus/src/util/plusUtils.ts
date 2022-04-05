@@ -14,6 +14,7 @@ import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { BLOCK_RATE, FLOATING_POINT_DIGIT, SHORT_ADDRESS_CHARACTERS } from './constants';
 import { AccountsBalanceType, savedMetaData, TransactionDetail } from './plusTypes';
+import { ApiPromise } from '@polkadot/api';
 
 interface Meta {
   docs: Text[];
@@ -54,8 +55,9 @@ export function balanceToHuman(_balance: AccountsBalanceType | null, _type: stri
   }
 }
 
-// const amountToHuman = (x: bigint): string => api.createType('Balance', x).toHuman();
-export function amountToHuman(_amount: string | bigint| Compact<u128> | undefined, _decimals: number, decimalDigits?: number, commify?: boolean): string {
+export const toHuman = (api: ApiPromise, value: unknown) => api.createType('Balance', value).toHuman();
+
+export function amountToHuman(_amount: string | bigint | Compact<u128> | undefined, _decimals: number, decimalDigits?: number, commify?: boolean): string {
   if (!_amount) return '';
 
   _amount = String(_amount).replace(/,/g, '');
