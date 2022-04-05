@@ -3,9 +3,9 @@
 
 import request from 'umi-request';
 
-import { TransferRequest } from '../plusTypes';
+import { TipsRequest } from '../plusTypes';
 
-export default function getTips(chainName: string, pageNum: number, pageSize: number): Promise<TransferRequest> {
+export default function getTips(chainName: string, pageNum: number, pageSize: number): Promise<TipsRequest> {
   return postReq(`https://${chainName}.api.subscan.io/api/scan/treasury/tips`, {
     // from_block: 8658091,
     // to_block: 8684569,
@@ -14,7 +14,7 @@ export default function getTips(chainName: string, pageNum: number, pageSize: nu
   });
 }
 
-function postReq(api: string, data: Record<string, any> = {}, option?: Record<string, any>): Promise<TransferRequest> {
+function postReq(api: string, data: Record<string, any> = {}, option?: Record<string, any>): Promise<TipsRequest> {
   return request.post(api, {
     data,
     ...option
