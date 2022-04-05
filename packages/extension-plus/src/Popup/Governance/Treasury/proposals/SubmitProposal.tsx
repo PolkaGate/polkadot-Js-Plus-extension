@@ -18,7 +18,7 @@ import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo, nameAddress } from '../../../../util/plusTypes';
-import { amountToHuman, amountToMachine } from '../../../../util/plusUtils';
+import { amountToMachine } from '../../../../util/plusUtils';
 
 interface Props {
   address: string;
@@ -112,7 +112,7 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
       </Grid>
       {!!beneficiaryAddress &&
         <Grid item>
-        <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
+          <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title={t('Fee')} />
         </Grid>
       }
     </Grid>
@@ -159,12 +159,12 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
       <Grid container item justifyContent='space-between' sx={{ fontSize: 13, p: '55px 40px 0px' }} xs={12}>
         <Grid item>
           <Hint icon={true} id='pBond' place='right' tip='% of value would need to be put up as collateral'>
-            {t('Proposal bond')}{': '} {bondPercentage.toFixed(2)} %
+            {`${t('Proposal bond')}: ${bondPercentage.toFixed(2)} %`}
           </Hint>
         </Grid>
         <Grid item>
           <Hint icon={true} id='mBond' place='left' tip='the minimum to put up as collateral'>
-            {t('Minimum bond')}{': '} {proposalBondMinimum.toHuman()}
+            {`${t('Minimum bond')}: ${proposalBondMinimum.toHuman()}`}
           </Hint>
         </Grid>
       </Grid>
