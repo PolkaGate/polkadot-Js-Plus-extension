@@ -6,7 +6,7 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
 import { AddCircleRounded as AddCircleRoundedIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Avatar, Button, Grid, Link, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useState } from 'react';
 
@@ -20,9 +20,8 @@ import Identity from '../../../../components/Identity';
 import getCouncilMembersInfo from '../../../../util/api/getCouncilMembersInfo';
 import getLogo from '../../../../util/getLogo';
 import { ChainInfo, Tip } from '../../../../util/plusTypes';
-import { amountToHuman } from '../../../../util/plusUtils';
-import SubmitTip from './SubmitTip';
-
+import { toHuman } from '../../../../util/plusUtils';
+import ProposeTip from './ProposeTip';
 
 interface Props {
   address: string;
@@ -34,14 +33,14 @@ interface Props {
 export default function Overview({ address, chain, chainInfo, tips }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
-  const [showSubmitTipModal, setShowSubmitTipModal] = useState<boolean>(false);
+  const [showProposeTipModal, setShowProposeTipModal] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<number>(-1);
   const [tippers, setTippers] = useState<[DeriveAccountInfo, u128][][]>();
 
   const { api } = chainInfo;
 
-  const handleSubmitTip = useCallback(() => { setShowSubmitTipModal(true); }, []);
-  const handleSubmitTipModalClose = useCallback(() => { setShowSubmitTipModal(false); }, []);
+  const handleProposeTip = useCallback(() => { setShowProposeTipModal(true); }, []);
+  const handleProposeTipModalClose = useCallback(() => { setShowProposeTipModal(false); }, []);
 
   const handleAccordionChange = useCallback((panel: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : -1);
@@ -49,7 +48,9 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
 
   // eslint-disable-next-line no-void
   void React.useMemo(async () => {
-    const wrappedTips: Option<PalletTipsOpenTip>[] = await Promise.all(tips?.map((tip) => api.query.tips.tips(tip.hash)));
+    if (!tips) return;
+
+    const wrappedTips: Option<PalletTipsOpenTip>[] = await Promise.all(tips.map((tip) => api.query.tips.tips(tip.hash)));
     const councilMembersInfo: DeriveAccountInfo[] = await getCouncilMembersInfo(chainName);
 
     if (!councilMembersInfo.length) return;
@@ -65,7 +66,7 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
     });
 
     setTippers(tipInfos);
-  }, [api.query.tips, chainName, tips]);
+  }, [api, chainName, tips]);
 
   if (!tips) {
     return (
@@ -77,9 +78,9 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
 
   return (
     <>
-      <Grid container justifyContent='flex-end' xs={12}>
+      <Grid container justifyContent='flex-end'>
         <Grid item sx={{ p: '10px 30px' }}>
-          <Button color='warning' onClick={handleSubmitTip} size='small' startIcon={<AddCircleRoundedIcon />} variant='outlined'>
+          <Button color='warning' onClick={handleProposeTip} size='small' startIcon={<AddCircleRoundedIcon />} variant='outlined'>
             {t('Propose tip')}
           </Button>
         </Grid>
@@ -94,15 +95,15 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
 
             <Accordion disableGutters expanded={expanded === index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Grid container justifyContent='space-between' xs={12}>
+                <Grid container justifyContent='space-between'>
                   <Grid item>
-                    {t('Status')}{': '}{tip.status}
+                    {`${t('Status')}: ${tip.status}`}
                   </Grid>
                   <Grid item>
-                    {t('Amount')}{': '}{amountToHuman(tip.amount, chainInfo.decimals)}{' '}{chainInfo.coin}
+                    {`${t('Amount')}: ${toHuman(api, tip.amount)}`}
                   </Grid>
                   <Grid item>
-                    {t('Tippers')}{': '}{tip.tipper_num}
+                    {`${t('Tippers')}: ${tip.tipper_num}`}
                   </Grid>
                 </Grid>
               </AccordionSummary>
@@ -160,13 +161,13 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
           </Paper>);
       })}
 
-      {showSubmitTipModal &&
-        <SubmitTip
+      {showProposeTipModal &&
+        <ProposeTip
           address={address}
           chain={chain}
           chainInfo={chainInfo}
-          handleSubmitTipModalClose={handleSubmitTipModalClose}
-          showSubmitTipModal={showSubmitTipModal}
+          handleProposeTipModalClose={handleProposeTipModalClose}
+          showProposeTipModal={showProposeTipModal}
         />
       }
     </>
