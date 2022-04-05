@@ -176,13 +176,14 @@ export interface TransferRequest {
   message: string;
 }
 
-interface AccountDisplay {
-  address: string;
-  display: string;
-  judgements: string;
-  account_index: string;
-  identity: boolean;
-  parent: any;
+export interface TipsRequest {
+  code: number;
+  data: {
+    count: number;
+    list: Tip[];
+  };
+  generated_at: number;
+  message: string;
 }
 
 export interface Transfers {
@@ -200,6 +201,15 @@ export interface Transfers {
   success: boolean
   to: string;
   to_account_display: AccountDisplay;
+}
+
+interface AccountDisplay {
+  address: string;
+  display: string;
+  judgements: string;
+  account_index: string;
+  identity: boolean;
+  parent: any;
 }
 
 export interface CouncilInfo extends DeriveElectionsInfo {
