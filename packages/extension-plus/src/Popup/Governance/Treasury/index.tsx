@@ -81,21 +81,21 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
           </Tabs>
         </Grid>
 
-        {tabValue === 'proposals'
-          ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
+        {tabValue === 'proposals' &&
+          <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && proposals !== undefined
               ? <ProposalOverview address={address} chain={chain} chainInfo={chainInfo} proposalsInfo={proposals} />
-              : <Progress title={'Loading proposals ...'} />}
+              : <Progress title={t('Loading proposals ...')} />}
           </Grid>
-          : ''}
+        }
 
-        {tabValue === 'tips'
-          ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
+        {tabValue === 'tips' &&
+          <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && tips !== undefined
               ? <TipOverview address={address} chain={chain} chainInfo={chainInfo} tips={tips} />
-              : <Progress title={'Loading tips ...'} />}
+              : <Progress title={t('Loading tips ...')} />}
           </Grid>
-          : ''}
+        }
       </Grid>
     </Popup>
   );
