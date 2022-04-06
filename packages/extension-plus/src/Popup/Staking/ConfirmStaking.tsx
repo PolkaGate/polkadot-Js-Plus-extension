@@ -463,6 +463,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, rebagInfo, ha
 
         setConfirmingState(status);
       }
+
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, staker.address, history);
     } catch (e) {
