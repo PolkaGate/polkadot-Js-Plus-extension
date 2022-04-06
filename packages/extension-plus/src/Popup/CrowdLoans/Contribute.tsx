@@ -3,16 +3,16 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component renders contribute page where users can easily contribute to an active crowdloan */
+/** 
+ * @description
+ *  this component renders contribute page where users can easily contribute to an active crowdloan
+ * */
 
 import { AllOut as AllOutIcon } from '@mui/icons-material';
-import { Box, Grid, InputAdornment, Skeleton, TextField } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { Grid, InputAdornment, Skeleton, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
-import { AccountWithChildren } from '@polkadot/extension-base/background/types';
-import { Chain } from '@polkadot/extension-chains/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
@@ -20,11 +20,11 @@ import keyring from '@polkadot/ui-keyring';
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Password, PlusHeader, Popup, Participator } from '../../components';
+import { ConfirmButton, Participator, Password, PlusHeader, Popup } from '../../components';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { Auction, ChainInfo, Crowdloan, nameAddress, TransactionDetail } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine, fixFloatingPoint, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
+import { amountToHuman, amountToMachine, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
 import Fund from './Fund';
 
 interface Props {
@@ -80,17 +80,14 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
     setContributeModalOpen(false);
   }, [setContributeModalOpen]);
 
-  function saveHistory(chain: Chain | null, hierarchy: AccountWithChildren[], address: string, currentTransactionDetail: TransactionDetail, _chainName?: string): Promise<boolean> {
-    const accountSubstrateAddress = getSubstrateAddress(address);
-    const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress, _chainName);
-
-    savedHistory.push(currentTransactionDetail);
-
-    return updateMeta(accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory, _chainName));
-  }
-
   const handleConfirm = async (): Promise<void> => {
     try {
+      if (!encodedAddressInfo) {
+        console.log(' No encoded address');
+
+        return;
+      }
+
       setConfirmingState('confirming');
       const signer = keyring.getPair(encodedAddressInfo?.address);
 
@@ -102,7 +99,6 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
 
       const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, encodedAddressInfo.address);
 
-      setConfirmingState(status);
 
       const history: TransactionDetail = {
         action: 'contribute',
@@ -116,8 +112,9 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
         to: crowdloan.fund.paraId
       };
 
-      // eslint-disable-next-line no-void
-      void saveHistory(chain, hierarchy, encodedAddressInfo.address, history);
+      updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, history)).catch(console.error);
+     
+      setConfirmingState(status);
     } catch (e) {
       console.log('error:', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
