@@ -4,7 +4,7 @@
 import '@polkadot/extension-mocks/chrome';
 import 'intersection-observer';
 
-import { fireEvent, render, waitForElementToBeRemoved } from '@testing-library/react';
+import { fireEvent, render, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -30,13 +30,13 @@ const balanceInfo: BalanceType = {
   total: amountToMachine(availableBalanceInHuman.toString(), decimals)
 };
 const sender: AccountsBalanceType | null = {
-  address: accounts[2].address,
+  address: accounts[0].address,
   balanceInfo: balanceInfo,
   chain: 'westend',
   name: 'Amir khan'
 };
 
-jest.setTimeout(60000);
+jest.setTimeout(90000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
 describe('Testing History component', () => {
@@ -50,7 +50,7 @@ describe('Testing History component', () => {
   let status: string | null | undefined;
 
   test('Checking the existence of elements', async () => {
-    const { queryAllByText, queryByTestId, queryByText } = render(
+    const { findByText, queryByTestId, queryByText } = render(
       <AccountContext.Provider
         value={{
           accounts: accounts,
@@ -66,17 +66,17 @@ describe('Testing History component', () => {
       </AccountContext.Provider>
     );
 
-    expect(queryAllByText('All')).toHaveLength(1);
-    expect(queryAllByText('Transfers')).toHaveLength(1);
-    expect(queryAllByText('Staking')).toHaveLength(1);
-    expect(queryAllByText('Nothing to show')).toHaveLength(1);
-    expect(queryAllByText('Loading ...')).toHaveLength(1);
+    expect(queryByText('All')).toBeTruthy();
+    expect(queryByText('Transfers')).toBeTruthy();
+    expect(queryByText('Staking')).toBeTruthy();
+    expect(queryByText('Nothing to show')).toBeTruthy();
+    expect(queryByText('Loading ...')).toBeTruthy();
 
-    await waitForElementToBeRemoved(() => queryByText('Loading ...'), { timeout: 30000 });
-    const children = queryByTestId('scrollArea')?.childNodes;
-
-    if (!(children.length >= 3)) {
-      console.log('There is not any history!');
+    // TODO find better way for wait until histories found
+    try {
+      await waitForElementToBeRemoved(() => queryByText('Nothing to show'), { timeout: 50000 });
+    } catch (error) {
+      console.log('The account has no history!');
 
       return;
     }
@@ -96,6 +96,6 @@ describe('Testing History component', () => {
     expect(txStatus.includes(status)).toBe(true);
 
     fireEvent.click(queryByTestId('scrollArea')?.children.item(0)?.children.item(2)?.children.item(0) as Element);
-    expect(queryAllByText('Transaction Detail')).toHaveLength(1);
+    expect(queryByText('Transaction Detail')).toBeTruthy();
   });
 });
