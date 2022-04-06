@@ -4,7 +4,7 @@
 
 import type { Chain } from '@polkadot/extension-chains/types';
 
-import getChainInfo from 'memoize-one';
+import Memoize from 'memoize-one';
 
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { createWsEndpoints } from '@polkadot/apps-config';
@@ -13,7 +13,7 @@ import { ChainInfo } from './plusTypes';
 
 const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
 
-async function gChainInfo(searchKeyWord: Chain | string): Promise<ChainInfo> {
+async function getChainInfo(searchKeyWord: Chain | string): Promise<ChainInfo> {
   const chainName = (searchKeyWord as Chain)?.name?.replace(' Relay Chain', '') ?? searchKeyWord as string;
 
   // if (!chainName) return null;
@@ -38,4 +38,4 @@ async function gChainInfo(searchKeyWord: Chain | string): Promise<ChainInfo> {
   };
 }
 
-export default getChainInfo(gChainInfo);
+export default Memoize(getChainInfo);
