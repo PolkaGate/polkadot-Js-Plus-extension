@@ -377,7 +377,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           </>}
         </Grid>
       </Grid>
-      {transferModalOpen && sender &&
+      {transferModalOpen && sender && chain &&
         <TransferFunds
           chain={chain}
           chainInfo={chainInfo}
@@ -387,7 +387,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           transferModalOpen={transferModalOpen}
         />
       }
-      {showQRcodeModalOpen &&
+      {showQRcodeModalOpen && chain && 
         <AddressQRcode
           address={String(formattedAddress || address)}
           chain={chain}
@@ -396,7 +396,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           showQRcodeModalOpen={showQRcodeModalOpen}
         />
       }
-      {showTxHistoryModal &&
+      {showTxHistoryModal && chain &&
         <TransactionHistory
           address={sender}
           chain={chain}
