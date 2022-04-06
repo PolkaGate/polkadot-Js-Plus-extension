@@ -39,7 +39,7 @@ interface Props {
   chainInfo: ChainInfo | undefined;
   sender: AccountsBalanceType;
   transferModalOpen: boolean;
-  chain?: Chain | null;
+  chain: Chain;
   children?: React.ReactNode;
   className?: string;
   setTransferModalOpen: Dispatch<SetStateAction<boolean>>;
