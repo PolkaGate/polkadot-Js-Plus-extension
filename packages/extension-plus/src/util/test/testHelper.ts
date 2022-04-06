@@ -1268,6 +1268,16 @@ export const stakingConsts: StakingConsts = {
   minNominatorBond: 1000000000000n
 };
 
+export const nominatorInfoFalse = {
+  isInList: false,
+  minNominated: 2500000000000n
+};
+
+export const nominatorInfoTrue = {
+  isInList: false,
+  minNominated: 2500000000000n
+};
+
 export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[5].address, exposure: { others: others.slice(1), total: 1.23456 }, validatorPrefs: { commission: 200000000 } },
   { accountId: validatorsName[6].address, exposure: { others: others.slice(0, 1), total: 12.3456 }, validatorPrefs: { commission: 210000000 } },
