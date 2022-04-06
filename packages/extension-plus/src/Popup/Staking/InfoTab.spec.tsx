@@ -10,8 +10,8 @@ import ReactDOM from 'react-dom';
 
 import getChainInfo from '../../util/getChainInfo';
 import { ChainInfo } from '../../util/plusTypes';
-import { amountToHuman } from '../../util/plusUtils';
-import { stakingConsts } from '../../util/test/testHelper';
+import { toHuman } from '../../util/plusUtils';
+import { nominatorInfoFalse, stakingConsts } from '../../util/test/testHelper';
 import Info from './InfoTab';
 
 let chainInfo: ChainInfo | null = null;
@@ -29,24 +29,27 @@ describe('Testing Info component', () => {
 
     expect(queryByText('Welcome to Staking')).toBeTruthy();
     expect(queryByText('Information you need to know about')).toBeTruthy();
-    // expect(queryByText('Loading information ...')).toBeTruthy();
   });
 
   test('Checking the existence of elements when loading is done', async () => {
     chainInfo = await getChainInfo('westend');
+    const { api } = chainInfo;
+    const currentEraIndex = Number(await chainInfo.api.query.staking.currentEra());
     const { queryByTestId, queryByText } = render(
       <Info
         chainInfo={chainInfo}
+        currentEraIndex={currentEraIndex}
+        minNominated={nominatorInfoFalse.minNominated}
         stakingConsts={stakingConsts}
       />);
 
     expect(queryByText('Welcome to Staking')).toBeTruthy();
     expect(queryByText('Information you need to know about')).toBeTruthy();
-    expect(queryByTestId('info').children.item(3).textContent).toEqual(`Maximum validators you can select:   ${stakingConsts.maxNominations}`);
-    expect(queryByTestId('info').children.item(4).textContent).toEqual(`Minimum ${chainInfo.coin}s to be a staker:   ${amountToHuman(stakingConsts.minNominatorBond, chainInfo.decimals)} ${chainInfo.coin}s`);
-    expect(queryByTestId('info').children.item(5).textContent).toEqual(`Maximum nominators of a validator, who may receive rewards:   ${stakingConsts.maxNominatorRewardedPerValidator}`);
-    expect(queryByTestId('info').children.item(6).textContent).toEqual(`Days it takes to receive your funds back after unstaking:    ${stakingConsts.bondingDuration}  days`);
-    expect(queryByTestId('info').children.item(7).textContent).toEqual(`Minimum ${chainInfo.coin}s that must remain in your account: ${amountToHuman(stakingConsts.existentialDeposit.toString(), chainInfo.decimals)} ${chainInfo.coin}`);
-    // expect(queryByTestId('info').children.item(7).textContent).toEqual(`Minimum ${chainInfo.coin}s that must remain in your account: ${amountToHuman(stakingConsts.existentialDeposit.toString(), chainInfo.decimals)} ${chainInfo.coin}s plus some fees`);
+    expect(queryByTestId('info')?.children.item(2)?.children.item(0)?.textContent).toEqual(`Maximum validators you can select: ${stakingConsts.maxNominations} `);
+    expect(queryByTestId('info')?.children.item(2)?.children.item(1)?.textContent).toEqual(`Minimum {{symbol}}s to be a staker (threshold): ${toHuman(api, stakingConsts.minNominatorBond)}`);
+    expect(queryByTestId('info')?.children.item(2)?.children.item(2)?.textContent).toEqual(`Minimum {{symbol}}s to recieve rewards today (era: {{eraIndex}}):${toHuman(api, nominatorInfoFalse.minNominated)}`);
+    expect(queryByTestId('info')?.children.item(2)?.children.item(3)?.textContent).toEqual(`Maximum nominators of a validator, who may receive rewards: ${stakingConsts.maxNominatorRewardedPerValidator} `);
+    expect(queryByTestId('info')?.children.item(2)?.children.item(4)?.textContent).toEqual(`Days it takes to receive your funds back after unstaking:  ${stakingConsts.bondingDuration} days`);
+    expect(queryByTestId('info')?.children.item(2)?.children.item(5)?.textContent).toEqual(`Minimum {{symbol}}s that must remain in your account (existential deposit): ${toHuman(api, stakingConsts.existentialDeposit.toString())}`);
   });
 });
