@@ -3,7 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE here users can double check their transfer information before submitting it to the blockchain */
+/** 
+ * @description
+ *  here users can double check their transfer information before submitting it to the blockchain 
+ * */
 
 import type { KeypairType } from '@polkadot/util-crypto/types';
 
@@ -17,7 +20,6 @@ import Identicon from '@polkadot/react-identicon';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
-import { AccountWithChildren } from '../../../../extension-base/src/background/types';
 import { Chain } from '../../../../extension-chains/src/types';
 import { AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -27,14 +29,14 @@ import Hint from '../../components/Hint';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { AccountsBalanceType, ChainInfo, TransactionDetail } from '../../util/plusTypes';
-import { amountToHuman, fixFloatingPoint, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
+import { amountToHuman, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
 
 interface Props {
   actions?: React.ReactNode;
   chainInfo: ChainInfo;
   sender: AccountsBalanceType;
   recepient: AccountsBalanceType;
-  chain?: Chain | null;
+  chain: Chain ;
   children?: React.ReactNode;
   className?: string;
   confirmModalOpen: boolean;
@@ -77,15 +79,6 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
   useEffect(() => {
     setTransferAllAlert(['All', 'Max'].includes(transferAllType));
   }, [transferAllType]);
-
-  async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, currentTransactionDetail: TransactionDetail): Promise<boolean> {
-    const accountSubstrateAddress = getSubstrateAddress(address);
-    const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
-
-    savedHistory.push(currentTransactionDetail);
-
-    return updateMeta(accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory));
-  }
 
   useEffect(() => {
     setNewFee(lastFee);
@@ -153,7 +146,8 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
       };
 
       // eslint-disable-next-line no-void
-      void saveHistory(chain, hierarchy, sender.address, currentTransactionDetail);
+      updateMeta(...saveHistory(chain, hierarchy, sender.address, currentTransactionDetail)).catch(console.error);
+
       setState(status);
     } catch (e) {
       console.log('password issue:', e);
