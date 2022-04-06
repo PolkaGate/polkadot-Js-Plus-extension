@@ -228,3 +228,12 @@ export const isEqual = (a1: any[] | null, a2: any[] | null): boolean => {
 
   return JSON.stringify(a1Sorted) === JSON.stringify(a2Sorted);
 };
+
+// export function saveHistory(chain: Chain | null, hierarchy: AccountWithChildren[], address: string, currentTransactionDetail: TransactionDetail, _chainName?: string): [string, string] {
+//   const accountSubstrateAddress = getSubstrateAddress(address);
+//   const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress, _chainName);
+
+//   savedHistory.push(currentTransactionDetail);
+
+//   return [accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory, _chainName)];
+// }
