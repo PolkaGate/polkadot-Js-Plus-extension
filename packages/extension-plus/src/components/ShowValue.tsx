@@ -3,16 +3,15 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description  this componet is used to show an value, if not loaded shows skelton
  * */
- import type { ThemeProps } from '../../../extension-ui/src/types';
+
+import type { ThemeProps } from '../../../extension-ui/src/types';
 
 import { Skeleton } from '@mui/material';
 import React from 'react';
 import styled from 'styled-components';
-
-import { ChainInfo } from '../util/plusTypes';
 
 export interface Props {
   value: string | number | null | undefined;
