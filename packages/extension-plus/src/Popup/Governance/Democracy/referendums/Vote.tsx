@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
-/* eslint-disable react/jsx-max-props-per-line */
 
 /**
  * @description here one can vote Aye or Nay to a referendum
@@ -47,25 +46,33 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   const [votingBalance, setVotingBalance] = useState<Balance | undefined>();
   const [voteValueInHuman, setVoteValueInHuman] = useState<string>();
   const [voteValue, setVoteValue] = useState<Balance | undefined>();
-
   const [selectedConviction, setSelectedConviction] = useState<number>(convictions[0].value);
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
-  const { api, decimals } = chainInfo;
+  const { api, coin, decimals } = chainInfo;
 
   const isCurrentVote = !!api.query.democracy.votingOf;
   const tx = api.tx.democracy.vote;
 
   useEffect(() => {
-    const voteValueInMachine = amountToMachine(voteValueInHuman, chainInfo.decimals);
+    const voteValueInMachine = amountToMachine(voteValueInHuman, decimals);
     const voteValueInBalanceType = api.createType('Balance', voteValueInMachine);
 
     setVoteValue(voteValueInBalanceType);
-  }, [api, chainInfo.decimals, voteValueInHuman]);
+  }, [api, decimals, voteValueInHuman]);
 
   useEffect(() => {
-    if (!chainInfo || !tx || !encodedAddressInfo) {
+    if (!encodedAddressInfo) { return; }
+
+    // eslint-disable-next-line no-void
+    void api.derive.balances?.all(encodedAddressInfo.address).then((b) => {
+      setVotingBalance(b?.votingBalance);
+    }).catch(console.error);
+  }, [api.derive.balances, encodedAddressInfo]);
+
+  useEffect(() => {
+    if (!tx || !encodedAddressInfo) {
       return;
     }
 
@@ -79,11 +86,6 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
     void tx(...p).paymentInfo(encodedAddressInfo.address)
       .then((i) => setEstimatedFee(i?.partialFee))
       .catch(console.error);
-
-    // eslint-disable-next-line no-void
-    void api.derive.balances?.all(encodedAddressInfo.address).then((b) => {
-      setVotingBalance(b?.votingBalance);
-    }).catch(console.error);
   }, [chainInfo, isCurrentVote, encodedAddressInfo, selectedConviction, tx, voteInfo, voteValue, api.derive.balances]);
 
   useEffect(() => {
@@ -113,7 +115,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
 
       const currentTransactionDetail: TransactionDetail = {
         action: 'democracy_vote',
-        amount: amountToHuman(String(voteValue), decimals),
+        amount: voteValueInHuman,
         block: block,
         date: Date.now(),
         fee: fee || '',
@@ -123,7 +125,6 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
         to: voteInfo.refId
       };
 
-      // eslint-disable-next-line no-void
       updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
 
       setState(status);
@@ -132,7 +133,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [encodedAddressInfo, password, api, tx, params, voteValue, decimals, voteInfo.refId, chain, hierarchy]);
+  }, [encodedAddressInfo?.address, password, api, tx, params, voteValueInHuman, voteInfo.refId, chain, hierarchy]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -152,7 +153,12 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, []);
 
   const HelperText = () => (
-    <Grid container item justifyContent='space-between' xs={12}>
+    <Grid
+      container
+      item
+      justifyContent='space-between'
+      xs={12}
+    >
       <Grid item>
         {t('This value is locked for the duration of the vote')}
       </Grid>
@@ -166,7 +172,10 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
     </Grid>);
 
   return (
-    <Popup handleClose={handleVoteReferendumModalClose} showModal={showVoteReferendumModal}>
+    <Popup
+      handleClose={handleVoteReferendumModalClose}
+      showModal={showVoteReferendumModal}
+    >
       <PlusHeader
         action={handleVoteReferendumModalClose}
         chain={chain}
@@ -174,7 +183,6 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
         icon={voteInfo.voteType === VOTE_MAP.AYE ? <ThumbUpAltIcon fontSize='small' /> : <ThumbDownAltIcon fontSize='small' />}
         title={`${t('Vote')} to ${voteInfo.refId}`}
       />
-
       <Participator
         address={address}
         availableBalance={availableBalance}
@@ -185,15 +193,26 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
         setAvailableBalance={setAvailableBalance}
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
-
-      <Grid item sx={{ color: grey[600], fontSize: 11, px: '48px', textAlign: 'right' }} xs={12}>
-        <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />
+      <Grid
+        item
+        sx={{ color: grey[600], fontSize: 11, px: '48px', textAlign: 'right' }}
+        xs={12}
+      >
+        <ShowBalance
+          balance={votingBalance}
+          chainInfo={chainInfo}
+          decimalDigits={5}
+          title={t('Voting balance')}
+        />
       </Grid>
-
-      <Grid item sx={{ p: '50px 40px 20px' }} xs={12}>
+      <Grid
+        item
+        sx={{ p: '50px 40px 20px' }}
+        xs={12}
+      >
         <TextField
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
+          InputProps={{ endAdornment: (<InputAdornment position='end'>{coin}</InputAdornment>) }}
           autoFocus
           color='warning'
           fullWidth
@@ -209,8 +228,11 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
           variant='outlined'
         />
       </Grid>
-
-      <Grid item sx={{ p: '5px 40px 20px' }} xs={12}>
+      <Grid
+        item
+        sx={{ p: '5px 40px 20px' }}
+        xs={12}
+      >
         <FormControl fullWidth>
           <InputLabel>{t('Locked for')}</InputLabel>
           <Select
@@ -221,7 +243,11 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
             value={selectedConviction}
           >
             {convictions?.map((c) => (
-              <option key={c.value} style={{ fontSize: 13 }} value={c.value}>
+              <option
+                key={c.value}
+                style={{ fontSize: 13 }}
+                value={c.value}
+              >
                 {c.text}
               </option>
             ))}
@@ -229,8 +255,12 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
         </FormControl>
         <FormHelperText>{t('The conviction to use for this vote with appropriate lock period')}</FormHelperText>
       </Grid>
-
-      <Grid container item sx={{ p: '40px 30px', textAlign: 'center' }} xs={12}>
+      <Grid
+        container
+        item
+        sx={{ p: '40px 30px', textAlign: 'center' }}
+        xs={12}
+      >
         <Password
           handleIt={handleConfirm}
           password={password}
@@ -238,7 +268,6 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
           setPassword={setPassword}
           setPasswordStatus={setPasswordStatus}
         />
-
         <ConfirmButton
           handleBack={handleReject}
           handleConfirm={handleConfirm}
@@ -247,7 +276,6 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
           state={state}
         />
       </Grid>
-
     </Popup>
   );
 }
