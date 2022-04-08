@@ -1,9 +1,8 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
-/* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description
  *  this component renders contribute page where users can easily contribute to an active crowdloan
  * */
@@ -24,7 +23,7 @@ import { ConfirmButton, Participator, Password, PlusHeader, Popup } from '../../
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { Auction, ChainInfo, Crowdloan, nameAddress, TransactionDetail } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
+import { amountToMachine, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
 import Fund from './Fund';
 
 interface Props {
@@ -35,46 +34,38 @@ interface Props {
   endpoints: LinkOption[];
   chainInfo: ChainInfo;
   address: string;
+  myContributions: Map<string, Balance> | undefined;
 }
 
-export default function Contribute({ address, auction, chainInfo, contributeModal, crowdloan, endpoints, setContributeModalOpen }: Props): React.ReactElement<Props> {
+export default function Contribute({ address, auction, chainInfo, contributeModal, crowdloan, myContributions, endpoints, setContributeModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
+  const { hierarchy } = useContext(AccountContext);
 
   const chain = useMetadata(chainInfo.genesisHash, true);
-  const auctionMinContributionInHuman = amountToHuman(auction.minContribution, chainInfo.decimals);
 
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [confirmingState, setConfirmingState] = useState<string>('');
   const [contributionAmountInHuman, setContributionAmountInHuman] = useState<string>('');
+  const [contributionAmount, setContributionAmount] = useState<Balance | undefined>();
+
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
 
-  const { hierarchy } = useContext(AccountContext);
-
-  const api = chainInfo.api;
+  const { api, coin, decimals } = chainInfo;
   const tx = api.tx.crowdloan.contribute;
+  const minContribution = api.createType('Balance', auction.minContribution);
 
   useEffect(() => {
-    if (!encodedAddressInfo) {
-      console.log('no encodedAddressInfo');
+    if (!encodedAddressInfo) { return; }
 
-      return;
-    }
-
-    const contributingAmountInMachine = amountToMachine(contributionAmountInHuman, chainInfo.decimals);
-
-    const dummyParams = ['2000', contributingAmountInMachine, null];
+    const dummyParams = ['2000', contributionAmount, null];
 
     // eslint-disable-next-line no-void
-    void tx(...dummyParams).paymentInfo(encodedAddressInfo.address)
-      .then((i) => {
-        setEstimatedFee(i?.partialFee);
-        console.log('estimatedFeeInHuman', i?.partialFee.toHuman());
-      }).catch(console.error);
-  }, [auction.minContribution, encodedAddressInfo, contributionAmountInHuman, chainInfo.decimals, tx]);
+    void tx(...dummyParams).paymentInfo(encodedAddressInfo.address).then((i) => setEstimatedFee(i?.partialFee)).catch(console.error);
+  }, [auction.minContribution, encodedAddressInfo, tx, contributionAmount]);
 
   const handleConfirmModaClose = useCallback((): void => {
     setContributeModalOpen(false);
@@ -93,12 +84,10 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
-      const contributingAmountInMachine = amountToMachine(contributionAmountInHuman, chainInfo.decimals);
 
-      const params = [crowdloan.fund.paraId, contributingAmountInMachine, null];
+      const params = [crowdloan.fund.paraId, contributionAmount, null];
 
       const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, encodedAddressInfo.address);
-
 
       const history: TransactionDetail = {
         action: 'contribute',
@@ -113,7 +102,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
       };
 
       updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, history)).catch(console.error);
-     
+
       setConfirmingState(status);
     } catch (e) {
       console.log('error:', e);
@@ -134,19 +123,39 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
 
   const handleChange = useCallback((value: string): void => {
     value = Number(value) < 0 ? String(-Number(value)) : value;
+    const fixedVal = fixFloatingPoint(value);
 
-    setContributionAmountInHuman(fixFloatingPoint(value));
-  }, []);
+    setContributionAmountInHuman(fixedVal);
+    const contributingAmountInMachine = amountToMachine(fixedVal, decimals);
+
+    setContributionAmount(api.createType('Balance', contributingAmountInMachine));
+  }, [api, decimals]);
 
   return (
-    <Popup handleClose={handleConfirmModaClose} showModal={contributeModal}>
-      <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<AllOutIcon fontSize='small' />} title={'Contribute'} />
-
-      <Grid container item sx={{ padding: '20px 30px 40px' }} xs={12}>
-        {chain && <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} />}
-
+    <Popup
+      handleClose={handleConfirmModaClose}
+      showModal={contributeModal}
+    >
+      <PlusHeader
+        action={handleReject}
+        chain={chain}
+        closeText={'Reject'}
+        icon={<AllOutIcon fontSize='small' />}
+        title={'Contribute'}
+      />
+      <Grid
+        container
+        sx={{ padding: '20px 30px 40px' }}
+      >
+        {chain &&
+          <Fund
+            coin={coin}
+            crowdloan={crowdloan}
+            decimals={decimals}
+            endpoints={endpoints}
+            myContributions={myContributions}
+          />}
       </Grid>
-
       <Participator
         address={address}
         availableBalance={availableBalance}
@@ -157,18 +166,27 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
         setAvailableBalance={setAvailableBalance}
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
-
-      <Grid container item xs={12} sx={{ p: '25px 40px 30px' }}>
+      <Grid
+        container
+        item
+        sx={{ p: '25px 40px 10px' }}
+        xs={12}
+      >
         <TextField
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
+          InputProps={{ endAdornment: (<InputAdornment position='end'>{coin}</InputAdornment>) }}
           autoFocus
           color='warning'
           fullWidth
           helperText={
-            <Grid container item justifyContent='space-between' xs={12}>
+            <Grid
+              container
+              item
+              justifyContent='space-between'
+              xs={12}
+            >
               <Grid item>
-                {t('Minimum contribution: ') + auctionMinContributionInHuman + ' ' + chainInfo.coin}
+                {`${t('Minimum contribution')}: ${minContribution.toHuman()}`}
               </Grid>
               <Grid item>
                 {t('Fee')} {': '}
@@ -183,15 +201,19 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
           margin='dense'
           name='contributionAmount'
           onChange={(event) => handleChange(event.target.value)}
-          placeholder={auctionMinContributionInHuman}
+          placeholder={'0'}
           size='medium'
           type='number'
           value={contributionAmountInHuman}
           variant='outlined'
         />
       </Grid>
-
-      <Grid container item sx={{ p: '20px' }} xs={12}>
+      <Grid
+        container
+        item
+        sx={{ p: '20px' }}
+        xs={12}
+      >
         <Password
           handleIt={handleConfirm}
           password={password}
@@ -199,13 +221,12 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
           setPassword={setPassword}
           setPasswordStatus={setPasswordStatus}
         />
-
         <ConfirmButton
           handleBack={handleBack}
           handleConfirm={handleConfirm}
           handleReject={handleBack}
-          isDisabled={!estimatedFee || !availableBalance || Number(contributionAmountInHuman) < Number(auctionMinContributionInHuman) ||
-            Number(contributionAmountInHuman) >= Number(amountToHuman(String(BigInt(availableBalance) - BigInt(estimatedFee)), chainInfo?.decimals))
+          isDisabled={!estimatedFee || !availableBalance || !contributionAmount || contributionAmount.lt(minContribution) ||
+            contributionAmount.add(estimatedFee).gt(availableBalance)
           }
           state={confirmingState}
         />
