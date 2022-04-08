@@ -5,18 +5,21 @@
 
 import { HowToReg as HowToRegIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, TextField } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
+import { AccountContext } from '../../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Hint, Participator, Password, PlusHeader, Popup, Progress, ShowBalance } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
 import getVotingBond from '../../../../../util/api/getVotingBond';
 import { PASS_MAP } from '../../../../../util/constants';
-import { ChainInfo, nameAddress, PersonsInfo } from '../../../../../util/plusTypes';
+import { ChainInfo, nameAddress, PersonsInfo, TransactionDetail } from '../../../../../util/plusTypes';
+import { amountToMachine, saveHistory } from '../../../../../util/plusUtils';
 import VoteMembers from './VoteMembers';
 
 interface Props {
@@ -30,6 +33,8 @@ interface Props {
 
 export default function Vote({ address, allCouncilInfo, chain, chainInfo, setShowVotesModal, showVotesModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const { hierarchy } = useContext(AccountContext);
+
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
@@ -39,20 +44,31 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
   const [votingBondFactor, setVotingBondFactor] = useState<bigint>();
   const [votingBond, setVotingBond] = useState<Balance | undefined>();
   const [state, setState] = useState<string>('');
-  const [voteValue, setVoteValue] = useState<bigint>();
-  const [estimatedFee, setEstimatedFee] = useState<bigint>();
+  const [voteValueInHuman, setVoteValueInHuman] = useState<string>('');
+  const [voteValue, setVoteValue] = useState<Balance | undefined>();
+  const [votingBalance, setVotingBalance] = useState<Balance | undefined>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
 
-  const { api, coin } = chainInfo;
+  const { api, coin, decimals } = chainInfo;
   const params = useMemo(() => [selectedCandidates, voteValue], [selectedCandidates, voteValue]);
 
   const electionApi = api.tx.phragmenElection ?? api.tx.electionsPhragmen ?? api.tx.elections;
   const tx = electionApi.vote;
 
   useEffect(() => {
+    if (!encodedAddressInfo) { return; }
+
+    // eslint-disable-next-line no-void
+    void api.derive.balances?.all(encodedAddressInfo.address).then((b) => {
+      setVotingBalance(b?.votingBalance);
+    }).catch(console.error);
+  }, [api.derive.balances, encodedAddressInfo]);
+
+  useEffect(() => {
     if (!encodedAddressInfo) return;
     // eslint-disable-next-line no-void
     void tx(...params).paymentInfo(encodedAddressInfo.address)
-      .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
+      .then((i) => setEstimatedFee(i?.partialFee))
       .catch(console.error);
   }, [params, encodedAddressInfo, tx]);
 
@@ -78,17 +94,34 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
 
   const handleVote = async () => {
     try {
+      if (!encodedAddressInfo?.address) {
+        console.log('no encoded address');
+
+        return;
+      }
+
       setState('confirming');
-      const signer = keyring.getPair(encodedAddressInfo?.address);
+      const signer = keyring.getPair(encodedAddressInfo.address);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, encodedAddressInfo?.address);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, signer, encodedAddressInfo.address);
 
-      // TODO: can save to history here
+      const currentTransactionDetail: TransactionDetail = {
+        action: 'council_vote',
+        amount: voteValueInHuman,
+        block: block,
+        date: Date.now(),
+        fee: fee || '',
+        from: encodedAddressInfo.address,
+        hash: txHash || '',
+        status: failureText || status,
+        to: ''
+      };
 
-      console.log('vote failureText', failureText);
+      updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
+
       setState(status);
     } catch (e) {
       console.log('error:', e);
@@ -98,8 +131,13 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
   };
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setVoteValue(event.target.value);
-  }, []);
+    const value = event.target.value;
+
+    setVoteValueInHuman(value);
+    const valueToMachine = amountToMachine(value, decimals);
+
+    setVoteValue(api.createType('Balance', valueToMachine));
+  }, [api, decimals]);
 
   const HelperText = () => (
     <Grid container item justifyContent='space-between' xs={12}>
@@ -127,16 +165,20 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <Grid container item justifyContent='flex-end' sx={{ px: '48px' }} xs={12}>
+      <Grid container item justifyContent='space-between' sx={{ pl: '120px', pr: '48px' }} xs={12}>
         <Grid item sx={{ fontSize: 11 }}>
           <Hint icon={true} id='votingBond' place='bottom' tip={t('will be reserved for the duration of your vote')}>
             <ShowBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
           </Hint>
         </Grid>
+        <Grid item sx={{ fontSize: 11 }}>
+          <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />
+        </Grid>
       </Grid>
 
       <Grid item sx={{ fontSize: 11, px: '40px' }} xs={12}>
         <TextField
+          InputLabelProps={{ shrink: true }}
           InputProps={{ endAdornment: (<InputAdornment position='end' sx={{ fontSize: 10 }}>{coin}</InputAdornment>) }}
           color='warning'
           fullWidth
@@ -145,10 +187,10 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
           margin='dense'
           name='value'
           onChange={handleChange}
-          placeholder='0'
+          placeholder={t('Positive number')}
           size='medium'
           type='number'
-          value={voteValue}
+          value={voteValueInHuman}
           variant='outlined'
         />
       </Grid>
@@ -173,7 +215,8 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
               handleBack={handleClose}
               handleConfirm={handleVote}
               handleReject={handleClose}
-              isDisabled={!availableBalance || !votingBond || votingBond.gt(availableBalance)} //FIXME: consider fee too
+              isDisabled={!votingBalance || !estimatedFee || !votingBond || !voteValue?.gtn(0) ||
+                voteValue.add(estimatedFee).add(votingBond).gt(votingBalance)}
               state={state}
               text='Vote'
             />
