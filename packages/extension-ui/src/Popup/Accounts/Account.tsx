@@ -59,7 +59,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
 
   const _actions = useMemo(() => (
     <>
-      {/* added for plus */}
+      {/* // added for plus */}
       {CROWDLOANS_CHAINS.includes(genesisHash) &&
         <Link
           className='newMenuItem'
