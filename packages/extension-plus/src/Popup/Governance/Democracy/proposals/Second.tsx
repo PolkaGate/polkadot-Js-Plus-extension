@@ -38,7 +38,6 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
 
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
-
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
@@ -55,7 +54,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
     api.tx.democracy.second.meta.args.length === 2
       ? [selectedProposal.index, selectedProposal.seconds.length]
       : [selectedProposal.index],
-    [api.tx.democracy.second.meta.args.length, selectedProposal.index, selectedProposal.seconds.length]);
+  [api.tx.democracy.second.meta.args.length, selectedProposal.index, selectedProposal.seconds.length]);
 
   useEffect(() => {
     if (!chainInfo || !tx || !encodedAddressInfo) return;
@@ -100,10 +99,8 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
         to: String(selectedProposal.index)
       };
 
-      // eslint-disable-next-line no-void
       updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
 
-      // TODO: can save to history here
       setState(status);
     } catch (e) {
       console.log('error in second proposal :', e);
@@ -115,7 +112,6 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
   return (
     <Popup handleClose={handleVoteProposalModalClose} showModal={showVoteProposalModal}>
       <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Second'} />
-
       <Participator
         address={address}
         availableBalance={availableBalance}
@@ -126,11 +122,9 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
         setAvailableBalance={setAvailableBalance}
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
-
       <Grid sx={{ color: grey[600], fontSize: 11, p: '0px 48px 20px', textAlign: 'right' }} xs={12}>
         <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title='Fee' />
       </Grid>
-
       <Grid container item justifyContent='center' sx={{ height: '280px' }} xs={12}>
         <Grid item sx={{ fontWeight: '600', pt: '50px', textAlign: 'center' }} xs={12}>
           <Typography variant='h6'>
@@ -143,7 +137,6 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
           </Typography>
         </Grid>
       </Grid>
-
       <Grid container item sx={{ p: '0px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
@@ -152,7 +145,6 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
           setPassword={setPassword}
           setPasswordStatus={setPasswordStatus}
         />
-
         <ConfirmButton
           handleBack={handleReject}
           handleConfirm={handleConfirm}
@@ -160,7 +152,6 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
           state={state}
         />
       </Grid>
-
     </Popup>
   );
 }
