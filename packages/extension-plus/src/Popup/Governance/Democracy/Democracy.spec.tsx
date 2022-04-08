@@ -3,6 +3,8 @@
 
 import '@polkadot/extension-mocks/chrome';
 
+import type { Codec } from '@polkadot/types/types';
+
 import { render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -10,21 +12,20 @@ import ReactDOM from 'react-dom';
 import { DeriveReferendumExt } from '@polkadot/api-derive/types';
 import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
-import Extension from '../../../../../extension-base/src/background/handlers/Extension';
+import { Balance } from '@polkadot/types/interfaces';
 
+import Extension from '../../../../../extension-base/src/background/handlers/Extension';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getReferendums from '../../../util/api/getReferendums';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo } from '../../../util/plusTypes';
-import { amountToHuman, formatMeta, handleAccountBalance, remainingTime } from '../../../util/plusUtils';
-import { accounts, chain, convictions, firstSuri, createExtension, createAcc} from '../../../util/test/testHelper';
+import { amountToHuman, formatMeta, remainingTime } from '../../../util/plusUtils';
+import { accounts, chain, convictions, createAcc, createExtension, firstSuri } from '../../../util/test/testHelper';
 import DemocracyProposals from './proposals/overview';
 import ReferendumsOverview from './referendums/overview';
 import Vote from './referendums/Vote';
-import { Balance } from '@polkadot/types/interfaces';
-import type { Codec } from '@polkadot/types/types';
 
-jest.setTimeout(60000);
+jest.setTimeout(90000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
 let chainInfo: ChainInfo;
@@ -60,7 +61,6 @@ describe('Testing Democracy component', () => {
     await chainInfo.api.query.system.account(accounts[0].address).then((balance: Codec) => {
       availableBalance = chainInfo.api.createType('Balance', (balance.data.free).sub(balance.data.miscFrozen));
     });
-
 
     await chainInfo.api.derive.balances?.all(accounts[0].address).then((b) => {
       votingBalance = b?.votingBalance;
@@ -99,12 +99,11 @@ describe('Testing Democracy component', () => {
       expect(queryByText(`End: #${end}`)).toBeTruthy();
       expect(queryByText(`Delay: ${delay}`)).toBeTruthy();
       expect(queryByText(`Threshold: ${threshold}`)).toBeTruthy();
-      expect(queryByText(description)).toBeTruthy();
       expect(queryByText(`Aye(${referendum[0].allAye?.length})`)).toBeTruthy();
       expect(queryByText(`Nay(${referendum[0].allNay?.length})`)).toBeTruthy();
       expect(queryByText(`${totalAye} ${chainInfo.coin}`)).toBeTruthy();
       expect(getByRole('progressbar')).toBeTruthy();
-      expect(queryByText('Remaining Time', { exact: false }).textContent).toEqual(`Remaining Time:  ${remainingTime(currentBlockNumber, referendum[0].status.end)}`);
+      expect(queryByText('Remaining Time', { exact: false })?.textContent).toEqual(`Remaining Time:  ${remainingTime(currentBlockNumber, referendum[0].status.end)}`);
       expect(queryByText(`${totalNay} ${chainInfo.coin}`)).toBeTruthy();
       expect(getByRole('button', { name: 'Aye' })).toBeTruthy();
       expect(getByRole('button', { name: 'Nay' })).toBeTruthy();
@@ -134,7 +133,7 @@ describe('Testing Democracy component', () => {
       </SettingsContext.Provider>
     );
 
-    expect(queryByText('Vote')).toBeTruthy();
+    expect(queryByText(`Vote to ${voteInfo.refId}`)).toBeTruthy();
     expect(queryByText('Voter:')).toBeTruthy();
     expect(container.querySelectorAll('option')).toHaveLength(convictions.length);
 

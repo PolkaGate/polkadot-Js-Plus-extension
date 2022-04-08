@@ -9,18 +9,21 @@
 */
 import { ThumbDownAlt as ThumbDownAltIcon, ThumbUpAlt as ThumbUpAltIcon } from '@mui/icons-material';
 import { FormControl, FormHelperText, Grid, InputAdornment, InputLabel, Select, SelectChangeEvent, Skeleton, TextField } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import { grey } from '@mui/material/colors';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
+import { AccountContext } from '../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
+import { updateMeta } from '../../../../../../extension-ui/src/messaging';
 import { ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP, VOTE_MAP } from '../../../../util/constants';
-import { ChainInfo, Conviction, nameAddress } from '../../../../util/plusTypes';
-import { amountToMachine, fixFloatingPoint } from '../../../../util/plusUtils';
+import { ChainInfo, Conviction, nameAddress, TransactionDetail } from '../../../../util/plusTypes';
+import { amountToHuman, amountToMachine, fixFloatingPoint, saveHistory } from '../../../../util/plusUtils';
 
 interface Props {
   address: string;
@@ -34,6 +37,7 @@ interface Props {
 
 export default function VoteReferendum({ address, chain, chainInfo, convictions, handleVoteReferendumModalClose, showVoteReferendumModal, voteInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const { hierarchy } = useContext(AccountContext);
 
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
@@ -48,7 +52,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
-  const { api } = chainInfo;
+  const { api, decimals } = chainInfo;
 
   const isCurrentVote = !!api.query.democracy.votingOf;
   const tx = api.tx.democracy.vote;
@@ -61,7 +65,10 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, [api, chainInfo.decimals, voteValueInHuman]);
 
   useEffect(() => {
-    if (!chainInfo || !tx || !encodedAddressInfo) return;
+    if (!chainInfo || !tx || !encodedAddressInfo) {
+      return;
+    }
+
     const p = isCurrentVote
       ? [voteInfo.refId, { Standard: { vote: { aye: voteInfo.voteType, selectedConviction }, voteValue } }]
       : [voteInfo.refId, { aye: voteInfo.voteType, selectedConviction }];
@@ -88,30 +95,44 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, [availableBalance, estimatedFee, voteValue, votingBalance]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
-    setState('confirming');
-
     if (!encodedAddressInfo?.address) {
       console.log('no encoded address');
 
       return;
     }
 
+    setState('confirming');
+
     try {
-      const pair = keyring.getPair(encodedAddressInfo?.address);
+      const pair = keyring.getPair(encodedAddressInfo.address);
 
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { status } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
 
-      // TODO can save to history here
+      const currentTransactionDetail: TransactionDetail = {
+        action: 'democracy_vote',
+        amount: amountToHuman(String(voteValue), decimals),
+        block: block,
+        date: Date.now(),
+        fee: fee || '',
+        from: encodedAddressInfo.address,
+        hash: txHash || '',
+        status: failureText || status,
+        to: voteInfo.refId
+      };
+
+      // eslint-disable-next-line no-void
+      updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
+
       setState(status);
     } catch (e) {
       console.log('error in VoteProposal :', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [api, params, password, encodedAddressInfo, tx]);
+  }, [encodedAddressInfo, password, api, tx, params, voteValue, decimals, voteInfo.refId, chain, hierarchy]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -151,7 +172,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
         chain={chain}
         closeText={'Close'}
         icon={voteInfo.voteType === VOTE_MAP.AYE ? <ThumbUpAltIcon fontSize='small' /> : <ThumbDownAltIcon fontSize='small' />}
-        title={'Vote'}
+        title={`${t('Vote')} to ${voteInfo.refId}`}
       />
 
       <Participator
@@ -165,11 +186,11 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <Grid item sx={{ fontSize: 11, px: '48px', textAlign: 'right' }} xs={12}>
+      <Grid item sx={{ color: grey[600], fontSize: 11, px: '48px', textAlign: 'right' }} xs={12}>
         <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />
       </Grid>
 
-      <Grid item sx={{ p: '40px 40px 20px' }} xs={12}>
+      <Grid item sx={{ p: '50px 40px 20px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
           InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo.coin}</InputAdornment>) }}
