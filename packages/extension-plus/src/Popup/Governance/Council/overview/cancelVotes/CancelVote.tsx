@@ -6,19 +6,22 @@
 import type { DeriveCouncilVote } from '@polkadot/api-derive/types';
 
 import { GroupRemove as GroupRemoveIcon } from '@mui/icons-material';
-import { Box, Container, Grid } from '@mui/material';
+import { Container, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Balance } from '@polkadot/types/interfaces';
+import React, { useCallback, useContext,useEffect, useState } from 'react';
 
+import { updateMeta } from '@polkadot/extension-ui/messaging';
+import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../../extension-chains/src/types';
+import { AccountContext } from '../../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, Progress, Participator, ShowBalance } from '../../../../../components';
+import { ConfirmButton, Participator, Password, PlusHeader, Popup, Progress, ShowBalance } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../../util/constants';
-import { ChainInfo, nameAddress, PersonsInfo } from '../../../../../util/plusTypes';
+import { ChainInfo, nameAddress, PersonsInfo, TransactionDetail } from '../../../../../util/plusTypes';
+import { saveHistory } from '../../../../../util/plusUtils';
 import Members from '../Members';
 
 interface Props {
@@ -32,10 +35,10 @@ interface Props {
 
 export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, setShowMyVotesModal, showMyVotesModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const { hierarchy } = useContext(AccountContext);
 
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
-
   const [votesInfo, seVotesInfo] = useState<DeriveCouncilVote>();
   const [filteredPersonsInfo, setFilteredPersonsInfo] = useState<PersonsInfo>();
   const [password, setPassword] = useState<string>('');
@@ -75,17 +78,34 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
 
   const handleCancelVotes = async () => {
     try {
+      if (!encodedAddressInfo?.address) {
+        console.log('no encoded address');
+
+        return;
+      }
+
       setState('confirming');
-      const signer = keyring.getPair(encodedAddressInfo?.address);
+      const signer = keyring.getPair(encodedAddressInfo.address);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer, encodedAddressInfo?.address);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [], signer, encodedAddressInfo.address);
 
-      // TODO: can save to history here
+      const currentTransactionDetail: TransactionDetail = {
+        action: 'cancel_vote',
+        amount: '',
+        block: block,
+        date: Date.now(),
+        fee: fee || '',
+        from: encodedAddressInfo.address,
+        hash: txHash || '',
+        status: failureText || status,
+        to: ''
+      };
 
-      console.log('cancel vote', failureText);
+      updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
+
       setState(status);
     } catch (e) {
       console.log('error:', e);
@@ -138,7 +158,7 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
           handleBack={handleClose}
           handleConfirm={handleCancelVotes}
           handleReject={handleClose}
-          isDisabled={!votesInfo?.votes.length || !estimatedFee ||!availableBalance || estimatedFee.gt(availableBalance)}
+          isDisabled={!votesInfo?.votes.length || !estimatedFee || !availableBalance || estimatedFee.gt(availableBalance)}
           state={state}
           text='Cancel votes'
         />
