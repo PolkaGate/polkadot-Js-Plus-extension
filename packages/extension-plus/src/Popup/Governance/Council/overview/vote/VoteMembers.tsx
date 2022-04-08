@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
-/* eslint-disable react/jsx-max-props-per-line */
 
 /** 
  * @description
@@ -54,12 +53,24 @@ export default function VoteMembers({ chain, chainInfo, membersType, personsInfo
 
   return (
     <>
-      <Grid item sx={{ color: grey[600], fontSize: 14, fontFamily: 'fantasy', fontWeigth: 'bold', textAlign: 'center', p: '10px 1px 5px' }} xs={12}>
+      <Grid
+        item
+        sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 14, fontWeigth: 'bold', textAlign: 'center', p: '10px 1px 5px' }}
+        xs={12}>
         {membersType}
       </Grid>
 
       {candidates.map((p, index) => (
-        <Member backed={p.backed} chain={chain} chainInfo={chainInfo} handleSelect={handleSelect} hasSwitch={true} index={index} info={p.info} key={index} selected={p.selected} />
+        <Member
+          backed={p.backed}
+          chain={chain}
+          chainInfo={chainInfo}
+          handleSelect={handleSelect}
+          hasSwitch={true}
+          index={index}
+          info={p.info}
+          key={index}
+          selected={p.selected} />
       ))}
     </>
   );
