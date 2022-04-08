@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
-/* eslint-disable react/jsx-max-props-per-line */
 
 import { BatchPrediction as BatchPredictionIcon, HowToVote as HowToVoteIcon, WhereToVote as WhereToVoteIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
@@ -36,6 +35,7 @@ export default function Democracy({ address, chainInfo, setDemocracyModalOpen, s
 
   useEffect(() => {
     if (!referendums || !chain) return;
+    console.log('referendums:', referendums);
 
     // eslint-disable-next-line no-void
     void createConvictions(chain, t).then((c) => {
@@ -51,8 +51,8 @@ export default function Democracy({ address, chainInfo, setDemocracyModalOpen, s
     });
 
     // eslint-disable-next-line no-void
-    void getProposals(chainInfo.chainName).then((r) => {
-      setProposalsInfo(r);
+    void getProposals(chainInfo.chainName).then((p) => {
+      setProposalsInfo(p);
     });
 
     // eslint-disable-next-line no-void
@@ -70,20 +70,62 @@ export default function Democracy({ address, chainInfo, setDemocracyModalOpen, s
   }, [setDemocracyModalOpen]);
 
   return (
-    <Popup handleClose={handleDemocracyModalClose} showModal={showDemocracyModal}>
-      <PlusHeader action={handleDemocracyModalClose} chain={chainInfo?.chainName} closeText={'Close'} icon={<HowToVoteIcon fontSize='small' />} title={'Democracy'} />
+    <Popup
+      handleClose={handleDemocracyModalClose}
+      showModal={showDemocracyModal}
+    >
+      <PlusHeader
+        action={handleDemocracyModalClose}
+        chain={chainInfo?.chainName}
+        closeText={'Close'}
+        icon={<HowToVoteIcon fontSize='small' />}
+        title={'Democracy'}
+      />
       <Grid container>
-        <Grid item sx={{ margin: '0px 30px' }} xs={12}>
-          <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab icon={<WhereToVoteIcon fontSize='small' />} iconPosition='start' label='Referendums' sx={{ fontSize: 11 }} value='referendums' />
-            <Tab icon={<BatchPredictionIcon fontSize='small' />} iconPosition='start' label='Proposals' sx={{ fontSize: 11 }} value='proposals' />
+        <Grid
+          item
+          sx={{ margin: '0px 30px' }}
+          xs={12}
+        >
+          <Tabs
+            indicatorColor='secondary'
+            onChange={handleTabChange}
+            textColor='secondary'
+            value={tabValue}
+            variant='fullWidth'
+          >
+            <Tab
+              icon={<WhereToVoteIcon fontSize='small' />}
+              iconPosition='start'
+              label={`${t('Referendums')} (${referendums?.length ?? 0})`}
+              sx={{ fontSize: 11 }}
+              value='referendums'
+            />
+            <Tab
+              icon={<BatchPredictionIcon fontSize='small' />}
+              iconPosition='start'
+              label={`${t('Proposals')} (${proposalsInfo?.proposals?.length ?? 0})`}
+              sx={{ fontSize: 11 }}
+              value='proposals'
+            />
           </Tabs>
         </Grid>
 
         {tabValue === 'referendums'
-          ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
+          ? <Grid
+            item
+            sx={{ height: 450, overflowY: 'auto' }}
+            xs={12}
+          >
             {chainInfo && referendums !== undefined && chain && convictions
-              ? <Referendums address={address} chain={chain} chainInfo={chainInfo} convictions={convictions} currentBlockNumber={currentBlockNumber} referendums={referendums} />
+              ? <Referendums
+                address={address}
+                chain={chain}
+                chainInfo={chainInfo}
+                convictions={convictions}
+                currentBlockNumber={currentBlockNumber}
+                referendums={referendums}
+              />
               : <Progress title={'Loading referendums ...'} />}
           </Grid>
           : ''
@@ -91,9 +133,18 @@ export default function Democracy({ address, chainInfo, setDemocracyModalOpen, s
 
         {/* TODO: Proposals needs to be rewrite after menue movement */}
         {tabValue === 'proposals'
-          ? <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
+          ? <Grid
+            item
+            sx={{ height: 450, overflowY: 'auto' }}
+            xs={12}
+          >
             {chainInfo && proposalsInfo !== undefined && chain
-              ? <Proposals chain={chain} chainInfo={chainInfo} proposalsInfo={proposalsInfo} />
+              ? <Proposals
+                address={address}
+                chain={chain}
+                chainInfo={chainInfo}
+                proposalsInfo={proposalsInfo}
+              />
               : <Progress title={'Loading proposals ...'} />}
           </Grid>
           : ''}
