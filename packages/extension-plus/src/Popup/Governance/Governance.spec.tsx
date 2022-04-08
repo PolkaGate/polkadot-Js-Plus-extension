@@ -15,7 +15,7 @@ ReactDOM.createPortal = jest.fn((modal) => modal);
 
 describe('Testing Governance Home page', () => {
   test('Checking the existence of elements while loading ...', () => {
-    const { queryAllByRole, queryByTestId, queryByText } = render(
+    const { queryByTestId, queryByText } = render(
       <MemoryRouter initialEntries={['/governance']}>
         <Route path='/governance'>
           <Governance className='Amir' />
@@ -41,11 +41,11 @@ describe('Testing Governance Home page', () => {
     const democarcy = queryByTestId('governance')?.children.item(0) as Element;
 
     fireEvent.click(democarcy);
-    expect(queryByText('Referendums')).toBeTruthy();
+    expect(queryByText('Referendums (0)')).toBeTruthy();
     expect(queryByText('Loading referendums ...')).toBeTruthy();
 
-    expect(queryByText('Proposals')).toBeTruthy();
-    fireEvent.click(queryByText('Proposals') as Element);
+    expect(queryByText('Proposals (0)')).toBeTruthy();
+    fireEvent.click(queryByText('Proposals (0)') as Element);
     expect(queryByText('Loading proposals ...')).toBeTruthy();
 
     fireEvent.click(queryByText('Close') as HTMLElement);
