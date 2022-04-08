@@ -18,6 +18,7 @@ import { amountToHuman, formatMeta } from '../../../../util/plusUtils';
 import Second from './Second';
 
 interface Props {
+  address: string;
   proposalsInfo: ProposalsInfo | null;
   chain: Chain;
   chainInfo: ChainInfo;
@@ -25,7 +26,7 @@ interface Props {
 
 const secondToolTip = 'Express your backing. Proposals with greater interest moves up the queue for potential next referendums.';
 
-export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): React.ReactElement<Props> {
+export default function Proposals({ address, chain, chainInfo, proposalsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
 
@@ -132,7 +133,7 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
                 {p.imageHash.toString()}
               </Grid> */}
 
-              <Grid item sx={{ paddingTop: 2, textAlign: 'center' }} xs={12}>
+              <Grid container justifyContent='center' sx={{ paddingTop: 2 }}>
                 <Hint id='seconding' place='top' tip={secondToolTip}>
                   <Button color='warning' onClick={() => handleSecond(p)} variant='contained'>
                     {t('Second')}
@@ -147,6 +148,7 @@ export default function Proposals({ chain, chainInfo, proposalsInfo }: Props): R
 
       {selectedProposal && showVoteProposalModal &&
         <Second
+          address={address}
           chain={chain}
           chainInfo={chainInfo}
           handleVoteProposalModalClose={handleVoteProposalModalClose}

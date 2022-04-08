@@ -8,19 +8,23 @@ import type { DeriveProposal } from '@polkadot/api-derive/types';
 import { RecommendOutlined as RecommendOutlinedIcon } from '@mui/icons-material';
 import { Grid, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
+import { AccountContext } from '../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses, ConfirmButton, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
+import { updateMeta } from '../../../../../../extension-ui/src/messaging';
+import { ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
-import { ChainInfo } from '../../../../util/plusTypes';
-import { formatMeta } from '../../../../util/plusUtils';
+import { ChainInfo, nameAddress, TransactionDetail } from '../../../../util/plusTypes';
+import { formatMeta, saveHistory } from '../../../../util/plusUtils';
 
 interface Props {
+  address: string;
   selectedProposal: DeriveProposal;
   chain: Chain;
   chainInfo: ChainInfo;
@@ -28,34 +32,39 @@ interface Props {
   handleVoteProposalModalClose: () => void;
 }
 
-export default function Second({ chain, chainInfo, handleVoteProposalModalClose, selectedProposal, showVoteProposalModal }: Props): React.ReactElement<Props> {
+export default function Second({ address, chain, chainInfo, handleVoteProposalModalClose, selectedProposal, showVoteProposalModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [selectedAddress, setSelectedAddress] = useState<string>('');
+  const { hierarchy } = useContext(AccountContext);
+
+  const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
+  const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
+
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
-  const [availableBalance, setAvailableBalance] = useState<string>();
   const [estimatedFee, setEstimatedFee] = useState<bigint | null>(null);
 
   const value = selectedProposal.image?.proposal;
   const meta = value?.registry.findMetaCall(value.callIndex);
   const description = formatMeta(meta?.meta);
-  const { api, coin, decimals } = chainInfo;
+  const { api } = chainInfo;
 
   const tx = api.tx.democracy.second;
 
-  const params = useMemo(() => api.tx.democracy.second.meta.args.length === 2
-    ? [selectedProposal.index, selectedProposal.seconds.length]
-    : [selectedProposal.index], [chainInfo, selectedProposal]);
+  const params = useMemo(() =>
+    api.tx.democracy.second.meta.args.length === 2
+      ? [selectedProposal.index, selectedProposal.seconds.length]
+      : [selectedProposal.index],
+    [api.tx.democracy.second.meta.args.length, selectedProposal.index, selectedProposal.seconds.length]);
 
   useEffect(() => {
-    if (!chainInfo || !tx || !selectedAddress) return;
+    if (!chainInfo || !tx || !encodedAddressInfo) return;
 
     // eslint-disable-next-line no-void
-    void tx(...params).paymentInfo(selectedAddress)
+    void tx(...params).paymentInfo(encodedAddressInfo.address)
       .then((i) => setEstimatedFee(BigInt(String(i?.partialFee))))
       .catch(console.error);
-  }, [chainInfo, params, selectedAddress, tx]);
+  }, [chainInfo, params, encodedAddressInfo, tx]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -63,36 +72,66 @@ export default function Second({ chain, chainInfo, handleVoteProposalModalClose,
   }, [handleVoteProposalModalClose]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
+    if (!encodedAddressInfo?.address) {
+      console.log(' no encoded address!');
+
+      return;
+    }
+
     setState('confirming');
 
     try {
-      const pair = keyring.getPair(selectedAddress);
+      const pair = keyring.getPair(encodedAddressInfo.address);
 
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, selectedAddress);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo.address);
+
+      const currentTransactionDetail: TransactionDetail = {
+        action: 'second',
+        amount: '0',
+        block: block,
+        date: Date.now(),
+        fee: fee || '',
+        from: encodedAddressInfo.address,
+        hash: txHash || '',
+        status: failureText || status,
+        to: String(selectedProposal.index)
+      };
+
+      // eslint-disable-next-line no-void
+      updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
 
       // TODO: can save to history here
       setState(status);
     } catch (e) {
-      console.log('error in VoteProposal :', e);
+      console.log('error in second proposal :', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [chain, password, selectedAddress, selectedProposal.index, selectedProposal.seconds.length]);
+  }, [encodedAddressInfo?.address, password, api, tx, params, selectedProposal.index, chain, hierarchy]);
 
   return (
     <Popup handleClose={handleVoteProposalModalClose} showModal={showVoteProposalModal}>
       <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Second'} />
 
-      <AllAddresses availableBalance={availableBalance} chain={chain} chainInfo={chainInfo} selectedAddress={selectedAddress} setAvailableBalance={setAvailableBalance} setSelectedAddress={setSelectedAddress} text={t('Select voter')} />
+      <Participator
+        address={address}
+        availableBalance={availableBalance}
+        chain={chain}
+        chainInfo={chainInfo}
+        encodedAddressInfo={encodedAddressInfo}
+        role={t('Seconder')}
+        setAvailableBalance={setAvailableBalance}
+        setEncodedAddressInfo={setEncodedAddressInfo}
+      />
 
-      <Grid sx={{ color: grey[600], fontSize: 11, p: '0px 40px 20px', textAlign: 'right' }} xs={12}>
+      <Grid sx={{ color: grey[600], fontSize: 11, p: '0px 48px 20px', textAlign: 'right' }} xs={12}>
         <ShowBalance balance={estimatedFee} chainInfo={chainInfo} decimalDigits={5} title='Fee' />
       </Grid>
 
-      <Grid container item justifyContent='center' sx={{ height: '260px' }} xs={12}>
+      <Grid container item justifyContent='center' sx={{ height: '280px' }} xs={12}>
         <Grid item sx={{ fontWeight: '600', pt: '50px', textAlign: 'center' }} xs={12}>
           <Typography variant='h6'>
             {t('Proposal')}{': #'}{String(selectedProposal?.index)}
