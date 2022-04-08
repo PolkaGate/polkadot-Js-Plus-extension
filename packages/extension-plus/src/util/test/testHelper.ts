@@ -135,32 +135,6 @@ export const auction: Auction = {
   },
   {
     fund: {
-      depositor: '14r48SVtMrJKxUWD9ijDy8aQU3asTXja8qny9mzXTutdByju',
-      verifier: null,
-      deposit: '5000000000000',
-      raised: '116666420470807',
-      end: 9388800,
-      cap: '60000000000000000',
-      lastContribution: {
-        ending: 9134561
-      },
-      firstPeriod: 7,
-      lastPeriod: 14,
-      trieIndex: 16,
-      paraId: '2027',
-      hasLeased: false
-    },
-    identity: {
-      info: {
-        display: 'coinversation',
-        legal: 'paul',
-        web: 'http://coinversation.io/',
-        twitter: '@Coinversation_'
-      }
-    }
-  },
-  {
-    fund: {
       depositor: '13QrQ7Xos6bseivYW3xRjvi4T2iHihxVnTrQgyHmWGTNv972',
       verifier: null,
       deposit: '5000000000000',
