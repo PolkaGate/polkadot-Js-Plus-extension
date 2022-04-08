@@ -19,6 +19,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import { Balance } from '@polkadot/types/interfaces';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { NothingToShow } from '../../components';
@@ -32,9 +33,10 @@ interface Props extends ThemeProps {
   auction: Auction;
   chainInfo: ChainInfo;
   endpoints: LinkOption[];
+  myContributions: Map<string, Balance> | undefined;
 }
 
-function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.ReactElement<Props> {
+function AuctionTab({ auction, chainInfo, className, endpoints, myContributions }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const firstLease = auction?.auctionInfo && Number(auction?.auctionInfo[0]);
@@ -43,7 +45,7 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
   const endingPeriod = Number(chainInfo.api.consts.auctions?.endingPeriod.toString());
   const AUCTION_START_BLOCK = candlePhaseStartBlock - AUCTION_GRACE_PERIOD;
 
-  const currentBlock = Number(auction.currentBlockNumber)
+  const currentBlock = Number(auction.currentBlockNumber);
   const start = currentBlock < candlePhaseStartBlock ? AUCTION_START_BLOCK : candlePhaseStartBlock;
   const end = currentBlock < candlePhaseStartBlock ? candlePhaseStartBlock : candlePhaseStartBlock + endingPeriod;
   const stageInHuman = currentBlock < candlePhaseStartBlock ? t('auction stage') : t('ending stage');
@@ -51,20 +53,20 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
   const ShowBids = (): React.ReactElement => {
     const winning = auction?.winning.find((x) => x);
 
-    if (!winning) return <div />;
+    if (!winning) { return <div />; }
 
     const crowdloan = auction?.crowdloans.find((c) => c.fund.paraId === winning[1].replace(/,/g, ''));
 
-    if (!crowdloan) return <div />;
+    if (!crowdloan) { return <div />; }
 
     return (
       <Grid container>
         <Grid sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15 }} xs={12}>
-          <Paper elevation={1} sx={{paddingLeft: '10px'}}>
+          <Paper elevation={1} sx={{ paddingLeft: '10px' }}>
             {t('Bids')}
           </Paper>
         </Grid>
-        <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} />
+        <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} myContributions={myContributions}/>
       </Grid>
     );
   };
@@ -92,7 +94,7 @@ function AuctionTab({ auction, chainInfo, className, endpoints }: Props): React.
           {AUCTION_START_BLOCK}{' - '}{candlePhaseStartBlock}<br />
           {candlePhaseStartBlock}{' - '}{candlePhaseStartBlock + endingPeriod}
         </Grid>
-        <Grid item sx={{ color: grey[600], fontSize: 12, textAlign: 'left', pl:'5px' }} xs={1}>
+        <Grid item sx={{ color: grey[600], fontSize: 12, textAlign: 'left', pl: '5px' }} xs={1}>
           {t('slots')}<br />
           {t('block')}<br />
           {t('blocks')}<br />
