@@ -127,7 +127,7 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
               <Grid container item justifyContent='flex-end' spacing={1} xs={12}>
                 <Grid item>
                   <Link
-                    href={`https://${chainName}.subscan.io/extrinsic/${tip?.extrinsic_index}`}
+                    href={`https://${chainName}.subscan.io/treasury_tip/${tip?.hash}`}
                     rel='noreferrer'
                     target='_blank'
                     underline='none'
