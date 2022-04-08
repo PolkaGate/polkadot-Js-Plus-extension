@@ -82,7 +82,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
   const FEE_DECIMAL_DIGITS = chainInfo?.coin === 'KSM' ? 6 : 4;
 
   useEffect(() => {
-    if (!chainInfo || !transfer) return;
+    if (!chainInfo || !transfer) { return; }
 
     // eslint-disable-next-line no-void
     void transfer(sender.address, transferAmount).paymentInfo(sender.address)
