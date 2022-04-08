@@ -98,7 +98,6 @@ const ACCOUNTS_SCREEN_HEIGHT = 550;
 const defaultRecoded = { account: null, formatted: null, prefix: 42, type: DEFAULT_TYPE };
 
 // added for plus, 'showBalance' as props
-
 function Address ({ actions, address, children, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, showBalance, suri, toggleActions, type: givenType }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
