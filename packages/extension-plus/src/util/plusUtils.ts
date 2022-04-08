@@ -58,18 +58,17 @@ export function balanceToHuman(_balance: AccountsBalanceType | null, _type: stri
 export const toHuman = (api: ApiPromise, value: unknown) => api.createType('Balance', value).toHuman();
 
 export function amountToHuman(_amount: string | bigint | Compact<u128> | undefined, _decimals: number, decimalDigits?: number, commify?: boolean): string {
-  if (!_amount) return '';
+  if (!_amount) {return '';}
 
   _amount = String(_amount).replace(/,/g, '');
 
   const x = 10 ** _decimals;
 
-  // return Number(fixFloatingPoint(Number(_amount) / x, decimalDigits)).toLocaleString();
   return fixFloatingPoint(Number(_amount) / x, decimalDigits, commify);
 }
 
 export function amountToMachine(_amount: string | undefined, _decimals: number): bigint {
-  if (!_amount || !Number(_amount) || !_decimals) return BigInt(0);
+  if (!_amount || !Number(_amount) || !_decimals) { return BigInt(0); }
 
   const dotIndex = _amount.indexOf('.');
 
