@@ -3,23 +3,32 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component opens crowdloan page, which shows auction and crowdloan tab,
- * where a relay chain can be selected to view available auction/crowdloans */
+/** 
+ * @description
+ * this component opens crowdloan page, which shows auction and crowdloan tab,
+ * where a relay chain can be selected to view available auction/crowdloans 
+ * */
 
+import type { DeriveOwnContributions } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Gavel as GavelIcon, Payments as PaymentsIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
 
+import { ApiPromise } from '@polkadot/api';
 import { createWsEndpoints } from '@polkadot/apps-config';
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import { AccountsStore } from '@polkadot/extension-base/stores';
+import { Chain } from '@polkadot/extension-chains/types';
+import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
-import { cryptoWaitReady } from '@polkadot/util-crypto';
+import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
+import { SettingsContext } from '../../../../extension-ui/src/components/contexts';
+import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
 import { Progress } from '../../components';
@@ -37,14 +46,26 @@ const allEndpoints = createWsEndpoints((key: string, value: string | undefined) 
 
 function Crowdloans({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const settings = useContext(SettingsContext);
+  const { address, genesisHash } = useParams<AddressState>();
+  const chain = useMetadata(genesisHash, true);
+
   const [contributingTo, setContributingTo] = useState<Crowdloan | null>(null);
   const [auction, setAuction] = useState<Auction | null>(null);
   const [tabValue, setTabValue] = React.useState('auction');
   const [contributeModal, setContributeModalOpen] = useState<boolean>(false);
   const [endpoints, setEndpoints] = useState<LinkOption[]>([]);
   const [chainInfo, setChainInfo] = useState<ChainInfo>();
+  const [myContributions, setMyContributions] = useState<Map<string, Balance> | undefined>();
 
-  const { address, genesisHash } = useParams<AddressState>();
+  const getHexEncodedAddress = (api: ApiPromise, chain: Chain, address: string, settings: any): string => {
+    const prefix: number = chain ? chain.ss58Format : (settings.prefix === -1 ? 42 : settings.prefix);
+    const publicKey = decodeAddress(address);
+
+    const encodedAddress = encodeAddress(publicKey, prefix);
+
+    return api.createType('AccountId', encodedAddress).toHex();
+  };
 
   function getCrowdloands(_selectedBlockchain: string) {
     const crowdloanWorker: Worker = new Worker(new URL('../../util/workers/getCrowdloans.js', import.meta.url));
@@ -78,7 +99,6 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
     // eslint-disable-next-line no-void
     void getChainInfo(genesisHash).then((chainInfo) => {
       setChainInfo(chainInfo);
-
       setAuction(null);
       setContributingTo(null);
       getCrowdloands(chainInfo.chainName);
@@ -89,6 +109,23 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
     }).catch(console.error);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [genesisHash]);
+
+  useEffect(() => {
+    if (!auction || !chain || !settings || !chainInfo) { return; }
+
+    const { api } = chainInfo;
+    const paraIds = auction.crowdloans.map((c: Crowdloan) => c.fund.paraId);
+    const myHexAddress = getHexEncodedAddress(api, chain, address, settings);
+    const myAccountsHex = [myHexAddress];
+
+    Promise.all(paraIds.map((id): Promise<DeriveOwnContributions> => api.derive.crowdloan.ownContributions(id, myAccountsHex)))
+      .then((myContributions) => {
+        const myContibutionsMap: Map<string, Balance> = new Map();
+
+        myContributions.forEach((m, index) => myContibutionsMap.set(paraIds[index], m[myHexAddress]));
+        setMyContributions(myContibutionsMap);
+      }).catch(console.error);
+  }, [address, auction, chainInfo, chain, settings]);
 
   const handleContribute = useCallback((crowdloan: Crowdloan): void => {
     setContributingTo(crowdloan);
@@ -109,7 +146,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
         smallMargin
         text={`${t<string>('Crowdloans')} ${chainInfo?.chainName ? 'on' : ''} ${chainInfo?.chainName ?? ''}`}
       />
-      
+
       <Grid alignItems='center' container id='selectRelyChain' sx={{ p: '0px 35px' }}>
 
         <Grid item xs={12}>
@@ -125,21 +162,33 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
       }
 
       {auction && tabValue === 'auction' && chainInfo &&
-        <AuctionTab auction={auction} chainInfo={chainInfo} endpoints={endpoints} />
+        <AuctionTab
+          auction={auction}
+          chainInfo={chainInfo}
+          endpoints={endpoints}
+          myContributions={myContributions}
+        />
       }
 
       {auction && tabValue === 'crowdloan' && chainInfo &&
-        <CrowdloanTab auction={auction} chainInfo={chainInfo} endpoints={endpoints} handleContribute={handleContribute} />
+        <CrowdloanTab
+          auction={auction}
+          chainInfo={chainInfo}
+          endpoints={endpoints}
+          handleContribute={handleContribute}
+          myContributions={myContributions}
+        />
       }
 
       {contributeModal && auction && contributingTo && chainInfo &&
         <Contribute
-          auction={auction}
           address={address}
+          auction={auction}
           chainInfo={chainInfo}
           contributeModal={contributeModal}
           crowdloan={contributingTo}
           endpoints={endpoints}
+          myContributions={myContributions}
           setContributeModalOpen={setContributeModalOpen}
         />
       }

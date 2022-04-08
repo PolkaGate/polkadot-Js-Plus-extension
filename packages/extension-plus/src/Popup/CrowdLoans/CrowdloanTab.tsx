@@ -2,17 +2,20 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
-/* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component lists all active crowdloans,which can be selected to contribute to, also page shows winner parachains */
+/** 
+ * @description
+ *  this component lists all active crowdloans,which can be selected to contribute to, also page shows winner parachains 
+ * */
 
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Grid } from '@mui/material';
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import { Balance } from '@polkadot/types/interfaces';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Auction, ChainInfo, Crowdloan } from '../../util/plusTypes';
@@ -24,19 +27,21 @@ interface Props extends ThemeProps {
   chainInfo: ChainInfo;
   endpoints: LinkOption[];
   handleContribute: (crowdloan: Crowdloan) => void;
+  myContributions: Map<string, Balance> | undefined;
+
 }
 
-function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribute }: Props): React.ReactElement<Props> {
+function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribute, myContributions }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [expanded, setExpanded] = React.useState<string>('');
+  const [expanded, setExpanded] = useState<string>('');
 
   const endeds = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && !c.fund.hasLeased), [auction]);
   const activeCrowdloans = useMemo(() => auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber && !c.fund.hasLeased), [auction]);
   const auctionWinners = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased), [auction]);
 
   useEffect(() => {
-    if (activeCrowdloans?.length) setExpanded('Actives');
-    else if (auctionWinners?.length) setExpanded('Winners');
+    if (activeCrowdloans?.length) { setExpanded('Actives'); }
+    else if (auctionWinners?.length) { setExpanded('Winners'); }
   }, [activeCrowdloans, auctionWinners]);
 
   const handleAccordionChange = useCallback((panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -44,10 +49,46 @@ function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribu
   }, []);
 
   return (
-    <Grid container id='crowdloan-list'>
-      <CrowdloanList chainInfo={chainInfo} crowdloans={activeCrowdloans} description={t('view active crowdloans')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={340} title={t('Actives')} />
-      <CrowdloanList chainInfo={chainInfo} crowdloans={auctionWinners} description={t('view auction winners')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={295} title={t('Winners')} />
-      <CrowdloanList chainInfo={chainInfo} crowdloans={endeds} description={t('view ended crowdloans')} endpoints={endpoints} expanded={expanded} handleAccordionChange={handleAccordionChange} handleContribute={handleContribute} height={285} title={t('Ended')} />
+    <Grid
+      container
+      id='crowdloan-list'
+    >
+      <CrowdloanList
+        chainInfo={chainInfo}
+        crowdloans={activeCrowdloans}
+        description={t('view active crowdloans')}
+        endpoints={endpoints}
+        expanded={expanded}
+        handleAccordionChange={handleAccordionChange}
+        handleContribute={handleContribute}
+        height={340}
+        myContributions={myContributions}
+        title={t('Actives')}
+      />
+      <CrowdloanList
+        chainInfo={chainInfo}
+        crowdloans={auctionWinners}
+        description={t('view auction winners')}
+        endpoints={endpoints}
+        expanded={expanded}
+        handleAccordionChange={handleAccordionChange}
+        handleContribute={handleContribute}
+        height={295}
+        myContributions={myContributions}
+        title={t('Winners')}
+      />
+      <CrowdloanList
+        chainInfo={chainInfo}
+        crowdloans={endeds}
+        description={t('view ended crowdloans')}
+        endpoints={endpoints}
+        expanded={expanded}
+        handleAccordionChange={handleAccordionChange}
+        handleContribute={handleContribute}
+        height={285}
+        myContributions={myContributions}
+        title={t('Ended')}
+      />
     </Grid>
   );
 }

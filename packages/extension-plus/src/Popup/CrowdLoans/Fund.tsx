@@ -19,6 +19,7 @@ import getLogo from '../../util/getLogo';
 import { Crowdloan } from '../../util/plusTypes';
 import { amountToHuman, getWebsiteFavico } from '../../util/plusUtils';
 import { grey } from '@mui/material/colors';
+import { Balance } from '@polkadot/types/interfaces';
 
 interface Props {
   coin: string;
@@ -27,9 +28,10 @@ interface Props {
   endpoints: LinkOption[];
   isActive?: boolean;
   handleContribute?: (arg0: Crowdloan) => void
+  myContributions: Map<string, Balance> | undefined;
 }
 
-export default function Fund({ coin, crowdloan, decimals, endpoints, handleContribute, isActive }: Props): React.ReactElement<Props> {
+export default function Fund({ coin, crowdloan, decimals, endpoints, handleContribute, isActive, myContributions }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
   const getHomePage = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.homepage as string);
@@ -44,7 +46,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
   return (
     <Grid item sx={{ pb: '10px' }} xs={12}>
       <Paper elevation={3}>
-        <Grid alignItems='center' container sx={{ padding: '10px' }}>
+        <Grid alignItems='center' container sx={{ p: '10px 10px 0px' }}>
           <Grid container item justifyContent='flex-start' sx={{ fontSize: 13, fontWeight: 'fontWeightBold' }} xs={6}>
             <Grid item xs={2}>
               <Avatar
@@ -54,7 +56,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
             </Grid>
 
             <Grid container item xs={9}>
-              <Grid container item xs={12} spacing={1}>
+              <Grid container item spacing={1} xs={12}>
                 <Grid item>
                   {name?.slice(0, 15)}
                 </Grid>
@@ -93,7 +95,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
                   </Grid>}
               </Grid>
               <Grid item sx={{ color: crowdloan.fund.hasLeased ? 'green' : '', fontSize: 11 }}>
-                Parachain Id: {' '} {crowdloan.fund.paraId}
+                {`${t('Parachain Id')}: ${crowdloan.fund.paraId}`}
               </Grid>
             </Grid>
             <Divider flexItem orientation='vertical' variant='fullWidth' />
@@ -102,22 +104,31 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
           <Grid sx={{ fontSize: 11, textAlign: 'left' }} xs={2}>
             {t('Leases')}<br />
             {t('End')}<br />
-            {t('Raised/Cap')}
+            {t('Raised/Cap')}<br />
+            {t('My contribution')}
           </Grid>
-          <Grid sx={{ fontSize: 11, textAlign: 'right' }} xs={3}>
+          <Grid sx={{ fontSize: 11, textAlign: 'right' }} xs={4}>
             {String(crowdloan.fund.firstPeriod)} - {String(crowdloan.fund.lastPeriod)}<br />
             {crowdloan.fund.end}<br />
-            <b>{Number(amountToHuman(crowdloan.fund.raised, decimals, 0)).toLocaleString()}</b>/{Number(amountToHuman(crowdloan.fund.cap, decimals)).toLocaleString()}{' '}<br />
+            <b>{Number(amountToHuman(crowdloan.fund.raised, decimals, 0)).toLocaleString()}</b>/{Number(amountToHuman(crowdloan.fund.cap, decimals)).toLocaleString()}{' '} {coin}<br />
+            {myContributions?.get(crowdloan.fund.paraId)?.toHuman()}
           </Grid>
 
-          <Grid sx={{ color: grey[600], fontSize: 11, textAlign: 'left', pl: '5px' }} xs={1}>
+          {/* <Grid sx={{ color: grey[600], fontSize: 11, textAlign: 'left', pl: '5px' }} xs={1}>
             {t('slots')}<br />
             {t('blocks')}<br />
             {coin}s<br />
-          </Grid>
+            {''}
+          </Grid> */}
+
+        </Grid>
+        <Grid alignItems='center' container justifyContent='center' sx={{ py: '10px' }}>
+          {/* <Grid item sx={{ fontSize: 11, pl: '40px' }}>
+            {`${t('My contribution')}: ${myContributions?.get(crowdloan.fund.paraId)?.toHuman()}`}
+          </Grid> */}
 
           {isActive && handleContribute &&
-            <Grid item sx={{ textAlign: 'center' }} xs={12}>
+            <Grid item>
               <Button
                 color='warning'
                 endIcon={<SendTimeExtensionOutlined />}
@@ -130,7 +141,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
             </Grid>
           }
         </Grid>
-      </Paper >
-    </Grid >
+      </Paper>
+    </Grid>
   );
 }
