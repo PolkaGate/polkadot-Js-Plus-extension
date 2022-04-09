@@ -82,7 +82,7 @@ function AuctionTab({ auction, chainInfo, className, endpoints, myContributions 
         <Grid item sx={{ fontSize: 15, fontWeight: 'fontWeightBold' }} xs={3}>
           {t('Auction')}
         </Grid>
-        <Grid item sx={{ fontSize: 12, fontWeight: 600, textAlign: 'left' }} xs={2}>
+        <Grid item sx={{ fontSize: 12, fontWeight: 600, textAlign: 'left' }} xs={3}>
           {t('Lease')}<br />
           {t('Current block')}<br />
           {t('Auction stage')}  <br />
@@ -94,12 +94,12 @@ function AuctionTab({ auction, chainInfo, className, endpoints, myContributions 
           {AUCTION_START_BLOCK}{' - '}{candlePhaseStartBlock}<br />
           {candlePhaseStartBlock}{' - '}{candlePhaseStartBlock + endingPeriod}
         </Grid>
-        <Grid item sx={{ color: grey[600], fontSize: 12, textAlign: 'left', pl: '5px' }} xs={1}>
+        {/* <Grid item sx={{ color: grey[600], fontSize: 12, textAlign: 'left', pl: '5px' }} xs={1}>
           {t('slots')}<br />
           {t('block')}<br />
           {t('blocks')}<br />
           {t('blocks')}<br />
-        </Grid>
+        </Grid> */}
 
         <Grid item sx={{ pt: '20px' }} xs={12}>
           <LinearProgress
