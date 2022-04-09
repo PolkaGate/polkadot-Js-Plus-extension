@@ -8,20 +8,22 @@ import type { Text } from '@polkadot/types';
 import type { AccountId } from '@polkadot/types/interfaces';
 import type { Compact, u128 } from '@polkadot/types-codec';
 
+import { ApiPromise } from '@polkadot/api';
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { BLOCK_RATE, FLOATING_POINT_DIGIT, SHORT_ADDRESS_CHARACTERS } from './constants';
 import { AccountsBalanceType, savedMetaData, TransactionDetail } from './plusTypes';
-import { ApiPromise } from '@polkadot/api';
 
 interface Meta {
   docs: Text[];
 }
 
 export function fixFloatingPoint(_number: number | string, decimalDigit = FLOATING_POINT_DIGIT, commify?: boolean): string {
-  const sNumber = String(_number);
+  // make number positive if it is negative
+  const sNumber = Number(_number) < 0 ? String(-Number(_number)) : String(_number);
+
   const dotIndex = sNumber.indexOf('.');
 
   if (dotIndex < 0) {
@@ -58,7 +60,7 @@ export function balanceToHuman(_balance: AccountsBalanceType | null, _type: stri
 export const toHuman = (api: ApiPromise, value: unknown) => api.createType('Balance', value).toHuman();
 
 export function amountToHuman(_amount: string | bigint | Compact<u128> | undefined, _decimals: number, decimalDigits?: number, commify?: boolean): string {
-  if (!_amount) {return '';}
+  if (!_amount) { return ''; }
 
   _amount = String(_amount).replace(/,/g, '');
 
