@@ -141,10 +141,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, [handleVoteReferendumModalClose]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const eVal = event.target.value;
-    const value = Number(eVal) < 0 ? String(-Number(eVal)) : eVal;
-
-    setVoteValueInHuman(fixFloatingPoint(value));
+    setVoteValueInHuman(fixFloatingPoint(event.target.value));
   }, []);
 
   const handleConvictionChange = useCallback((event: SelectChangeEvent<number>): void => {
