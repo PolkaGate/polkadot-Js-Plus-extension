@@ -165,7 +165,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <Grid container item justifyContent='space-between' sx={{ pl: '120px', pr: '48px' }} xs={12}>
+      <Grid container item justifyContent='space-between' sx={{ pl: '115px', pr: '48px' }} xs={12}>
         <Grid item sx={{ fontSize: 11 }}>
           <Hint icon={true} id='votingBond' place='bottom' tip={t('will be reserved for the duration of your vote')}>
             <ShowBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
