@@ -5,20 +5,22 @@
 
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, TextField } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
+import { AccountContext } from '../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import { AllAddresses, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
-import { ChainInfo, nameAddress } from '../../../../util/plusTypes';
-import { amountToMachine } from '../../../../util/plusUtils';
+import { ChainInfo, nameAddress, TransactionDetail } from '../../../../util/plusTypes';
+import { amountToHuman, amountToMachine, saveHistory } from '../../../../util/plusUtils';
 
 interface Props {
   address: string;
@@ -30,6 +32,8 @@ interface Props {
 
 export default function SubmitProposal({ address, chain, chainInfo, handleSubmitProposalModalClose, showSubmitProposalModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const { hierarchy } = useContext(AccountContext);
+
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');
@@ -40,15 +44,32 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
+  const [collateral, setCollateral] = useState<Balance | undefined>();
 
   const { api, decimals } = chainInfo;
   const tx = api.tx.treasury.proposeSpend;
 
-  const bondPercentage = useMemo((): number => (api.consts.treasury.proposalBond.mul(BN_HUNDRED).div(BN_MILLION)).toNumber(), [chainInfo]);
+  const bondPercentage = useMemo((): number => (api.consts.treasury.proposalBond.mul(BN_HUNDRED).div(BN_MILLION)).toNumber(), [api.consts.treasury.proposalBond]);
   const proposalBondMinimum = api.createType('Balance', api.consts.treasury.proposalBondMinimum);
+  const proposalBondMaximum = api.createType('Balance', api.consts.treasury.proposalBondMaximum.unwrap());
 
   useEffect(() => {
-    if (!chainInfo || !tx || !encodedAddressInfo?.address) return;
+    if (!value) { return setCollateral(proposalBondMinimum); }
+
+    const valuePercentage = api.createType('Balance', BigInt(bondPercentage) * value / 100n);
+    let collateral = valuePercentage;
+
+    if (valuePercentage.lt(proposalBondMinimum)) {
+      collateral = proposalBondMinimum;
+    } else if (valuePercentage.gt(proposalBondMaximum)) {
+      collateral = proposalBondMaximum;
+    }
+
+    setCollateral(collateral);
+  }, [proposalBondMinimum, proposalBondMaximum, bondPercentage, value, api]);
+
+  useEffect(() => {
+    if (!tx || !encodedAddressInfo?.address) return;
     const params = [value, beneficiaryAddress];
 
     setParams(params);
@@ -57,7 +78,7 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
     beneficiaryAddress && void tx(...params).paymentInfo(encodedAddressInfo?.address)
       .then((i) => setEstimatedFee(i?.partialFee))
       .catch(console.error);
-  }, [beneficiaryAddress, chainInfo, encodedAddressInfo, tx, value]);
+  }, [beneficiaryAddress, encodedAddressInfo, tx, value]);
 
   useEffect(() => {
     if (!estimatedFee || !value || !availableBalance || !bondPercentage) { setIsDisabled(true); }
@@ -71,30 +92,42 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   }, [availableBalance, bondPercentage, decimals, estimatedFee, proposalBondMinimum, value]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
-    if (!encodedAddressInfo?.address) {
-      console.log(' address is not encoded');
-
-      return;
-    }
-
-    setState('confirming');
-
     try {
-      const pair = keyring.getPair(encodedAddressInfo?.address);
+      if (!encodedAddressInfo?.address) {
+        console.log(' address is not encoded');
+
+        return;
+      }
+
+      setState('confirming');
+      const pair = keyring.getPair(encodedAddressInfo.address);
 
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo.address);
 
-      // TODO can save to history here
+      const currentTransactionDetail: TransactionDetail = {
+        action: 'submit_proposal',
+        amount: amountToHuman(value, decimals),
+        block: block,
+        date: Date.now(),
+        fee: fee || '',
+        from: encodedAddressInfo.address,
+        hash: txHash || '',
+        status: failureText || status,
+        to: beneficiaryAddress
+      };
+
+      updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
+
       setState(status);
     } catch (e) {
       console.log('error in submit proposal :', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [api, params, password, encodedAddressInfo, tx]);
+  }, [encodedAddressInfo?.address, password, api, tx, params, value, decimals, beneficiaryAddress, chain, hierarchy]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -156,16 +189,29 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
         />
       </Grid>
 
-      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, p: '55px 40px 0px' }} xs={12}>
+      <Grid item sx={{ fontSize: 12, fontWeight: 600, p: '20px 40px 0px' }} xs={12}>
+        <Hint icon={true} id='Collateral' place='right' tip='value would need to be put up as collateral, calculated based on value '>
+          {`${t('Collateral:')}: ${collateral?.toHuman() ?? 0} `}
+        </Hint>
+      </Grid>
+
+      <Grid container item justifyContent='space-between' sx={{ fontSize: 10, p: '0px 40px 0px' }} xs={12}>
         <Grid item>
           <Hint icon={true} id='pBond' place='right' tip='% of value would need to be put up as collateral'>
             {`${t('Proposal bond')}: ${bondPercentage.toFixed(2)} %`}
           </Hint>
         </Grid>
-        <Grid item>
-          <Hint icon={true} id='mBond' place='left' tip='the minimum to put up as collateral'>
-            {`${t('Minimum bond')}: ${proposalBondMinimum.toHuman()}`}
-          </Hint>
+        <Grid container item justifyContent='space-between'>
+          <Grid item>
+            <Hint icon={true} id='minBond' place='left' tip='the minimum to put up as collateral'>
+              {`${t('Minimum bond')}: ${proposalBondMinimum.toHuman()}`}
+            </Hint>
+          </Grid>
+          <Grid item>
+            <Hint icon={true} id='maxBond' place='left' tip='the maximum to put up as collateral'>
+              {`${t('Maximum bond')}: ${proposalBondMaximum.toHuman()}`}
+            </Hint>
+          </Grid>
         </Grid>
       </Grid>
 
@@ -185,6 +231,6 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
           state={state}
         />
       </Grid>
-    </Popup>
+    </Popup >
   );
 }
