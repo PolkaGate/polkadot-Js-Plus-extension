@@ -179,11 +179,11 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
       <Grid item sx={{ fontSize: 11, px: '40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
-          InputProps={{ endAdornment: (<InputAdornment position='end' sx={{ fontSize: 10 }}>{coin}</InputAdornment>) }}
+          InputProps={{ style: { fontSize: 13 }, endAdornment: (<InputAdornment position='end' sx={{ fontSize: 10 }}>{coin}</InputAdornment>) }}
           color='warning'
           fullWidth
           helperText={<HelperText />}
-          label={t('Vote value')}
+          label={t('Value')}
           margin='dense'
           name='value'
           onChange={handleChange}
@@ -198,7 +198,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
       {allCouncilInfo
         ? <Grid container sx={{ padding: '0px 30px' }}>
 
-          <Grid id='scrollArea' item sx={{ height: '185px', overflowY: 'auto' }} xs={12}>
+          <Grid id='scrollArea' item sx={{ height: '200px', overflowY: 'auto' }} xs={12}>
             <VoteMembers chain={chain} chainInfo={chainInfo} membersType={t('Accounts to vote')} personsInfo={allCouncilInfo} setSelectedCandidates={setSelectedCandidates} />
           </Grid>
 
