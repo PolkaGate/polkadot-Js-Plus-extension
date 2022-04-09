@@ -22,7 +22,7 @@ import { ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance }
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP, VOTE_MAP } from '../../../../util/constants';
 import { ChainInfo, Conviction, nameAddress, TransactionDetail } from '../../../../util/plusTypes';
-import { amountToHuman, amountToMachine, fixFloatingPoint, saveHistory } from '../../../../util/plusUtils';
+import { amountToMachine, fixFloatingPoint, saveHistory } from '../../../../util/plusUtils';
 
 interface Props {
   address: string;
@@ -97,15 +97,15 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
   }, [availableBalance, estimatedFee, voteValue, votingBalance]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
-    if (!encodedAddressInfo?.address) {
-      console.log('no encoded address');
-
-      return;
-    }
-
-    setState('confirming');
-
     try {
+      if (!encodedAddressInfo?.address) {
+        console.log('no encoded address');
+
+        return;
+      }
+
+      setState('confirming');
+
       const pair = keyring.getPair(encodedAddressInfo.address);
 
       pair.unlock(password);
