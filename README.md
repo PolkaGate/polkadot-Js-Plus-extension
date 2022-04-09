@@ -51,12 +51,7 @@ Once added, you can create an account (via a generated seed) or import via an ex
 
 #### To test on westend:
 
-1- check wheather westend genesis exists in './node_modules/@polkadot/networks/genesis.js', if not add the following:
-
-    westend:['0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e'] 
-
-
-2- check wheather westend network info exists in './node_modules/@substrate/ss58-registry/index.js', if not add the following:
+Check wheather westend network info exists in './node_modules/@substrate/ss58-registry/index.js', if not add the following:
 
 {
 		"prefix": 42,
@@ -71,7 +66,6 @@ Once added, you can create an account (via a generated seed) or import via an ex
 		"standardAccount": "*25519",
 		"website": "https://polkadot.network"
 	}
-
 
 
 ## More information 
