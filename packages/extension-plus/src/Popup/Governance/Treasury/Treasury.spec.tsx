@@ -9,6 +9,7 @@ import { render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveTreasuryProposal, DeriveTreasuryProposals } from '@polkadot/api-derive/types';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
 import { Balance } from '@polkadot/types/interfaces';
@@ -19,13 +20,12 @@ import { AccountContext, SettingsContext } from '../../../../../extension-ui/src
 import getTips from '../../../util/api/getTips';
 import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo, Tip } from '../../../util/plusTypes';
+import { toHuman } from '../../../util/plusUtils';
 import { accounts, chain, createAcc, createExtension, firstSuri } from '../../../util/test/testHelper';
 import ProposalsOverview from './proposals/overview';
 import SubmitProposal from './proposals/SubmitProposal';
 import TipsOverview from './tips/Overview';
 import ProposeTip from './tips/ProposeTip';
-import { toHuman } from '../../../util/plusUtils';
-import { ApiPromise } from '@polkadot/api';
 
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
@@ -222,7 +222,7 @@ describe('Testing Treasury component', () => {
     expect(queryByLabelText('Beneficiary')).toBeTruthy();
 
     expect(queryByLabelText('Reason')).toBeTruthy();
-    expect(queryByText('why the recipient deserves a tip payout?')).toBeTruthy();
+    expect(queryByText('declare why the recipient deserves a tip payout?')).toBeTruthy();
 
     expect(queryByText(`Report deposit: ${reportDeposit.toHuman()}`)).toBeTruthy();
 
