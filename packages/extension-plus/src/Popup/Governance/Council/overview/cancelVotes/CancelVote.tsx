@@ -136,7 +136,7 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <Grid container justifyContent='space-between' sx={{ color: grey[600], fontSize: 12, p: '0px 40px 10px 120px', textAlign: 'right' }}>
+      <Grid container justifyContent='space-between' sx={{ color: grey[600], fontSize: 12, p: '0px 47px 10px 95px', textAlign: 'right' }}>
         <Grid item>
           <ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />
         </Grid>
