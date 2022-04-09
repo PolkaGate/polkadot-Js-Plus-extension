@@ -9,18 +9,17 @@
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { AccountBalance, Groups as GroupsIcon, HowToVote } from '@mui/icons-material';
-import { Avatar, Container, Grid, Link, Paper, SelectChangeEvent } from '@mui/material';
+import { Avatar, Container, Grid, Link, Paper } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 import styled from 'styled-components';
 
 import { AccountsStore } from '@polkadot/extension-base/stores';
 import keyring from '@polkadot/ui-keyring';
 import { cryptoWaitReady } from '@polkadot/util-crypto';
-import { useParams } from 'react-router';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
-import SelectRelay from '../../components/SelectRelay';
 import getChainInfo from '../../util/getChainInfo';
 import getLogo from '../../util/getLogo';
 import { AddressState, ChainInfo } from '../../util/plusTypes';
