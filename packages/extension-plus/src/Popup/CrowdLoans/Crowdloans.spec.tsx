@@ -131,8 +131,6 @@ describe('Testing Auction component', () => {
   });
 });
 
-
-
 const winning = auction?.winning.find((x) => x);
 const crowdloan = auction?.crowdloans.find((c) => c.fund.paraId === winning[1].replace(/,/g, ''));
 const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
