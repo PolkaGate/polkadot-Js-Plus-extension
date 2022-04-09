@@ -7,7 +7,6 @@ import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/ico
 import { Grid, InputAdornment, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
@@ -15,12 +14,13 @@ import { BN_HUNDRED, BN_MILLION } from '@polkadot/util';
 import { Chain } from '../../../../../../extension-chains/src/types';
 import { AccountContext } from '../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
+import { updateMeta } from '../../../../../../extension-ui/src/messaging';
 import { AllAddresses, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
 import { ChainInfo, nameAddress, TransactionDetail } from '../../../../util/plusTypes';
-import { amountToHuman, amountToMachine, saveHistory } from '../../../../util/plusUtils';
+import { amountToHuman, amountToMachine, fixFloatingPoint, saveHistory } from '../../../../util/plusUtils';
 
 interface Props {
   address: string;
@@ -41,6 +41,7 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
   const [value, setValue] = useState<bigint | undefined>();
+  const [valueInHuman, setValueInHuman] = useState<string | undefined>();
   const [params, setParams] = useState<unknown[] | (() => unknown[]) | null>(null);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
@@ -50,8 +51,8 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   const tx = api.tx.treasury.proposeSpend;
 
   const bondPercentage = useMemo((): number => (api.consts.treasury.proposalBond.mul(BN_HUNDRED).div(BN_MILLION)).toNumber(), [api.consts.treasury.proposalBond]);
-  const proposalBondMinimum = api.createType('Balance', api.consts.treasury.proposalBondMinimum);
-  const proposalBondMaximum = api.createType('Balance', api.consts.treasury.proposalBondMaximum.unwrap());
+  const proposalBondMinimum = useMemo((): Balance => api.createType('Balance', api.consts.treasury.proposalBondMinimum), [api]);
+  const proposalBondMaximum = useMemo((): Balance => api.createType('Balance', api.consts.treasury.proposalBondMaximum.unwrap()), [api]);
 
   useEffect(() => {
     if (!value) { return setCollateral(proposalBondMinimum); }
@@ -135,8 +136,9 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   }, [handleSubmitProposalModalClose]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setValueInHuman(fixFloatingPoint(event.target.value))
     setValue(amountToMachine(event.target.value, decimals));
-  }, []);
+  }, [decimals]);
 
   const HelperText = () => (
     <Grid container item justifyContent='space-between' xs={12}>
@@ -185,13 +187,14 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
           placeholder='0'
           size='medium'
           type='number'
+          value={valueInHuman}
           variant='outlined'
         />
       </Grid>
 
       <Grid item sx={{ fontSize: 12, fontWeight: 600, p: '20px 40px 0px' }} xs={12}>
         <Hint icon={true} id='Collateral' place='right' tip='value would need to be put up as collateral, calculated based on value '>
-          {`${t('Collateral:')}: ${collateral?.toHuman() ?? 0} `}
+          {`${t('Collateral')}: ${collateral?.toHuman() ?? 0} `}
         </Hint>
       </Grid>
 
@@ -231,6 +234,6 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
           state={state}
         />
       </Grid>
-    </Popup >
+    </Popup>
   );
 }
