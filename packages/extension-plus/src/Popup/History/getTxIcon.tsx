@@ -1,8 +1,11 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-/** NOTE this component provides icons related to each action, which is depicted in transaction history */
-import { AcUnit as AcUnitIcon, Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, Adjust as AdjustIcon,  AllOut as AllOutIcon, CallMade as CallMadeIcon, CallReceived as CallReceivedIcon, Check as CheckIcon, Link as LinkIcon, NotificationsNone as NotificationsNoneIcon, Redeem as RedeemIcon, Remove as RemoveIcon, StopCircle as StopCircleIcon } from '@mui/icons-material';
+/** 
+ * @description
+ * this component provides icons related to each action, which is depicted in transaction history
+ * */
+import { AcUnit as AcUnitIcon, Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, Adjust as AdjustIcon, AllOut as AllOutIcon, CallMade as CallMadeIcon, CallReceived as CallReceivedIcon, Check as CheckIcon, GroupRemove as GroupRemoveIcon, HowToReg as HowToRegIcon, Link as LinkIcon, NotificationsNone as NotificationsNoneIcon, RecommendOutlined as RecommendOutlinedIcon, Redeem as RedeemIcon, Remove as RemoveIcon, StopCircle as StopCircleIcon, ThumbsUpDownRounded as ThumbsUpDownRoundedIcon } from '@mui/icons-material';
 import React from 'react';
 
 export function getTxIcon(action: string): React.ReactNode {
@@ -54,8 +57,8 @@ export function getTxIcon(action: string): React.ReactNode {
       />;
     case ('contribute'):
       return <AllOutIcon
-        fontSize='small'
         color='info'
+        fontSize='small'
       />;
     case ('link'):
       return <LinkIcon
@@ -64,6 +67,26 @@ export function getTxIcon(action: string): React.ReactNode {
       />;
     case ('tuneup'):
       return <AdjustIcon
+        fontSize='small'
+        sx={{ color: 'red' }}
+      />;
+    case ('democracy_vote'):
+      return <ThumbsUpDownRoundedIcon
+        fontSize='small'
+        sx={{ color: 'blue' }}
+      />;
+    case ('second'):
+      return <RecommendOutlinedIcon
+        fontSize='small'
+        sx={{ color: 'purple' }}
+      />;
+    case ('council_vote'):
+      return <HowToRegIcon
+        fontSize='small'
+        sx={{ color: 'red' }}
+      />;
+    case ('cancel_vote'):
+      return <GroupRemoveIcon
         fontSize='small'
         sx={{ color: 'red' }}
       />;
