@@ -8,19 +8,21 @@
 */
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, TextField } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
+import { AccountContext } from '../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
+import { updateMeta } from '../../../../../../extension-ui/src/messaging';
 import { AllAddresses, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
-import { ChainInfo, nameAddress } from '../../../../util/plusTypes';
-import { amountToHuman } from '../../../../util/plusUtils';
+import { ChainInfo, nameAddress, TransactionDetail } from '../../../../util/plusTypes';
+import { saveHistory } from '../../../../util/plusUtils';
 
 interface Props {
   address: string;
@@ -32,6 +34,8 @@ interface Props {
 
 export default function ProposeTip({ address, chain, chainInfo, handleProposeTipModalClose, showProposeTipModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const { hierarchy } = useContext(AccountContext);
+
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');
@@ -43,14 +47,14 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
 
-  const { api, coin, decimals } = chainInfo;
+  const { api, decimals } = chainInfo;
   const tx = api.tx.tips.reportAwesome;
 
   const reportDeposit = useMemo((): Balance =>
     api.createType('Balance', (api.consts.tips.tipReportDepositBase).add((api.consts.tips.dataDepositPerByte).muln(reason.length))
     ), [api, reason.length]);
 
-  const maximumReasonLength = api.consts.tips.maximumReasonLength.toString();
+  const maximumReasonLength = api.consts.tips.maximumReasonLength.toNumber();
 
   useEffect(() => {
     if (!tx || !encodedAddressInfo?.address || !beneficiaryAddress) return;
@@ -64,7 +68,6 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
       .catch(console.error);
   }, [beneficiaryAddress, decimals, encodedAddressInfo?.address, tx, reason]);
 
-
   useEffect(() => {
     if (!estimatedFee || !availableBalance) {
       setIsDisabled(true);
@@ -74,30 +77,43 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
   }, [availableBalance, beneficiaryAddress, estimatedFee, reason, reportDeposit]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
-    setState('confirming');
-
-    if (!encodedAddressInfo) {
-      console.log('no encded address');
-
-      return;
-    }
-
     try {
-      const pair = keyring.getPair(encodedAddressInfo?.address);
+      if (!encodedAddressInfo?.address) {
+        console.log('no encded address');
+
+        return;
+      }
+
+      setState('confirming');
+
+      const pair = keyring.getPair(encodedAddressInfo.address);
 
       pair.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo?.address);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo.address);
 
-      // TODO can save to history here
+      const currentTransactionDetail: TransactionDetail = {
+        action: 'Propose_tip',
+        amount: '',
+        block: block,
+        date: Date.now(),
+        fee: fee || '',
+        from: encodedAddressInfo.address,
+        hash: txHash || '',
+        status: failureText || status,
+        to: beneficiaryAddress
+      };
+
+      updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
+
       setState(status);
     } catch (e) {
       console.log('error in propose proposal :', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  }, [api, params, password, encodedAddressInfo, tx]);
+  }, [encodedAddressInfo?.address, password, api, tx, params, beneficiaryAddress, chain, hierarchy]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -111,7 +127,7 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
   const HelperText = () => (
     <Grid container item justifyContent='space-between' xs={12}>
       <Grid item>
-        {t('why the recipient deserves a tip payout?')}
+        {t('declare why the recipient deserves a tip payout?')}
       </Grid>
       {!!beneficiaryAddress &&
         <Grid item>
