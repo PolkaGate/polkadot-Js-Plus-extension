@@ -8,7 +8,7 @@ import type { DeriveCouncilVote } from '@polkadot/api-derive/types';
 import { GroupRemove as GroupRemoveIcon } from '@mui/icons-material';
 import { Container, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useContext,useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
@@ -40,7 +40,7 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [votesInfo, seVotesInfo] = useState<DeriveCouncilVote>();
-  const [filteredPersonsInfo, setFilteredPersonsInfo] = useState<PersonsInfo>();
+  const [votedPersonsInfo, setVotedPersonsInfo] = useState<PersonsInfo>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
@@ -61,7 +61,7 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
 
     // eslint-disable-next-line no-void
     void api.derive.council.votesOf(encodedAddressInfo.address).then((v) => {
-      console.log('v:', v.toString());
+      console.log('v:', v);
       seVotesInfo(v);
     });
   }, [api.derive.council, encodedAddressInfo, tx]);
@@ -72,8 +72,15 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
 
   useEffect(() => {
     if (!votesInfo || !allCouncilInfo) return;
+    const voted: PersonsInfo = { backed: [], infos: [] };
 
-    setFilteredPersonsInfo({ infos: allCouncilInfo.infos.filter((p) => votesInfo.votes.includes(p.accountId)) });
+    allCouncilInfo.infos.forEach((p, index) => {
+      if (p.accountId && votesInfo.votes.includes(p.accountId)) {
+        voted.backed.push(allCouncilInfo.backed[index]);
+        voted.infos.push(allCouncilInfo.infos[index]);
+      }
+    });
+    setVotedPersonsInfo(voted);
   }, [votesInfo, allCouncilInfo]);
 
   const handleCancelVotes = async () => {
@@ -139,8 +146,8 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
       </Grid>
 
       <Container id='scrollArea' sx={{ height: '280px', overflowY: 'auto' }}>
-        {votesInfo && filteredPersonsInfo
-          ? <Members chain={chain} chainInfo={chainInfo} membersType={t('Votes')} personsInfo={filteredPersonsInfo} />
+        {votesInfo && votedPersonsInfo
+          ? <Members chain={chain} chainInfo={chainInfo} membersType={t('Votes')} personsInfo={votedPersonsInfo} />
           : <Progress title={t('Loading votes ...')} />
         }
       </Container>
