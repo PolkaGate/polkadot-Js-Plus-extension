@@ -16078,6 +16078,7 @@ resolve@^2.0.0-next.3:
     "@mui/icons-material": ^5.4.2
     "@mui/lab": ^5.0.0-alpha.70
     "@mui/material": ^5.4.3
+    "@polkadot/api": ^7.11.1
     "@polkadot/apps-config": ^0.111.1
     "@polkadot/dev": ^0.65.60
     "@subsocial/types": ^0.6.5
