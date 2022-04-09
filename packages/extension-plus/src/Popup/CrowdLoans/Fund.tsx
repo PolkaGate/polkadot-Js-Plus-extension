@@ -102,7 +102,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
           </Grid>
 
           <Grid sx={{ fontSize: 11, textAlign: 'left' }} xs={2}>
-            {t('Leases')}<br />
+            {t('Lease')}<br />
             {t('End')}<br />
             {t('Raised/Cap')}<br />
             {t('My contribution')}
