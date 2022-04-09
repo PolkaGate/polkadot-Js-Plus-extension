@@ -40,8 +40,9 @@ export default function Password({ autofocus = false, handleIt, helper = 'Please
     <Grid item sx={{ m: 1 }} xs={12}>
       <TextField
         InputLabelProps={{
-          shrink: true
+          style: { fontSize: 14 }
         }}
+
         InputProps={{
           endAdornment: (
             <InputAdornment position='end'>
@@ -57,7 +58,7 @@ export default function Password({ autofocus = false, handleIt, helper = 'Please
               {passwordStatus === PASS_MAP.CORRECT ? <CheckRounded color='success' /> : ''}
             </InputAdornment>
           ),
-          style: { fontSize: 16 }
+          style: { fontSize: 13 }
         }}
         autoFocus={autofocus}
         color='warning'
