@@ -67,11 +67,11 @@ export default function Participator({ address, availableBalance, chain, chainIn
 
   return (
     <Grid container item sx={{ p: '20px 40px 0px' }} xs={12}>
-      <Grid item sx={{ color: grey[800], fontSize: '13px', fontWeight: '600', marginTop: '20px', textAlign: 'left' }} xs={2}>
+      <Grid item sx={{ color: grey[800], fontSize: '13px', fontWeight: '600', marginTop: '20px', textAlign: 'left', pr: 1 }} xs={'auto'}>
         {role}:
       </Grid>
-      <Grid item xs={10}>
-        <Box sx={{ border: '1px groove silver', borderRadius: '10px', px: 1 }}>
+      <Grid item sx={{ flexGrow: 1 }}>
+        <Box sx={{ borderBottom: '1px groove silver', borderRadius: '10px', px: 1 }}>
           <Grid alignItems='center' container>
 
             {encodedAddressInfo &&
