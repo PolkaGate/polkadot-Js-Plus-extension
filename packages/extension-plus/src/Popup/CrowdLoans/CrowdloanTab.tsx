@@ -36,7 +36,7 @@ function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribu
   const [expanded, setExpanded] = useState<string>('');
 
   const endeds = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && !c.fund.hasLeased), [auction]);
-  const activeCrowdloans = useMemo(() => auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber && !c.fund.hasLeased), [auction]);
+  const activeCrowdloans = useMemo(() => auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber), [auction]);
   const auctionWinners = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased), [auction]);
 
   useEffect(() => {
