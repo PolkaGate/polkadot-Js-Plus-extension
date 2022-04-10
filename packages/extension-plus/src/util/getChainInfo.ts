@@ -8,22 +8,29 @@ import Memoize from 'memoize-one';
 
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { createWsEndpoints } from '@polkadot/apps-config';
+import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 
 import { ChainInfo } from './plusTypes';
 
 const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
 
-async function getChainInfo(searchKeyWord: Chain | string): Promise<ChainInfo> {
+async function getChainInfo(searchKeyWord: Chain | string, endpointName?: string): Promise<ChainInfo> {
   const chainName = (searchKeyWord as Chain)?.name?.replace(' Relay Chain', '') ?? searchKeyWord as string;
+  const condition = (input: LinkOption) => String(input.text)?.toLowerCase() === chainName?.toLowerCase() || input.genesisHash === searchKeyWord
+  // if (!searchKeyWord) return null;
+  let endpoint;
 
-  // if (!chainName) return null;
-  // console.log('allEndpoints',allEndpoints)
-  const endpoint = allEndpoints.find((e) => String(e.text)?.toLowerCase() === chainName?.toLowerCase() ||
-    e.genesisHash === searchKeyWord);
-  // const endpoints = allEndpoints.filter((e) => (String(e.text)?.toLowerCase() === chainName?.toLowerCase()));
-  // const onfinalityEndpoint = endpoints.find((e) => e.value.includes('onfinality'));
-  // console.log('endpoints:', endpoints)
-  // const endpoint = onfinalityEndpoint || endpoints[0];
+  // endpointName = 'onfinality';// for test
+
+  if (endpointName) {
+    const endpoints = allEndpoints.filter((e) => condition(e));
+
+    endpoint = endpoints.find((e) => e.value.includes(endpointName));
+    endpoint = endpoint || endpoints[0];
+  } else {
+    endpoint = allEndpoints.find((e) => condition(e));
+  }
+
   const wsProvider = new WsProvider(endpoint?.value as string);
 
   const api = await ApiPromise.create({ provider: wsProvider });
