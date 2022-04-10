@@ -56,7 +56,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
             </Grid>
 
             <Grid container item xs={9}>
-              <Grid container item spacing={1} xs={12}>
+              <Grid container item spacing={0.5} xs={12}>
                 <Grid item>
                   {name?.slice(0, 15)}
                 </Grid>
