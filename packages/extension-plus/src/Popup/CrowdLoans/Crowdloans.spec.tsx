@@ -4,14 +4,14 @@
 import '@polkadot/extension-mocks/chrome';
 import 'jsdom-worker-fix';
 
-import { fireEvent, render } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Route } from 'react-router';
 
 import getChainInfo from '../../util/getChainInfo';
 import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman, remainingTime } from '../../util/plusUtils';
-import { auction, endpoints } from '../../util/test/testHelper';
+import { actives, auction, crowdloan, endpoints, getText } from '../../util/test/testHelper';
 import AuctionTab from './AuctionTab';
 import CrowdloanTab from './CrowdloanTab';
 import Crowdloans from './index';
@@ -20,7 +20,7 @@ jest.setTimeout(60000);
 
 let chainInfo: ChainInfo;
 
-console.log(`Parachain Id: ${auction.winning[0][1].replace(/,/g, '')}`)
+console.log(`Parachain Id: ${auction.winning[0][1].replace(/,/g, '')}`);
 
 describe('Testing Crowdloans component', () => {
   test('Checking the existence of elements', () => {
@@ -61,7 +61,7 @@ describe('Testing Auction component', () => {
     expect(queryByText('Bids')).toBeTruthy();
     expect(queryByText(display.slice(0, 15))).toBeTruthy();
     expect(queryByText(`Parachain Id: ${auction.winning[0][1].replace(/,/g, '')}`)).toBeTruthy();
-    expect(queryByText('Leases', { exact: false })).toBeTruthy();
+    expect(queryAllByText('Lease', { exact: false })).toBeTruthy();
     expect(queryAllByText(`${String(crowdloan?.fund.firstPeriod)} - ${String(crowdloan?.fund.lastPeriod)}`, { exact: false })).toBeTruthy();
     expect(queryAllByText('End', { exact: false })).toBeTruthy();
     expect(queryByText(`${crowdloan.fund.end}`, { exact: false })).toBeTruthy();
@@ -95,7 +95,7 @@ describe('Testing Auction component', () => {
         expect(queryByText(display.slice(0, 15))).toBeTruthy();
         expect(queryByText(`Parachain Id: ${active.fund.paraId}`)).toBeTruthy();
 
-        expect(queryAllByText('Leases', { exact: false })).toBeTruthy();
+        expect(queryAllByText('Lease', { exact: false })).toBeTruthy();
         expect(queryAllByText(`${String(active?.fund.firstPeriod)} - ${String(active?.fund.lastPeriod)}`, { exact: false })).toBeTruthy();
 
         expect(queryAllByText('End', { exact: false })).toBeTruthy();
@@ -114,7 +114,7 @@ describe('Testing Auction component', () => {
         expect(queryByText(display.slice(0, 15))).toBeTruthy();
         expect(queryByText(`Parachain Id: ${winner.fund.paraId}`)).toBeTruthy();
 
-        expect(queryAllByText('Leases', { exact: false })).toBeTruthy();
+        expect(queryAllByText('Lease', { exact: false })).toBeTruthy();
         expect(queryAllByText(`${String(winner?.fund.firstPeriod)} - ${String(winner?.fund.lastPeriod)}`, { exact: false })).toBeTruthy();
 
         expect(queryAllByText('End', { exact: false })).toBeTruthy();
@@ -131,9 +131,5 @@ describe('Testing Auction component', () => {
   });
 });
 
-const winning = auction?.winning.find((x) => x);
-const crowdloan = auction?.crowdloans.find((c) => c.fund.paraId === winning[1].replace(/,/g, ''));
-const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
 let display = crowdloan.identity.info.legal || crowdloan.identity.info.display || getText(crowdloan.fund.paraId);
-const actives = auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber && !c.fund.hasLeased);
 const winners = auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased);

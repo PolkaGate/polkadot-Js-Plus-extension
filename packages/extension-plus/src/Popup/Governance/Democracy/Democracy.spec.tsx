@@ -18,9 +18,9 @@ import Extension from '../../../../../extension-base/src/background/handlers/Ext
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getReferendums from '../../../util/api/getReferendums';
 import getChainInfo from '../../../util/getChainInfo';
-import { ChainInfo } from '../../../util/plusTypes';
+import { ChainInfo, Referendum } from '../../../util/plusTypes';
 import { amountToHuman, formatMeta, remainingTime } from '../../../util/plusUtils';
-import { accounts, chain, convictions, createAcc, createExtension, firstSuri } from '../../../util/test/testHelper';
+import { accounts, chain, convictions, createAcc, createExtension, firstSuri, SettingsStruct } from '../../../util/test/testHelper';
 import DemocracyProposals from './proposals/overview';
 import ReferendumsOverview from './referendums/overview';
 import Vote from './referendums/Vote';
@@ -30,7 +30,7 @@ ReactDOM.createPortal = jest.fn((modal) => modal);
 
 let chainInfo: ChainInfo;
 let availableBalance: Balance;
-let referendum: DeriveReferendumExt[] | null;
+let referendum: Referendum[] | null;
 let votingBalance: Balance;
 let currentBlockNumber: number;
 let description: string[];
@@ -46,7 +46,6 @@ const voteInfo = {
   refId: '54',
   voteType: 1
 };
-const SettingsStruct = { prefix: 0 };
 let extension: Extension;
 let address: string;
 
@@ -82,15 +81,17 @@ describe('Testing Democracy component', () => {
   });
 
   test('Checking the Referendums\'s tab elements', () => {
-    const { getByRole, queryByText } = render(
+    const { debug, getByRole, queryByText } = render(
       <ReferendumsOverview
         chain={chain}
         chainInfo={chainInfo}
         convictions={convictions}
         currentBlockNumber={currentBlockNumber}
-        referendums={[referendum[0]]}
+        referendums={referendum[0] ? [referendum[0]] : []}
       />
     );
+
+    debug(undefined, 30000);
 
     if (referendum?.length) {
       expect(queryByText('No active referendum')).toBeFalsy();
@@ -135,7 +136,7 @@ describe('Testing Democracy component', () => {
 
     expect(queryByText(`Vote to ${voteInfo.refId}`)).toBeTruthy();
     expect(queryByText('Voter:')).toBeTruthy();
-    expect(container.querySelectorAll('option')).toHaveLength(convictions.length);
+    expect(queryByLabelText('Vote value')).toBeTruthy();
 
     await waitFor(() => {
       expect(queryByTestId('balance')?.textContent).toEqual(`Available: ${availableBalance.toHuman()}`);
@@ -143,10 +144,11 @@ describe('Testing Democracy component', () => {
     await waitFor(() => {
       expect(queryByTestId('showBalance')?.textContent).toEqual(`Voting balance: ${votingBalance.toHuman()}`);
     }, { timeout: 10000 });
-    expect(queryByLabelText('Vote value')).toBeTruthy();
+
     expect(queryByText('This value is locked for the duration of the vote')).toBeTruthy();
     expect(queryByText('Fee', { exact: false })).toBeTruthy();
     expect(queryByText('Locked for')).toBeTruthy();
+    expect(container.querySelectorAll('option')).toHaveLength(convictions.length);
     expect(queryByText('The conviction to use for this vote with appropriate lock period')).toBeTruthy();
     expect(queryByLabelText('Password')).toBeTruthy();
     expect(queryByText('Please enter the account password')).toBeTruthy();

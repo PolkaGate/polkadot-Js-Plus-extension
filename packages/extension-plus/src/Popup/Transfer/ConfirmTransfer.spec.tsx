@@ -3,7 +3,7 @@
 
 /* The following address needs to have some Westies to pass the last test */
 /* 5FbSap4BsWfjyRhCchoVdZHkDnmDm3NEgLZ25mesq4aw2WvX */
-/* may need to uncomment a line marked below */
+/* may need to comment/uncomment line 62  */
 
 import '@polkadot/extension-mocks/chrome';
 
@@ -54,12 +54,12 @@ let fee: Balance;
 let availableBalance: string;
 const transferAmountInHuman = '0.1';
 const transferAmount = amountToMachine(transferAmountInHuman, decimals);
-const firstSuri = 'seed sock milk update focus rotate barely fade car face mechanic mercy';
-const secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
+let firstSuri = 'seed sock milk update focus rotate barely fade car face mechanic mercy';
+let secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality sure exhaust detail';
 const password = 'passw0rd';
 let chainInfo: ChainInfo;
 
-// [firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
+[firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
 
 describe('ConfirmTransfer for Successful Scenario (Note: account must have some fund to transfer)', () => {
   beforeAll(async () => {

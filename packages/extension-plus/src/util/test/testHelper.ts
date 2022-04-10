@@ -11,7 +11,7 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
 import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
 import { AccountsStore } from '../../../../extension-base/src/stores';
-import { StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { Crowdloan, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
 import { SHORT_ADDRESS_CHARACTERS } from '../constants';
 import { Auction } from '../plusTypes';
 
@@ -539,6 +539,7 @@ export const auction: Auction = {
     ]
   ]
 };
+
 
 export const endpoints: LinkOption[] = [
   {
@@ -1184,6 +1185,12 @@ export const endpoints: LinkOption[] = [
   }
 ];
 
+const winning = auction?.winning.find((x) => x);
+
+export const crowdloan: Crowdloan = auction?.crowdloans.find((c) => c.fund.paraId === winning[1].replace(/,/g, ''));
+export const actives = auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber && !c.fund.hasLeased);
+export const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
+
 export function makeShortAddr (address: string) {
   return `${address.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
 }
@@ -1322,6 +1329,8 @@ export const accounts = [
   { address: '5FbSap4BsWfjyRhCchoVdZHkDnmDm3NEgLZ25mesq4aw2WvX', genesisHash: westendGenesisHash, name: 'Mary', type: 'sr25519' }
 ] as AccountJson[];
 
+export const SettingsStruct = { prefix: 0 };
+
 export const chain: Chain = {
   definition: {
     chain: 'Polkadot Relay Chain',
@@ -1375,3 +1384,18 @@ export const convictions = [
     value: 6
   }
 ];
+
+export const rebagFalse: RebagInfo = {
+  currentBagThreshold: '4.5087 WND',
+  shouldRebag: false
+};
+
+export const rebagTrue: RebagInfo = {
+  currentBagThreshold: '4.5087 WND',
+  shouldRebag: true
+};
+
+export const putInFront: PutInFrontInfo = {
+  lighter: accounts[0].address,
+  shouldPutInFront: true
+};

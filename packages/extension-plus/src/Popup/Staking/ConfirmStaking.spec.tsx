@@ -13,7 +13,7 @@ import { Chain } from '../../../../extension-chains/src/types';
 import getChainInfo from '../../util/getChainInfo';
 import { BalanceType, ChainInfo } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine } from '../../util/plusUtils';
-import { stakingConsts, validatorsIdentities, validatorsList } from '../../util/test/testHelper';
+import { makeShortAddr, putInFront, rebagFalse, rebagTrue, stakingConsts, validatorsIdentities, validatorsList } from '../../util/test/testHelper';
 import ConfirmStaking from './ConfirmStaking';
 
 jest.setTimeout(60000);
@@ -43,7 +43,7 @@ const staker = {
   chain: 'westend',
   name: 'Amir khan'
 };
-const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating'];
+const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating', 'tuneUp'];
 const setState = () => null;
 
 describe('Testing ConfirmStaking component', () => {
@@ -59,6 +59,8 @@ describe('Testing ConfirmStaking component', () => {
         chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
+        putInFrontInfo={undefined}
+        rebagInfo={undefined}
         selectedValidators={validatorsList}
         setState={setState}
         showConfirmStakingModal={true}
@@ -109,6 +111,8 @@ describe('Testing ConfirmStaking component', () => {
         chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
+        putInFrontInfo={undefined}
+        rebagInfo={undefined}
         selectedValidators={validatorsList}
         setState={setState}
         showConfirmStakingModal={true}
@@ -135,6 +139,8 @@ describe('Testing ConfirmStaking component', () => {
         chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
+        putInFrontInfo={undefined}
+        rebagInfo={undefined}
         selectedValidators={[]}
         setState={setState}
         showConfirmStakingModal={true}
@@ -158,6 +164,8 @@ describe('Testing ConfirmStaking component', () => {
         chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
+        putInFrontInfo={undefined}
+        rebagInfo={undefined}
         selectedValidators={validatorsList}
         setState={setState}
         showConfirmStakingModal={true}
@@ -182,6 +190,8 @@ describe('Testing ConfirmStaking component', () => {
         chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={[]}
+        putInFrontInfo={undefined}
+        rebagInfo={undefined}
         selectedValidators={[]}
         setState={setState}
         showConfirmStakingModal={true}
@@ -208,6 +218,8 @@ describe('Testing ConfirmStaking component', () => {
         chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={[]}
+        putInFrontInfo={undefined}
+        rebagInfo={undefined}
         selectedValidators={[]}
         setState={setState}
         showConfirmStakingModal={true}
@@ -220,5 +232,60 @@ describe('Testing ConfirmStaking component', () => {
 
     expect(queryByText('REDEEM')).toBeTruthy();
     expect(queryByText('Available balance after redeem will be', { exact: false })).toBeTruthy();
+  });
+
+  test('when state is tuneUp needs rebag', () => {
+    const { queryByText } = render(
+      <ConfirmStaking
+        amount={0n}
+        chain={chain}
+        chainInfo={chainInfo}
+        ledger={ledger}
+        nominatedValidators={[]}
+        putInFrontInfo={undefined}
+        rebagInfo={rebagTrue}
+        selectedValidators={[]}
+        setState={setState}
+        showConfirmStakingModal={true}
+        staker={staker}
+        stakingConsts={stakingConsts}
+        state={state[8]}
+        validatorsIdentities={[]}
+      />
+    );
+
+    expect(queryByText('TUNEUP')).toBeTruthy();
+    expect(queryByText('Declaring that your account has sufficiently changed its score that should fall into a different bag.')).toBeTruthy();
+    expect(queryByText('Current bag threshold')).toBeTruthy();
+    expect(queryByText(rebagTrue?.currentBagThreshold ?? '')).toBeTruthy();
+    expect(queryByText('You will probably need another tune up after this one!')).toBeTruthy();
+  });
+
+  test('when state is tuneUp needs putInFront', () => {
+    const { queryByText } = render(
+      <ConfirmStaking
+        amount={0n}
+        chain={chain}
+        chainInfo={chainInfo}
+        ledger={ledger}
+        nominatedValidators={[]}
+        putInFrontInfo={putInFront}
+        rebagInfo={rebagFalse}
+        selectedValidators={[]}
+        setState={setState}
+        showConfirmStakingModal={true}
+        staker={staker}
+        stakingConsts={stakingConsts}
+        state={state[8]}
+        validatorsIdentities={[]}
+      />
+    );
+
+    expect(queryByText('TUNEUP')).toBeTruthy();
+    expect(queryByText('Changing your accout\'s position to a better one')).toBeTruthy();
+    expect(queryByText('Current bag threshold')).toBeTruthy();
+    expect(queryByText(rebagFalse.currentBagThreshold)).toBeTruthy();
+    expect(queryByText('Account to overtake')).toBeTruthy();
+    expect(queryByText(makeShortAddr(putInFront.lighter))).toBeTruthy();
   });
 });

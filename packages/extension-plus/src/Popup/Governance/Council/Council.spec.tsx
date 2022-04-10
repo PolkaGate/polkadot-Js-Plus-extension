@@ -189,8 +189,11 @@ describe('Testing Council component', () => {
       expect(queryByTestId('balance')?.textContent).toEqual(`Available: ${availableBalance.toHuman()}`);
     }, { timeout: 15000 });
     expect(queryByText('Voting bond:')).toBeTruthy();
-    expect(queryByText('Accounts to vote')).toBeTruthy();
+    expect(queryAllByText('Vote value')).toBeTruthy();
+    expect(queryByText('Fee:', { exact: false })).toBeTruthy();
     expect(queryByText('will be locked and used in elections')).toBeTruthy();
+
+    expect(queryByText('Accounts to vote')).toBeTruthy();
 
     for (const councilInfo of allCouncilInfo.infos) {
       if (councilInfo.identity.display && councilInfo.identity.displayParent) {
@@ -211,6 +214,8 @@ describe('Testing Council component', () => {
     expect(queryByText('Please enter the account password')).toBeTruthy();
     expect(queryByTestId('confirmButton')).toBeTruthy();
   });
+
+  test('Checking the Cancelvote component elements', () => { /* TODO */ });
 
   test('Checking the MOTIONS\' tab elements', () => {
     const { queryAllByRole, queryByText } = render(
