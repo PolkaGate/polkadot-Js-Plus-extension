@@ -28,7 +28,7 @@ import broadcast from '../../util/api/broadcast';
 import { bondOrBondExtra } from '../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../util/constants';
 import getLogo from '../../util/getLogo';
-import { AccountsBalanceType, ChainInfo, StakingConsts, TransactionDetail, RebagInfo, PutInFrontInfo } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo, PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
 import ValidatorsList from './ValidatorsList';
 
@@ -52,7 +52,7 @@ interface Props {
   rebagInfo: RebagInfo | undefined;
 }
 
-export default function ConfirmStaking({ amount, chain, chainInfo, rebagInfo, handleEasyStakingModalClose, ledger, putInFrontInfo, nominatedValidators, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, chain, chainInfo, handleEasyStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -64,7 +64,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, rebagInfo, ha
   const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean>(false);
   const [confirmButtonText, setConfirmButtonText] = useState<string>(t('Confirm'));
   const [amountNeedsAdjust, setAmountNeedsAdjust] = useState<boolean>(false);
-  const [surAmount, setSurAmount] = useState<bigint>(amount); /** SUR: Staking Unstaking Redeem */
+  const [surAmount, setSurAmount] = useState<bigint>(amount); /** SUR: Staking Unstaking Redeem amount */
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<bigint>(0n);
 
@@ -671,7 +671,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, rebagInfo, ha
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!stakingConsts || !ledger || confirmButtonDisabled || !estimatedFee}
+              isDisabled={!stakingConsts || !ledger || confirmButtonDisabled || !estimatedFee || !availableBalance}
               state={confirmingState}
               text={confirmButtonText}
             />
