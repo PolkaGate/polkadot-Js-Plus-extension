@@ -1188,10 +1188,12 @@ export const endpoints: LinkOption[] = [
 const winning = auction?.winning.find((x) => x);
 
 export const crowdloan: Crowdloan = auction?.crowdloans.find((c) => c.fund.paraId === winning[1].replace(/,/g, ''));
-export const actives = auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber && !c.fund.hasLeased);
+export const actives = auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber);
+export const display = (c: Crowdloan): string => c.identity.info.display || c.identity.info.legal || getText(c.fund.paraId) || '';
+export const winners = auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased);
 export const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
 
-export function makeShortAddr (address: string) {
+export function makeShortAddr(address: string) {
   return `${address.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
 }
 
@@ -1267,7 +1269,7 @@ export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[9].address, exposure: { others: others, total: 12345.6 }, validatorPrefs: { commission: 750000000 } }
 ];
 
-export async function createAcc (suri: string, genesisHash: string, extension: Extension): Promise<string> {
+export async function createAcc(suri: string, genesisHash: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: genesisHash,
     name: 'Amir khan',
@@ -1281,7 +1283,7 @@ export async function createAcc (suri: string, genesisHash: string, extension: E
   return address;
 }
 
-export async function createAccount (suri: string, extension: Extension): Promise<string> {
+export async function createAccount(suri: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: westendGenesisHash,
     name: 'Amir khan',
@@ -1295,7 +1297,7 @@ export async function createAccount (suri: string, extension: Extension): Promis
   return address;
 }
 
-export async function createExtension (): Promise<Extension> {
+export async function createExtension(): Promise<Extension> {
   try {
     return new Promise((resolve) => {
       cryptoWaitReady()
