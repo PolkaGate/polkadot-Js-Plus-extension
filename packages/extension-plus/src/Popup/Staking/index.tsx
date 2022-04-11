@@ -28,7 +28,7 @@ import Hint from '../../components/Hint';
 import getRewardsSlashes from '../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
-import { AccountsBalanceType, ChainInfo, PutInFrontInfo,RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
+import { AccountsBalanceType, ChainInfo, PutInFrontInfo, RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
@@ -406,7 +406,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
       reward = amountToHuman(String(reward), chainInfo?.decimals) === '0' ? '0.00' : amountToHuman(reward, chainInfo?.decimals);
       setTotalReceivedReward(reward);
     });
-  }, [chainInfo]);
+  }, [chain, chainInfo, staker.address]);
 
   useEffect(() => {
     if (!ledger || !chainInfo) { return; }
@@ -651,7 +651,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
             <Unstake
-              availableBalance={staker?.balanceInfo?.available}
+              availableBalance={staker?.balanceInfo?.available ?? 0n}
               chainInfo={chainInfo}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
@@ -676,11 +676,11 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
               putInFrontInfo={putInFrontInfo}
               rebagInfo={rebagInfo}
               setState={setState}
+              staker={staker}
               stakingConsts={stakingConsts}
               state={state}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={validatorsInfo}
-              staker={staker}
             />
           </TabPanel>
           <TabPanel index={3} value={tabValue}>
