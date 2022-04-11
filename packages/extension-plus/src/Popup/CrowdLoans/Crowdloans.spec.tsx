@@ -11,7 +11,7 @@ import { MemoryRouter, Route } from 'react-router';
 import getChainInfo from '../../util/getChainInfo';
 import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman, remainingTime } from '../../util/plusUtils';
-import { actives, auction, crowdloan, endpoints, getText } from '../../util/test/testHelper';
+import { actives, auction, crowdloan, endpoints, getText, display, winners } from '../../util/test/testHelper';
 import AuctionTab from './AuctionTab';
 import CrowdloanTab from './CrowdloanTab';
 import Crowdloans from './index';
@@ -20,11 +20,11 @@ jest.setTimeout(60000);
 
 let chainInfo: ChainInfo;
 
-console.log(`Parachain Id: ${auction.winning[0][1].replace(/,/g, '')}`);
+
 
 describe('Testing Crowdloans component', () => {
   test('Checking the existence of elements', () => {
-    const { queryAllByText, queryByRole, queryByText } = render(
+    const { queryAllByText, queryByText } = render(
       <MemoryRouter initialEntries={['/auction-crowdloans']}>
         <Route path='/auction-crowdloans'><Crowdloans className='amir' /></Route>
       </MemoryRouter>
@@ -59,7 +59,7 @@ describe('Testing Auction component', () => {
 
     // Bids
     expect(queryByText('Bids')).toBeTruthy();
-    expect(queryByText(display.slice(0, 15))).toBeTruthy();
+    expect(queryByText(display(crowdloan).slice(0, 15))).toBeTruthy();
     expect(queryByText(`Parachain Id: ${auction.winning[0][1].replace(/,/g, '')}`)).toBeTruthy();
     expect(queryAllByText('Lease', { exact: false })).toBeTruthy();
     expect(queryAllByText(`${String(crowdloan?.fund.firstPeriod)} - ${String(crowdloan?.fund.lastPeriod)}`, { exact: false })).toBeTruthy();
@@ -72,7 +72,7 @@ describe('Testing Auction component', () => {
 
   describe('Testing CrowdloansTab component', () => {
     test('Checking the CrowdloanTab\'s elements', () => {
-      const { queryAllByText, queryByText } = render(
+      const { debug, queryAllByText, queryByText } = render(
         <CrowdloanTab
           auction={auction}
           chainInfo={chainInfo}
@@ -88,11 +88,11 @@ describe('Testing Auction component', () => {
       expect(queryByText(`Actives(${actives.length})`)).toBeTruthy();
       expect(queryByText(`Winners(${winners.length})`)).toBeTruthy();
       expect(queryByText('Ended(0)')).toBeTruthy();
+      // debug(undefined, 300000);
 
       // active crowdloans
       for (const active of actives) {
-        display = active.identity.info.legal || active.identity.info.display || getText(active.fund.paraId);
-        expect(queryByText(display.slice(0, 15))).toBeTruthy();
+        expect(queryByText(display(active).slice(0, 15))).toBeTruthy();
         expect(queryByText(`Parachain Id: ${active.fund.paraId}`)).toBeTruthy();
 
         expect(queryAllByText('Lease', { exact: false })).toBeTruthy();
@@ -110,8 +110,7 @@ describe('Testing Auction component', () => {
 
       // winner crowdloans
       for (const winner of winners) {
-        display = winner.identity.info.legal || winner.identity.info.display || getText(winner.fund.paraId);
-        expect(queryByText(display.slice(0, 15))).toBeTruthy();
+        expect(queryByText(display(winner).slice(0, 15))).toBeTruthy();
         expect(queryByText(`Parachain Id: ${winner.fund.paraId}`)).toBeTruthy();
 
         expect(queryAllByText('Lease', { exact: false })).toBeTruthy();
@@ -131,5 +130,3 @@ describe('Testing Auction component', () => {
   });
 });
 
-let display = crowdloan.identity.info.legal || crowdloan.identity.info.display || getText(crowdloan.fund.paraId);
-const winners = auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased);
