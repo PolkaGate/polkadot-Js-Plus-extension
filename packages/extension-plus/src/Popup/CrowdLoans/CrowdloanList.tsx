@@ -3,8 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** @description
- *  this component lists crowdloans, which could be actives, winners or ended. 
+/** 
+ * @description
+ *  this component lists crowdloans, which could be actives, winners or ended
  * */
 
 import { ExpandMore } from '@mui/icons-material';
@@ -37,7 +38,7 @@ export default function CrowdloanList({ chainInfo, crowdloans, description, endp
   return (
     <Accordion disableGutters expanded={expanded === title} onChange={handleAccordionChange(title)} sx={{ backgroundColor: grey[300], flexGrow: 1 }}>
       <AccordionSummary expandIcon={<ExpandMore />}>
-        <Grid container justifyContent='space-between' xs={12}>
+        <Grid container justifyContent='space-between'>
           <Grid item>
             <Typography sx={{ flexShrink: 0, width: '33%' }} variant='body2'>
               {title}({crowdloans?.length})
@@ -51,7 +52,7 @@ export default function CrowdloanList({ chainInfo, crowdloans, description, endp
       <AccordionDetails sx={{ height: height, overflowY: 'auto', p: 0 }}>
         {crowdloans?.length
           ? crowdloans.map((c) => (
-            <Grid container item key={c.fund.paraId} xs={12}>
+            <Grid container item key={c.fund.paraId}>
               {c.fund.paraId &&
                 <Fund coin={chainInfo.coin} crowdloan={c} decimals={chainInfo.decimals} endpoints={endpoints} handleContribute={handleContribute} isActive={title === 'Actives'} myContributions={myContributions} />
               }
