@@ -10,7 +10,7 @@
 
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Grid } from '@mui/material';
+import { Container } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
@@ -34,14 +34,13 @@ interface Props extends ThemeProps {
 function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribute, myContributions }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<string>('');
-
-  const endeds = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && !c.fund.hasLeased), [auction]);
-  const activeCrowdloans = useMemo(() => auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber), [auction]);
-  const auctionWinners = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased), [auction]);
+  const sortingCrowdloans = (a: Crowdloan, b: Crowdloan) => Number(b.fund.paraId) - Number(a.fund.paraId);// newest first
+  const endeds = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && !c.fund.hasLeased).sort(sortingCrowdloans), [auction]);
+  const activeCrowdloans = useMemo(() => auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber).sort(sortingCrowdloans), [auction]);
+  const auctionWinners = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased).sort(sortingCrowdloans), [auction]);
 
   useEffect(() => {
-    if (activeCrowdloans?.length) { setExpanded('Actives'); }
-    else if (auctionWinners?.length) { setExpanded('Winners'); }
+    if (activeCrowdloans?.length) { setExpanded('Actives'); } else if (auctionWinners?.length) { setExpanded('Winners'); }
   }, [activeCrowdloans, auctionWinners]);
 
   const handleAccordionChange = useCallback((panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -49,8 +48,7 @@ function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribu
   }, []);
 
   return (
-    <Grid
-      container
+    <div
       id='crowdloan-list'
     >
       <CrowdloanList
@@ -89,7 +87,7 @@ function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribu
         myContributions={myContributions}
         title={t('Ended')}
       />
-    </Grid>
+    </div>
   );
 }
 
