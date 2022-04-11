@@ -1,24 +1,27 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+// TODO   ***description***
+
 import '@polkadot/extension-mocks/chrome';
 
+import type { DeriveProposal } from '@polkadot/api-derive/types';
 import type { Codec } from '@polkadot/types/types';
 
 import { render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { DeriveReferendumExt } from '@polkadot/api-derive/types';
 import { AccountContext, SettingsContext } from '@polkadot/extension-ui/components';
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
 import { Balance } from '@polkadot/types/interfaces';
 
 import Extension from '../../../../../extension-base/src/background/handlers/Extension';
 import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
+import getProposals from '../../../util/api/getProposals';
 import getReferendums from '../../../util/api/getReferendums';
 import getChainInfo from '../../../util/getChainInfo';
-import { ChainInfo, Referendum } from '../../../util/plusTypes';
+import { ChainInfo, ProposalsInfo, Referendum } from '../../../util/plusTypes';
 import { amountToHuman, formatMeta, remainingTime } from '../../../util/plusUtils';
 import { accounts, chain, convictions, createAcc, createExtension, firstSuri, SettingsStruct } from '../../../util/test/testHelper';
 import DemocracyProposals from './proposals/overview';
@@ -31,14 +34,20 @@ ReactDOM.createPortal = jest.fn((modal) => modal);
 let chainInfo: ChainInfo;
 let availableBalance: Balance;
 let referendum: Referendum[] | null;
+let proposal: DeriveProposal;
+let proposalsInfo: ProposalsInfo | null;
 let votingBalance: Balance;
 let currentBlockNumber: number;
-let description: string[];
-let index: string;
+let rDescription: string[];
+let pDescription: string[];
+let rIndex: string;
+let pIndex: string;
 let end: string;
 let delay: string;
-let value;
-let meta;
+let rValue;
+let pValue;
+let rMeta;
+let pMeta;
 let threshold: string;
 let totalAye: string;
 let totalNay: string;
@@ -48,6 +57,9 @@ const voteInfo = {
 };
 let extension: Extension;
 let address: string;
+let locked: string;
+let deposit: string;
+let seconds: string;
 
 describe('Testing Democracy component', () => {
   beforeAll(async () => {
@@ -68,21 +80,59 @@ describe('Testing Democracy component', () => {
     referendum = await getReferendums(chain.name);
 
     if (referendum?.length) {
-      value = referendum[0].image?.proposal;
-      meta = value?.registry.findMetaCall(value.callIndex);
-      description = formatMeta(meta?.meta);
-      index = String(referendum[0].index);
+      rValue = referendum[0].image?.proposal;
+      rMeta = rValue?.registry.findMetaCall(rValue.callIndex);
+      rDescription = formatMeta(rMeta?.meta);
+      rIndex = String(referendum[0].index);
       end = referendum[0].status.end.toString();
       delay = referendum[0].status.delay.toString();
       threshold = referendum[0].status.threshold.toString();
       totalAye = Number(amountToHuman(referendum[0].status.tally.ayes.toString(), chainInfo.decimals)).toLocaleString();
       totalNay = Number(amountToHuman(Number(referendum[0].status.tally.nays).toString(), chainInfo.decimals)).toLocaleString();
     }
+
+    const p = await getProposals('kusama');
+    proposal = p.proposals;
+
+    proposalsInfo = {
+      proposals: proposal,
+      accountsInfo: [{
+        accountId: '16AtX7MJttsdF38k72qndwPLbpvdqDAsY5ttW14dZmpk1fLN',
+        identity: {
+          display: 'AMIRKHANEF',
+          email: 'amiref007@gmail.com',
+          judgements: [
+            [
+              1,
+              {
+                reasonable: null
+              }
+            ]
+          ],
+          legal: 'Amir ef',
+          other: {
+            'Phone Number': '+98'
+          }
+        }
+      }],
+      minimumDeposit: '0010000000'
+    };
+
+    if (proposal.length) {
+      pValue = proposal[0].image?.proposal;
+      pMeta = pValue?.registry.findMetaCall(pValue.callIndex);
+      pIndex = String(proposal[0].index);
+      locked = Number(amountToHuman(proposal[0].balance.toString(), chainInfo.decimals)).toLocaleString()
+      deposit = amountToHuman(proposal[0].image.balance.toString(), chainInfo.decimals, 6);
+      seconds = proposal[0].seconds.length - 1;
+      pDescription = formatMeta(rMeta?.meta);
+    }
   });
 
   test('Checking the Referendums\'s tab elements', () => {
-    const { debug, getByRole, queryByText } = render(
+    const { getByRole, queryByText } = render(
       <ReferendumsOverview
+        address={accounts[0].address}
         chain={chain}
         chainInfo={chainInfo}
         convictions={convictions}
@@ -91,15 +141,15 @@ describe('Testing Democracy component', () => {
       />
     );
 
-    debug(undefined, 30000);
-
     if (referendum?.length) {
       expect(queryByText('No active referendum')).toBeFalsy();
-      if (value) expect(queryByText(`${meta.section}. ${meta.method}`)).toBeTruthy();
-      expect(queryByText(`#${index}`)).toBeTruthy();
+      if (rValue) expect(queryByText(`${rMeta.section}. ${rMeta.method}`)).toBeTruthy();
+      expect(queryByText(`#${rIndex}`)).toBeTruthy();
       expect(queryByText(`End: #${end}`)).toBeTruthy();
       expect(queryByText(`Delay: ${delay}`)).toBeTruthy();
       expect(queryByText(`Threshold: ${threshold}`)).toBeTruthy();
+      // expect(queryByText(pDescription)).toBeTruthy();
+      expect(queryByText('Proposer')).toBeTruthy();
       expect(queryByText(`Aye(${referendum[0].allAye?.length})`)).toBeTruthy();
       expect(queryByText(`Nay(${referendum[0].allNay?.length})`)).toBeTruthy();
       expect(queryByText(`${totalAye} ${chainInfo.coin}`)).toBeTruthy();
@@ -155,16 +205,29 @@ describe('Testing Democracy component', () => {
     expect(queryByTestId('confirmButton')).toBeTruthy();
   });
 
-  // TODO
   test('Checking the Proposal\'s tab elements', () => {
-    const { queryByText } = render(
+    const { queryByRole, queryByText } = render(
       <DemocracyProposals
         chain={chain}
         chainInfo={chainInfo}
-        proposalsInfo={[]}
+        proposalsInfo={proposalsInfo?.proposals.length ? proposalsInfo : []}
       />
     );
 
-    expect(queryByText('No active proposal')).toBeTruthy();
+    if (proposalsInfo?.proposals.length) {
+      expect(queryByText('No active proposal')).toBeFalsy();
+      if (pValue) expect(queryByText(`${pMeta.section}. ${pMeta.method}`)).toBeTruthy();
+      expect(queryByText(`#${pIndex}`)).toBeTruthy();
+      expect(queryByText(`Locked: ${locked} ${chainInfo.coin}`)).toBeTruthy();
+      expect(queryByText(`Deposit: ${deposit} ${chainInfo.coin}`)).toBeTruthy();
+      expect(queryByText(`Seconds: ${seconds}`)).toBeTruthy();
+      // expect(queryByText(pDescription)).toBeTruthy();
+      expect(queryByText('Proposer')).toBeTruthy();
+      expect(queryByText(proposalsInfo.accountsInfo[0].identity.display)).toBeTruthy();
+      expect(queryByText(proposalsInfo.accountsInfo[0].accountId)).toBeTruthy();
+      expect(queryByRole('button')).toBeTruthy();
+    } else {
+      expect(queryByText('No active proposal')).toBeTruthy();
+    }
   });
 });
