@@ -10,6 +10,7 @@
  * */
 
 import type { DeriveOwnContributions } from '@polkadot/api-derive/types';
+import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Gavel as GavelIcon, Payments as PaymentsIcon } from '@mui/icons-material';
@@ -58,7 +59,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
   const [chainInfo, setChainInfo] = useState<ChainInfo>();
   const [myContributions, setMyContributions] = useState<Map<string, Balance> | undefined>();
 
-  const getHexEncodedAddress = (api: ApiPromise, chain: Chain, address: string, settings: any): string => {
+  const getHexEncodedAddress = (api: ApiPromise, chain: Chain, address: string, settings: SettingsStruct): string => {
     const prefix: number = chain ? chain.ss58Format : (settings.prefix === -1 ? 42 : settings.prefix);
     const publicKey = decodeAddress(address);
 
@@ -147,12 +148,18 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
         text={`${t<string>('Crowdloans')} ${chainInfo?.chainName ? 'on' : ''} ${chainInfo?.chainName ?? ''}`}
       />
 
-      <Grid alignItems='center' container id='selectRelyChain' sx={{ p: '0px 35px' }}>
+      <Grid alignItems='center' container id='selectRelyChain' sx={{ p: '0px 24px' }}>
 
         <Grid item xs={12}>
-          <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab icon={<GavelIcon fontSize='small' />} iconPosition='start' label='Auction' sx={{ fontSize: 11, p: '0px 16px 0px 16px' }} value='auction' />
-            <Tab icon={<PaymentsIcon fontSize='small' />} iconPosition='start' label='Crowdloans' sx={{ fontSize: 11, p: '0px 16px 0px 16px' }} value='crowdloan' />
+          <Tabs
+            indicatorColor='secondary'
+            onChange={handleTabChange}
+            sx={{ minHeight: '60px' }}
+            textColor='secondary'
+            value={tabValue}
+            variant='fullWidth'>
+            <Tab icon={<GavelIcon fontSize='small' />} iconPosition='start' label='Auction' sx={{ minHeight: '60px',fontSize: 11, p: '0px 16px 0px 16px' }} value='auction' />
+            <Tab icon={<PaymentsIcon fontSize='small' />} iconPosition='start' label='Crowdloans' sx={{ minHeight: '60px', fontSize: 11, p: '0px 16px 0px 16px' }} value='crowdloan' />
           </Tabs>
         </Grid>
       </Grid>
