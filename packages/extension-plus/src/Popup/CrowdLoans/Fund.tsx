@@ -101,20 +101,20 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
             <Divider flexItem orientation='vertical' variant='fullWidth' />
           </Grid>
 
-          <Grid sx={{ fontSize: 11, textAlign: 'left' }} xs={2}>
+          <Grid item sx={{ fontSize: 11, textAlign: 'left' }} xs={2}>
             {t('Lease')}<br />
             {t('End')}<br />
             {t('Raised/Cap')}<br />
             {t('My contribution')}
           </Grid>
-          <Grid sx={{ fontSize: 11, textAlign: 'right' }} xs={4}>
+          <Grid item sx={{ fontSize: 11, textAlign: 'right' }} xs={4}>
             {String(crowdloan.fund.firstPeriod)} - {String(crowdloan.fund.lastPeriod)}<br />
             {crowdloan.fund.end}<br />
             <b>{Number(amountToHuman(crowdloan.fund.raised, decimals, 0)).toLocaleString()}</b>/{Number(amountToHuman(crowdloan.fund.cap, decimals)).toLocaleString()}{' '} {coin}<br />
             {myContributions?.get(crowdloan.fund.paraId)?.toHuman()}
           </Grid>
 
-          {/* <Grid sx={{ color: grey[600], fontSize: 11, textAlign: 'left', pl: '5px' }} xs={1}>
+          {/* <Grid item sx={{ color: grey[600], fontSize: 11, textAlign: 'left', pl: '5px' }} xs={1}>
             {t('slots')}<br />
             {t('blocks')}<br />
             {coin}s<br />
