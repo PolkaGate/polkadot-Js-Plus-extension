@@ -26,7 +26,7 @@ interface Props {
   handleNextToUnstake: () => void;
 }
 
-export default function Unstake({ chainInfo, currentlyStakedInHuman, handleNextToUnstake, availableBalance, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
+export default function Unstake({ availableBalance, chainInfo, currentlyStakedInHuman, handleNextToUnstake, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
@@ -159,7 +159,7 @@ export default function Unstake({ chainInfo, currentlyStakedInHuman, handleNextT
         <NextStepButton
           data-button-action='next to unstake'
           isBusy={nextToUnStakeButtonBusy}
-          isDisabled={nextToUnStakeButtonDisabled || availableBalance === 0n}
+          isDisabled={nextToUnStakeButtonDisabled || UnableToPayFee}
           onClick={handleNextToUnstake}
         >
           {t('Next')}
