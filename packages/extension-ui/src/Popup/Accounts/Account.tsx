@@ -6,16 +6,20 @@ import type { AccountJson } from '@polkadot/extension-base/background/types';
 import React, { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
+import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import { canDerive } from '@polkadot/extension-base/utils';
 import { ThemeProps } from '@polkadot/extension-ui/types';
 
 // added for plus
 import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS } from '../../../../extension-plus/src/util/constants';
+import getChainInfo from '../../../../extension-plus/src/util/getChainInfo';
+import { Option } from '../../../../extension-plus/src/util/plusTypes';
 import { Address, Dropdown, Link, MenuDivider } from '../../components';
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useTranslation from '../../hooks/useTranslation';
 import { editAccount, tieAccount } from '../../messaging';
 import { Name } from '../../partials';
+import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
 
 interface Props extends AccountJson {
   className?: string;
@@ -32,6 +36,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
   const [{ isEditing, toggleActions }, setEditing] = useState<EditState>({ isEditing: false, toggleActions: 0 });
   const [editedName, setName] = useState<string | undefined | null>(name);
   const genesisOptions = useGenesisHashOptions();
+  const [endpointOptions, setEndpointOptions] = useState<Option[] | undefined>();
 
   const _onChangeGenesis = useCallback(
     (genesisHash?: string | null): void => {
@@ -40,6 +45,33 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
     },
     [address]
   );
+
+  const _onChainChange = useCallback(
+    (genesisHash?: string | null): void => {
+      console.log('pass')
+    },
+    [address]
+  );
+
+  // const chain = useMetadata(genesisHash, true);
+
+  React.useEffect(async () => {
+    const option = genesisOptions?.find((o) => o.value === genesisHash)
+    const chainName = option?.text?.replace(' Relay Chain', '');
+    console.log('chainName', chainName)
+    setEndpointOptions([]);
+
+    if (!chainName) return;
+    const chainInfo = await getChainInfo(chainName)
+    const options: Option[] = [];
+    console.log('endPointsendPoints:', chainInfo?.endPoints)
+    chainInfo?.endPoints?.forEach((e) => {
+      options.push({ text: e.value, value: e.value });
+    });
+
+    setEndpointOptions(options);
+
+  }, [genesisHash]);
 
   const _toggleEdit = useCallback(
     (): void => setEditing(({ toggleActions }) => ({ isEditing: !isEditing, toggleActions: ++toggleActions })),
@@ -82,9 +114,9 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
       >
         {t<string>('En/Decrypt')}
       </Link> */}
-      {/* {(GOVERNANCE_CHAINS.includes(genesisHash) || CROWDLOANS_CHAINS.includes(genesisHash)) &&
+      {(GOVERNANCE_CHAINS.includes(genesisHash) || CROWDLOANS_CHAINS.includes(genesisHash)) &&
         <MenuDivider />
-      } */}
+      }
       <Link
         className='menuItem'
         onClick={_toggleEdit}
@@ -123,16 +155,25 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
           <div className='menuItem'>
             <Dropdown
               className='genesisSelection'
-              label=''
+              label='chain'
               onChange={_onChangeGenesis}
               options={genesisOptions}
+              value={genesisHash || ''}
+            />
+          </div>
+          <div className='menuItem'>
+            <Dropdown
+              className='genesisSelection'
+              label='endpoint'
+              onChange={_onChainChange}
+              options={endpointOptions ?? []}
               value={genesisHash || ''}
             />
           </div>
         </>
       )}
     </>
-  ), [_onChangeGenesis, _toggleEdit, address, genesisHash, genesisOptions, isExternal, isHardware, t, type]);
+  ), [_onChainChange, _onChangeGenesis, _toggleEdit, address, endpointOptions, genesisHash, genesisOptions, isExternal, isHardware, t, type]);
 
   return (
     <div className={className}>

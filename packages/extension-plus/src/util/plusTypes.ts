@@ -7,6 +7,7 @@ import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, 
 
 import { ApiPromise } from '@polkadot/api';
 import { AccountId, Balance } from '@polkadot/types/interfaces';
+import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 
 export interface TransactionStatus {
   blockNumber: string | null;
@@ -235,6 +236,8 @@ export interface ChainInfo {
   url: string;
   genesisHash: string;
   chainName?: string;
+  selectedEndPoint?: LinkOption;
+  endPoints?: LinkOption[];
 }
 
 export interface ProposalsInfo {
@@ -304,4 +307,9 @@ export interface Tip {
   tipper_num: number;
   finder: AccountInfo;
   beneficiary: AccountInfo;
+}
+
+export interface Option {
+  text: string;
+  value: string;
 }

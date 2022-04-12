@@ -14,26 +14,30 @@ import { ChainInfo } from './plusTypes';
 
 const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
 
-async function getChainInfo(searchKeyWord: Chain | string, endpointName?: string): Promise<ChainInfo> {
+async function getChainInfo(searchKeyWord: Chain | string | null | undefined, endpointName?: string): Promise<ChainInfo | undefined> {
+  if (!searchKeyWord) return undefined;
+
   const chainName = (searchKeyWord as Chain)?.name?.replace(' Relay Chain', '') ?? searchKeyWord as string;
-  const condition = (input: LinkOption) => String(input.text)?.toLowerCase() === chainName?.toLowerCase() || input.genesisHash === searchKeyWord
-  // if (!searchKeyWord) return null;
-  let endpoint;
+  const condition = (input: LinkOption) => String(input.text)?.toLowerCase() === chainName?.toLowerCase() || input.genesisHash === searchKeyWord;
 
   // endpointName = 'onfinality';// for test
 
-  if (endpointName) {
-    const endpoints = allEndpoints.filter((e) => condition(e));
+  // if (endpointName) {
+  const endpoints = allEndpoints.filter((e) => condition(e));
 
-    endpoint = endpoints.find((e) => e.value.includes(endpointName));
-    endpoint = endpoint || endpoints[0];
-  } else {
-    endpoint = allEndpoints.find((e) => condition(e));
-  }
+  console.log('endPoints:', endpoints);
+
+  const endpoint = endpointName ? endpoints.find((e) => e.value.includes(endpointName)) : endpoints[0];
+  // } else {
+  //   endpoint = allEndpoints.find((e) => condition(e));
+  // }
+  console.log('endpoint:', endpoint);
 
   const wsProvider = new WsProvider(endpoint?.value as string);
 
   const api = await ApiPromise.create({ provider: wsProvider });
+  
+  console.log('api:', api);
 
   return {
     api: api,
@@ -41,7 +45,9 @@ async function getChainInfo(searchKeyWord: Chain | string, endpointName?: string
     coin: api.registry.chainTokens[0],
     decimals: api.registry.chainDecimals[0],
     genesisHash: endpoint?.genesisHash as string,
-    url: (endpoint?.value as string).toLowerCase()
+    url: endpoints[0]?.value,
+    selectedEndPoint: undefined,
+    endPoints: endpoints
   };
 }
 
