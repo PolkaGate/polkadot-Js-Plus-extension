@@ -464,7 +464,7 @@ export default styled(Address)(({ theme }: ThemeProps) => `
 
     &.isMoved {
       top: auto;
-      bottom: 0;
+      bottom: -20; // added for plus 0 -> -20
     }
   }
 
