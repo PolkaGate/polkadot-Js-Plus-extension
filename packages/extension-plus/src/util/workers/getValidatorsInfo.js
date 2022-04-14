@@ -8,12 +8,13 @@ import { amountToHuman } from '../plusUtils.ts';
 async function getAllValidators (_chain) {
   try {
     const { api, decimals } = await getChainInfo(_chain);
-
+    const at = await api.rpc.chain.getFinalizedHead();
+    const apiAt = await api.at(at);
     const [elected, waiting, currentEra] = await Promise.all([
 
       api.derive.staking.electedInfo({ withController: true, withDestination: true, withExposure: true, withPrefs: true, withNominations: true, withLedger: true }),
       api.derive.staking.waitingInfo({ withController: true, withDestination: true, withExposure: true, withPrefs: true, withNominations: true, withLedger: true }),
-      api.query.staking.currentEra()
+      apiAt.query.staking.currentEra()
     ]);
     let nextElectedInfo = elected.info.filter((e) =>
       elected.nextElected.find((n) =>

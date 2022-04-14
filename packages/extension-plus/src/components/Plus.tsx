@@ -25,6 +25,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 import { AccountContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../extension-ui/src/messaging';
+import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
 import EasyStaking from '../Popup/Staking';
@@ -37,28 +38,21 @@ import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
 
 export interface Props {
-  actions?: React.ReactNode;
   address?: string | null;
   formattedAddress?: string | null;
   chain?: Chain | null;
   className?: string;
-  genesisHash?: string | null;
-  isExternal?: boolean | null;
-  isHardware?: boolean | null;
-  isHidden?: boolean;
   name: string;
-  parentName?: string | null;
-  suri?: string;
-  toggleActions?: number;
-  type?: KeypairType;
   givenType?: KeypairType;
 }
 
 function Plus({ address, chain, formattedAddress, givenType, name }: Props): React.ReactElement<Props> {
-  const [balance, setBalance] = useState<AccountsBalanceType | null>(null);
-  const { accounts } = useContext(AccountContext);
   const { t } = useTranslation();
+  const { accounts } = useContext(AccountContext);
+  const endpoint = useEndPoint(accounts, address, chain);
+console.log('endpoint in plus:', endpoint)
   const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''))
+  const [balance, setBalance] = useState<AccountsBalanceType | null>(null);
   const [balanceChangeSubscribed, setBalanceChangeSubscribed] = useState<string>('');
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [showQRcodeModalOpen, setQRcodeModalOpen] = useState(false);
@@ -130,7 +124,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       // ** get redeemable amount
       callRedeemable();
     }
-  }, [chain]);
+  }, [callGetLedgerWorker, callRedeemable, chain]);
 
   function getBalanceFromMetaData(_account: AccountJson, _chain: Chain): AccountsBalanceType | null {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -387,7 +381,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           transferModalOpen={transferModalOpen}
         />
       }
-      {showQRcodeModalOpen && chain && 
+      {showQRcodeModalOpen && chain &&
         <AddressQRcode
           address={String(formattedAddress || address)}
           chain={chain}

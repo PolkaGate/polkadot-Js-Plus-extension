@@ -7,8 +7,10 @@ import { handleAccountBalance } from '../plusUtils.ts';
 
 async function subscribeToBalance (_address, _chain, _formattedAddress) {
   const { api, coin, decimals } = await getChainInfo(_chain);
+  const at = await api.rpc.chain.getFinalizedHead();
+  const apiAt = await api.at(at);
 
-  await api.query.system.account(_formattedAddress, ({ data: balance }) => {
+  await apiAt.query.system.account(_formattedAddress, ({ data: balance }) => {
     if (balance) {
       const result = {
         coin: coin,

@@ -5,11 +5,12 @@
 import getChainInfo from '../getChainInfo.ts';
 
 // get all nominated/elected validators of an address
-export async function  getNominations (_chain, _address) {
+export async function getNominations (_chain, _address) {
   try {
     const { api } = await getChainInfo(_chain);
-
-    const nominators = await api.query.staking.nominators(_address);
+    const at = await api.rpc.chain.getFinalizedHead();
+    const apiAt = await api.at(at);
+    const nominators = await apiAt.query.staking.nominators(_address);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const parsedNominators = JSON.parse(JSON.stringify(nominators));
 

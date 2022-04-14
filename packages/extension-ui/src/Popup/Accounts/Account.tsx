@@ -3,23 +3,21 @@
 
 import type { AccountJson } from '@polkadot/extension-base/background/types';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';// added for plus, useContext
 import styled from 'styled-components';
 
-import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import { canDerive } from '@polkadot/extension-base/utils';
 import { ThemeProps } from '@polkadot/extension-ui/types';
 
-// added for plus
-import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS } from '../../../../extension-plus/src/util/constants';
-import getChainInfo from '../../../../extension-plus/src/util/getChainInfo';
-import { Option } from '../../../../extension-plus/src/util/plusTypes';
-import { Address, Dropdown, Link, MenuDivider } from '../../components';
+import useEndpoints from '../../../../extension-plus/src/hooks/useEndpoints';// added for plus
+import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
+import { savedMetaData } from '../../../../extension-plus/src/util/plusTypes';// added for plus
+import { prepareMetaData } from '../../../../extension-plus/src/util/plusUtils';// added for plus
+import { AccountContext, Address, Dropdown, Link, MenuDivider } from '../../components';// added for plus, AccountContext
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useTranslation from '../../hooks/useTranslation';
-import { editAccount, tieAccount } from '../../messaging';
+import { editAccount, tieAccount, updateMeta } from '../../messaging';// added for plus, updateMeta
 import { Name } from '../../partials';
-import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
 
 interface Props extends AccountJson {
   className?: string;
@@ -36,7 +34,14 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
   const [{ isEditing, toggleActions }, setEditing] = useState<EditState>({ isEditing: false, toggleActions: 0 });
   const [editedName, setName] = useState<string | undefined | null>(name);
   const genesisOptions = useGenesisHashOptions();
-  const [endpointOptions, setEndpointOptions] = useState<Option[] | undefined>();
+  const endpointOptions = useEndpoints(genesisHash); // added for plus
+  const { accounts } = useContext(AccountContext);// added for plus
+  const account = accounts.find((account) => account.address === address);// added for plus
+
+  const [selectedEndpoint, setSelectedEndpoint] = useState<string | undefined | null>(name); // added for plus
+
+  const selectedgenesisOption = genesisOptions.find((option) => option.value === genesisHash); // added for plus
+  const chainName = selectedgenesisOption?.text?.replace(' Relay Chain', ''); // added for plus
 
   const _onChangeGenesis = useCallback(
     (genesisHash?: string | null): void => {
@@ -46,32 +51,23 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
     [address]
   );
 
-  const _onChainChange = useCallback(
-    (genesisHash?: string | null): void => {
-      console.log('pass')
-    },
-    [address]
-  );
+  // added for plus
+  const _onChangeEndpoint = useCallback(
+    (selectedEndpoint?: string | null): void => {
+      setSelectedEndpoint(selectedEndpoint);
 
-  // const chain = useMetadata(genesisHash, true);
+      // eslint-disable-next-line no-void
+      chainName && void updateMeta(address, prepareMetaData(chainName, 'endpoint', selectedEndpoint));
+    }, [address, chainName]);
 
-  React.useEffect(async () => {
-    const option = genesisOptions?.find((o) => o.value === genesisHash)
-    const chainName = option?.text?.replace(' Relay Chain', '');
-    console.log('chainName', chainName)
-    setEndpointOptions([]);
+  // added for plus
+  useEffect(() => {
+    const endPointFromStore: savedMetaData = account?.endpoint ? JSON.parse(account.endpoint) : null;
 
-    if (!chainName) return;
-    const chainInfo = await getChainInfo(chainName)
-    const options: Option[] = [];
-    console.log('endPointsendPoints:', chainInfo?.endPoints)
-    chainInfo?.endPoints?.forEach((e) => {
-      options.push({ text: e.value, value: e.value });
-    });
-
-    setEndpointOptions(options);
-
-  }, [genesisHash]);
+    if (endPointFromStore && endPointFromStore?.chainName === chainName) {
+      setSelectedEndpoint(endPointFromStore.metaData);
+    }
+  }, [account?.endpoint, address, chainName]);
 
   const _toggleEdit = useCallback(
     (): void => setEditing(({ toggleActions }) => ({ isEditing: !isEditing, toggleActions: ++toggleActions })),
@@ -108,12 +104,6 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
           {t<string>('Governance')}
         </Link>
       }
-      {/* <Link
-        className='menuItem'
-        to={`/endecrypt/${address}`}
-      >
-        {t<string>('En/Decrypt')}
-      </Link> */}
       {(GOVERNANCE_CHAINS.includes(genesisHash) || CROWDLOANS_CHAINS.includes(genesisHash)) &&
         <MenuDivider />
       }
@@ -161,19 +151,20 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
               value={genesisHash || ''}
             />
           </div>
+          {/* // added for plus */}
           <div className='menuItem'>
             <Dropdown
               className='genesisSelection'
               label='endpoint'
-              onChange={_onChainChange}
+              onChange={_onChangeEndpoint}
               options={endpointOptions ?? []}
-              value={genesisHash || ''}
+              value={selectedEndpoint || ''}
             />
           </div>
         </>
       )}
     </>
-  ), [_onChainChange, _onChangeGenesis, _toggleEdit, address, endpointOptions, genesisHash, genesisOptions, isExternal, isHardware, t, type]);
+  ), [_onChangeEndpoint, _onChangeGenesis, _toggleEdit, address, endpointOptions, genesisHash, genesisOptions, isExternal, isHardware, selectedEndpoint, t, type]);
 
   return (
     <div className={className}>
@@ -186,7 +177,8 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
         isHidden={isHidden}
         name={editedName}
         parentName={parentName}
-        showBalance={true}// added for plus
+        showPlus={true}// added for plus
+        // endpoint={selectedEndpoint}// added for plus
         suri={suri}
         toggleActions={toggleActions}
       >

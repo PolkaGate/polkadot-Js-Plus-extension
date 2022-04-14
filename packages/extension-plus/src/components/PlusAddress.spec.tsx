@@ -133,30 +133,30 @@ const mountComponent = async (addressComponentProps: AddressComponentProps, cont
   return { wrapper };
 };
 
-const getWrapper = async (account: AccountJson, contextAccounts: AccountJson[], withAccountsInContext: boolean, showPlus?: boolean) => {
+const getWrapper = async (account: AccountJson, contextAccounts: AccountJson[], withAccountsInContext: boolean, show?: boolean) => {
   // the address component can query info about the account from the account context
   // in this case, the account's address (any encoding) should suffice
   // In case the account is not in the context, then more info are needed as props
   // to display accurately
-  const showBalance = showPlus ? showPlus : false;
-  let acc = { ...account, showBalance: showBalance };
+  const showPlus = show ? show : false;
+  let acc = { ...account, showPlus: showPlus };
 
   const mountedComponent = withAccountsInContext
     // only the address is passed as props, the full acount info are loaded in the context
-    ? await mountComponent({ address: account.address, showBalance: showBalance }, contextAccounts)
+    ? await mountComponent({ address: account.address, showPlus: showPlus }, contextAccounts)
     // the context is empty, all account's info are passed as props to the Address component
     : await mountComponent(acc, []);
 
   return mountedComponent.wrapper;
 };
 
-const genericTestSuite = (account: AccountTestJson, withAccountsInContext = true, showPlus = false) => {
+const genericTestSuite = (account: AccountTestJson, withAccountsInContext = true, show = false) => {
   let wrapper: ReactWrapper;
   const { address, expectedIconTheme, name = '', type = DEFAULT_TYPE } = account;
 
   describe(`Account ${withAccountsInContext ? 'in context from address' : 'from props'} (${name}) - ${type}`, () => {
     beforeAll(async () => {
-      wrapper = await getWrapper(account, accounts, withAccountsInContext, showPlus);
+      wrapper = await getWrapper(account, accounts, withAccountsInContext, show);
     });
 
     it('shows the account address and name', () => {
@@ -231,11 +231,11 @@ const genericTestSuite = (account: AccountTestJson, withAccountsInContext = true
 
   describe.only('generic Plus test', () => {
     beforeAll(async () => {
-      wrapper = await getWrapper(account, accounts, withAccountsInContext, showPlus);
+      wrapper = await getWrapper(account, accounts, withAccountsInContext, show);
     });
 
-    it(`check plus component existence when showPlus: ${showPlus}  withAccountsInContext: ${withAccountsInContext}`, () => {
-      expect(wrapper.find(Plus).exists()).toBe(showPlus);
+    it(`check plus component existence when show: ${show}  withAccountsInContext: ${withAccountsInContext}`, () => {
+      expect(wrapper.find(Plus).exists()).toBe(show);
     })
   });
 };
@@ -275,7 +275,7 @@ describe('Address', () => {
     genericTestSuite(account);
     genericTestSuite(account, false);
 
-    // check Plus when showPlus is true
+    // check Plus when show is true
     genericTestSuite(account, true, true);
     genericTestSuite(account, false, true);
   });

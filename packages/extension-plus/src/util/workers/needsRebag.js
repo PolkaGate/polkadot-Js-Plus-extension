@@ -8,7 +8,6 @@ async function needsRebag (chain, currentAccount) {
   console.log(`needsRebag is running for ${currentAccount}`);
 
   const { api } = await getChainInfo(chain);
-
   const at = await api.rpc.chain.getFinalizedHead();
   const apiAt = await api.at(at);
 

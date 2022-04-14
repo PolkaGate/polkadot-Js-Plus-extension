@@ -110,8 +110,8 @@ export function getSubstrateAddress(address: string): string {
   return encodeAddress(publicKey, 42);
 }
 
-export function prepareMetaData(chain: Chain | null, label: string, metaData: any, _chainName?: string): string {
-  const chainName = chain ? chain.name.replace(' Relay Chain', '') : _chainName;
+export function prepareMetaData(chain: Chain | null | string, label: string, metaData: any): string {
+  const chainName = (chain as Chain)?.name?.replace(' Relay Chain', '') ?? chain;
 
   return JSON.stringify({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

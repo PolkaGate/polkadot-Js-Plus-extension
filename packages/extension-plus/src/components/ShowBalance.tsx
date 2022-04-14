@@ -28,7 +28,7 @@ function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React
   const amountToHuman = (x: bigint): string => chainInfo?.api.createType('Balance', x).toHuman();
 
   return (
-    <div data-testid='showBalance'>
+    <div data-testid='showPlus'>
       {title && <>{title}:{' '}</>}
 
       {balance && chainInfo

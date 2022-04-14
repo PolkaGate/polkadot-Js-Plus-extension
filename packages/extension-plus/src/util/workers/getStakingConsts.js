@@ -7,13 +7,14 @@ import getChainInfo from '../getChainInfo.ts';
 
 async function getStackingConsts (_chain) {
   try {
-    const { api, decimals } = await getChainInfo(_chain);
-
-    const maxNominations = api.consts.staking.maxNominations?.toNumber() || MAX_NOMINATIONS;
-    const maxNominatorRewardedPerValidator = api.consts.staking.maxNominatorRewardedPerValidator.toNumber();
-    const existentialDeposit = api.consts.balances.existentialDeposit.toString();
-    const bondingDuration = api.consts.staking.bondingDuration.toNumber();
-    const minNominatorBond = await api.query.staking.minNominatorBond();
+    const { api } = await getChainInfo(_chain);
+    const at = await api.rpc.chain.getFinalizedHead();
+    const apiAt = await api.at(at);
+    const maxNominations = apiAt.consts.staking.maxNominations?.toNumber() || MAX_NOMINATIONS;
+    const maxNominatorRewardedPerValidator = apiAt.consts.staking.maxNominatorRewardedPerValidator.toNumber();
+    const existentialDeposit = apiAt.consts.balances.existentialDeposit.toString();
+    const bondingDuration = apiAt.consts.staking.bondingDuration.toNumber();
+    const minNominatorBond = await apiAt.query.staking.minNominatorBond();
 
     return {
       bondingDuration: bondingDuration,

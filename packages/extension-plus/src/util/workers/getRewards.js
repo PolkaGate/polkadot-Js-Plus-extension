@@ -6,7 +6,7 @@ import getChainInfo from '../getChainInfo';
 
 async function getRewards (_chain, _stakerAddress) {
   console.log(` rewards worker is called for ${_stakerAddress}`);
-  
+
   const { api } = await getChainInfo(_chain);
   const rewards = await api.derive.staking.stakerRewards(_stakerAddress, true);
   const nonEmptyRewards = rewards.filter((e) => !e.isEmpty);
