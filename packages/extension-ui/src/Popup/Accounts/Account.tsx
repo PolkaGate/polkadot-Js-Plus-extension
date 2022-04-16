@@ -88,25 +88,22 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
   const _actions = useMemo(() => (
     <>
       {/* // added for plus */}
-      {CROWDLOANS_CHAINS.includes(genesisHash) &&
-        <Link
-          className='newMenuItem'
-          to={`/crowdloans/${genesisHash}/${address}`}
-        >
-          {t<string>('Crowdloan')}
-        </Link>
-      }
-      {GOVERNANCE_CHAINS.includes(genesisHash) &&
-        <Link
-          className='newMenuItem'
-          to={`/governance/${genesisHash}/${address}`}
-        >
-          {t<string>('Governance')}
-        </Link>
-      }
-      {(GOVERNANCE_CHAINS.includes(genesisHash) || CROWDLOANS_CHAINS.includes(genesisHash)) &&
-        <MenuDivider />
-      }
+      <Link
+        className='newMenuItem'
+        isDisabled={!CROWDLOANS_CHAINS.includes(genesisHash)}
+        to={`/crowdloans/${genesisHash}/${address}`}
+      >
+        {t<string>('Crowdloan')}
+      </Link>
+      <Link
+        className='newMenuItem'
+        isDisabled={!CROWDLOANS_CHAINS.includes(genesisHash)}
+
+        to={`/governance/${genesisHash}/${address}`}
+      >
+        {t<string>('Governance')}
+      </Link>
+      <MenuDivider />
       <Link
         className='menuItem'
         onClick={_toggleEdit}
@@ -145,7 +142,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
           <div className='menuItem'>
             <Dropdown
               className='genesisSelection'
-              label='chain'
+              label=''
               onChange={_onChangeGenesis}
               options={genesisOptions}
               value={genesisHash || ''}
