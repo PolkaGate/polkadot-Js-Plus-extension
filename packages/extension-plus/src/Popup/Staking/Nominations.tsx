@@ -14,13 +14,14 @@ import { Adjust as AdjustIcon, StopCircle as StopCircleIcon, TrackChanges as Tra
 import { Button as MuiButton, Grid } from '@mui/material';
 import React, { useCallback } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 
 import { Chain } from '../../../../extension-chains/src/types';
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, Progress } from '../../components';
-import { AccountsBalanceType, ChainInfo, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
+import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
@@ -30,7 +31,7 @@ interface Props {
   stakingConsts: StakingConsts | null;
   noNominatedValidators: boolean;
   chain: Chain;
-  chainInfo: ChainInfo | undefined;
+  api: ApiPromise | undefined;
   validatorsIdentities: DeriveAccountInfo[] | null;
   validatorsInfo: Validators | null;
   state: string;
@@ -44,7 +45,7 @@ interface Props {
   staker: AccountsBalanceType;
 }
 
-export default function Nominations({ activeValidator, chain, chainInfo, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, putInFrontInfo, rebagInfo, setState, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function Nominations({ activeValidator, api, chain, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, putInFrontInfo, rebagInfo, setState, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const currentlyStaked = BigInt(ledger ? ledger.active.toString() : '0');
   const tuneUpButtonEnable = !noNominatedValidators && nominatorInfo && !nominatorInfo?.isInList && (rebagInfo?.shouldRebag || putInFrontInfo?.shouldPutInFront);
@@ -61,8 +62,8 @@ export default function Nominations({ activeValidator, chain, chainInfo, handleR
           <Grid item xs={12}>
             <ValidatorsList
               activeValidator={activeValidator}
+              api={api}
               chain={chain}
-              chainInfo={chainInfo}
               height={220}
               staker={staker}
               stakingConsts={stakingConsts}
@@ -120,7 +121,7 @@ export default function Nominations({ activeValidator, chain, chainInfo, handleR
               {t('No nominated validators found')}
             </Grid>
             <Grid item>
-              {chainInfo && stakingConsts && currentlyStaked >= stakingConsts?.minNominatorBond &&
+              {api && stakingConsts && currentlyStaked >= stakingConsts?.minNominatorBond &&
                 <NextStepButton
                   data-button-action='Set Nominees'
                   isBusy={validatorsInfo && state === 'setNominees'}

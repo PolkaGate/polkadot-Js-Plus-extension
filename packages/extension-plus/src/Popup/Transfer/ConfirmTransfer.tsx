@@ -28,34 +28,25 @@ import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../
 import Hint from '../../components/Hint';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
-import { AccountsBalanceType, ChainInfo, TransactionDetail } from '../../util/plusTypes';
+import { AccountsBalanceType, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
+import { ApiPromise } from '@polkadot/api';
 
 interface Props {
-  actions?: React.ReactNode;
-  chainInfo: ChainInfo;
+  api: ApiPromise;
   sender: AccountsBalanceType;
   recepient: AccountsBalanceType;
-  chain: Chain ;
-  children?: React.ReactNode;
+  chain: Chain;
   className?: string;
   confirmModalOpen: boolean;
   setConfirmModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  genesisHash?: string | null;
-  isExternal?: boolean | null;
-  isHardware?: boolean | null;
-  isHidden?: boolean;
   lastFee?: Balance;
-  name?: string | null;
-  parentName?: string | null;
-  toggleActions?: number;
-  type?: KeypairType;
   transferAmount: bigint;
   handleTransferModalClose: () => void;
   transferAllType?: string;
 }
 
-export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTransferModalClose, lastFee, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
+export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [newFee, setNewFee] = useState<Balance | null>();
@@ -67,8 +58,10 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
   const [transferAmountInHuman, setTransferAmountInHuman] = useState('');
   const { hierarchy } = useContext(AccountContext);
   const [state, setState] = useState<string>('');
-  const { api, coin, decimals } = chainInfo;
-  
+
+  const decimals = api.registry.chainDecimals[0];
+  const token = api.registry.chainTokens[0];
+
   /** transferAll for Max, when Keep_Alive is true will transfer all available balance, probably because the sender has some unlocking funds */
   const transfer = transferAllType === 'All' ? (api.tx.balances.transferAll) : (api.tx.balances.transfer);
 
@@ -214,7 +207,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
               {transferAmountInHuman}
             </Grid>
             <Grid item>
-              {coin}
+              {token}
             </Grid>
           </Grid>
         </Grid>
@@ -237,7 +230,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
             </Grid>
           </Grid>
           <Grid item sx={{ fontSize: 13, textAlign: 'right' }} xs={6}>
-            {Number(amountToHuman(newFee?.toString(), decimals, 5)) || <CircularProgress color='inherit' size={12} thickness={2} />}
+            {newFee?.toHuman() || <CircularProgress color='inherit' size={12} thickness={2} />}
             <Box fontSize={11} sx={{ color: 'gray' }}>
               {newFee ? 'estimated' : 'estimating'}
             </Box>
@@ -261,7 +254,7 @@ export default function ConfirmTx({ chain, chainInfo, confirmModalOpen, handleTr
               {total || ' ... '}
             </Grid>
             <Grid item>
-              {coin}
+              {token}
             </Grid>
           </Grid>
         </Grid>

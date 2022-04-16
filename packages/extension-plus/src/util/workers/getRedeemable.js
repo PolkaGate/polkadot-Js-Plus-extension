@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
-async function getRedeemable (_chain, _stashAccountId) {
-  console.log(`getRedeemable is called for ${_stashAccountId}`);
+async function getRedeemable (stashAccountId, endpoint ) {
+  console.log(`getRedeemable is called for ${stashAccountId} endpoint:${endpoint}`);
 
-  const { api } = await getChainInfo(_chain);
+  const api = await getApi(endpoint);
 
-  const stakingAccount = await api.derive.staking.account(_stashAccountId);
+  const stakingAccount = await api.derive.staking.account(stashAccountId);
 
   if (!stakingAccount?.redeemable?.gtn(0)) {
     return null;
@@ -19,10 +19,10 @@ async function getRedeemable (_chain, _stashAccountId) {
 }
 
 onmessage = (e) => {
-  const { address, chain } = e.data;
+  const { address, endpoint } = e.data;
 
   // eslint-disable-next-line no-void
-  void getRedeemable(chain, address).then((redeemable) => {
+  void getRedeemable(address, endpoint).then((redeemable) => {
     postMessage(redeemable);
   });
 };

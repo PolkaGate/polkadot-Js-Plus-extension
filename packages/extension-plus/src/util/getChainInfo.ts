@@ -24,8 +24,6 @@ async function getChainInfo(searchKeyWord: Chain | string | null | undefined): P
 
   const endpoint = endpoints[0];
 
-  // console.log('endpoint:', endpoint);
-
   const wsProvider = new WsProvider(endpoint?.value);
 
   const api = await ApiPromise.create({ provider: wsProvider });
@@ -36,9 +34,7 @@ async function getChainInfo(searchKeyWord: Chain | string | null | undefined): P
     coin: api.registry.chainTokens[0],
     decimals: api.registry.chainDecimals[0],
     genesisHash: endpoint?.genesisHash as string,
-    url: endpoint?.value,
-    selectedEndPoint: undefined,
-    endPoints: endpoints
+    url: endpoint?.value
   };
 }
 

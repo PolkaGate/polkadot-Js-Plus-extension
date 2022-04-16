@@ -2,26 +2,26 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 import { handleAccountBalance } from '../plusUtils.ts';
 
-async function subscribeToBalance (_address, _chain, _formattedAddress) {
-  const { api, coin, decimals } = await getChainInfo(_chain);
+async function subscribeToBalance (_address, endpoint, _formattedAddress) {
+  const api = await getApi(endpoint);
   const at = await api.rpc.chain.getFinalizedHead();
   const apiAt = await api.at(at);
 
   await apiAt.query.system.account(_formattedAddress, ({ data: balance }) => {
     if (balance) {
       const result = {
-        coin: coin,
-        decimals: decimals,
+        coin: api.registry.chainTokens[0],
+        decimals: api.registry.chainDecimals[0],
         ...handleAccountBalance(balance)
       };
 
       const changes = {
         address: _address,
         balanceInfo: result,
-        subscribedChain: _chain
+        // subscribedChain: _chain
       };
 
       postMessage(changes);
@@ -30,8 +30,8 @@ async function subscribeToBalance (_address, _chain, _formattedAddress) {
 }
 
 onmessage = (e) => {
-  const { address, chain, formattedAddress } = e.data;
+  const { address, endpoint, formattedAddress } = e.data;
 
   // eslint-disable-next-line no-void
-  void subscribeToBalance(address, chain, formattedAddress);
+  void subscribeToBalance(address, endpoint, formattedAddress);
 };

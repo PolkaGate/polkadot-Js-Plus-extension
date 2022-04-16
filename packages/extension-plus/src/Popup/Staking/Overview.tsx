@@ -16,14 +16,15 @@ import { BarChart as BarChartIcon, Redeem as RedeemIcon } from '@mui/icons-mater
 import { Grid, Paper, Skeleton } from '@mui/material';
 import React from 'react';
 
+import { ApiPromise } from '@polkadot/api';
+
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import Hint from '../../components/Hint';
-import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
 
 interface Props {
   availableBalanceInHuman: string,
-  chainInfo: ChainInfo;
+  api: ApiPromise | undefined;
   ledger: StakingLedger | null;
   redeemable: bigint | null;
   currentlyStakedInHuman: string | null;
@@ -54,23 +55,25 @@ function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<Bala
   </>);
 }
 
-export default function Overview({ availableBalanceInHuman, chainInfo, currentlyStakedInHuman, handleViewChart, handleWithdrowUnbound, ledger, redeemable, rewardSlashes, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalanceInHuman, currentlyStakedInHuman, handleViewChart, handleWithdrowUnbound, ledger, redeemable, rewardSlashes, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const decimals = api && api.registry.chainDecimals[0];
+  const token = api?.registry?.chainTokens[0] ?? '';
 
   return (
     <Paper elevation={4} sx={{ borderRadius: '10px', fontSize: 12, height: 95, margin: '25px 30px 10px', p: 2, width: '90%' }}>
       <Grid container item>
         <Grid alignItems='center' container item justifyContent='space-between' sx={{ pb: '20px', textAlign: 'center' }}>
           <Grid item xs={4}>
-            <Balance amount={availableBalanceInHuman} coin={chainInfo?.coin} label={t('Available')} />
+            <Balance amount={availableBalanceInHuman} coin={token} label={t('Available')} />
           </Grid>
           <Grid item xs={4}>
-            <Balance amount={currentlyStakedInHuman} coin={chainInfo?.coin} label={t('Staked')} />
+            <Balance amount={currentlyStakedInHuman} coin={token} label={t('Staked')} />
           </Grid>
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
           <Grid item xs={4}>
-            <Balance amount={totalReceivedReward} coin={chainInfo?.coin}
+            <Balance amount={totalReceivedReward} coin={token}
               label={
                 <Grid container item justifyContent='center'>
                   <Grid item>
@@ -89,8 +92,8 @@ export default function Overview({ availableBalanceInHuman, chainInfo, currently
           <Grid container item justifyContent='center' xs={4}>
             <Grid container item justifyContent='center' xs={12}>
               <Balance
-                amount={amountToHuman(String(redeemable), chainInfo?.decimals)}
-                coin={chainInfo?.coin}
+                amount={amountToHuman(String(redeemable), decimals)}
+                coin={token}
                 label={
                   <Grid container item justifyContent='center'>
                     <Grid item>
@@ -108,7 +111,7 @@ export default function Overview({ availableBalanceInHuman, chainInfo, currently
           </Grid>
 
           <Grid item xs={4}>
-            <Balance amount={amountToHuman(String(unlockingAmount), chainInfo?.decimals)} coin={chainInfo?.coin} label={t('Unstaking')} />
+            <Balance amount={amountToHuman(String(unlockingAmount), decimals)} coin={token} label={t('Unstaking')} />
           </Grid>
         </Grid>
       </Grid>

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
-async function getLedger (_address, _chain) {
+async function getLedger (_address, endpoint) {
   if (!_address) {
     return null;
   }
@@ -17,7 +17,7 @@ async function getLedger (_address, _chain) {
     unlocking: []
   };
 
-  const { api } = await getChainInfo(_chain);
+  const api = await getApi(endpoint);
 
   const data = await api.query.staking.ledger(_address);
 
@@ -30,10 +30,10 @@ async function getLedger (_address, _chain) {
 }
 
 onmessage = (e) => {
-  const { address, chain } = e.data;
+  const { address, endpoint } = e.data;
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  getLedger(address, chain).then((ledger) => {
+  getLedger(address, endpoint).then((ledger) => {
     postMessage(ledger);
   });
 };

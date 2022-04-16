@@ -18,7 +18,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup } from '../../components';
-import { ChainInfo } from '../../util/plusTypes';
+import { ApiPromise } from '@polkadot/api';
 import { amountToHuman } from '../../util/plusUtils';
 
 ChartJS.register(
@@ -47,14 +47,17 @@ export const options = {
 
 interface Props {
   chain?: Chain | null;
-  chainInfo: ChainInfo;
+  api: ApiPromise;
   setChartModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   showChartModal: boolean;
   rewardSlashes: any;
 }
 
-export default function RewardChart({ chain, chainInfo, rewardSlashes, setChartModalOpen, showChartModal }: Props): React.ReactElement<Props> {
+export default function RewardChart({ chain, api, rewardSlashes, setChartModalOpen, showChartModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+
+  const decimals = api && api.registry.chainDecimals[0];
+  const token = api && api.registry.chainTokens[0];
 
   const handleCloseModal = useCallback((): void => {
     setChartModalOpen(false);
@@ -62,7 +65,6 @@ export default function RewardChart({ chain, chainInfo, rewardSlashes, setChartM
 
   // const getDateOfEra()
   // const getDateOfBlock = async (blockNumber: number) => {
-  //   const { api } = chainInfo;
   //   console.log('blockNumber:', blockNumber)
   //   // get the blockhash and API instance at this point of the chain
   //   const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
@@ -122,7 +124,7 @@ export default function RewardChart({ chain, chainInfo, rewardSlashes, setChartM
 
   // show the last MAX_REWARDS_INFO_TO_SHOW records
   const labels = dataset.slice(dataset.length - MAX_REWARDS_INFO_TO_SHOW).map((d) => d.timeStamp ? formateDate(d.timeStamp) : d.era);
-  const y = dataset.slice(dataset.length - MAX_REWARDS_INFO_TO_SHOW).map((d) => amountToHuman(d.reward, chainInfo?.decimals));
+  const y = dataset.slice(dataset.length - MAX_REWARDS_INFO_TO_SHOW).map((d) => amountToHuman(d.reward, decimals));
 
   const data = {
     datasets: [
@@ -130,7 +132,7 @@ export default function RewardChart({ chain, chainInfo, rewardSlashes, setChartM
         backgroundColor: '#ed6c02',
         barPercentage: 0.35,
         data: y,
-        label: chainInfo?.coin
+        label: token
       }
     ],
     labels
@@ -171,7 +173,7 @@ export default function RewardChart({ chain, chainInfo, rewardSlashes, setChartM
               {d.era}
             </Grid>
             <Grid item sx={{ textAlign: 'right' }} xs={4}>
-              {amountToHuman(d.reward, chainInfo?.decimals, 9)} {` ${chainInfo?.coin}`}
+              {amountToHuman(d.reward, decimals, 9)} {` ${token}`}
             </Grid>
           </Grid>
         )}

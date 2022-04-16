@@ -6,33 +6,36 @@
 /** NOTE this component show a list of validators, which is utilized in other components  */
 
 import { Grid } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../components';
-import { AccountsBalanceType, ChainInfo, StakingConsts } from '../../util/plusTypes';
+import { AccountsBalanceType, StakingConsts } from '../../util/plusTypes';
 import ValidatorInfo from './ValidatorInfo';
 import VTable from './VTable';
 
 interface Props {
   activeValidator?: DeriveStakingQuery;
   chain?: Chain | null;
-  chainInfo: ChainInfo | undefined;
+  api: ApiPromise | undefined;
   validatorsInfo: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts;
   validatorsIdentities: DeriveAccountInfo[] | null;
   height: number;
-  staker: AccountsBalanceType;
+  staker?: AccountsBalanceType;
 
 }
 
-export default function ValidatorsList({ activeValidator, chain, chainInfo, height, staker, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function ValidatorsList({ activeValidator, api, chain, height, staker, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showValidatorInfoModal, setShowValidatorInfoModal] = useState<boolean>(false);
   const [info, setInfo] = useState<DeriveStakingQuery | null>(null);
+
+  const decimals = api && api.registry.chainDecimals[0];
 
   // put active validator at the top of list
   React.useMemo(() => {
@@ -47,11 +50,11 @@ export default function ValidatorsList({ activeValidator, chain, chainInfo, heig
   return (
     <>
       <Grid item sx={{ p: '0px 10px' }} xs={12}>
-        {validatorsInfo
+        {validatorsInfo && decimals
           ? <VTable
             activeValidator={activeValidator}
             chain={chain}
-            decimals={chainInfo?.decimals}
+            decimals={decimals}
             height={height}
             setInfo={setInfo}
             setShowValidatorInfoModal={setShowValidatorInfoModal}
@@ -63,10 +66,10 @@ export default function ValidatorsList({ activeValidator, chain, chainInfo, heig
         }
       </Grid>
 
-      {showValidatorInfoModal && info && chainInfo &&
+      {showValidatorInfoModal && info && api &&
         <ValidatorInfo
+          api={api}
           chain={chain}
-          chainInfo={chainInfo}
           info={info}
           setShowValidatorInfoModal={setShowValidatorInfoModal}
           showValidatorInfoModal={showValidatorInfoModal}

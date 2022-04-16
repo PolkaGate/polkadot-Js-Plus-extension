@@ -3,25 +3,32 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component shows some general staking informathion including minNominatorBond, maxNominatorRewardedPerValidator, etc.  */
-import { Box, Divider, Grid } from '@mui/material';
+/** 
+ * @description
+ *  this component shows some general staking informathion including minNominatorBond, maxNominatorRewardedPerValidator, etc.  
+ * */
+
+import { Divider, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React from 'react';
 
+import { ApiPromise } from '@polkadot/api';
+
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Progress, ShowBalance, ShowValue } from '../../components';
-import { ChainInfo, StakingConsts } from '../../util/plusTypes';
-import { amountToHuman } from '../../util/plusUtils';
+import { ShowBalance2, ShowValue } from '../../components';
+import { StakingConsts } from '../../util/plusTypes';
 
 interface Props {
-  chainInfo: ChainInfo | undefined;
+  api: ApiPromise | undefined;
   stakingConsts: StakingConsts | null;
   minNominated: bigint | undefined;
   currentEraIndex: number | undefined;
 }
 
-function InfoTab({ chainInfo, currentEraIndex, minNominated, stakingConsts }: Props): React.ReactElement<Props> {
+function InfoTab({ api, currentEraIndex, minNominated, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+
+  const token = api && api.registry.chainTokens[0];
 
   return (
     <Grid container data-testid='info' sx={{ paddingTop: '15px', textAlign: 'center' }}>
@@ -46,19 +53,19 @@ function InfoTab({ chainInfo, currentEraIndex, minNominated, stakingConsts }: Pr
 
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Minimum {{symbol}}s to be a staker (threshold): ', { replace: { symbol: chainInfo?.coin } })}
+            {t('Minimum {{symbol}}s to be a staker (threshold): ', { replace: { symbol: token } })}
           </Grid>
           <Grid item>
-            <ShowBalance balance={stakingConsts?.minNominatorBond} chainInfo={chainInfo} />
+            <ShowBalance2 api={api} balance={stakingConsts?.minNominatorBond} />
           </Grid>
         </Grid>
 
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Minimum {{symbol}}s to recieve rewards today (era: {{eraIndex}})', { replace: { symbol: chainInfo?.coin, eraIndex: currentEraIndex } })}:
+            {t('Minimum {{symbol}}s to recieve rewards today (era: {{eraIndex}})', { replace: { symbol: token, eraIndex: currentEraIndex } })}:
           </Grid>
           <Grid item>
-            <ShowBalance balance={minNominated} chainInfo={chainInfo} decimalDigits={4} />
+            <ShowBalance2 api={api} balance={minNominated} decimalDigits={4} />
           </Grid>
         </Grid>
 
@@ -82,10 +89,10 @@ function InfoTab({ chainInfo, currentEraIndex, minNominated, stakingConsts }: Pr
 
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Minimum {{symbol}}s that must remain in your account (existential deposit): ', { replace: { symbol: chainInfo?.coin } })}
+            {t('Minimum {{symbol}}s that must remain in your account (existential deposit): ', { replace: { symbol: token } })}
           </Grid>
           <Grid item>
-            <ShowBalance balance={stakingConsts?.existentialDeposit} chainInfo={chainInfo} />
+            <ShowBalance2 api={api} balance={stakingConsts?.existentialDeposit} />
             {/* <span>{`s ${t('plus some fees')}`}</span> */}
           </Grid>
         </Grid>

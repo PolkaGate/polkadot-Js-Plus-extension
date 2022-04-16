@@ -236,8 +236,6 @@ export interface ChainInfo {
   url: string;
   genesisHash: string;
   chainName?: string;
-  selectedEndPoint?: LinkOption;
-  endPoints?: LinkOption[];
 }
 
 export interface ProposalsInfo {

@@ -17,6 +17,7 @@ import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined, NotificationImpo
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -28,7 +29,7 @@ import Hint from '../../components/Hint';
 import getRewardsSlashes from '../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
-import { AccountsBalanceType, ChainInfo, PutInFrontInfo, RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
+import { AccountsBalanceType, PutInFrontInfo, RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
@@ -43,7 +44,7 @@ import Unstake from './Unstake';
 interface Props {
   account: AccountJson,
   chain: Chain;
-  chainInfo: ChainInfo | undefined;
+  api: ApiPromise | undefined;
   ledger: StakingLedger | null;
   redeemable: bigint | null;
   name: string;
@@ -63,7 +64,7 @@ const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
-export default function EasyStaking({ account, chain, chainInfo, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function EasyStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -96,6 +97,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
   const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
 
+  const decimals = api && api.registry.chainDecimals[0];
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
@@ -287,7 +289,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
-    chainInfo && void chainInfo.api.query.staking.currentEra().then((ce) => {
+    api && void api.query.staking.currentEra().then((ce) => {
       setCurrentEraIndex(Number(ce));
     });
 
@@ -309,7 +311,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
       }
       console.log('rewards from subscan:', r);
     });
-  }, [chainInfo, chainName, staker.address]);
+  }, [api, chainName, staker.address]);
 
   useEffect((): void => {
     if (!currentEraIndex || !currentEraIndexOfStore) { return; }
@@ -382,36 +384,36 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
   }, [validatorsInfoIsUpdated, validatorsInfo]);
 
   useEffect(() => {
-    if (!chainInfo) return;
+    if (!api) return;
 
     // // eslint-disable-next-line no-void
-    // void chainInfo.api.derive.staking.stakerRewards(staker.address).then((t) =>
+    // void api.derive.staking.stakerRewards(staker.address).then((t) =>
     //   console.log('stakerRewards', JSON.parse(JSON.stringify(t)))
     // );
 
     // // eslint-disable-next-line no-void
-    // void chainInfo.api.query.balances.totalIssuance().then((t) =>
-    //   console.log('totalIssuance', amountToHuman(t?.toString(), chainInfo?.decimals))
+    // void api.query.balances.totalIssuance().then((t) =>
+    //   console.log('totalIssuance', amountToHuman(t?.toString(), decimals))
     // );
 
     // // eslint-disable-next-line no-void
-    // void chainInfo.api.query.balances.erasTotalStake().then((t) =>
-    //   console.log('erasTotalStake', amountToHuman(t?.toString(), chainInfo?.decimals))
+    // void api.query.balances.erasTotalStake().then((t) =>
+    //   console.log('erasTotalStake', amountToHuman(t?.toString(), decimals))
     // );
 
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
       if (!reward) reward = '0';
-      reward = amountToHuman(String(reward), chainInfo?.decimals) === '0' ? '0.00' : amountToHuman(reward, chainInfo?.decimals);
+      reward = amountToHuman(String(reward), decimals) === '0' ? '0.00' : amountToHuman(reward, decimals);
       setTotalReceivedReward(reward);
     });
-  }, [chain, chainInfo, staker.address]);
+  }, [chain, api, staker.address]);
 
   useEffect(() => {
-    if (!ledger || !chainInfo) { return; }
+    if (!ledger || !api) { return; }
 
-    setCurrentlyStakedInHuman(amountToHuman(String(ledger.active), chainInfo?.decimals));
+    setCurrentlyStakedInHuman(amountToHuman(String(ledger.active), decimals));
 
     // set unlocking
     let unlockingValue = 0n;
@@ -419,7 +421,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
     ledger?.unlocking?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
 
     setUnlockingAmount(redeemable ? unlockingValue - redeemable : unlockingValue);
-  }, [ledger, chainInfo, redeemable]);
+  }, [ledger, api, redeemable]);
 
   useEffect(() => {
     if (!account) {
@@ -610,8 +612,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
       <Grid alignItems='center' container>
         <Grid container item xs={12}>
           <Overview
+            api={api}
             availableBalanceInHuman={availableBalanceInHuman}
-            chainInfo={chainInfo}
             currentlyStakedInHuman={currentlyStakedInHuman}
             handleViewChart={handleViewChart}
             handleWithdrowUnbound={handleWithdrowUnbound}
@@ -636,7 +638,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           </Box>
           <TabPanel index={0} value={tabValue}>
             <Stake
-              chainInfo={chainInfo}
+              api={api}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               ledger={ledger}
@@ -651,8 +653,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
             <Unstake
+              api={api}
               availableBalance={staker?.balanceInfo?.available ?? 0n}
-              chainInfo={chainInfo}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
               ledger={ledger}
@@ -664,8 +666,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           <TabPanel index={2} padding={1} value={tabValue}>
             <Nominations
               activeValidator={activeValidator}
+              api={api}
               chain={chain}
-              chainInfo={chainInfo}
               handleRebag={handleRebag}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               handleStopNominating={handleStopNominating}
@@ -685,7 +687,7 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           </TabPanel>
           <TabPanel index={3} value={tabValue}>
             <InfoTab
-              chainInfo={chainInfo}
+              api={api}
               currentEraIndex={currentEraIndex}
               minNominated={nominatorInfo?.minNominated}
               stakingConsts={stakingConsts}
@@ -696,8 +698,8 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
 
       {stakingConsts && validatorsInfo &&
         <SelectValidators
+          api={api}
           chain={chain}
-          chainInfo={chainInfo}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
@@ -711,11 +713,11 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && chainInfo &&
+      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
+          api={api}
           chain={chain}
-          chainInfo={chainInfo}
           handleEasyStakingModalClose={handleEasyStakingModalClose}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
@@ -732,10 +734,10 @@ export default function EasyStaking({ account, chain, chainInfo, ledger, redeema
         />
       }
 
-      {rewardSlashes && showChartModal &&
+      {rewardSlashes && showChartModal && api &&
         <RewardChart
           chain={chain}
-          chainInfo={chainInfo}
+          api={api}
           rewardSlashes={rewardSlashes}
           setChartModalOpen={setChartModalOpen}
           showChartModal={showChartModal}
