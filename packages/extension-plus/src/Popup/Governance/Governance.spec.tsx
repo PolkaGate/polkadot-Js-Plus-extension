@@ -70,7 +70,7 @@ describe('Testing Governance Home page', () => {
 
     expect(queryByText('Loading proposals ...')).toBeTruthy();
 
-    expect(queryByText('Tips')).toBeTruthy();
+    expect(queryByText('Tips (0)')).toBeTruthy();
     fireEvent.click(queryByText('Tips') as Element);
 
     expect(queryByText('Loading tips ...')).toBeTruthy();
