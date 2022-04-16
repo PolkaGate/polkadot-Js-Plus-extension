@@ -61,7 +61,7 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [currentlyStaked, setCurrentlyStaked] = useState<bigint | undefined>(undefined);
   const [totalStakedInHuman, setTotalStakedInHuman] = useState<string>('');
-  const [estimatedFee, setEstimatedFee] = useState<Balance>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean>(false);
   const [confirmButtonText, setConfirmButtonText] = useState<string>(t('Confirm'));
   const [amountNeedsAdjust, setAmountNeedsAdjust] = useState<boolean>(false);
@@ -152,7 +152,7 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
             void nominated(...params).paymentInfo(staker.address).then((i) => {
               const nominatingFee = i?.partialFee;
 
-              setEstimatedFee((bondingFee.add(nominatingFee) as Balance));
+              setEstimatedFee(api.createType('Balance', bondingFee.add(nominatingFee)));
             });
           } else {
             setEstimatedFee(bondingFee);
@@ -178,7 +178,7 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
 
           if (surAmount === currentlyStaked) {
             // eslint-disable-next-line no-void
-            void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee((fee.add(j?.partialFee) as Balance)));
+            void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
           } else { setEstimatedFee(fee); }
         });
         setTotalStakedInHuman(amountToHuman((currentlyStaked - surAmount).toString(), decimals));
@@ -591,8 +591,8 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
             </Grid>
           </Grid>
 
-          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12} >
-            <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={5}>
+          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12}>
+            <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Currently staked')}
               </Grid>
@@ -606,7 +606,7 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
               </Grid>
             </Grid>
 
-            <Grid container item justifyContent='center' xs={2}>
+            <Grid container item justifyContent='center' xs={4}>
               <Grid item sx={{ color: grey[500], fontWeight: '600' }} xs={12}>
                 {t('Fee')}
               </Grid>
@@ -614,13 +614,13 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
                 {!estimatedFee
                   ? <span><Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '30px' }} /></span>
                   : <>
-                    {amountToHuman(estimatedFee.toString(), decimals)}
+                    {estimatedFee?.toHuman()}
                   </>
-                }  {' '}{token}
+                }
               </Grid>
             </Grid>
 
-            <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={5}>
+            <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Total staked')}
               </Grid>
