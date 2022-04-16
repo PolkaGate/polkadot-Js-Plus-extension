@@ -3,8 +3,11 @@
 /* eslint-disable react/jsx-max-props-per-line */
 /* eslint-disable header/header */
 
-/** NOTE this component provides a place to select a recipient and some amount to transfer to, moreover provides some
- * facilities like transfering ALL/Max amount considering existential deposit/fee  */
+/**
+ * @description
+ *  this component provides a place to select a recipient and some amount to transfer to, moreover provides some
+ * facilities like transfering ALL/Max amount considering existential deposit/fee
+ * */
 
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { KeypairType } from '@polkadot/util-crypto/types';
@@ -57,8 +60,9 @@ interface Recoded {
 export default function TransferFunds({ api, chain, givenType, sender, setTransferModalOpen, transferModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
-  const [availableBalance, setAvailableBalance] = useState<string>('');
   const settings = useContext(SettingsContext);
+
+  const [availableBalance, setAvailableBalance] = useState<string>('');
   const [nextButtonDisabled, setNextButtonDisabled] = useState(true);
   const [transferAmount, setTransferAmount] = useState<bigint>(0n);
   const [transferAmountInHuman, setTransferAmountInHuman] = useState('');
@@ -81,7 +85,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   const decimals = api && api.registry.chainDecimals[0];
   const token = api && api.registry.chainTokens[0];
   const transfer = api && api.tx.balances.transfer;
- 
+
   useEffect(() => {
     if (!api || !transfer) { return; }
 
