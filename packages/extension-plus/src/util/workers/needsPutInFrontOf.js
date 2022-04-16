@@ -2,20 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
-async function needsPutInFrontOf (chain, target) {
+async function needsPutInFrontOf (endpoint, target) {
   console.log(` needsPutInFrontOf is running for ${target}`);
 
-  const { api } = await getChainInfo(chain);
+  const api = await getApi(endpoint);
   const at = await api.rpc.chain.getFinalizedHead();
   const apiAt = await api.at(at);
 
   const targetAccount = api.createType('AccountId', target);
   const targetCtrl = (await apiAt.query.staking.bonded(targetAccount)).unwrap();
   const targetWeight = api.createType('Balance', (await apiAt.query.staking.ledger(targetCtrl)).unwrapOrDefault().active);
-  const unWrappedTargetNode = await apiAt.query.bagsList.listNodes(targetCtrl)
-  const targetNode = unWrappedTargetNode.isSome ? unWrappedTargetNode.unwrap(): undefined;
+  const unWrappedTargetNode = await apiAt.query.bagsList.listNodes(targetCtrl);
+  const targetNode = unWrappedTargetNode.isSome ? unWrappedTargetNode.unwrap() : undefined;
 
   if (!targetNode) {
     // account probably has done stopNominated
@@ -51,10 +51,10 @@ async function needsPutInFrontOf (chain, target) {
 }
 
 onmessage = (e) => {
-  const { chain, stakerAddress } = e.data;
+  const { endpoint, stakerAddress } = e.data;
 
   // eslint-disable-next-line no-void
-  void needsPutInFrontOf(chain, stakerAddress).then((lighter) => {
+  void needsPutInFrontOf(endpoint, stakerAddress).then((lighter) => {
     postMessage(lighter);
   });
 };

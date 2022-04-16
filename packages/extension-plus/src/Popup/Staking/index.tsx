@@ -26,6 +26,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { PlusHeader, Popup } from '../../components';
 import Hint from '../../components/Hint';
+import useEndPoint from '../../hooks/useEndPoint';
 import getRewardsSlashes from '../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
@@ -66,7 +67,8 @@ BigInt.prototype.toJSON = function () { return this.toString() };
 
 export default function EasyStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  
+  const endpoint = useEndPoint(account, undefined, chain);
+
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
@@ -105,17 +107,17 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     setTabValue(newValue);
   }, []);
 
-  const checkNeedsTuneUp = (chain: Chain, stakerAddress: string) => {
-    checkNeedsRebag(chain, stakerAddress);
-    checkNeedsPutInFrontOf(chain, stakerAddress);
+  const checkNeedsTuneUp = (endpoint: string, stakerAddress: string) => {
+    checkNeedsRebag(endpoint, stakerAddress);
+    checkNeedsPutInFrontOf(endpoint, stakerAddress);
   };
 
-  const checkNeedsRebag = (chain: Chain, stakerAddress: string) => {
+  const checkNeedsRebag = (endpoint: string, stakerAddress: string) => {
     const needsRebag: Worker = new Worker(new URL('../../util/workers/needsRebag.js', import.meta.url));
 
     workers.push(needsRebag);
 
-    needsRebag.postMessage({ chain, stakerAddress });
+    needsRebag.postMessage({ endpoint, stakerAddress });
 
     needsRebag.onerror = (err) => {
       console.log(err);
@@ -131,12 +133,12 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     };
   };
 
-  const checkNeedsPutInFrontOf = (chain: Chain, stakerAddress: string) => {
+  const checkNeedsPutInFrontOf = (endpoint: string, stakerAddress: string) => {
     const needsPutInFrontOf: Worker = new Worker(new URL('../../util/workers/needsPutInFrontOf.js', import.meta.url));
 
     workers.push(needsPutInFrontOf);
 
-    needsPutInFrontOf.postMessage({ chain, stakerAddress });
+    needsPutInFrontOf.postMessage({ endpoint, stakerAddress });
 
     needsPutInFrontOf.onerror = (err) => {
       console.log(err);
@@ -153,36 +155,36 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     };
   };
 
-  const getStakingRewardsFromChain = (chain: Chain, stakerAddress: string) => {
-    // TODO: does not work on polkadot/kusama but Westend!!
-    /**  get some staking rewards ,... */
-    const getRewards: Worker = new Worker(new URL('../../util/workers/getRewards.js', import.meta.url));
+  // const getStakingRewardsFromChain = (chain: Chain, stakerAddress: string) => {
+  //   // TODO: does not work on polkadot/kusama but Westend!!
+  //   /**  get some staking rewards ,... */
+  //   const getRewards: Worker = new Worker(new URL('../../util/workers/getRewards.js', import.meta.url));
 
-    workers.push(getRewards);
+  //   workers.push(getRewards);
 
-    getRewards.postMessage({ chain, stakerAddress });
+  //   getRewards.postMessage({ chain, stakerAddress });
 
-    getRewards.onerror = (err) => {
-      console.log(err);
-    };
+  //   getRewards.onerror = (err) => {
+  //     console.log(err);
+  //   };
 
-    getRewards.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const rewards: RewardInfo[] = e.data;
+  //   getRewards.onmessage = (e: MessageEvent<any>) => {
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  //     const rewards: RewardInfo[] = e.data;
 
-      setRewardSlashes((r) => r.concat(rewards));
-      console.log('REWARDS:', rewards);
+  //     setRewardSlashes((r) => r.concat(rewards));
+  //     console.log('REWARDS:', rewards);
 
-      getRewards.terminate();
-    };
-  };
+  //     getRewards.terminate();
+  //   };
+  // };
 
-  const getNominations = (chain: Chain, stakerAddress: string) => {
+  const getNominations = (endpoint: string, stakerAddress: string) => {
     const getNominatorsWorker: Worker = new Worker(new URL('../../util/workers/getNominations.js', import.meta.url));
 
     workers.push(getNominatorsWorker);
 
-    getNominatorsWorker.postMessage({ chain, stakerAddress });
+    getNominatorsWorker.postMessage({ endpoint, stakerAddress });
 
     getNominatorsWorker.onerror = (err) => {
       console.log(err);
@@ -199,13 +201,13 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     };
   };
 
-  const getStakingConsts = (chain: Chain) => {
+  const getStakingConsts = (chain: Chain, endpoint: string) => {
     /** 1- get some staking constant like min Nominator Bond ,... */
     const getStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getStakingConsts.js', import.meta.url));
 
     workers.push(getStakingConstsWorker);
 
-    getStakingConstsWorker.postMessage({ chain });
+    getStakingConstsWorker.postMessage({ endpoint });
 
     getStakingConstsWorker.onerror = (err) => {
       console.log(err);
@@ -234,12 +236,12 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     };
   };
 
-  const getNominatorInfo = (chain: Chain, stakerAddress: string) => {
+  const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
     const getNominatorInfoWorker: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
 
     workers.push(getNominatorInfoWorker);
 
-    getNominatorInfoWorker.postMessage({ chain, stakerAddress });
+    getNominatorInfoWorker.postMessage({ endpoint, stakerAddress });
 
     getNominatorInfoWorker.onerror = (err) => {
       console.log(err);
@@ -256,12 +258,12 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     };
   };
 
-  const getValidatorsInfo = (chain: Chain, validatorsInfoFromStore: savedMetaData) => {
+  const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: savedMetaData) => {
     const getValidatorsInfoWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsInfo.js', import.meta.url));
 
     workers.push(getValidatorsInfoWorker);
 
-    getValidatorsInfoWorker.postMessage({ chain });
+    getValidatorsInfoWorker.postMessage({ endpoint });
 
     getValidatorsInfoWorker.onerror = (err) => {
       console.log(err);
@@ -322,16 +324,16 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
   useEffect(() => {
     /** get some staking constant like min Nominator Bond ,... */
-    getStakingConsts(chain);
+    endpoint && getStakingConsts(chain, endpoint);
 
     /**  get nominator staking info to consider rebag ,... */
-    getNominatorInfo(chain, staker.address);
+    endpoint && getNominatorInfo(endpoint, staker.address);
 
     // *** get nominated validators list
-    getNominations(chain, staker.address);
+    endpoint && getNominations(endpoint, staker.address);
 
     /** to check if rebag and putInFrontOf is needed */
-    checkNeedsTuneUp(chain, staker.address);
+    endpoint && checkNeedsTuneUp(endpoint, staker.address);
 
     /** retrive validatorInfo from local sorage */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -346,9 +348,9 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
       on chain: ${validatorsInfoFromStore?.chainName}`);
     }
 
-    /** get validators info, including current and waiting */
-    getValidatorsInfo(chain, validatorsInfoFromStore);
-  }, []);
+    /** get validators info, including current and waiting, should be called after validatorsInfoFromStore gets value */
+    endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
+  }, [endpoint, chain, staker.address, account.validatorsInfo, chainName ]);
 
   useEffect(() => {
     if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
@@ -359,7 +361,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
     workers.push(getValidatorsIdWorker);
 
-    getValidatorsIdWorker.postMessage({ chain, validatorsAccountIds });
+    getValidatorsIdWorker.postMessage({ endpoint, validatorsAccountIds });
 
     getValidatorsIdWorker.onerror = (err) => {
       console.log(err);
@@ -382,10 +384,10 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
       getValidatorsIdWorker.terminate();
     };
-  }, [validatorsInfoIsUpdated, validatorsInfo]);
+  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, chain, validatorsIdentities, account.address]);
 
   useEffect(() => {
-    if (!api) return;
+    if (!api || !decimals) return;
 
     // // eslint-disable-next-line no-void
     // void api.derive.staking.stakerRewards(staker.address).then((t) =>
@@ -409,10 +411,10 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
       reward = amountToHuman(String(reward), decimals) === '0' ? '0.00' : amountToHuman(reward, decimals);
       setTotalReceivedReward(reward);
     });
-  }, [chain, api, staker.address]);
+  }, [chain, api, staker.address, decimals]);
 
   useEffect(() => {
-    if (!ledger || !api) { return; }
+    if (!ledger || !api || !decimals) { return; }
 
     setCurrentlyStakedInHuman(amountToHuman(String(ledger.active), decimals));
 
@@ -422,7 +424,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     ledger?.unlocking?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
 
     setUnlockingAmount(redeemable ? unlockingValue - redeemable : unlockingValue);
-  }, [ledger, api, redeemable]);
+  }, [ledger, api, redeemable, decimals]);
 
   useEffect(() => {
     if (!account) {

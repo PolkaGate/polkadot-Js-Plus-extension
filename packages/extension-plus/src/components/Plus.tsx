@@ -139,7 +139,6 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
 
     // eslint-disable-next-line no-void
     void getPriceInUsd(chain).then((p) => {
-      console.log(`${chain.name.replace(' Relay Chain', '')} price:`, p);
       setPrice(p || 0);
     });
 

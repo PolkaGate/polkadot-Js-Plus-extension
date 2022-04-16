@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 import { amountToHuman } from '../plusUtils.ts';
 
-async function getAllValidators (_chain) {
+async function getAllValidators (endpoint) {
   try {
-    const { api, decimals } = await getChainInfo(_chain);
+    const api = await getApi(endpoint);
+    const decimals = api.registry.chainDecimals[0];
+
     const at = await api.rpc.chain.getFinalizedHead();
     const apiAt = await api.at(at);
     const [elected, waiting, currentEra] = await Promise.all([
@@ -55,8 +57,8 @@ async function getAllValidators (_chain) {
 }
 
 onmessage = (e) => {
-  const { chain } = e.data;
+  const { endpoint } = e.data;
 
   // eslint-disable-next-line no-void
-  void getAllValidators(chain).then((info) => { postMessage(info); });
+  void getAllValidators(endpoint).then((info) => { postMessage(info); });
 };

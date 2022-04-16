@@ -3,11 +3,11 @@
 /* eslint-disable header/header */
 
 import { MAX_NOMINATIONS } from '../constants';
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
-async function getStackingConsts (_chain) {
+async function getStackingConsts (endpoint) {
   try {
-    const { api } = await getChainInfo(_chain);
+    const api = await getApi(endpoint);
     const at = await api.rpc.chain.getFinalizedHead();
     const apiAt = await api.at(at);
     const maxNominations = apiAt.consts.staking.maxNominations?.toNumber() || MAX_NOMINATIONS;
@@ -31,11 +31,11 @@ async function getStackingConsts (_chain) {
 }
 
 onmessage = (e) => {
-  const { chain } = e.data;
+  const { endpoint } = e.data;
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  getStackingConsts(chain).then((consts) => {
-    console.log('StackingConsts in worker: %o', consts);
+  getStackingConsts(endpoint).then((consts) => {
+    console.log(`StackingConsts in worker using:${endpoint}: %o`, consts);
     postMessage(consts);
   });
 };

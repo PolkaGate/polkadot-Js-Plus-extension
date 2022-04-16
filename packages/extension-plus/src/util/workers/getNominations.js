@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
 // get all nominated/elected validators of an address
-export async function getNominations (_chain, _address) {
+export async function getNominations (endpoint, _address) {
   try {
-    const { api } = await getChainInfo(_chain);
+    const api = await getApi(endpoint);
     const at = await api.rpc.chain.getFinalizedHead();
     const apiAt = await api.at(at);
     const nominators = await apiAt.query.staking.nominators(_address);
@@ -25,10 +25,10 @@ export async function getNominations (_chain, _address) {
 }
 
 onmessage = (e) => {
-  const { chain, stakerAddress } = e.data;
+  const { endpoint, stakerAddress } = e.data;
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-   getNominations(chain, stakerAddress).then((targets) => {
+  getNominations(endpoint, stakerAddress).then((targets) => {
     postMessage(targets);
   });
 };

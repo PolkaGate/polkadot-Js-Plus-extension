@@ -150,13 +150,13 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
           </div>
           {/* // added for plus */}
           <div className='menuItem'>
-            <Dropdown
+            {!!endpointOptions?.length && <Dropdown
               className='genesisSelection'
               label='endpoint'
               onChange={_onChangeEndpoint}
               options={endpointOptions ?? []}
               value={selectedEndpoint || ''}
-            />
+            />}
           </div>
         </>
       )}

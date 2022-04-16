@@ -15,6 +15,8 @@ interface Option {
   value: string;
 }
 
+const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
+
 export default function (genesisHash: string | null | undefined): Option[] {
   if (!genesisHash) return [];
 
@@ -23,12 +25,11 @@ export default function (genesisHash: string | null | undefined): Option[] {
   const endpoints: Option[] = useMemo(() => {
     const option = genesisOptions?.find((o) => o.value === genesisHash);
     const chainName = option?.text?.replace(' Relay Chain', '');
-    const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
 
-    const endpoints = allEndpoints.filter((e) => String(e.text)?.toLowerCase() === chainName?.toLowerCase());
+    const endpoints = allEndpoints?.filter((e) => String(e.text)?.toLowerCase() === chainName?.toLowerCase());
 
-    return endpoints.filter((e) => e.value.startsWith('wss')).map((e) => ({ text: e.value, value: e.value }));
+    return endpoints?.filter((e) => e.value.startsWith('wss')).map((e) => ({ text: e.value, value: e.value }));
   }, [genesisHash, genesisOptions]);
 
-  return endpoints;
+  return endpoints ?? [];
 }
