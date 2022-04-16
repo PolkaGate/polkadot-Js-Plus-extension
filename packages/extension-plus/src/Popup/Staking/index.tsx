@@ -66,6 +66,7 @@ BigInt.prototype.toJSON = function () { return this.toString() };
 
 export default function EasyStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
@@ -532,7 +533,9 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   const handleSelectValidatorsModalOpen = useCallback((isSetNominees = false): void => {
     setSelectValidatorsModalOpen(true);
 
-    if (!state && !isSetNominees) setState('changeValidators');
+    if (!state) {
+      isSetNominees ? setState('setNominees') : setState('changeValidators');
+    }
   }, [state]);
 
   const handleNextToUnstake = useCallback((): void => {
@@ -677,7 +680,6 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
               nominatorInfo={nominatorInfo}
               putInFrontInfo={putInFrontInfo}
               rebagInfo={rebagInfo}
-              setState={setState}
               staker={staker}
               stakingConsts={stakingConsts}
               state={state}
