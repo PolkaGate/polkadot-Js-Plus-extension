@@ -1,6 +1,10 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+/**
+ * @description
+ * find endpoints based on chainName and also omit light client which my be add later
+ */
 import { useMemo } from 'react';
 
 import { createWsEndpoints } from '@polkadot/apps-config';
@@ -23,7 +27,7 @@ export default function (genesisHash: string | null | undefined): Option[] {
 
     const endpoints = allEndpoints.filter((e) => String(e.text)?.toLowerCase() === chainName?.toLowerCase());
 
-    return endpoints.map((e) => ({ text: e.value, value: e.value }));
+    return endpoints.filter((e) => e.value.startsWith('wss')).map((e) => ({ text: e.value, value: e.value }));
   }, [genesisHash, genesisOptions]);
 
   return endpoints;
