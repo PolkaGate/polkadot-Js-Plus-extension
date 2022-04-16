@@ -13,8 +13,8 @@ import type { StakingLedger } from '@polkadot/types/interfaces';
 import { Alert, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { ApiPromise } from '@polkadot/api';
+import { DeriveStakingQuery } from '@polkadot/api-derive/types';
 
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -33,7 +33,7 @@ interface Props {
   ledger: StakingLedger | null;
   stakingConsts: StakingConsts | null;
   handleConfirmStakingModaOpen: () => void;
-  handleSelectValidatorsModalOpen: () => void;
+  handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
 }
 
 export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
@@ -109,7 +109,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
           console.log('unknown validatorSelectionType !!');
       }
     }
-  }, [minStakeable, state, validatorSelectionType, stakeAmountInHuman]);
+  }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleSelectValidatorsModalOpen]);
 
   useEffect(() => {
     if (!stakingConsts || !decimals) return;
