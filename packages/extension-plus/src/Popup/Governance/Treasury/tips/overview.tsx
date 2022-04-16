@@ -17,7 +17,9 @@ import { Option, u128 } from '@polkadot/types-codec';
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import Identity from '../../../../components/Identity';
+import useEncodedAddress from '../../../../hooks/useEncodedAddress';
 import getCouncilMembersInfo from '../../../../util/api/getCouncilMembersInfo';
+import { SELECTED_COLOR } from '../../../../util/constants';
 import getLogo from '../../../../util/getLogo';
 import { ChainInfo, Tip } from '../../../../util/plusTypes';
 import { toHuman } from '../../../../util/plusUtils';
@@ -32,6 +34,7 @@ interface Props {
 
 export default function Overview({ address, chain, chainInfo, tips }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const encodedAddress = useEncodedAddress(address, chain);
   const chainName = chain?.name.replace(' Relay Chain', '');
   const [showProposeTipModal, setShowProposeTipModal] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<number>(-1);
@@ -54,8 +57,6 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
     const councilMembersInfo: DeriveAccountInfo[] = await getCouncilMembersInfo(chainName);
 
     if (!councilMembersInfo.length) return;
-
-    console.log('councilMembersInfo:', councilMembersInfo);
 
     const unWrappedTips = wrappedTips?.map((t) => t.isSome && t.unwrap());
 
@@ -89,9 +90,11 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
       {tips.map((tip, index) => {
         const finderAccountInfo = { accountId: tip.finder.address, identity: { display: tip.finder.display, judgements: tip.finder.judgements } };
         const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } };
+        const finderAddress = tip.finder.address;
+        const beneficiaryAddres = tip.beneficiary.address;
 
         return (
-          <Paper elevation={4} key={index} sx={{ borderRadius: '10px', margin: '10px 30px 10px' }}>
+          <Paper elevation={4} key={index} sx={{ bgcolor: [finderAddress, beneficiaryAddres].includes(encodedAddress) ? SELECTED_COLOR : '', borderRadius: '10px', margin: '10px 30px 10px' }}>
 
             <Accordion disableGutters expanded={expanded === index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
