@@ -41,7 +41,7 @@ export interface AccountJson extends KeyringPair$Meta {
   suri?: string;
   type?: KeypairType;
   whenCreated?: number;
-  
+
   // added for plus
   lastBalance?: string;
   txHistory?: string;
@@ -49,6 +49,7 @@ export interface AccountJson extends KeyringPair$Meta {
   nominatedValidators?: string;
   validatorsInfo?: string;
   validatorsIdentities?: string;
+  endpoint: string;
 }
 
 export type AccountWithChildren = AccountJson & {
@@ -346,10 +347,10 @@ interface TransportResponseMessageNoSub<TMessageType extends MessageTypesWithNoS
 
 export type TransportResponseMessage<TMessageType extends MessageTypes> =
   TMessageType extends MessageTypesWithNoSubscriptions
-    ? TransportResponseMessageNoSub<TMessageType>
-    : TMessageType extends MessageTypesWithSubscriptions
-      ? TransportResponseMessageSub<TMessageType>
-      : never;
+  ? TransportResponseMessageNoSub<TMessageType>
+  : TMessageType extends MessageTypesWithSubscriptions
+  ? TransportResponseMessageSub<TMessageType>
+  : never;
 
 export interface ResponseSigning {
   id: string;
@@ -393,7 +394,7 @@ export type MessageTypesWithNoSubscriptions = Exclude<MessageTypes, keyof Subscr
 export interface RequestSign {
   readonly payload: SignerPayloadJSON | SignerPayloadRaw;
 
-  sign (registry: TypeRegistry, pair: KeyringPair): { signature: HexString };
+  sign(registry: TypeRegistry, pair: KeyringPair): { signature: HexString };
 }
 
 export interface RequestJsonRestore {
