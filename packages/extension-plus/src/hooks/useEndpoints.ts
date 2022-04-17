@@ -9,15 +9,17 @@ import { useMemo } from 'react';
 
 import { createWsEndpoints } from '@polkadot/apps-config';
 import useGenesisHashOptions from '@polkadot/extension-ui/hooks/useGenesisHashOptions';
+import useTranslation from '@polkadot/extension-ui/hooks/useTranslation';
 
 interface Option {
   text: string;
   value: string;
 }
 
-const allEndpoints = createWsEndpoints((key: string, value: string | undefined) => value || key);
-
 export default function (genesisHash: string | null | undefined): Option[] {
+  const { t } = useTranslation();
+  const allEndpoints = createWsEndpoints(t);
+
   if (!genesisHash) return [];
 
   const genesisOptions = useGenesisHashOptions();
@@ -28,8 +30,8 @@ export default function (genesisHash: string | null | undefined): Option[] {
 
     const endpoints = allEndpoints?.filter((e) => String(e.text)?.toLowerCase() === chainName?.toLowerCase());
 
-    return endpoints?.filter((e) => e.value.startsWith('wss')).map((e) => ({ text: e.value, value: e.value }));
-  }, [genesisHash, genesisOptions]);
+    return endpoints?.filter((e) => e.value.startsWith('wss')).map((e) => ({ text: e.textBy, value: e.value }));
+  }, [allEndpoints, genesisHash, genesisOptions]);
 
   return endpoints ?? [];
 }
