@@ -40,7 +40,7 @@ export interface StakingConsts {
   maxNominations: number,
   maxNominatorRewardedPerValidator: number,
   minNominatorBond: bigint,
-  bondingDuration: number
+  unbondingDuration: number
 }
 
 export interface ValidatorInfo extends DeriveStakingQuery {

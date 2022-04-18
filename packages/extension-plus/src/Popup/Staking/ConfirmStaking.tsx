@@ -490,7 +490,7 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
     switch (state) {
       case ('unstake'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
-          {t('Note: The unstaked amount will be redeemable after {{days}} days ', { replace: { days: stakingConsts?.bondingDuration } })}
+          {t('Note: The unstaked amount will be redeemable after {{days}} days ', { replace: { days: stakingConsts?.unbondingDuration } })}
         </Typography>;
       case ('withdrawUnbound'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
@@ -557,7 +557,7 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
     }
     // Note: availableBalance change should not change the alert in redeem confirm page!
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [surAmount, token, decimals, estimatedFee, stakingConsts?.bondingDuration, t, rebagInfo]);
+  }, [surAmount, token, decimals, estimatedFee, stakingConsts?.unbondingDuration, t, rebagInfo]);
 
   const handleAutoAdjust = useCallback((): void => {
     const ED = stakingConsts?.existentialDeposit;

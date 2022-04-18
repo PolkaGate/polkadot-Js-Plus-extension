@@ -83,7 +83,7 @@ function InfoTab({ api, currentEraIndex, minNominated, stakingConsts }: Props): 
             {t('Days it takes to receive your funds back after unstaking:  ')}
           </Grid>
           <Grid item>
-            <ShowValue unit={t('days')} value={stakingConsts?.bondingDuration} />
+            <ShowValue unit={t('days')} value={stakingConsts?.unbondingDuration} />
           </Grid>
         </Grid>
 

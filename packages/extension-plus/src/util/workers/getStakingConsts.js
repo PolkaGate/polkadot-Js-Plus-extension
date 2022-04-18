@@ -5,7 +5,7 @@
 import { MAX_NOMINATIONS } from '../constants';
 import getApi from '../getApi.ts';
 
-async function getStackingConsts (endpoint) {
+async function getStackingConsts(endpoint) {
   try {
     const api = await getApi(endpoint);
     const at = await api.rpc.chain.getFinalizedHead();
@@ -14,10 +14,13 @@ async function getStackingConsts (endpoint) {
     const maxNominatorRewardedPerValidator = apiAt.consts.staking.maxNominatorRewardedPerValidator.toNumber();
     const existentialDeposit = apiAt.consts.balances.existentialDeposit.toString();
     const bondingDuration = apiAt.consts.staking.bondingDuration.toNumber();
+    const sessionsPerEra = apiAt.consts.staking.sessionsPerEra.toNumber();
+    const epochDuration = apiAt.consts.babe.epochDuration.toNumber();
+    const epochDurationInHours = epochDuration / (10 * 60);
     const minNominatorBond = await apiAt.query.staking.minNominatorBond();
 
     return {
-      bondingDuration: bondingDuration,
+      unbondingDuration: bondingDuration * sessionsPerEra * epochDurationInHours / 24, // unboundingDuration in days
       existentialDeposit: BigInt(existentialDeposit), // FIXME, sometimes make issue while reading from local storge
       maxNominations: maxNominations,
       maxNominatorRewardedPerValidator: maxNominatorRewardedPerValidator,

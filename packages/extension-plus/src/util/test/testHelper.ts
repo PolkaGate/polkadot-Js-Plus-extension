@@ -1244,7 +1244,7 @@ export const validatorsIdentities: DeriveAccountInfo[] = [
 ];
 
 export const stakingConsts: StakingConsts = {
-  bondingDuration: 28,
+  unbondingDuration: 28,
   existentialDeposit: 10000000000n,
   maxNominations: 16,
   maxNominatorRewardedPerValidator: 64,
