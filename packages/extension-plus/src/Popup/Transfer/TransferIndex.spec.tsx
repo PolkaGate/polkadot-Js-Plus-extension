@@ -63,7 +63,7 @@ describe('Testing TransferFund index', () => {
     rendered = render(
       <TransferFund
         chain={props.chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         givenType={props.givenType}
         sender={sender}
         transferModalOpen={true}
@@ -140,7 +140,7 @@ describe('Testing transferFund with real account', () => {
     const { container, queryAllByText, queryByLabelText, queryByTestId } = render(
       <TransferFund
         chain={props.chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         givenType={props.givenType}
         sender={realSender}
         transferModalOpen={true}
@@ -160,7 +160,7 @@ describe('Testing transferFund with real account', () => {
     const { container, queryAllByText, queryByLabelText, queryByTestId } = render(
       <TransferFund
         chain={props.chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         givenType={props.givenType}
         sender={realSender}
         transferModalOpen={true}

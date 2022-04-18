@@ -95,7 +95,7 @@ describe('ConfirmTransfer for Successful Scenario (Note: account must have some 
       <ConfirmTransfer
         availableBalance={availableBalance}
         chain={props.chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         confirmModalOpen={true}
         lastFee={fee}
         recepient={recepient}
@@ -113,7 +113,7 @@ describe('ConfirmTransfer for Successful Scenario (Note: account must have some 
     const amountToTransfer = screen.queryByTestId('infoInMiddle').children.item(0).children.item(1).textContent;
 
     expect(amountToTransfer).toEqual(`${transferAmountInHuman}${balanceInfo.coin}`);
-    expect(screen.queryByTestId('infoInMiddle').children.item(1).children.item(1).textContent).toEqual(`${amountToHuman(fee.toString(), decimals)}estimated`);
+    expect(screen.queryByTestId('infoInMiddle').children.item(1).children.item(1).textContent).toEqual(`${fee.toHuman()}estimated`);
     expect(screen.queryByTestId('infoInMiddle').children.item(3).children.item(0).textContent).toEqual('Total');
 
     const total = transferAmount + fee.toBigInt();
@@ -177,7 +177,7 @@ describe('ConfirmTransfer for Failed Scenario', () => {
       <ConfirmTransfer
         availableBalance={availableBalance}
         chain={props.chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         confirmModalOpen={true}
         lastFee={fee}
         recepient={recepient}

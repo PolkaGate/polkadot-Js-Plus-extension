@@ -350,7 +350,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
     /** get validators info, including current and waiting, should be called after validatorsInfoFromStore gets value */
     endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
-  }, [endpoint, chain, staker.address, account.validatorsInfo, chainName ]);
+  }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
 
   useEffect(() => {
     if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
@@ -404,349 +404,354 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     //   console.log('erasTotalStake', amountToHuman(t?.toString(), decimals))
     // );
 
-    /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
-    void getStakingReward(chain, staker.address).then((reward) => {
-      if (!reward) reward = '0';
-      reward = amountToHuman(String(reward), decimals) === '0' ? '0.00' : amountToHuman(reward, decimals);
-      setTotalReceivedReward(reward);
-    });
-  }, [chain, api, staker.address, decimals]);
+    // void api.query.nominationPools.lastPoolId().then((id) =>
+    //   console.log('lastPoolId:', id)
+    // );
 
-  useEffect(() => {
-    if (!ledger || !api || !decimals) { return; }
+  /** get staking reward from subscan, can use onChain data, TODO */
+  // eslint-disable-next-line no-void
+  void getStakingReward(chain, staker.address).then((reward) => {
+    if (!reward) reward = '0';
+    reward = amountToHuman(String(reward), decimals) === '0' ? '0.00' : amountToHuman(reward, decimals);
+    setTotalReceivedReward(reward);
+  });
+}, [chain, api, staker.address, decimals]);
 
-    setCurrentlyStakedInHuman(amountToHuman(String(ledger.active), decimals));
+useEffect(() => {
+  if (!ledger || !api || !decimals) { return; }
 
-    // set unlocking
-    let unlockingValue = 0n;
+  setCurrentlyStakedInHuman(amountToHuman(String(ledger.active), decimals));
 
-    ledger?.unlocking?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
+  // set unlocking
+  let unlockingValue = 0n;
 
-    setUnlockingAmount(redeemable ? unlockingValue - redeemable : unlockingValue);
-  }, [ledger, api, redeemable, decimals]);
+  ledger?.unlocking?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
 
-  useEffect(() => {
-    if (!account) {
-      console.log(' no account, wait for it...!..');
+  setUnlockingAmount(redeemable ? unlockingValue - redeemable : unlockingValue);
+}, [ledger, api, redeemable, decimals]);
 
-      return;
-    }
+useEffect(() => {
+  if (!account) {
+    console.log(' no account, wait for it...!..');
 
-    console.log('account in staking stake:', account);
-
-    // * retrive staking consts from local sorage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
-
-    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
-      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
-    }
-
-    // *** retrive nominated validators from local sorage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const nominatedValidatorsInfoFromLocalStrorage: savedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
-
-    if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
-      setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
-    }
-
-    // **** retrive validators identities from local storage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validarorsIdentitiesFromStore: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
-
-    if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
-      setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
-    }
-  }, []);
-
-  useEffect((): void => {
-    setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
-  }, [staker]);
-
-  useEffect(() => {
-    if (validatorsInfo && nominatedValidatorsId && chain && account.address) {
-      // find all information of nominated validators from all validatorsInfo(current and waiting)
-      const nominatedValidatorsIds = validatorsInfo.current
-        .concat(validatorsInfo.waiting)
-        .filter((v: DeriveStakingQuery) => nominatedValidatorsId.includes(String(v.accountId)));
-
-      setNominatedValidatorsInfo(nominatedValidatorsIds);
-      // setGettingNominatedValidatorsInfoFromChain(false);
-
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominatedValidatorsIds));
-    }
-  }, [nominatedValidatorsId, validatorsInfo, chain, account.address]);
-
-  useEffect(() => {
-    if (noNominatedValidators) {
-      console.log('Clear saved nominatedValidators');
-
-      // eslint-disable-next-line no-void
-      void updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', []));
-    }
-  }, [account.address, chain, noNominatedValidators]);
-
-  // TODO: selecting validators automatically, may move to confirm page!
-  useEffect(() => {
-    if (validatorsInfo && stakingConsts) {
-      const selectedVAcc = selectBestValidators(validatorsInfo, stakingConsts);
-
-      setSelectedValidatorsAcounts(selectedVAcc);
-    }
-  }, [stakingConsts, validatorsInfo]);
-
-  useEffect(() => {
-    const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
-
-    setOversubscribedsCount(oversubscribeds?.length);
-  }, [nominatedValidators, stakingConsts]);
-
-  // TODO: find a better algorithm to select validators automatically
-  function selectBestValidators(validatorsInfo: Validators, stakingConsts: StakingConsts): DeriveStakingQuery[] {
-    const allValidators = validatorsInfo.current.concat(validatorsInfo.waiting);
-    const nonBlockedValidatorsAccountId = allValidators.filter((v) =>
-      !v.validatorPrefs.blocked && // filter blocked validators
-      (Number(v.validatorPrefs.commission) / (10 ** 7)) < MAX_ACCEPTED_COMMISSION && // filter high commision validators
-      v.exposure.others.length < stakingConsts?.maxNominatorRewardedPerValidator  // filter oversubscribed
-      // && v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator / 4 // filter validators with very low nominators
-    );
-
-    return nonBlockedValidatorsAccountId.slice(0, stakingConsts?.maxNominations);
+    return;
   }
 
-  const handleEasyStakingModalClose = useCallback(
-    (): void => {
-      // should terminate workers
-      workers.forEach((w) => w.terminate());
+  console.log('account in staking stake:', account);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      setStakingModalOpen(false);
-    },
-    [setStakingModalOpen]
+  // * retrive staking consts from local sorage
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
+
+  if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
+    console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
+    setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
+  }
+
+  // *** retrive nominated validators from local sorage
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const nominatedValidatorsInfoFromLocalStrorage: savedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
+
+  if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
+    setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
+  }
+
+  // **** retrive validators identities from local storage
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const validarorsIdentitiesFromStore: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
+
+  if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
+    setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
+  }
+}, []);
+
+useEffect((): void => {
+  setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
+}, [staker]);
+
+useEffect(() => {
+  if (validatorsInfo && nominatedValidatorsId && chain && account.address) {
+    // find all information of nominated validators from all validatorsInfo(current and waiting)
+    const nominatedValidatorsIds = validatorsInfo.current
+      .concat(validatorsInfo.waiting)
+      .filter((v: DeriveStakingQuery) => nominatedValidatorsId.includes(String(v.accountId)));
+
+    setNominatedValidatorsInfo(nominatedValidatorsIds);
+    // setGettingNominatedValidatorsInfoFromChain(false);
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominatedValidatorsIds));
+  }
+}, [nominatedValidatorsId, validatorsInfo, chain, account.address]);
+
+useEffect(() => {
+  if (noNominatedValidators) {
+    console.log('Clear saved nominatedValidators');
+
+    // eslint-disable-next-line no-void
+    void updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', []));
+  }
+}, [account.address, chain, noNominatedValidators]);
+
+// TODO: selecting validators automatically, may move to confirm page!
+useEffect(() => {
+  if (validatorsInfo && stakingConsts) {
+    const selectedVAcc = selectBestValidators(validatorsInfo, stakingConsts);
+
+    setSelectedValidatorsAcounts(selectedVAcc);
+  }
+}, [stakingConsts, validatorsInfo]);
+
+useEffect(() => {
+  const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
+
+  setOversubscribedsCount(oversubscribeds?.length);
+}, [nominatedValidators, stakingConsts]);
+
+// TODO: find a better algorithm to select validators automatically
+function selectBestValidators(validatorsInfo: Validators, stakingConsts: StakingConsts): DeriveStakingQuery[] {
+  const allValidators = validatorsInfo.current.concat(validatorsInfo.waiting);
+  const nonBlockedValidatorsAccountId = allValidators.filter((v) =>
+    !v.validatorPrefs.blocked && // filter blocked validators
+    (Number(v.validatorPrefs.commission) / (10 ** 7)) < MAX_ACCEPTED_COMMISSION && // filter high commision validators
+    v.exposure.others.length < stakingConsts?.maxNominatorRewardedPerValidator  // filter oversubscribed
+    // && v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator / 4 // filter validators with very low nominators
   );
 
-  const handleConfirmStakingModaOpen = useCallback((): void => {
-    setConfirmStakingModalOpen(true);
-  }, []);
+  return nonBlockedValidatorsAccountId.slice(0, stakingConsts?.maxNominations);
+}
 
-  const handleSelectValidatorsModalOpen = useCallback((isSetNominees = false): void => {
-    setSelectValidatorsModalOpen(true);
+const handleEasyStakingModalClose = useCallback(
+  (): void => {
+    // should terminate workers
+    workers.forEach((w) => w.terminate());
 
-    if (!state) {
-      isSetNominees ? setState('setNominees') : setState('changeValidators');
-    }
-  }, [state]);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    setStakingModalOpen(false);
+  },
+  [setStakingModalOpen]
+);
 
-  const handleNextToUnstake = useCallback((): void => {
-    if (!state) setState('unstake');
-    handleConfirmStakingModaOpen();
-  }, [handleConfirmStakingModaOpen, state]);
+const handleConfirmStakingModaOpen = useCallback((): void => {
+  setConfirmStakingModalOpen(true);
+}, []);
 
-  const handleStopNominating = useCallback((): void => {
-    handleConfirmStakingModaOpen();
+const handleSelectValidatorsModalOpen = useCallback((isSetNominees = false): void => {
+  setSelectValidatorsModalOpen(true);
 
-    if (!state) setState('stopNominating');
-  }, [handleConfirmStakingModaOpen, state]);
+  if (!state) {
+    isSetNominees ? setState('setNominees') : setState('changeValidators');
+  }
+}, [state]);
 
-  const handleRebag = useCallback((): void => {
-    handleConfirmStakingModaOpen();
+const handleNextToUnstake = useCallback((): void => {
+  if (!state) setState('unstake');
+  handleConfirmStakingModaOpen();
+}, [handleConfirmStakingModaOpen, state]);
 
-    if (!state) setState('tuneUp');
-  }, [handleConfirmStakingModaOpen, state]);
+const handleStopNominating = useCallback((): void => {
+  handleConfirmStakingModaOpen();
 
-  const handleWithdrowUnbound = useCallback(() => {
-    if (!redeemable) return;
-    if (!state) setState('withdrawUnbound');
-    handleConfirmStakingModaOpen();
-  }, [handleConfirmStakingModaOpen, redeemable, state]);
+  if (!state) setState('stopNominating');
+}, [handleConfirmStakingModaOpen, state]);
 
-  const handleViewChart = useCallback(() => {
-    if (!rewardSlashes) return;
-    setChartModalOpen(true);
-  }, [setChartModalOpen, rewardSlashes]);
+const handleRebag = useCallback((): void => {
+  handleConfirmStakingModaOpen();
 
-  const getAmountToConfirm = useCallback(() => {
-    switch (state) {
-      case ('unstake'):
-        return unstakeAmount;
-      case ('stakeAuto'):
-      case ('stakeManual'):
-      case ('stakeKeepNominated'):
-        return stakeAmount;
-      case ('withdrawUnbound'):
-        return redeemable || 0n;
-      default:
-        return 0n;
-    }
-  }, [state, unstakeAmount, stakeAmount, redeemable]);
+  if (!state) setState('tuneUp');
+}, [handleConfirmStakingModaOpen, state]);
 
-  useEffect(() => {
-    const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === staker.address));
+const handleWithdrowUnbound = useCallback(() => {
+  if (!redeemable) return;
+  if (!state) setState('withdrawUnbound');
+  handleConfirmStakingModaOpen();
+}, [handleConfirmStakingModaOpen, redeemable, state]);
 
-    setActiveValidator(active);
-  }, [nominatedValidators, staker.address]);
+const handleViewChart = useCallback(() => {
+  if (!rewardSlashes) return;
+  setChartModalOpen(true);
+}, [setChartModalOpen, rewardSlashes]);
 
-  const NominationsIcon = useMemo((): React.ReactElement<any> => (
-    gettingNominatedValidatorsInfoFromChain || !rebagInfo || !putInFrontInfo
-      ? <CircularProgress size={12} sx={{ pr: '5px' }} thickness={2} />
-      : Number(currentlyStakedInHuman) && !nominatedValidators?.length
-        ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
-          <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
+const getAmountToConfirm = useCallback(() => {
+  switch (state) {
+    case ('unstake'):
+      return unstakeAmount;
+    case ('stakeAuto'):
+    case ('stakeManual'):
+    case ('stakeKeepNominated'):
+      return stakeAmount;
+    case ('withdrawUnbound'):
+      return redeemable || 0n;
+    default:
+      return 0n;
+  }
+}, [state, unstakeAmount, stakeAmount, redeemable]);
+
+useEffect(() => {
+  const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === staker.address));
+
+  setActiveValidator(active);
+}, [nominatedValidators, staker.address]);
+
+const NominationsIcon = useMemo((): React.ReactElement<any> => (
+  gettingNominatedValidatorsInfoFromChain || !rebagInfo || !putInFrontInfo
+    ? <CircularProgress size={12} sx={{ pr: '5px' }} thickness={2} />
+    : Number(currentlyStakedInHuman) && !nominatedValidators?.length
+      ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
+        <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
+      </Hint>
+      : !activeValidator && nominatedValidators?.length
+        ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
+          <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
         </Hint>
-        : !activeValidator && nominatedValidators?.length
-          ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
-            <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
+        : oversubscribedsCount
+          ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
+            <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
+              <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
+            </Badge>
           </Hint>
-          : oversubscribedsCount
-            ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
-              <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
-                <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
-              </Badge>
-            </Hint>
-            : <CheckOutlined fontSize='small' />
-  ), [gettingNominatedValidatorsInfoFromChain, rebagInfo, putInFrontInfo, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
+          : <CheckOutlined fontSize='small' />
+), [gettingNominatedValidatorsInfoFromChain, rebagInfo, putInFrontInfo, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
-  return (
-    <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
+return (
+  <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
 
-      <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
+    <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
-      <Grid alignItems='center' container>
-        <Grid container item xs={12}>
-          <Overview
-            api={api}
-            availableBalanceInHuman={availableBalanceInHuman}
-            currentlyStakedInHuman={currentlyStakedInHuman}
-            handleViewChart={handleViewChart}
-            handleWithdrowUnbound={handleWithdrowUnbound}
-            ledger={ledger}
-            redeemable={redeemable}
-            rewardSlashes={rewardSlashes}
-            totalReceivedReward={totalReceivedReward}
-            unlockingAmount={unlockingAmount}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
-              <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
-              <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
-              <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
-              <Tab
-                icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlined fontSize='small' />}
-                iconPosition='start' label='Info' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }}
-              />
-            </Tabs>
-          </Box>
-          <TabPanel index={0} value={tabValue}>
-            <Stake
-              api={api}
-              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
-              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
-              ledger={ledger}
-              nextToStakeButtonBusy={(!ledger || !(validatorsInfoIsUpdated || storeIsUpdate)) && state !== ''}
-              nominatedValidators={nominatedValidators}
-              setStakeAmount={setStakeAmount}
-              setState={setState}
-              staker={staker}
-              stakingConsts={stakingConsts}
-              state={state}
-            />
-          </TabPanel>
-          <TabPanel index={1} value={tabValue}>
-            <Unstake
-              api={api}
-              availableBalance={staker?.balanceInfo?.available ?? 0n}
-              currentlyStakedInHuman={currentlyStakedInHuman}
-              handleNextToUnstake={handleNextToUnstake}
-              ledger={ledger}
-              nextToUnStakeButtonBusy={state === 'unstake'}
-              setUnstakeAmount={setUnstakeAmount}
-              stakingConsts={stakingConsts}
-            />
-          </TabPanel>
-          <TabPanel index={2} padding={1} value={tabValue}>
-            <Nominations
-              activeValidator={activeValidator}
-              api={api}
-              chain={chain}
-              handleRebag={handleRebag}
-              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
-              handleStopNominating={handleStopNominating}
-              ledger={ledger}
-              noNominatedValidators={noNominatedValidators}
-              nominatedValidators={nominatedValidators}
-              nominatorInfo={nominatorInfo}
-              putInFrontInfo={putInFrontInfo}
-              rebagInfo={rebagInfo}
-              staker={staker}
-              stakingConsts={stakingConsts}
-              state={state}
-              validatorsIdentities={validatorsIdentities}
-              validatorsInfo={validatorsInfo}
-            />
-          </TabPanel>
-          <TabPanel index={3} value={tabValue}>
-            <InfoTab
-              api={api}
-              currentEraIndex={currentEraIndex}
-              minNominated={nominatorInfo?.minNominated}
-              stakingConsts={stakingConsts}
-            />
-          </TabPanel>
-        </Grid>
-      </Grid>
-
-      {stakingConsts && validatorsInfo &&
-        <SelectValidators
+    <Grid alignItems='center' container>
+      <Grid container item xs={12}>
+        <Overview
           api={api}
-          chain={chain}
+          availableBalanceInHuman={availableBalanceInHuman}
+          currentlyStakedInHuman={currentlyStakedInHuman}
+          handleViewChart={handleViewChart}
+          handleWithdrowUnbound={handleWithdrowUnbound}
           ledger={ledger}
-          nominatedValidators={nominatedValidators}
-          setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
-          setState={setState}
-          showSelectValidatorsModal={showSelectValidatorsModal}
-          stakeAmount={stakeAmount}
-          staker={staker}
-          stakingConsts={stakingConsts}
-          state={state}
-          validatorsIdentities={validatorsIdentities}
-          validatorsInfo={validatorsInfo}
-        />
-      }
-      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api &&
-        <ConfirmStaking
-          amount={getAmountToConfirm()}
-          api={api}
-          chain={chain}
-          handleEasyStakingModalClose={handleEasyStakingModalClose}
-          ledger={ledger}
-          nominatedValidators={nominatedValidators}
-          putInFrontInfo={putInFrontInfo}
-          rebagInfo={rebagInfo}
-          selectedValidators={selectedValidators}
-          setConfirmStakingModalOpen={setConfirmStakingModalOpen}
-          setState={setState}
-          showConfirmStakingModal={showConfirmStakingModal}
-          staker={staker}
-          stakingConsts={stakingConsts}
-          state={state}
-          validatorsIdentities={validatorsIdentities}
-        />
-      }
-
-      {rewardSlashes && showChartModal && api &&
-        <RewardChart
-          chain={chain}
-          api={api}
+          redeemable={redeemable}
           rewardSlashes={rewardSlashes}
-          setChartModalOpen={setChartModalOpen}
-          showChartModal={showChartModal}
+          totalReceivedReward={totalReceivedReward}
+          unlockingAmount={unlockingAmount}
         />
-      }
-    </Popup>
-  );
+      </Grid>
+      <Grid item xs={12}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
+            <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
+            <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
+            <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }} />
+            <Tab
+              icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlined fontSize='small' />}
+              iconPosition='start' label='Info' sx={{ fontSize: 11, p: '0px 15px 0px 15px' }}
+            />
+          </Tabs>
+        </Box>
+        <TabPanel index={0} value={tabValue}>
+          <Stake
+            api={api}
+            handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+            handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
+            ledger={ledger}
+            nextToStakeButtonBusy={(!ledger || !(validatorsInfoIsUpdated || storeIsUpdate)) && state !== ''}
+            nominatedValidators={nominatedValidators}
+            setStakeAmount={setStakeAmount}
+            setState={setState}
+            staker={staker}
+            stakingConsts={stakingConsts}
+            state={state}
+          />
+        </TabPanel>
+        <TabPanel index={1} value={tabValue}>
+          <Unstake
+            api={api}
+            availableBalance={staker?.balanceInfo?.available ?? 0n}
+            currentlyStakedInHuman={currentlyStakedInHuman}
+            handleNextToUnstake={handleNextToUnstake}
+            ledger={ledger}
+            nextToUnStakeButtonBusy={state === 'unstake'}
+            setUnstakeAmount={setUnstakeAmount}
+            stakingConsts={stakingConsts}
+          />
+        </TabPanel>
+        <TabPanel index={2} padding={1} value={tabValue}>
+          <Nominations
+            activeValidator={activeValidator}
+            api={api}
+            chain={chain}
+            handleRebag={handleRebag}
+            handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
+            handleStopNominating={handleStopNominating}
+            ledger={ledger}
+            noNominatedValidators={noNominatedValidators}
+            nominatedValidators={nominatedValidators}
+            nominatorInfo={nominatorInfo}
+            putInFrontInfo={putInFrontInfo}
+            rebagInfo={rebagInfo}
+            staker={staker}
+            stakingConsts={stakingConsts}
+            state={state}
+            validatorsIdentities={validatorsIdentities}
+            validatorsInfo={validatorsInfo}
+          />
+        </TabPanel>
+        <TabPanel index={3} value={tabValue}>
+          <InfoTab
+            api={api}
+            currentEraIndex={currentEraIndex}
+            minNominated={nominatorInfo?.minNominated}
+            stakingConsts={stakingConsts}
+          />
+        </TabPanel>
+      </Grid>
+    </Grid>
+
+    {stakingConsts && validatorsInfo &&
+      <SelectValidators
+        api={api}
+        chain={chain}
+        ledger={ledger}
+        nominatedValidators={nominatedValidators}
+        setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
+        setState={setState}
+        showSelectValidatorsModal={showSelectValidatorsModal}
+        stakeAmount={stakeAmount}
+        staker={staker}
+        stakingConsts={stakingConsts}
+        state={state}
+        validatorsIdentities={validatorsIdentities}
+        validatorsInfo={validatorsInfo}
+      />
+    }
+    {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api &&
+      <ConfirmStaking
+        amount={getAmountToConfirm()}
+        api={api}
+        chain={chain}
+        handleEasyStakingModalClose={handleEasyStakingModalClose}
+        ledger={ledger}
+        nominatedValidators={nominatedValidators}
+        putInFrontInfo={putInFrontInfo}
+        rebagInfo={rebagInfo}
+        selectedValidators={selectedValidators}
+        setConfirmStakingModalOpen={setConfirmStakingModalOpen}
+        setState={setState}
+        showConfirmStakingModal={showConfirmStakingModal}
+        staker={staker}
+        stakingConsts={stakingConsts}
+        state={state}
+        validatorsIdentities={validatorsIdentities}
+      />
+    }
+
+    {rewardSlashes && showChartModal && api &&
+      <RewardChart
+        chain={chain}
+        api={api}
+        rewardSlashes={rewardSlashes}
+        setChartModalOpen={setChartModalOpen}
+        showChartModal={showChartModal}
+      />
+    }
+  </Popup>
+);
 }

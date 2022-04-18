@@ -62,7 +62,7 @@ describe('Testing Nominations component', () => {
       <Nominations
         activeValidator={activeValidator}
         chain={chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         ledger={ledger}
         noNominatedValidators={true}
         nominatedValidators={null}
@@ -89,7 +89,7 @@ describe('Testing Nominations component', () => {
       <Nominations
         activeValidator={activeValidator}
         chain={chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         ledger={ledger}
         noNominatedValidators={true}
         nominatedValidators={null}
@@ -116,7 +116,7 @@ describe('Testing Nominations component', () => {
       <Nominations
         activeValidator={activeValidator}
         chain={chain}
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         ledger={ledger}
         noNominatedValidators={false}
         nominatedValidators={nominatedValidators}

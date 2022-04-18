@@ -39,7 +39,7 @@ describe('Testing Unstake component', () => {
   test('Checking the existence of elements while fetching from chain', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
-        chainInfo={chainInfo}
+       api={chainInfo.api}
         currentlyStakedInHuman={notYetFetched}
         ledger={ledger}
         nextToUnStakeButtonBusy={false}
@@ -58,7 +58,7 @@ describe('Testing Unstake component', () => {
   test('Checking the existence of elements after fetch', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
-        chainInfo={chainInfo}
+       api={chainInfo.api}
         currentlyStakedInHuman={notStaked}
         ledger={ledger}
         nextToUnStakeButtonBusy={false}
@@ -77,7 +77,7 @@ describe('Testing Unstake component', () => {
   test('Checking the unstak while there is some active fund', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
-        chainInfo={chainInfo}
+       api={chainInfo.api}
         currentlyStakedInHuman={staked}
         ledger={ledger}
         nextToUnStakeButtonBusy={false}

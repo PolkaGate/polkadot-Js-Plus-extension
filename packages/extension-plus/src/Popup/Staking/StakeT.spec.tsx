@@ -46,7 +46,7 @@ describe('Testing EasyStaking component', () => {
   test('Checking the exist component', async () => {
     const { debug, queryAllByRole, queryByLabelText, queryByRole, queryByText } = render(
       <Stake
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         ledger={ledger}
         nextToStakeButtonBusy={nextToStakeButtonBusy}
         nominatedValidators={nominatedValidators}
@@ -87,7 +87,7 @@ describe('Testing EasyStaking component', () => {
   test('Checking the exist component', () => {
     const { queryAllByRole, queryByRole, queryByText } = render(
       <Stake
-        chainInfo={chainInfo}
+        api={chainInfo.api}
         ledger={ledger}
         nextToStakeButtonBusy={nextToStakeButtonBusy}
         nominatedValidators={nominatedValidators}

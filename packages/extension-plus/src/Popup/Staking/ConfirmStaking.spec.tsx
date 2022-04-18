@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { ApiPromise } from '@polkadot/api';
 import '@polkadot/extension-mocks/chrome';
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -19,7 +20,9 @@ import ConfirmStaking from './ConfirmStaking';
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
-const decimals = 12;
+let api: ApiPromise;
+let decimals = 12;
+let coin: string;
 const validAmountToStake = 10;
 const amountToUnstake = 7;
 const redeemAmount = 5;
@@ -33,7 +36,6 @@ const balanceInfo: BalanceType = {
 const chain: Chain = {
   name: 'westend'
 };
-let chainInfo: ChainInfo;
 const ledger: StakingLedger = {
   active: 4000000000000n
 };
@@ -47,7 +49,13 @@ const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidato
 const setState = () => null;
 
 describe('Testing ConfirmStaking component', () => {
-  beforeAll(async () => chainInfo = await getChainInfo('westend'));
+  beforeAll(async () => {
+    const chainInfo = await getChainInfo('westend');
+
+    api = chainInfo?.api;
+    decimals = chainInfo?.decimals;
+    coin = chainInfo?.coin;
+  });
 
   test('when state is stakeAuto, stakeManual, stakeKeepNominated', async () => {
     const amount = amountToMachine(validAmountToStake.toString(), decimals);
@@ -55,8 +63,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryAllByText, queryByLabelText, queryByTestId, queryByText } = render(
       <ConfirmStaking
         amount={amount}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
         putInFrontInfo={undefined}
@@ -70,17 +78,17 @@ describe('Testing ConfirmStaking component', () => {
         validatorsIdentities={validatorsIdentities}
       />
     );
-    const currentlyStaked = amountToHuman(ledger.active.toString(), chainInfo?.decimals);
-    const amountToStakeInHuman = amountToHuman(amount.toString(), chainInfo?.decimals);
+    const currentlyStaked = amountToHuman(ledger.active.toString(), decimals);
+    const amountToStakeInHuman = amountToHuman(amount.toString(), decimals);
     const confirmButton = queryAllByText('Confirm')[1];
 
     expect(queryByText('STAKING OF')).toBeTruthy();
-    expect(queryByTestId('amount').textContent).toEqual(`${amountToStakeInHuman}${chainInfo.coin}`);
+    expect(queryByTestId('amount').textContent).toEqual(`${amountToStakeInHuman}${coin}`);
     expect(queryByText('Currently staked')).toBeTruthy();
-    expect(queryByText(`${currentlyStaked} ${chainInfo.coin}`)).toBeTruthy();
+    expect(queryByText(`${currentlyStaked} ${coin}`)).toBeTruthy();
     expect(queryByText('Fee')).toBeTruthy();
     expect(queryByText('Total staked')).toBeTruthy();
-    expect(queryByText(`${Number(currentlyStaked) + Number(amountToStakeInHuman)} ${chainInfo.coin}`)).toBeTruthy();
+    expect(queryByText(`${Number(currentlyStaked) + Number(amountToStakeInHuman)} ${coin}`)).toBeTruthy();
 
     expect(queryByText(`VALIDATORS (${validatorsList.length})`)).toBeTruthy();
     expect(queryByText('More')).toBeTruthy();
@@ -107,8 +115,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryAllByText, queryByLabelText, queryByText } = render(
       <ConfirmStaking
         amount={staker.balanceInfo.available}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
         putInFrontInfo={undefined}
@@ -123,7 +131,7 @@ describe('Testing ConfirmStaking component', () => {
       />
     );
 
-    await waitForElementToBeRemoved(() => queryAllByText('Confirm')[1], { timeout: 20000 });
+    await waitForElementToBeRemoved(() => queryAllByText('Confirm')[1], { timeout: 30000 });
     expect(queryByText('Account reap issue, consider fee!')).toBeTruthy();
 
     expect(queryByLabelText('Adjust')).toBeTruthy();
@@ -135,8 +143,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryByTestId, queryByText } = render(
       <ConfirmStaking
         amount={null}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
         putInFrontInfo={undefined}
@@ -160,8 +168,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryByTestId, queryByText } = render(
       <ConfirmStaking
         amount={null}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={validatorsList}
         putInFrontInfo={undefined}
@@ -186,8 +194,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryByTestId, queryByText } = render(
       <ConfirmStaking
         amount={amount}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={[]}
         putInFrontInfo={undefined}
@@ -201,10 +209,10 @@ describe('Testing ConfirmStaking component', () => {
         validatorsIdentities={[]}
       />
     );
-    const amountToUnstakeInHuman = amountToHuman(amount.toString(), chainInfo?.decimals);
+    const amountToUnstakeInHuman = amountToHuman(amount.toString(), decimals);
 
     expect(queryByText('UNSTAKING')).toBeTruthy();
-    expect(queryByTestId('amount').textContent).toEqual(`${amountToUnstakeInHuman}${chainInfo.coin}`);
+    expect(queryByTestId('amount').textContent).toEqual(`${amountToUnstakeInHuman}${coin}`);
     expect(queryByText('Note: The unstaked amount will be redeemable after {{days}} days')).toBeTruthy();
   });
 
@@ -214,8 +222,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryByText } = render(
       <ConfirmStaking
         amount={amount}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={[]}
         putInFrontInfo={undefined}
@@ -238,8 +246,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryByText } = render(
       <ConfirmStaking
         amount={0n}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={[]}
         putInFrontInfo={undefined}
@@ -265,8 +273,8 @@ describe('Testing ConfirmStaking component', () => {
     const { queryByText } = render(
       <ConfirmStaking
         amount={0n}
+        api={api}
         chain={chain}
-        chainInfo={chainInfo}
         ledger={ledger}
         nominatedValidators={[]}
         putInFrontInfo={putInFront}
