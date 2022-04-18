@@ -16,15 +16,16 @@ async function getStackingConsts(endpoint) {
     const bondingDuration = apiAt.consts.staking.bondingDuration.toNumber();
     const sessionsPerEra = apiAt.consts.staking.sessionsPerEra.toNumber();
     const epochDuration = apiAt.consts.babe.epochDuration.toNumber();
-    const epochDurationInHours = epochDuration / (10 * 60);
+    const expectedBlockTime = api.consts.babe.expectedBlockTime.toNumber();
+    const epochDurationInHours = epochDuration * expectedBlockTime / 3600000; // 1000miliSec * 60sec * 60min
     const minNominatorBond = await apiAt.query.staking.minNominatorBond();
 
     return {
-      unbondingDuration: bondingDuration * sessionsPerEra * epochDurationInHours / 24, // unboundingDuration in days
       existentialDeposit: BigInt(existentialDeposit), // FIXME, sometimes make issue while reading from local storge
       maxNominations: maxNominations,
       maxNominatorRewardedPerValidator: maxNominatorRewardedPerValidator,
-      minNominatorBond: BigInt(minNominatorBond)
+      minNominatorBond: BigInt(minNominatorBond),
+      unbondingDuration: bondingDuration * sessionsPerEra * epochDurationInHours / 24 // unboundingDuration in days
     };
   } catch (error) {
     console.log('something went wrong while getStackingConsts. err: ' + error);
