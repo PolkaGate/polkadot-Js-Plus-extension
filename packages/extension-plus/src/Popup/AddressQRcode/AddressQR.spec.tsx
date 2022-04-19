@@ -11,26 +11,28 @@ import React from 'react';
 
 import Identicon from '@polkadot/react-identicon';
 
+import { chain } from '../../util/test/testHelper';
 import AddressQRcode from './AddressQRcode';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 configure({ adapter: new Adapter() });
 
-const Chain = {
-  name: 'westend'
-};
-
 const Props = {
   address: '5FkGthTZn2eNkNX5eN7Rac8KNsE9QvBejwrzaDiBV3UrQgYQ',
-  chain: Chain,
+  chain: chain,
   formattedAddress: '5FkGthTZn2eNkNX5eN7Rac8KNsE9QvBejwrzaDiBV3UrQgYQ',
   name: 'amir khan'
 };
 
 describe('Testing AddressQRcode component', () => {
-
   test('rendering AddressQRcode', () => {
-    const wrapper = shallow(<AddressQRcode address={Props.address} chain={Chain} name={Props.name} showQRcodeModalOpen={true} setQRcodeModalOpen={() => { }} />).dive();
+    const wrapper = shallow(
+      <AddressQRcode
+        address={Props.address}
+        chain={chain}
+        name={Props.name}
+        showQRcodeModalOpen={true}
+      />).dive();
 
     expect(wrapper.find(QRCode)).toHaveLength(1);
     expect(wrapper.find(QRCode).prop('value')).toBe(Props.address);
