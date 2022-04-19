@@ -1188,9 +1188,10 @@ export const endpoints: LinkOption[] = [
 const winning = auction?.winning.find((x) => x);
 
 export const crowdloan: Crowdloan = auction?.crowdloans.find((c) => c.fund.paraId === winning[1].replace(/,/g, ''));
-export const actives = auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber);
+export const actives = auction.crowdloans.filter((c) => c.fund.end > auction.currentBlockNumber && !c.fund.hasLeased);
+export const winners = auction.crowdloans.filter((c) => c.fund.hasLeased);
+
 export const display = (c: Crowdloan): string => c.identity.info.display || c.identity.info.legal || getText(c.fund.paraId) || '';
-export const winners = auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased);
 export const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
 
 export function makeShortAddr(address: string) {
