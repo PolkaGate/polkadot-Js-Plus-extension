@@ -155,12 +155,21 @@ describe('Testing Treasury component', () => {
   // Tips tab
   test('Checking the Tips\' tab elements, with no tips', () => {
     const { queryByText } = render(
-      <TipsOverview
-        address={''}
-        chain={chain}
-        chainInfo={chainInfo}
-        tips={null}
-      />
+      <SettingsContext.Provider value={SettingsStruct}>
+        <AccountContext.Provider
+          value={{
+            accounts: accounts,
+            hierarchy: buildHierarchy(accounts)
+          }}
+        >
+          <TipsOverview
+            address={address}
+            chain={chain}
+            chainInfo={chainInfo}
+            tips={null}
+          />
+        </AccountContext.Provider>
+      </SettingsContext.Provider>
     );
 
     expect(queryByText('No active tips')).toBeTruthy();
@@ -168,12 +177,21 @@ describe('Testing Treasury component', () => {
 
   test('Checking the Tips\' tab elements', async () => {
     const { getByRole, queryAllByText } = render(
-      <TipsOverview
-        address={''}
-        chain={chain}
-        chainInfo={chainInfo}
-        tips={tips}
-      />
+      <SettingsContext.Provider value={SettingsStruct}>
+        <AccountContext.Provider
+          value={{
+            accounts: accounts,
+            hierarchy: buildHierarchy(accounts)
+          }}
+        >
+          <TipsOverview
+            address={address}
+            chain={chain}
+            chainInfo={chainInfo}
+            tips={tips}
+          />
+        </AccountContext.Provider>
+      </SettingsContext.Provider>
     );
 
     if (tip) {
