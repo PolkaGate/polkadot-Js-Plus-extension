@@ -128,11 +128,11 @@ export default function Overview({ api, availableBalanceInHuman, currentlyStaked
               </Grid>
             </Grid>
           </Grid>
-          <Grid alignItems='center' direction='column' item>
+          {/* <Grid alignItems='center' direction='column' item>
             <Hint id='advancedMenu' place='top' tip={t('Advanced')}>
               <MoreVertIcon onClick={handleAdvanceMenuClick} sx={{ cursor: 'pointer', fontSize: 15 }} />
             </Hint>
-          </Grid>
+          </Grid> */}
         </Grid>
       </Paper>
       <Menu
