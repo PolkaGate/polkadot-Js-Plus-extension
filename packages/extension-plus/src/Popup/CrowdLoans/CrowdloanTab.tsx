@@ -41,7 +41,6 @@ function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribu
   // const auctionWinners = useMemo(() => auction.crowdloans.filter((c) => c.fund.end < auction.currentBlockNumber && c.fund.hasLeased).sort(sortingCrowdloans), [auction]);
   const auctionWinners = useMemo(() => auction.crowdloans.filter((c) => c.fund.hasLeased).sort(sortingCrowdloans), [auction]);
 
-  console.log('activeCrowdloans', activeCrowdloans)
   useEffect(() => {
     if (activeCrowdloans?.length) { setExpanded('Actives'); } else if (auctionWinners?.length) { setExpanded('Winners'); }
   }, [activeCrowdloans, auctionWinners]);
