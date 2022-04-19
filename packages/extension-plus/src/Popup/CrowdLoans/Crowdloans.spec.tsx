@@ -11,7 +11,7 @@ import { MemoryRouter, Route } from 'react-router';
 import getChainInfo from '../../util/getChainInfo';
 import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman, remainingTime } from '../../util/plusUtils';
-import { actives, auction, crowdloan, endpoints, getText, display, winners } from '../../util/test/testHelper';
+import { actives, auction, crowdloan, display, endpoints, winners } from '../../util/test/testHelper';
 import AuctionTab from './AuctionTab';
 import CrowdloanTab from './CrowdloanTab';
 import Crowdloans from './index';
@@ -20,14 +20,14 @@ jest.setTimeout(60000);
 
 let chainInfo: ChainInfo;
 
-
-
 describe('Testing Crowdloans component', () => {
   test('Checking the existence of elements', () => {
     const { queryAllByText, queryByText } = render(
-      <MemoryRouter initialEntries={['/auction-crowdloans']}>
-        <Route path='/auction-crowdloans'><Crowdloans className='amir' /></Route>
-      </MemoryRouter>
+      <>
+        <MemoryRouter initialEntries={['/auction-crowdloans']}>
+          <Route path='/auction-crowdloans'><Crowdloans className='amir' /></Route>
+        </MemoryRouter>
+      </>
     );
 
     expect(queryAllByText('Crowdloans')).toBeTruthy();
@@ -44,6 +44,7 @@ describe('Testing Auction component', () => {
         auction={auction}
         chainInfo={chainInfo}
         endpoints={endpoints}
+        myContributions={undefined}
       />
     );
 
@@ -72,13 +73,14 @@ describe('Testing Auction component', () => {
 
   describe('Testing CrowdloansTab component', () => {
     test('Checking the CrowdloanTab\'s elements', () => {
-      const { debug, queryAllByText, queryByText } = render(
+      const { queryAllByText, queryByText } = render(
         <CrowdloanTab
           auction={auction}
           chainInfo={chainInfo}
           endpoints={endpoints}
           // eslint-disable-next-line react/jsx-no-bind
           handleContribute={() => true}
+          myContributions={undefined}
         />
       );
 
@@ -129,4 +131,3 @@ describe('Testing Auction component', () => {
     });
   });
 });
-

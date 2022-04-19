@@ -3,7 +3,7 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { render, waitFor } from '@testing-library/react';
+import { Matcher, render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -28,11 +28,14 @@ let minContribution: Balance;
 
 describe('Testing Contribute component', () => {
   beforeAll(async () => {
-    chainInfo = await getChainInfo('polkadot');
+    chainInfo = await getChainInfo('polkadot') as ChainInfo;
     await chainInfo?.api.derive.balances?.all(encodeAddress(decodeAddress(accounts[2].address), 0)).then((b) => {
       availableBalance = (b?.availableBalance);
     });
-    minContribution = chainInfo.api.createType('Balance', auction.minContribution);
+
+    if (!chainInfo) return;
+
+    minContribution = chainInfo?.api.createType('Balance', auction.minContribution);
   });
   test('Checking the existence of elements', async () => {
     const { queryAllByText, queryByTestId, queryByText } = render(
@@ -57,10 +60,10 @@ describe('Testing Contribute component', () => {
     );
 
     expect(queryByText('Contribute')).toBeTruthy();
-    await waitFor(() => expect(queryByText(display.slice(0, 15))).toBeTruthy(), { timeout: 20000 });
+    await waitFor(() => expect(queryByText(display?.slice(0, 15) as Matcher)).toBeTruthy(), { timeout: 20000 });
     expect(queryByText(`Parachain Id: ${contributeTo.fund.paraId}`)).toBeTruthy();
     expect(queryByText('Contributor:')).toBeTruthy();
-    expect(queryByText(accounts[2].name)).toBeTruthy();
+    expect(queryByText(accounts[2].name as Matcher)).toBeTruthy();
     expect(queryByText(shortAddress)).toBeTruthy();
     expect(queryByText(`Available: ${availableBalance}`)).toBeTruthy();
     expect(queryAllByText('Contribution amount')).toBeTruthy();
