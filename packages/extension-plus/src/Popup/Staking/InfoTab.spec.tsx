@@ -8,22 +8,35 @@ import { render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { ApiPromise } from '@polkadot/api';
+
 import getChainInfo from '../../util/getChainInfo';
-import { ChainInfo } from '../../util/plusTypes';
 import { toHuman } from '../../util/plusUtils';
 import { nominatorInfoFalse, stakingConsts } from '../../util/test/testHelper';
 import Info from './InfoTab';
 
-let chainInfo: ChainInfo | null = null;
+let api: ApiPromise;
+let decimals: number;
+let coin: string;
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
 jest.setTimeout(60000);
 
 describe('Testing Info component', () => {
+  beforeAll(async () => {
+    const chainInfo = await getChainInfo('westend');
+
+    api = chainInfo?.api;
+    decimals = chainInfo?.decimals;
+    coin = chainInfo?.coin;
+  });
+
   test('Checking exist element while loading!', () => {
     const { queryByText } = render(
       <Info
-        chainInfo={chainInfo}
+        api={api}
+        currentEraIndex={undefined}
+        minNominated={undefined}
         stakingConsts={stakingConsts}
       />);
 
@@ -32,12 +45,10 @@ describe('Testing Info component', () => {
   });
 
   test('Checking the existence of elements when loading is done', async () => {
-    chainInfo = await getChainInfo('westend');
-    const { api } = chainInfo;
-    const currentEraIndex = Number(await chainInfo.api.query.staking.currentEra());
+    const currentEraIndex = Number(await api.query.staking.currentEra());
     const { queryByTestId, queryByText } = render(
       <Info
-        chainInfo={chainInfo}
+        api={api}
         currentEraIndex={currentEraIndex}
         minNominated={nominatorInfoFalse.minNominated}
         stakingConsts={stakingConsts}
