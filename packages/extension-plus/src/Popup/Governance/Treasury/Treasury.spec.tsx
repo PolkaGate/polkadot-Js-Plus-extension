@@ -100,8 +100,8 @@ describe('Testing Treasury component', () => {
 
     if (proposal) {
       expect(getByRole('button', { name: 'Submit' })).toBeTruthy();
-      expect(queryByText(`Payment: ${toHuman(api, proposal.proposal.value)}`)).toBeTruthy();
-      expect(queryByText(`Bond: ${toHuman(api, proposal.proposal.bond)}`)).toBeTruthy();
+      expect(queryAllByText(`Payment: ${toHuman(api, proposal.proposal.value)}`)).toBeTruthy();
+      expect(queryAllByText(`Bond: ${toHuman(api, proposal.proposal.bond)}`)).toBeTruthy();
 
       await waitFor(() => {
         expect(queryAllByText('Proposer')).toBeTruthy();
