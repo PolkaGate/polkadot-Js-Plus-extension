@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ApiPromise } from '@polkadot/api';
 import '@polkadot/extension-mocks/chrome';
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -10,9 +9,11 @@ import { fireEvent, render, waitFor, waitForElementToBeRemoved } from '@testing-
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { ApiPromise } from '@polkadot/api';
+
 import { Chain } from '../../../../extension-chains/src/types';
 import getChainInfo from '../../util/getChainInfo';
-import { BalanceType, ChainInfo } from '../../util/plusTypes';
+import { BalanceType } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine } from '../../util/plusUtils';
 import { makeShortAddr, putInFront, rebagFalse, rebagTrue, stakingConsts, validatorsIdentities, validatorsList } from '../../util/test/testHelper';
 import ConfirmStaking from './ConfirmStaking';
