@@ -13,25 +13,22 @@ import { Skeleton } from '@mui/material';
 import React from 'react';
 import styled from 'styled-components';
 
-import { ChainInfo } from '../util/plusTypes';
-import { amountToHuman } from '../util/plusUtils';
+import { ApiPromise } from '@polkadot/api';
 
 export interface Props {
   balance: Balance | bigint | string | number | null | undefined;
-  chainInfo: ChainInfo;
+  api: ApiPromise;
   title?: string;
-  decimalDigits?: number;
 }
 
-
-function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
-  const amountToHuman = (x: bigint): string => chainInfo?.api.createType('Balance', x).toHuman();
+function ShowBalance2({ api, balance, title }: Props): React.ReactElement<Props> {
+  const amountToHuman = (x: bigint): string => api.createType('Balance', x).toHuman();
 
   return (
     <div data-testid='showPlus'>
       {title && <>{title}:{' '}</>}
 
-      {balance && chainInfo
+      {balance && api
         ? <>
           {amountToHuman(balance)}
         </>
@@ -41,7 +38,7 @@ function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React
   );
 }
 
-export default styled(ShowBalance)(({ theme }: ThemeProps) => `
+export default styled(ShowBalance2)(({ theme }: ThemeProps) => `
       background: ${theme.accountBackground};
       border: 1px solid ${theme.boxBorderColor};
       box-sizing: border-box;

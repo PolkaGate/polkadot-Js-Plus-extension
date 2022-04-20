@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
-async function needsRebag (chain, currentAccount) {
+async function needsRebag (endpoint, currentAccount) {
   console.log(`needsRebag is running for ${currentAccount}`);
 
-  const { api } = await getChainInfo(chain);
-
+  const api = await getApi(endpoint);
   const at = await api.rpc.chain.getFinalizedHead();
   const apiAt = await api.at(at);
 
@@ -37,10 +36,10 @@ async function needsRebag (chain, currentAccount) {
 }
 
 onmessage = (e) => {
-  const { chain, stakerAddress } = e.data;
+  const { endpoint, stakerAddress } = e.data;
 
   // eslint-disable-next-line no-void
-  void needsRebag(chain, stakerAddress).then((rebag) => {
+  void needsRebag(endpoint, stakerAddress).then((rebag) => {
     postMessage(rebag);
   });
 };

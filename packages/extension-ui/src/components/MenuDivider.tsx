@@ -17,7 +17,7 @@ function MenuDivider ({ className }: Props): React.ReactElement<Props> {
 }
 
 export default styled(MenuDivider)(({ theme }: Props) => `
-  padding-top: 16px;
-  margin-bottom: 16px;
+  padding-top: 10px; // added for plus 16->10
+  margin-bottom: 10px; // added for plus 16->10
   border-bottom: 1px solid ${theme.inputBorderColor};
 `);

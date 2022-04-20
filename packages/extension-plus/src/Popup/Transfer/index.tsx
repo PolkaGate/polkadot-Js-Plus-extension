@@ -3,8 +3,11 @@
 /* eslint-disable react/jsx-max-props-per-line */
 /* eslint-disable header/header */
 
-/** NOTE this component provides a place to select a recipient and some amount to transfer to, moreover provides some
- * facilities like transfering ALL/Max amount considering existential deposit/fee  */
+/**
+ * @description
+ *  this component provides a place to select a recipient and some amount to transfer to, moreover provides some
+ * facilities like transfering ALL/Max amount considering existential deposit/fee
+ * */
 
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { KeypairType } from '@polkadot/util-crypto/types';
@@ -17,6 +20,7 @@ import { Alert, Avatar, Box, Button, Divider, Grid, IconButton, InputAdornment, 
 import { grey } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import Identicon from '@polkadot/react-identicon';
 import { Balance } from '@polkadot/types/interfaces';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
@@ -29,14 +33,13 @@ import { DEFAULT_TYPE } from '../../../../extension-ui/src/util/defaultType';
 import { PlusHeader, Popup } from '../../components';
 import Hint from '../../components/Hint';
 import getLogo from '../../util/getLogo';
-import { AccountsBalanceType, ChainInfo } from '../../util/plusTypes';
+import { AccountsBalanceType } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
 import isValidAddress from '../../util/validateAddress';
 import ConfirmTx from './ConfirmTransfer';
 
 interface Props {
-  actions?: React.ReactNode;
-  chainInfo: ChainInfo | undefined;
+  api: ApiPromise | undefined;
   sender: AccountsBalanceType;
   transferModalOpen: boolean;
   chain: Chain;
@@ -54,11 +57,12 @@ interface Recoded {
   type: KeypairType;
 }
 
-export default function TransferFunds({ chain, chainInfo, givenType, sender, setTransferModalOpen, transferModalOpen }: Props): React.ReactElement<Props> {
+export default function TransferFunds({ api, chain, givenType, sender, setTransferModalOpen, transferModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
-  const [availableBalance, setAvailableBalance] = useState<string>('');
   const settings = useContext(SettingsContext);
+
+  const [availableBalance, setAvailableBalance] = useState<string>('');
   const [nextButtonDisabled, setNextButtonDisabled] = useState(true);
   const [transferAmount, setTransferAmount] = useState<bigint>(0n);
   const [transferAmountInHuman, setTransferAmountInHuman] = useState('');
@@ -78,25 +82,26 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
   const [estimatedFee, setEstimatedFee] = useState<Balance>();
   const [transferAllType, setTransferAllType] = useState<string | undefined>(undefined);
 
-  const transfer = chainInfo?.api.tx.balances.transfer;
-  const FEE_DECIMAL_DIGITS = chainInfo?.coin === 'KSM' ? 6 : 4;
+  const decimals = api && api.registry.chainDecimals[0];
+  const token = api && api.registry.chainTokens[0];
+  const transfer = api && api.tx.balances.transfer;
 
   useEffect(() => {
-    if (!chainInfo || !transfer) { return; }
+    if (!api || !transfer) { return; }
 
     // eslint-disable-next-line no-void
     void transfer(sender.address, transferAmount).paymentInfo(sender.address)
       .then((i) => setEstimatedFee(i?.partialFee)).catch(console.error);
-  }, [chainInfo, sender.address, transfer, transferAmount]);
+  }, [api, sender.address, transfer, transferAmount]);
 
   useEffect(() => {
     if (recepientAddressIsValid) { setSenderAddressOpacity(0.7); } else setSenderAddressOpacity(0.2);
   }, [recepientAddressIsValid]);
 
   useEffect((): void => {
-    if (!chainInfo) return;
-    setED(BigInt(chainInfo?.api.consts.balances.existentialDeposit.toString()));
-  }, [chainInfo]);
+    if (!api) return;
+    setED(BigInt(api.consts.balances.existentialDeposit.toString()));
+  }, [api]);
 
   useEffect((): void => {
     setAvailableBalance(balanceToHuman(sender, 'available'));
@@ -186,7 +191,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
 
     if (!estimatedFee) return;
 
-    if (Number(transferAmountInHuman) < Number(availableBalance) && (Number(availableBalance) < Number(amountToHuman((estimatedFee.toBigInt() + ED + transferAmount).toString(), chainInfo?.decimals)))) {
+    if (Number(transferAmountInHuman) < Number(availableBalance) && (Number(availableBalance) < Number(amountToHuman((estimatedFee.toBigInt() + ED + transferAmount).toString(), decimals)))) {
       return setReapAlert(true);
     } else {
       setReapAlert(false);
@@ -198,7 +203,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
     } else {
       setFeeAlert(false);
     }
-  }, [transferAmountInHuman, availableBalance, ED, t, estimatedFee, transferAmount, chainInfo?.decimals, sender?.balanceInfo?.available, transferAllType]);
+  }, [transferAmountInHuman, availableBalance, ED, t, estimatedFee, transferAmount, decimals, sender?.balanceInfo?.available, transferAllType]);
 
   const handleTransferAmountChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     let value = event.target.value;
@@ -213,8 +218,8 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
     const cutDecimals = fixFloatingPoint(value);
 
     setTransferAmountInHuman(cutDecimals);
-    setTransferAmount(amountToMachine(cutDecimals, chainInfo?.decimals));
-  }, [chainInfo?.decimals]);
+    setTransferAmount(amountToMachine(cutDecimals, decimals));
+  }, [decimals]);
 
   function handleAccountListClick(event: React.MouseEvent<HTMLElement>) {
     const selectedAddressTextTarget = event.target as HTMLInputElement;
@@ -241,7 +246,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
 
     let fee = estimatedFee;
 
-    if (!fee) {
+    if (!fee && transfer) {
       const { partialFee } = await transfer(sender.address, sender.balanceInfo.available).paymentInfo(sender.address);
 
       fee = partialFee;
@@ -260,11 +265,11 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
 
     const amount = BigInt(available) - subtrahend < 0 ? 0n : BigInt(available) - subtrahend;
 
-    setTransferAmountInHuman(amountToHuman(String(amount), chainInfo?.decimals));
+    setTransferAmountInHuman(amountToHuman(String(amount), decimals));
     setTransferAmount(amount);
     setAllAmountLoading(false);
     setMaxAmountLoading(false);
-  }, [ED, chainInfo?.decimals, estimatedFee, recepient, sender, transfer]);
+  }, [ED, decimals, estimatedFee, recepient, sender, transfer]);
 
   const acountList = (
     transferBetweenMyAccountsButtonText === t('Back to all')
@@ -279,7 +284,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
                   <ListItemButton onClick={handleAccountListClick}>
                     <ListItemIcon>
                       <Avatar
-                        alt={`${chainInfo?.coin} logo`}
+                        alt={`${token ?? ''} logo`}
                         src={getLogo(chain)}
                       />
                     </ListItemIcon>
@@ -440,16 +445,14 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
                 <Grid container justifyContent='flex-start' spacing={1}>
                   <Grid item xs={2}>
                     <Avatar
-                      alt={`${chainInfo?.coin} logo`} // src={getLogoSource(coin)}
+                      alt={`${token ?? ''} logo`} // src={getLogoSource(coin)}
                       src={getLogo(chain)}
                       sx={{ height: 45, width: 45 }}
                     />
                   </Grid>
                   <Grid container item justifyContent='flex-start' xs={10}>
                     <Grid sx={{ fontSize: '14px', textAlign: 'left' }} xs={12}>
-                      {chainInfo?.coin
-                        ? chainInfo?.coin
-                        : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+                      {token || <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
                       }
                     </Grid>
 
@@ -460,7 +463,7 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
                       <Grid item sx={{ fontSize: '11px', textAlign: 'left', color: grey[600] }} >
                         {t('Fee')} {': '}
                         {estimatedFee
-                          ? amountToHuman(estimatedFee.toString(), chainInfo?.decimals, FEE_DECIMAL_DIGITS)
+                          ? estimatedFee.toHuman()
                           : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
                         }
                       </Grid>
@@ -511,13 +514,13 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
               <Grid item sx={{ height: '20px' }} xs={12}>
                 <TextField
                   InputLabelProps={{ shrink: true }}
-                  InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo?.coin}</InputAdornment>) }}
+                  InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
                   autoFocus
                   color='warning'
                   error={reapeAlert || feeAlert || zeroBalanceAlert}
                   fullWidth
                   helperText={reapeAlert
-                    ? (t('Account will be reaped, existential deposit:') + amountToHuman(String(ED), chainInfo?.decimals) + ' ' + chainInfo?.coin)
+                    ? (t('Account will be reaped, existential deposit:') + amountToHuman(String(ED), decimals) + ' ' + token)
                     : (feeAlert ? t('Fee must be considered, use MAX button instead.') : (zeroBalanceAlert ? t('No available fund to transfer') : ''))}
                   label={t('Transfer Amount')}
                   margin='dense'
@@ -544,10 +547,10 @@ export default function TransferFunds({ chain, chainInfo, givenType, sender, set
             </NextStepButton>
           </Grid>
 
-          {recepient && chainInfo &&
+          {recepient && api &&
             <ConfirmTx
+              api={api}
               chain={chain}
-              chainInfo={chainInfo}
               confirmModalOpen={confirmModalOpen}
               handleTransferModalClose={handleTransferModalClose}
               lastFee={estimatedFee}

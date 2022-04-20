@@ -12,18 +12,19 @@
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
-import { BarChart as BarChartIcon, Redeem as RedeemIcon } from '@mui/icons-material';
-import { Grid, Paper, Skeleton } from '@mui/material';
+import { BarChart as BarChartIcon, Redeem as RedeemIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
 import React from 'react';
+
+import { ApiPromise } from '@polkadot/api';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import Hint from '../../components/Hint';
-import { ChainInfo } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
 
 interface Props {
   availableBalanceInHuman: string,
-  chainInfo: ChainInfo;
+  api: ApiPromise | undefined;
   ledger: StakingLedger | null;
   redeemable: bigint | null;
   currentlyStakedInHuman: string | null;
@@ -54,64 +55,101 @@ function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<Bala
   </>);
 }
 
-export default function Overview({ availableBalanceInHuman, chainInfo, currentlyStakedInHuman, handleViewChart, handleWithdrowUnbound, ledger, redeemable, rewardSlashes, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalanceInHuman, currentlyStakedInHuman, handleViewChart, handleWithdrowUnbound, ledger, redeemable, rewardSlashes, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const decimals = api && api.registry.chainDecimals[0];
+  const token = api?.registry?.chainTokens[0] ?? '';
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleAdvanceMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
-    <Paper elevation={4} sx={{ borderRadius: '10px', fontSize: 12, height: 95, margin: '25px 30px 10px', p: 2, width: '90%' }}>
-      <Grid container item>
-        <Grid alignItems='center' container item justifyContent='space-between' sx={{ pb: '20px', textAlign: 'center' }}>
-          <Grid item xs={4}>
-            <Balance amount={availableBalanceInHuman} coin={chainInfo?.coin} label={t('Available')} />
-          </Grid>
-          <Grid item xs={4}>
-            <Balance amount={currentlyStakedInHuman} coin={chainInfo?.coin} label={t('Staked')} />
-          </Grid>
-        </Grid>
-        <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
-          <Grid item xs={4}>
-            <Balance amount={totalReceivedReward} coin={chainInfo?.coin}
-              label={
-                <Grid container item justifyContent='center'>
-                  <Grid item>
-                    {t('Rewards')}
-                  </Grid>
-                  <Grid item>
-                    <Hint id='redeem' place='top' tip={t('View chart')}>
-                      <BarChartIcon color={rewardSlashes?.length ? 'warning' : 'disabled'} onClick={handleViewChart} sx={{ cursor: 'pointer', fontSize: 15 }} />
-                    </Hint>
-                  </Grid>
-                </Grid>
-              }
-            />
-          </Grid>
+    <>
+      <Paper elevation={4} sx={{ borderRadius: '10px', fontSize: 12, height: 95, margin: '25px 30px 10px', p: 2, width: '90%' }}>
+        <Grid container>
+          <Grid item sx={{ flexGrow: 1 }}>
+            <Grid alignItems='center' container item justifyContent='space-between' sx={{ pb: '20px', textAlign: 'center' }}>
+              <Grid item xs={4}>
+                <Balance amount={availableBalanceInHuman} coin={token} label={t('Available')} />
+              </Grid>
+              <Grid item xs={4}>
+                <Balance amount={currentlyStakedInHuman} coin={token} label={t('Staked')} />
+              </Grid>
+            </Grid>
+            <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
+              <Grid item xs={4}>
+                <Balance amount={totalReceivedReward} coin={token}
+                  label={
+                    <Grid container item justifyContent='center'>
+                      <Grid item>
+                        {t('Rewards')}
+                      </Grid>
+                      <Grid item>
+                        <Hint id='redeem' place='top' tip={t('View chart')}>
+                          <BarChartIcon color={rewardSlashes?.length ? 'warning' : 'disabled'} onClick={handleViewChart} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                        </Hint>
+                      </Grid>
+                    </Grid>
+                  }
+                />
+              </Grid>
 
-          <Grid container item justifyContent='center' xs={4}>
-            <Grid container item justifyContent='center' xs={12}>
-              <Balance
-                amount={amountToHuman(String(redeemable), chainInfo?.decimals)}
-                coin={chainInfo?.coin}
-                label={
-                  <Grid container item justifyContent='center'>
-                    <Grid item>
-                      {t('Redeemable')}
-                    </Grid>
-                    <Grid item>
-                      <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
-                        <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
-                      </Hint>
-                    </Grid>
-                  </Grid>
-                }
-              />
+              <Grid container item justifyContent='center' xs={4}>
+                <Grid container item justifyContent='center' xs={12}>
+                  <Balance
+                    amount={amountToHuman(String(redeemable), decimals)}
+                    coin={token}
+                    label={
+                      <Grid container item justifyContent='center'>
+                        <Grid item>
+                          {t('Redeemable')}
+                        </Grid>
+                        <Grid item>
+                          <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
+                            <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          </Hint>
+                        </Grid>
+                      </Grid>
+                    }
+                  />
+                </Grid>
+              </Grid>
+
+              <Grid item xs={4}>
+                <Balance amount={amountToHuman(String(unlockingAmount), decimals)} coin={token} label={t('Unstaking')} />
+              </Grid>
             </Grid>
           </Grid>
-
-          <Grid item xs={4}>
-            <Balance amount={amountToHuman(String(unlockingAmount), chainInfo?.decimals)} coin={chainInfo?.coin} label={t('Unstaking')} />
-          </Grid>
+          {/* <Grid alignItems='center' direction='column' item>
+            <Hint id='advancedMenu' place='top' tip={t('Advanced')}>
+              <MoreVertIcon onClick={handleAdvanceMenuClick} sx={{ cursor: 'pointer', fontSize: 15 }} />
+            </Hint>
+          </Grid> */}
         </Grid>
-      </Grid>
-    </Paper>
+      </Paper>
+      <Menu
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        open={open}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem onClick={handleClose}  sx={{ fontSize: 12 }}>Set payee</MenuItem>
+        <MenuItem onClick={handleClose}  sx={{ fontSize: 12 }}>Set controller</MenuItem>
+      </Menu></>
   );
 }

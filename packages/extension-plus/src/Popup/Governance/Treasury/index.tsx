@@ -12,9 +12,8 @@ import { DeriveTreasuryProposals } from '@polkadot/api-derive/types';
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../../components';
-import getCurrentBlockNumber from '../../../util/api/getCurrentBlockNumber';
 import getTips from '../../../util/api/getTips';
-import { ChainInfo, ProposalsInfo } from '../../../util/plusTypes';
+import { ChainInfo } from '../../../util/plusTypes';
 import ProposalOverview from './proposals/Overview';
 import TipOverview from './tips/Overview';
 
@@ -48,12 +47,14 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
 
   useEffect(() => {
     if (!chainInfo?.chainName) return;
-    // get all treasury tips
+    // get all treasury tips and just show proposedTips
     // eslint-disable-next-line no-void
-    void getTips(chainInfo.chainName, 0, 15).then((res) => {
+    void getTips(chainInfo.chainName, 0, 30).then((res) => {
       console.log('tips:', res);
+      const tipList = res?.data?.list;
+      const proposedTips = tipList?.filter((tip) => tip.status === 'proposed');
 
-      setTips(res?.data?.list);
+      setTips(proposedTips);
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
@@ -76,8 +77,20 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
       <Grid container>
         <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab icon={<SummarizeOutlinedIcon fontSize='small' />} iconPosition='start' label={`Proposals (${activeProposalCount ?? 0}/${proposals?.proposalCount ?? 0})`} sx={{ fontSize: 11 }} value='proposals' />
-            <Tab icon={<VolunteerActivismSharpIcon fontSize='small' />} iconPosition='start' label='Tips' sx={{ fontSize: 11 }} value='tips' />
+            <Tab
+              icon={<SummarizeOutlinedIcon fontSize='small' />}
+              iconPosition='start'
+              label={`Proposals (${activeProposalCount ?? 0}/${proposals?.proposalCount ?? 0})`}
+              sx={{ fontSize: 11 }}
+              value='proposals'
+            />
+            <Tab
+              icon={<VolunteerActivismSharpIcon fontSize='small' />}
+              iconPosition='start'
+              label={`Tips (${tips?.length ?? 0})`}
+              sx={{ fontSize: 11 }}
+              value='tips'
+            />
           </Tabs>
         </Grid>
 

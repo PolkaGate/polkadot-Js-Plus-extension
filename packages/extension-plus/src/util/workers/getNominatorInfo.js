@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo';
+import getApi from '../getApi';
 
 const bigIntMin = (...args) => args.reduce((m, e) => e < m ? e : m);
 
-async function getNominatorInfo (_chain, _nominatorAddress) {
-  const { api } = await getChainInfo(_chain);
+async function getNominatorInfo (endpoint, _nominatorAddress) {
+  const api = await getApi(endpoint);
 
   // a map of all nominators
   const assignments = new Map();
@@ -32,10 +32,10 @@ async function getNominatorInfo (_chain, _nominatorAddress) {
 }
 
 onmessage = (e) => {
-  const { chain, stakerAddress } = e.data;
+  const { endpoint, stakerAddress } = e.data;
 
   // eslint-disable-next-line no-void
-  void getNominatorInfo(chain, stakerAddress).then((info) => {
+  void getNominatorInfo(endpoint, stakerAddress).then((info) => {
     postMessage(info);
   });
 };

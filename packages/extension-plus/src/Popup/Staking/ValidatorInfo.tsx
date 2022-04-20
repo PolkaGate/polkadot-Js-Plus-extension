@@ -3,12 +3,17 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component shows a validator's info in a page including its nominators listand a link to subscan */
+/**
+ * @description
+ *  this component shows a validator's info in a page including its nominators listand a link to subscan 
+ * */
+
 import { BubbleChart as BubbleChartIcon } from '@mui/icons-material';
 import { Avatar, Container, Divider, Grid, Link, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 import Identicon from '@polkadot/react-identicon';
@@ -18,23 +23,26 @@ import { PlusHeader, Popup, ShortAddress } from '../../components';
 import Identity from '../../components/Identity';
 import { SELECTED_COLOR } from '../../util/constants';
 import getLogo from '../../util/getLogo';
-import { AccountsBalanceType, ChainInfo } from '../../util/plusTypes';
+import { AccountsBalanceType } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
 
 interface Props {
   chain: Chain;
-  chainInfo: ChainInfo;
+  api: ApiPromise | undefined;
   showValidatorInfoModal: boolean;
   setShowValidatorInfoModal: Dispatch<SetStateAction<boolean>>;
   info: DeriveStakingQuery;
   validatorsIdentities: DeriveAccountInfo[] | null;
-  staker: AccountsBalanceType;
+  staker?: AccountsBalanceType;
 }
 
-export default function ValidatorInfo({ chain, chainInfo, info, setShowValidatorInfoModal, showValidatorInfoModal, staker, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoModal, showValidatorInfoModal, staker, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const accountInfo = validatorsIdentities?.find((v) => v.accountId === info?.accountId);
   const chainName = chain?.name.replace(' Relay Chain', '');
+
+  const decimals = api && api.registry.chainDecimals[0];
+  const token = api && api.registry.chainTokens[0];
 
   const handleDetailsModalClose = useCallback(
     (): void => {
@@ -73,10 +81,10 @@ export default function ValidatorInfo({ chain, chainInfo, info, setShowValidator
                 <Divider />
               </Grid>
               <Grid item sx={{ pl: 3, textAlign: 'left' }} xs={6}>
-                {t('Own')}{': '}{Number(info?.exposure.own || info?.stakingLedger.active).toLocaleString()} {' '}{chainInfo?.coin}
+                {t('Own')}{': '}{Number(info?.exposure.own || info?.stakingLedger.active).toLocaleString()} {' '}{token}
               </Grid>
               <Grid item sx={{ pr: 3, textAlign: 'right' }} xs={6}>
-                {t('Total')}{': '}{Number(info?.exposure.total).toLocaleString()}{' '}{chainInfo?.coin}
+                {t('Total')}{': '}{Number(info?.exposure.total).toLocaleString()}{' '}{token}
               </Grid>
               <Grid item sx={{ pl: 3, pt: 1, textAlign: 'left' }} xs={6}>
                 {t('Commission')}{': '}   {info.validatorPrefs.commission === 1 ? 0 : info.validatorPrefs.commission / (10 ** 7)}%
@@ -113,7 +121,7 @@ export default function ValidatorInfo({ chain, chainInfo, info, setShowValidator
                   <ShortAddress address={who} charsCount={8} fontSize={12} />
                 </Grid>
                 <Grid item sx={{ textAlign: 'right' }} xs={5}>
-                  {Number(amountToHuman(value, chainInfo?.decimals)).toLocaleString()} {' '}{chainInfo?.coin}
+                  {Number(amountToHuman(value, decimals)).toLocaleString()} {' '}{token}
                 </Grid>
               </Grid>
             </Paper>

@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
-async function getAllValidatorsId (_chain, _accountIds) {
+async function getAllValidatorsId (endpoint, _accountIds) {
   try {
-    const { api } = await getChainInfo(_chain);
+    const api = await getApi(endpoint);
     const accountInfo = await Promise.all(_accountIds.map((i) => api.derive.accounts.info(i)));
 
     return JSON.parse(JSON.stringify(accountInfo));
@@ -18,8 +18,8 @@ async function getAllValidatorsId (_chain, _accountIds) {
 }
 
 onmessage = (e) => {
-  const { chain, validatorsAccountIds } = e.data;
+  const { endpoint, validatorsAccountIds } = e.data;
 
   // eslint-disable-next-line no-void
-  void getAllValidatorsId(chain, validatorsAccountIds).then((info) => { postMessage(info); });
+  void getAllValidatorsId(endpoint, validatorsAccountIds).then((info) => { postMessage(info); });
 };

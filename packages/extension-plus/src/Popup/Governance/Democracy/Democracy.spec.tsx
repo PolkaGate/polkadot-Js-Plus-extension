@@ -192,7 +192,7 @@ describe('Testing Democracy component', () => {
       expect(queryByTestId('balance')?.textContent).toEqual(`Available: ${availableBalance.toHuman()}`);
     }, { timeout: 10000 });
     await waitFor(() => {
-      expect(queryByTestId('showBalance')?.textContent).toEqual(`Voting balance: ${votingBalance.toHuman()}`);
+      expect(queryByTestId('showPlus')?.textContent).toEqual(`Voting balance: ${votingBalance.toHuman()}`);
     }, { timeout: 10000 });
 
     expect(queryByText('This value is locked for the duration of the vote')).toBeTruthy();

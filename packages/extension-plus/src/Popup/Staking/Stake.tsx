@@ -13,16 +13,17 @@ import type { StakingLedger } from '@polkadot/types/interfaces';
 import { Alert, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveStakingQuery } from '@polkadot/api-derive/types';
 
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { MIN_EXTRA_BOND } from '../../util/constants';
-import { AccountsBalanceType, ChainInfo, StakingConsts } from '../../util/plusTypes';
+import { AccountsBalanceType, StakingConsts } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
 
 interface Props {
-  chainInfo: ChainInfo;
+  api: ApiPromise | undefined;
   nextToStakeButtonBusy: boolean;
   nominatedValidators: DeriveStakingQuery[] | null;
   setStakeAmount: React.Dispatch<React.SetStateAction<bigint>>
@@ -32,10 +33,10 @@ interface Props {
   ledger: StakingLedger | null;
   stakingConsts: StakingConsts | null;
   handleConfirmStakingModaOpen: () => void;
-  handleSelectValidatorsModalOpen: () => void;
+  handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
 }
 
-export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -47,23 +48,24 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
   const [maxStake, setMaxStake] = useState<number>(0);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
 
-  useEffect(() => {
-    if (!chainInfo) { return; }
-
-    setStakeAmount(amountToMachine(stakeAmountInHuman, chainInfo?.decimals));
-  }, [chainInfo, setStakeAmount, stakeAmountInHuman]);
+  const decimals = api && api.registry.chainDecimals[0];
+  const token = api && api.registry.chainTokens[0];
 
   useEffect(() => {
-    if (!chainInfo || !staker?.balanceInfo?.available) { return; }
+    decimals && setStakeAmount(amountToMachine(stakeAmountInHuman, decimals));
+  }, [decimals, setStakeAmount, stakeAmountInHuman]);
+
+  useEffect(() => {
+    if (!staker?.balanceInfo?.available) { return; }
 
     setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
-  }, [chainInfo, staker, staker?.balanceInfo?.available]);
+  }, [staker, staker?.balanceInfo?.available]);
 
   const handleStakeAmountInput = useCallback((value: string): void => {
     setAlert('');
 
     if (value && Number(value) < minStakeable) {
-      setAlert(t(`Staking amount is too low, it must be at least ${minStakeable} ${chainInfo?.coin}`));
+      setAlert(t(`Staking amount is too low, it must be at least ${minStakeable} ${token}`));
     }
 
     if (Number(value) > maxStake && Number(value) < Number(availableBalanceInHuman)) {
@@ -71,7 +73,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [availableBalanceInHuman, chainInfo, maxStake, minStakeable, t]);
+  }, [availableBalanceInHuman, maxStake, minStakeable, t, token]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -107,13 +109,13 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
           console.log('unknown validatorSelectionType !!');
       }
     }
-  }, [minStakeable, state, validatorSelectionType, stakeAmountInHuman]);
+  }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleSelectValidatorsModalOpen]);
 
   useEffect(() => {
-    if (!stakingConsts) return;
-    const ED = Number(amountToHuman(stakingConsts?.existentialDeposit.toString(), chainInfo?.decimals));
+    if (!stakingConsts || !decimals) return;
+    const ED = Number(amountToHuman(stakingConsts?.existentialDeposit.toString(), decimals));
     let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 2 * ED));
-    let min =  Number(amountToHuman(stakingConsts?.minNominatorBond, chainInfo?.decimals));
+    let min = Number(amountToHuman(stakingConsts?.minNominatorBond, decimals));
 
     if (Number(ledger?.active)) { // TODO: check if it is below minNominatorBond
       min = MIN_EXTRA_BOND;
@@ -125,7 +127,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
 
     setMaxStake(max);
     setMinStakeable(min);
-  }, [availableBalanceInHuman, ledger, stakingConsts, chainInfo]);
+  }, [availableBalanceInHuman, ledger, stakingConsts, decimals]);
 
   useEffect(() => {
     if (stakeAmountInHuman && minStakeable <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStake) {
@@ -134,7 +136,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
   }, [minStakeable, maxStake, stakeAmountInHuman]);
 
   useEffect(() => {
-    if (!chainInfo) { return; }
+    if (!decimals) { return; }
 
     if (!staker?.balanceInfo?.available) {
       return setZeroBalanceAlert(true);
@@ -144,7 +146,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
 
     setNextButtonCaption(t('Next'));
 
-    const balanceIsInsufficient = staker?.balanceInfo?.available <= amountToMachine(stakeAmountInHuman, chainInfo?.decimals);
+    const balanceIsInsufficient = staker?.balanceInfo?.available <= amountToMachine(stakeAmountInHuman, decimals);
 
     if (balanceIsInsufficient || !Number(stakeAmountInHuman)) {
       setNextToStakeButtonDisabled(true);
@@ -157,7 +159,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
     if (Number(stakeAmountInHuman) && Number(stakeAmountInHuman) < minStakeable) {
       setNextToStakeButtonDisabled(true);
     }
-  }, [stakeAmountInHuman, t, minStakeable, staker?.balanceInfo?.available, chainInfo]);
+  }, [stakeAmountInHuman, t, minStakeable, staker?.balanceInfo?.available, decimals]);
 
   const handleMinStakeClicked = useCallback(() => {
     handleStakeAmountInput(String(minStakeable));
@@ -215,7 +217,7 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
         <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
           <TextField
             InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo?.coin}</InputAdornment>) }}
+            InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
             autoFocus
             color='warning'
             error={zeroBalanceAlert}
@@ -234,18 +236,18 @@ export default function Stake({ chainInfo, handleConfirmStakingModaOpen, handleS
         </Grid>
 
         <Grid container item xs={12}>
-          {!zeroBalanceAlert && chainInfo
+          {!zeroBalanceAlert && token
             ? <Grid container item justifyContent='space-between' sx={{ p: '0px 30px 10px' }} xs={12}>
               <Grid item sx={{ fontSize: 12 }}>
                 {t('Min')}:
                 <MuiButton onClick={handleMinStakeClicked} variant='text'>
-                  {`${minStakeable} ${chainInfo?.coin}`}
+                  {`${minStakeable} ${token}`}
                 </MuiButton>
               </Grid>
               <Grid item sx={{ fontSize: 12 }}>
                 {t('Max')}{': ~ '}
                 <MuiButton onClick={handleMaxStakeClicked} variant='text'>
-                  {`${maxStake} ${chainInfo?.coin}`}
+                  {`${maxStake} ${token}`}
                 </MuiButton>
               </Grid>
             </Grid>

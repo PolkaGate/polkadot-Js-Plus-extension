@@ -46,7 +46,7 @@ export interface Props {
   suri?: string;
   toggleActions?: number;
   type?: KeypairType;
-  showBalance?: boolean;// added for plus
+  showPlus?: boolean;// added for plus
 }
 
 interface Recoded {
@@ -97,8 +97,8 @@ function recodeAddress (address: string, accounts: AccountWithChildren[], chain:
 const ACCOUNTS_SCREEN_HEIGHT = 550;
 const defaultRecoded = { account: null, formatted: null, prefix: 42, type: DEFAULT_TYPE };
 
-// added for plus, 'showBalance' as props
-function Address ({ actions, address, children, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, showBalance, suri, toggleActions, type: givenType }: Props): React.ReactElement<Props> {
+// added for plus, 'showPlus' as props
+function Address ({ actions, address, children, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, showPlus, suri, toggleActions, type: givenType }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
@@ -303,7 +303,7 @@ function Address ({ actions, address, children, className, genesisHash, isExtern
       </div>
       {/* // added for plus */}
       {
-        (formatted || address) && showBalance &&
+        (formatted || address) && showPlus &&
         <Plus
           address={address}
           chain={chain}
@@ -464,7 +464,7 @@ export default styled(Address)(({ theme }: ThemeProps) => `
 
     &.isMoved {
       top: auto;
-      bottom: -20; // added for plus 0 -> -20
+      bottom: -29; // added for plus, 0 -> -29
     }
   }
 

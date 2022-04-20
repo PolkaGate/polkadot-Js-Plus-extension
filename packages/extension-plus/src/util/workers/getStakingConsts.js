@@ -3,24 +3,29 @@
 /* eslint-disable header/header */
 
 import { MAX_NOMINATIONS } from '../constants';
-import getChainInfo from '../getChainInfo.ts';
+import getApi from '../getApi.ts';
 
-async function getStackingConsts (_chain) {
+async function getStackingConsts(endpoint) {
   try {
-    const { api, decimals } = await getChainInfo(_chain);
-
-    const maxNominations = api.consts.staking.maxNominations?.toNumber() || MAX_NOMINATIONS;
-    const maxNominatorRewardedPerValidator = api.consts.staking.maxNominatorRewardedPerValidator.toNumber();
-    const existentialDeposit = api.consts.balances.existentialDeposit.toString();
-    const bondingDuration = api.consts.staking.bondingDuration.toNumber();
-    const minNominatorBond = await api.query.staking.minNominatorBond();
+    const api = await getApi(endpoint);
+    const at = await api.rpc.chain.getFinalizedHead();
+    const apiAt = await api.at(at);
+    const maxNominations = apiAt.consts.staking.maxNominations?.toNumber() || MAX_NOMINATIONS;
+    const maxNominatorRewardedPerValidator = apiAt.consts.staking.maxNominatorRewardedPerValidator.toNumber();
+    const existentialDeposit = apiAt.consts.balances.existentialDeposit.toString();
+    const bondingDuration = apiAt.consts.staking.bondingDuration.toNumber();
+    const sessionsPerEra = apiAt.consts.staking.sessionsPerEra.toNumber();
+    const epochDuration = apiAt.consts.babe.epochDuration.toNumber();
+    const expectedBlockTime = api.consts.babe.expectedBlockTime.toNumber();
+    const epochDurationInHours = epochDuration * expectedBlockTime / 3600000; // 1000miliSec * 60sec * 60min
+    const minNominatorBond = await apiAt.query.staking.minNominatorBond();
 
     return {
-      bondingDuration: bondingDuration,
       existentialDeposit: BigInt(existentialDeposit), // FIXME, sometimes make issue while reading from local storge
       maxNominations: maxNominations,
       maxNominatorRewardedPerValidator: maxNominatorRewardedPerValidator,
-      minNominatorBond: BigInt(minNominatorBond)
+      minNominatorBond: BigInt(minNominatorBond),
+      unbondingDuration: bondingDuration * sessionsPerEra * epochDurationInHours / 24 // unboundingDuration in days
     };
   } catch (error) {
     console.log('something went wrong while getStackingConsts. err: ' + error);
@@ -30,11 +35,11 @@ async function getStackingConsts (_chain) {
 }
 
 onmessage = (e) => {
-  const { chain } = e.data;
+  const { endpoint } = e.data;
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  getStackingConsts(chain).then((consts) => {
-    console.log('StackingConsts in worker: %o', consts);
+  getStackingConsts(endpoint).then((consts) => {
+    console.log(`StackingConsts in worker using:${endpoint}: %o`, consts);
     postMessage(consts);
   });
 };

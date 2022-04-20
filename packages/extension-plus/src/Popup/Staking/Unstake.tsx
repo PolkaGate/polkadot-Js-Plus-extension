@@ -3,20 +3,25 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE render unstake tab in easy staking component */
+/**
+ * @description
+ *  render unstake tab in easy staking component 
+ * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { Alert, Button as MuiButton, Grid, InputAdornment, TextField } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
+
 import { NextStepButton } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ChainInfo, StakingConsts } from '../../util/plusTypes';
+import { StakingConsts } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../util/plusUtils';
 
 interface Props {
-  chainInfo: ChainInfo;
+  api: ApiPromise | undefined;
   stakingConsts: StakingConsts | null;
   setUnstakeAmount: React.Dispatch<React.SetStateAction<bigint>>
   currentlyStakedInHuman: string | null;
@@ -26,12 +31,16 @@ interface Props {
   handleNextToUnstake: () => void;
 }
 
-export default function Unstake({ availableBalance, chainInfo, currentlyStakedInHuman, handleNextToUnstake, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
+export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleNextToUnstake, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
   const [alert, setAlert] = useState<string>('');
+
   const UnableToPayFee = availableBalance === 0n;
+
+  const decimals = api?.registry?.chainDecimals[0];
+  const token = api?.registry?.chainTokens[0];
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
     setAlert('');
@@ -48,15 +57,15 @@ export default function Unstake({ availableBalance, chainInfo, currentlyStakedIn
       return;
     }
 
-    const remainStaked = currentlyStaked - amountToMachine(value, chainInfo?.decimals);
+    const remainStaked = currentlyStaked - amountToMachine(value, decimals);
 
     // to remove dust from just comparision
-    const remainStakedInHuman = Number(amountToHuman(remainStaked.toString(), chainInfo?.decimals));
+    const remainStakedInHuman = Number(amountToHuman(remainStaked.toString(), decimals));
 
-    console.log(`remainStaked ${remainStaked}  currentlyStaked ${currentlyStaked} amountToMachine(value, chainInfo?.decimals) ${amountToMachine(value, chainInfo?.decimals)}`);
+    console.log(`remainStaked ${remainStaked}  currentlyStaked ${currentlyStaked} amountToMachine(value, decimals) ${amountToMachine(value, decimals)}`);
 
-    if (remainStakedInHuman > 0 && remainStakedInHuman < Number(amountToHuman(stakingConsts?.minNominatorBond, chainInfo?.decimals))) {
-      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), chainInfo?.decimals)} should not be less than ${amountToHuman(stakingConsts?.minNominatorBond, chainInfo?.decimals)} ${chainInfo?.coin}`);
+    if (remainStakedInHuman > 0 && remainStakedInHuman < Number(amountToHuman(stakingConsts?.minNominatorBond, decimals))) {
+      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} should not be less than ${amountToHuman(stakingConsts?.minNominatorBond, decimals)} ${token}`);
 
       return;
     }
@@ -65,11 +74,11 @@ export default function Unstake({ availableBalance, chainInfo, currentlyStakedIn
       // to include even dust
       setUnstakeAmount(BigInt(ledger ? ledger.active.toString() : '0'));
     } else {
-      setUnstakeAmount(Number(value) ? amountToMachine(value, chainInfo?.decimals) : 0n);
+      setUnstakeAmount(Number(value) ? amountToMachine(value, decimals) : 0n);
     }
 
     setNextToUnStakeButtonDisabled(false);
-  }, [chainInfo?.coin, chainInfo?.decimals, currentlyStakedInHuman, ledger, stakingConsts?.minNominatorBond, t]);
+  }, [ledger, currentlyStakedInHuman, decimals, stakingConsts?.minNominatorBond, t, token, setUnstakeAmount]);
 
   const handleUnstakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     setNextToUnStakeButtonDisabled(true);
@@ -90,7 +99,7 @@ export default function Unstake({ availableBalance, chainInfo, currentlyStakedIn
         <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
           <TextField
             InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{chainInfo?.coin}</InputAdornment>) }}
+            InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
             autoFocus
             color='info'
             error={!currentlyStakedInHuman || Number(unstakeAmountInHuman) > Number(currentlyStakedInHuman) || UnableToPayFee}
@@ -136,7 +145,7 @@ export default function Unstake({ availableBalance, chainInfo, currentlyStakedIn
                     onClick={handleMaxUnstakeClicked}
                     variant='text'
                   >
-                    {`${String(currentlyStakedInHuman)} ${chainInfo?.coin}`}
+                    {`${String(currentlyStakedInHuman)} ${token}`}
                   </MuiButton>
                 </>
               }

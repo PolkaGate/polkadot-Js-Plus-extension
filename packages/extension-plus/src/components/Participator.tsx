@@ -33,7 +33,7 @@ interface Props {
   role?: string;
 }
 
-export default function Participator({ address, availableBalance, chain, chainInfo, encodedAddressInfo, setAvailableBalance, setEncodedAddressInfo, role }: Props): React.ReactElement<Props> {
+export default function Participator({ address, availableBalance, chain, chainInfo, encodedAddressInfo, role, setAvailableBalance, setEncodedAddressInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);

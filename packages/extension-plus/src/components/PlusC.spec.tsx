@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-/** 
+/**
  * @description This test is to test plus component
 */
 import '@polkadot/extension-mocks/chrome';
@@ -15,9 +15,11 @@ import React from 'react';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
 import TransferFunds from '../Popup/Transfer';
+import { chain } from '../util/test/testHelper';
 import Balance from './Balance';
 import Plus from './Plus';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
 configure({ adapter: new Adapter() });
 
 const Chain = {
@@ -34,7 +36,14 @@ const Props = {
 
 describe('Testing Plus component', () => {
   test('rendering Plus while chain is null', () => {
-    const wrapper = shallow(<Plus address={Props.address} chain={null} formattedAddress={Props.formattedAddress} givenType={Props.givenType} name={Props.name} />).dive();
+    const wrapper = shallow(
+      <Plus
+        address={Props.address}
+        chain={null}
+        formattedAddress={Props.formattedAddress}
+        givenType={Props.givenType}
+        name={Props.name}
+      />).dive();
 
     expect(wrapper.find(FontAwesomeIcon)).toHaveLength(5);
     expect(wrapper.find('#noChainAlert').text()).toEqual('Please select a chain to view your balance.');
@@ -44,7 +53,14 @@ describe('Testing Plus component', () => {
   });
 
   test('rendering Plus', () => {
-    const wrapper = shallow(<Plus address={Props.address} chain={Props.chain} formattedAddress={Props.formattedAddress} givenType={Props.givenType} name={Props.name} />).dive();
+    const wrapper = shallow(
+      <Plus
+        address={Props.address}
+        chain={chain}
+        formattedAddress={Props.formattedAddress}
+        givenType={Props.givenType}
+        name={Props.name}
+      />).dive();
 
     expect(wrapper.find(Balance)).toHaveLength(3);
 

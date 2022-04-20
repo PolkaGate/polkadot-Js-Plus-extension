@@ -13,6 +13,7 @@ import { Avatar, Grid, IconButton, Link, Skeleton, Typography } from '@mui/mater
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -34,7 +35,7 @@ import ValidatorsList from './ValidatorsList';
 
 interface Props {
   chain?: Chain | null;
-  chainInfo: ChainInfo;
+  api: ApiPromise;
   state: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
   staker: AccountsBalanceType;
@@ -52,7 +53,7 @@ interface Props {
   rebagInfo: RebagInfo | undefined;
 }
 
-export default function ConfirmStaking({ amount, chain, chainInfo, handleEasyStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, chain, api, handleEasyStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -60,7 +61,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [currentlyStaked, setCurrentlyStaked] = useState<bigint | undefined>(undefined);
   const [totalStakedInHuman, setTotalStakedInHuman] = useState<string>('');
-  const [estimatedFee, setEstimatedFee] = useState<Balance>();
+  const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean>(false);
   const [confirmButtonText, setConfirmButtonText] = useState<string>(t('Confirm'));
   const [amountNeedsAdjust, setAmountNeedsAdjust] = useState<boolean>(false);
@@ -69,7 +70,9 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   const [availableBalance, setAvailableBalance] = useState<bigint>(0n);
 
   const chainName = chain?.name.replace(' Relay Chain', '');
-  const { api, coin, decimals } = chainInfo;
+  const decimals = api.registry.chainDecimals[0];
+  const token = api.registry.chainTokens[0];
+
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
   const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
@@ -123,7 +126,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
   }, [selectedValidatorsAccountId, state, nominatedValidatorsId, t, confirmingState]);
 
   useEffect(() => {
-    if (['confirming', 'success', 'failed'].includes(confirmingState) || !chainInfo || currentlyStaked === undefined) {
+    if (['confirming', 'success', 'failed'].includes(confirmingState) || !api || currentlyStaked === undefined) {
       return;
     }
 
@@ -149,7 +152,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
             void nominated(...params).paymentInfo(staker.address).then((i) => {
               const nominatingFee = i?.partialFee;
 
-              setEstimatedFee((bondingFee.add(nominatingFee) as Balance));
+              setEstimatedFee(api.createType('Balance', bondingFee.add(nominatingFee)));
             });
           } else {
             setEstimatedFee(bondingFee);
@@ -175,7 +178,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
 
           if (surAmount === currentlyStaked) {
             // eslint-disable-next-line no-void
-            void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee((fee.add(j?.partialFee) as Balance)));
+            void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
           } else { setEstimatedFee(fee); }
         });
         setTotalStakedInHuman(amountToHuman((currentlyStaked - surAmount).toString(), decimals));
@@ -202,8 +205,8 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
           params = [staker.address];
           // eslint-disable-next-line no-void
           void rebaged(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-        } else if (putInFrontInfo.shouldPutInFront) {
-          params = [putInFrontInfo.lighter];
+        } else if (putInFrontInfo?.shouldPutInFront) {
+          params = [putInFrontInfo?.lighter];
           // eslint-disable-next-line no-void
           void putInFrontOf(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         }
@@ -215,7 +218,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
     // return () => {
     //   setEstimatedFee(undefined);
     // };
-  }, [surAmount, currentlyStaked, chainInfo, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, ledger, decimals, rebagInfo]);
+  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, ledger, decimals, rebagInfo, putInFrontInfo?.shouldPutInFront, putInFrontInfo?.lighter, rebaged, putInFrontOf]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !stakingConsts?.existentialDeposit) { return; }
@@ -447,7 +450,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
 
       if (localState === 'tuneUp') {
         const tx = rebagInfo?.shouldRebag ? rebaged : putInFrontOf;
-        const params = rebagInfo?.shouldRebag ? staker.address : putInFrontInfo.lighter;
+        const params = rebagInfo?.shouldRebag ? staker.address : putInFrontInfo?.lighter;
         const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [params], signer, staker.address);
 
         history.push({
@@ -487,7 +490,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
     switch (state) {
       case ('unstake'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
-          {t('Note: The unstaked amount will be redeemable after {{days}} days ', { replace: { days: stakingConsts?.bondingDuration } })}
+          {t('Note: The unstaked amount will be redeemable after {{days}} days ', { replace: { days: stakingConsts?.unbondingDuration } })}
         </Typography>;
       case ('withdrawUnbound'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
@@ -496,7 +499,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
             ? amountToHuman(String(BigInt(surAmount + availableBalance) - BigInt(String(estimatedFee))), decimals)
             : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
           }
-          {' '} {coin}
+          {' '} {token}
         </Typography>;
       case ('stopNominating'):
         return <Typography sx={{ mt: '30px' }} variant='h6'>
@@ -505,17 +508,17 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
       case ('tuneUp'):
         return <>
           {rebagInfo?.shouldRebag &&
-            <Grid item xs={12} sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }}>
+            <Grid item sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }} xs={12}>
               {t('Declaring that your account has sufficiently changed its score that should fall into a different bag.')}
             </Grid>
           }
           {!rebagInfo?.shouldRebag && putInFrontInfo.shouldPutInFront &&
-            <Grid item xs={12} sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }}>
+            <Grid item sx={{ fontSize: 14, fontWeight: 600, mt: '45px' }} xs={12}>
               {t('Changing your accout\'s position to a better one')}
             </Grid>
           }
 
-          <Grid container justifyContent='space-between' sx={{ fontSize: 11, p: '15px 30px' }} item xs={12}>
+          <Grid container item justifyContent='space-between' sx={{ fontSize: 11, p: '15px 30px' }} xs={12}>
             <Grid item>
               {t('Current bag threshold')}
             </Grid>
@@ -525,12 +528,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
 
           </Grid>
           {rebagInfo?.shouldRebag &&
-            <Grid item xs={12} sx={{ fontSize: 11, pt: '10px' }}>
+            <Grid item sx={{ fontSize: 11, pt: '10px' }} xs={12}>
               {t('You will probably need another tune up after this one!')}
             </Grid>
           }
           {!rebagInfo?.shouldRebag && putInFrontInfo.shouldPutInFront &&
-            <Grid container justifyContent='space-between' sx={{ fontSize: 11, p: '5px 30px' }} item xs={12}>
+            <Grid container item justifyContent='space-between' sx={{ fontSize: 11, p: '5px 30px' }} xs={12}>
               <Grid item>
                 {t('Account to overtake')}
               </Grid>
@@ -554,7 +557,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
     }
     // Note: availableBalance change should not change the alert in redeem confirm page!
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [surAmount, coin, decimals, estimatedFee, stakingConsts?.bondingDuration, t, rebagInfo]);
+  }, [surAmount, token, decimals, estimatedFee, stakingConsts?.unbondingDuration, t, rebagInfo]);
 
   const handleAutoAdjust = useCallback((): void => {
     const ED = stakingConsts?.existentialDeposit;
@@ -584,12 +587,12 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
               {!!surAmount && amountToHuman(surAmount.toString(), decimals)}
             </Grid>
             <Grid item>
-              {!!surAmount && coin}
+              {!!surAmount && token}
             </Grid>
           </Grid>
 
-          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12} >
-            <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={5}>
+          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12}>
+            <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Currently staked')}
               </Grid>
@@ -599,11 +602,11 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
                   : <>
                     {currentlyStaked ? amountToHuman(currentlyStaked.toString(), decimals) : '0.00'}
                   </>
-                }{' '}{coin}
+                }{' '}{token}
               </Grid>
             </Grid>
 
-            <Grid container item justifyContent='center' xs={2}>
+            <Grid container item justifyContent='center' xs={4}>
               <Grid item sx={{ color: grey[500], fontWeight: '600' }} xs={12}>
                 {t('Fee')}
               </Grid>
@@ -611,13 +614,13 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
                 {!estimatedFee
                   ? <span><Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '30px' }} /></span>
                   : <>
-                    {amountToHuman(estimatedFee.toString(), decimals)}
+                    {estimatedFee?.toHuman()}
                   </>
-                }  {' '}{coin}
+                }
               </Grid>
             </Grid>
 
-            <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={5}>
+            <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Total staked')}
               </Grid>
@@ -627,7 +630,7 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
                   : <>
                     {totalStakedInHuman !== '0' ? totalStakedInHuman : '0.00'}
                   </>
-                }{' '}{coin}
+                }{' '}{token}
               </Grid>
             </Grid>
           </Grid>
@@ -639,8 +642,8 @@ export default function ConfirmStaking({ amount, chain, chainInfo, handleEasySta
             </Grid>
             <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
               <ValidatorsList
+                api={api}
                 chain={chain}
-                chainInfo={chainInfo}
                 height={180}
                 stakingConsts={stakingConsts}
                 validatorsIdentities={validatorsIdentities}

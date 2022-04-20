@@ -89,19 +89,6 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
     }, [onAction]
   );
 
-  // added for plus
-  const _goToCrowdloans = useCallback(
-    () => {
-      onAction('auction-crowdloans');
-    }, [onAction]
-  );
-
-  const _goToGovernance = useCallback(
-    () => {
-      onAction('governance');
-    }, [onAction]
-  );
-
   return (
     <Menu
       className={className}

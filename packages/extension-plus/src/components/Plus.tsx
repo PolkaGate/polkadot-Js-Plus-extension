@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /** 
- * @description This is the main component which conects plus to original extension, 
+ * @description This is the main component which conects plus to original extension,
  * and make most of the new functionalities avilable
 */
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -25,41 +25,42 @@ import { Chain } from '@polkadot/extension-chains/types';
 import { AccountContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../extension-ui/src/messaging';
+import useApi from '../hooks/useApi';
+import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
 import EasyStaking from '../Popup/Staking';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
 import { SUPPORTED_CHAINS } from '../util/constants';
-import getChainInfo from '../util/getChainInfo';
-import { AccountsBalanceType, BalanceType, ChainInfo, savedMetaData } from '../util/plusTypes';
+import { AccountsBalanceType, BalanceType, savedMetaData } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
 
-export interface Props {
-  actions?: React.ReactNode;
+interface Props {
   address?: string | null;
   formattedAddress?: string | null;
   chain?: Chain | null;
   className?: string;
-  genesisHash?: string | null;
-  isExternal?: boolean | null;
-  isHardware?: boolean | null;
-  isHidden?: boolean;
   name: string;
-  parentName?: string | null;
-  suri?: string;
-  toggleActions?: number;
-  type?: KeypairType;
   givenType?: KeypairType;
 }
 
-function Plus({ address, chain, formattedAddress, givenType, name }: Props): React.ReactElement<Props> {
-  const [balance, setBalance] = useState<AccountsBalanceType | null>(null);
-  const { accounts } = useContext(AccountContext);
+interface Subscription {
+  chainName: string | undefined;
+  endpoint: string | undefined;
+}
+const defaultSubscribtion = { chainName: '', endpoint: '' };
+
+function Plus ({ address, chain, formattedAddress, givenType, name }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''))
-  const [balanceChangeSubscribed, setBalanceChangeSubscribed] = useState<string>('');
+  const { accounts } = useContext(AccountContext);
+  const endpoint = useEndPoint(accounts, address, chain);
+  const api = useApi(endpoint);
+
+  const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
+  const [balance, setBalance] = useState<AccountsBalanceType | null>(null);
+  const [balanceChangeSubscribtion, setBalanceChangeSubscribtion] = useState<Subscription>(defaultSubscribtion);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [showQRcodeModalOpen, setQRcodeModalOpen] = useState(false);
   const [showTxHistoryModal, setTxHistoryModalOpen] = useState(false);
@@ -68,14 +69,15 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
   const [account, setAccount] = useState<AccountJson | null>(null);
   const [sender, setSender] = useState<AccountsBalanceType>({ address: String(address), chain: null, name: String(name) });
   const [price, setPrice] = useState<number>(0);
-  const [chainInfo, setChainInfo] = useState<ChainInfo>();
   const [ledger, setLedger] = useState<StakingLedger | null>(null);
   const [redeemable, setRedeemable] = useState<bigint | null>(null);
 
-  const callGetLedgerWorker = useCallback((): void => {
+  const getLedger = useCallback((): void => {
+    if (!endpoint || !address) { return; }
+
     const getLedgerWorker: Worker = new Worker(new URL('../util/workers/getLedger.js', import.meta.url));
 
-    getLedgerWorker.postMessage({ address, chain });
+    getLedgerWorker.postMessage({ address, endpoint });
 
     getLedgerWorker.onerror = (err) => {
       console.log(err);
@@ -89,12 +91,14 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       setLedger(ledger);
       getLedgerWorker.terminate();
     };
-  }, [address, chain]);
+  }, [address, endpoint]);
 
-  const callRedeemable = useCallback((): void => {
+  const getRedeemable = useCallback((): void => {
+    if (!endpoint || !address) { return; }
+
     const getRedeemableWorker: Worker = new Worker(new URL('../util/workers/getRedeemable.js', import.meta.url));
 
-    getRedeemableWorker.postMessage({ address, chain });
+    getRedeemableWorker.postMessage({ address, endpoint });
 
     getRedeemableWorker.onerror = (err) => {
       console.log(err);
@@ -109,28 +113,53 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
 
       getRedeemableWorker.terminate();
     };
-  }, [address, chain]);
+  }, [address, endpoint]);
+
+  const subscribeToBalanceChanges = useCallback((): void => {
+    if (!chain || !endpoint || !formattedAddress) { return; }
+
+    console.log(`subscribing to balance changes on chain:${chain?.name} using endpoint:${endpoint}`);
+
+    setBalanceChangeSubscribtion({ chainName: chain?.name, endpoint: endpoint });
+    const subscribeToBalanceChangesWorker: Worker = new Worker(new URL('../util/workers/subscribeToBalance.js', import.meta.url));
+
+    subscribeToBalanceChangesWorker.postMessage({ address, endpoint, formattedAddress });
+
+    subscribeToBalanceChangesWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    subscribeToBalanceChangesWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const result: { address: string, subscribedChain: Chain, balanceInfo: BalanceType } = e.data;
+
+      setBalance({
+        address: result.address,
+        balanceInfo: result.balanceInfo,
+        chain: chain?.name,
+        name: name || ''
+      });
+
+      setRefreshing(false);
+    };
+  }, [address, chain, formattedAddress, name, endpoint]);
+
+  useEffect((): void => {
+    // eslint-disable-next-line no-void
+    chain && void getPriceInUsd(chain).then((p) => { setPrice(p || 0); });
+  }, [chain]);
 
   useEffect((): void => {
     if (!chain) return;
 
-    // eslint-disable-next-line no-void
-    void getPriceInUsd(chain).then((p) => {
-      console.log(`${chain.name.replace(' Relay Chain', '')} price:`, p);
-      setPrice(p || 0);
-    });
-
-    // eslint-disable-next-line no-void
-    void getChainInfo(chain).then((info) => setChainInfo(info));
-
-    // * get ledger info, including users currently staked, locked, etc
-    if (supported(chain)) {
-      callGetLedgerWorker();
+    if (supported(chain) && endpoint) {
+      // * get ledger info, including users currently staked, locked, etc
+      getLedger();
 
       // ** get redeemable amount
-      callRedeemable();
+      getRedeemable();
     }
-  }, [chain]);
+  }, [getLedger, getRedeemable, chain, endpoint]);
 
   function getBalanceFromMetaData(_account: AccountJson, _chain: Chain): AccountsBalanceType | null {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -151,35 +180,6 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
     };
   }
 
-  function subscribeToBalanceChanges() {
-    if (!chain) {
-      return;
-    }
-
-    setBalanceChangeSubscribed(chain ? chain.name : '');
-    const subscribeToBalance: Worker = new Worker(new URL('../util/workers/subscribeToBalance.js', import.meta.url));
-
-    subscribeToBalance.postMessage({ address, chain, formattedAddress });
-
-    subscribeToBalance.onerror = (err) => {
-      console.log(err);
-    };
-
-    subscribeToBalance.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const result: { address: string, subscribedChain: Chain, balanceInfo: BalanceType } = e.data;
-
-      setBalance({
-        address: result.address,
-        balanceInfo: result.balanceInfo,
-        chain: result.subscribedChain.name,
-        name: name || ''
-      });
-
-      setRefreshing(false);
-    };
-  }
-
   useEffect((): void => {
     if (balance && chain) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -188,7 +188,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       // eslint-disable-next-line no-void
       void updateMeta(balance.address, prepareMetaData(chain, 'lastBalance', stringifiedBalanceInfo));
     }
-  }, [balance]);
+  }, [balance, chain]);
 
   useEffect((): void => {
     setSender({
@@ -200,26 +200,20 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
   }, [balance, chain, formattedAddress, name]);
 
   useEffect((): void => {
-    if (!accounts) {
-      console.log(' does not need to subscribe to balanceChange');
+    if (!accounts || !chain || !endpoint) {
+      console.log(' does not need to subscribe to balanceChange, chain is:', chain);
 
       return;
     }
 
-    if (!chain) {
-      // does not need to subscribe to balanceChange for no chain
-
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    if (!balanceChangeSubscribed) {
-      console.log('subscribing to chain', chain?.name);
+    if ((balanceChangeSubscribtion.chainName && balanceChangeSubscribtion.chainName !== chain?.name) ||
+      (balanceChangeSubscribtion.endpoint && balanceChangeSubscribtion.endpoint !== endpoint)) {
+      // console.log(`balanceChangeSubscribtion.chainName:${balanceChangeSubscribtion.chainName} chain?.name:${chain?.name}`);
+      // console.log(` balanceChangeSubscribtion.endpoint:${ balanceChangeSubscribtion.endpoint} endpoint:${endpoint}`);
 
       subscribeToBalanceChanges();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accounts, chain]);
+  }, [accounts, balanceChangeSubscribtion.chainName, balanceChangeSubscribtion.endpoint, chain, endpoint, subscribeToBalanceChanges]);
 
   useEffect((): void => {
     if (!chain) { return; }
@@ -240,9 +234,10 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       setBalance(lastSavedBalance);
     } else {
       setBalance(null);
-      subscribeToBalanceChanges();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    subscribeToBalanceChanges();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chain]);
 
   const handleTransferFunds = useCallback((): void => {
@@ -267,7 +262,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
     setRefreshing(true);
     setBalance(null);
     subscribeToBalanceChanges();
-  }, [chain, refreshing]);
+  }, [chain, refreshing, subscribeToBalanceChanges]);
 
   function getCoin(_myBalance: AccountsBalanceType): string {
     return !_myBalance || !_myBalance.balanceInfo ? '' : _myBalance.balanceInfo.coin;
@@ -300,13 +295,13 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
             </Grid>
             : <Grid container item sx={{ paddingLeft: '75px', textAlign: 'left' }} xs={12}>
               <Grid item xs={4}>
-                <Balance balance={balance} chain={chain} price={price} type='total' />
+                <Balance balance={balance} price={price} type='total' />
               </Grid>
               <Grid item xs={4}>
-                <Balance balance={balance} chain={chain} price={price} type='available' />
+                <Balance balance={balance} price={price} type='available' />
               </Grid>
               <Grid item xs={4}>
-                <Balance balance={balance} chain={chain} price={price} type='reserved' />
+                <Balance balance={balance} price={price} type='reserved' />
               </Grid>
             </Grid>
 
@@ -379,15 +374,15 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       </Grid>
       {transferModalOpen && sender && chain &&
         <TransferFunds
+          api={api}
           chain={chain}
-          chainInfo={chainInfo}
           givenType={givenType}
           sender={sender}
           setTransferModalOpen={setTransferModalOpen}
           transferModalOpen={transferModalOpen}
         />
       }
-      {showQRcodeModalOpen && chain && 
+      {showQRcodeModalOpen && chain &&
         <AddressQRcode
           address={String(formattedAddress || address)}
           chain={chain}
@@ -408,8 +403,8 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
       {showStakingModal && sender && account && chain &&
         <EasyStaking
           account={account}
+          api={api}
           chain={chain}
-          chainInfo={chainInfo}
           ledger={ledger}
           name={name}
           redeemable={redeemable}
@@ -418,7 +413,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           staker={sender}
         />
       }
-    </Container >
+    </Container>
   );
 }
 

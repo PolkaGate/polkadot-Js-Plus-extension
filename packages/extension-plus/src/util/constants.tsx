@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
+export const SELECTED_COLOR = '#fffbed';
 export const AUCTION_GRACE_PERIOD = 27000;// BLOCKS
 export const MAX_NOMINATIONS = 16;
 export const FLOATING_POINT_DIGIT = 4;
@@ -78,4 +79,3 @@ export const PASS_MAP = {
   CORRECT: 1
 };
 
-export const SELECTED_COLOR = '#fffbed';
