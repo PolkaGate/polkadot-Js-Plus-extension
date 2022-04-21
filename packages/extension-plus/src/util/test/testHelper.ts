@@ -1225,13 +1225,13 @@ const others = [
 ];
 
 export const validatorsList: DeriveStakingQuery[] = [
-  { accountId: validatorsName[0].address, exposure: { others: others.slice(0, 1), own: 0.12345, total: 1.23456 }, validatorPrefs: { commission: 200000000 } },
-  { accountId: validatorsName[1].address, exposure: { others: others.slice(0, 2), own: 0.23451, total: 12.3456 }, validatorPrefs: { commission: 210000000 } },
-  { accountId: validatorsName[2].address, exposure: { others: others.slice(0, 3), own: 0.34512, total: 123.456 }, validatorPrefs: { commission: 150000000 } },
-  { accountId: validatorsName[3].address, exposure: { others: others.slice(0, 4), own: 0.45123, total: 1234.56 }, validatorPrefs: { commission: 90000000 } },
-  { accountId: validatorsName[4].address, exposure: { others: others.slice(0, 6), own: 0.51234, total: 12345.6 }, validatorPrefs: { commission: 750000000 } },
-  { accountId: validatorsName[5].address, exposure: { others: others.slice(0, 7), own: 0.11234, total: 1234567 }, validatorPrefs: { commission: 160000000 } },
-  { accountId: validatorsName[6].address, exposure: { others: others.slice(0, 8), own: 0.22345, total: 12345678 }, validatorPrefs: { commission: 130000000 } }
+  { accountId: validatorsName[0].address, exposure: { others: others.slice(0, 1), own: 345, total: 1523456 }, validatorPrefs: { commission: 200000000 } },
+  { accountId: validatorsName[1].address, exposure: { others: others.slice(0, 2), own: 451, total: 1233456 }, validatorPrefs: { commission: 210000000 } },
+  { accountId: validatorsName[2].address, exposure: { others: others.slice(0, 3), own: 4512, total: 1232456 }, validatorPrefs: { commission: 150000000 } },
+  { accountId: validatorsName[3].address, exposure: { others: others.slice(0, 4), own: 45123, total: 123456 }, validatorPrefs: { commission: 90000000 } },
+  { accountId: validatorsName[4].address, exposure: { others: others.slice(0, 6), own: 51234, total: 123456 }, validatorPrefs: { commission: 750000000 } },
+  { accountId: validatorsName[5].address, exposure: { others: others.slice(0, 7), own: 1124, total: 1234567 }, validatorPrefs: { commission: 160000000 } },
+  { accountId: validatorsName[6].address, exposure: { others: others.slice(0, 8), own: 2345, total: 12345678 }, validatorPrefs: { commission: 130000000 } }
 ];
 
 export const validatorsIdentities: DeriveAccountInfo[] = [
@@ -1263,11 +1263,11 @@ export const nominatorInfoTrue = {
 };
 
 export const nominatedValidators: DeriveStakingQuery[] = [
-  { accountId: validatorsName[5].address, exposure: { others: others.slice(1), total: 1.23456 }, validatorPrefs: { commission: 200000000 } },
-  { accountId: validatorsName[6].address, exposure: { others: others.slice(0, 1), total: 12.3456 }, validatorPrefs: { commission: 210000000 } },
-  { accountId: validatorsName[7].address, exposure: { others: others.slice(3), total: 123.456 }, validatorPrefs: { commission: 150000000 } },
-  { accountId: validatorsName[8].address, exposure: { others: others.slice(2), total: 1234.56 }, validatorPrefs: { commission: 90000000 } },
-  { accountId: validatorsName[9].address, exposure: { others: others, total: 12345.6 }, validatorPrefs: { commission: 750000000 } }
+  { accountId: validatorsName[5].address, exposure: { others: others.slice(1), total: 23456 }, validatorPrefs: { commission: 200000000 } },
+  { accountId: validatorsName[6].address, exposure: { others: others.slice(0, 1), total: 123456 }, validatorPrefs: { commission: 210000000 } },
+  { accountId: validatorsName[7].address, exposure: { others: others.slice(3), total: 12356 }, validatorPrefs: { commission: 150000000 } },
+  { accountId: validatorsName[8].address, exposure: { others: others.slice(2), total: 12356 }, validatorPrefs: { commission: 90000000 } },
+  { accountId: validatorsName[9].address, exposure: { others: others, total: 123456 }, validatorPrefs: { commission: 750000000 } }
 ];
 
 export async function createAcc(suri: string, genesisHash: string, extension: Extension): Promise<string> {

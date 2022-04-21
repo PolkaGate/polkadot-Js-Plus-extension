@@ -11,7 +11,7 @@ import { ThemeProps } from '@polkadot/extension-ui/types';
 
 import useEndpoints from '../../../../extension-plus/src/hooks/useEndpoints';// added for plus
 import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
-import { savedMetaData } from '../../../../extension-plus/src/util/plusTypes';// added for plus
+import { SavedMetaData } from '../../../../extension-plus/src/util/plusTypes';// added for plus
 import { prepareMetaData } from '../../../../extension-plus/src/util/plusUtils';// added for plus
 import { AccountContext, Address, Dropdown, Link, MenuDivider } from '../../components';// added for plus, AccountContext
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
@@ -62,7 +62,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
 
   // added for plus
   useEffect(() => {
-    const endPointFromStore: savedMetaData = account?.endpoint ? JSON.parse(account.endpoint) : null;
+    const endPointFromStore: SavedMetaData = account?.endpoint ? JSON.parse(account.endpoint) : null;
 
     if (endPointFromStore && endPointFromStore?.chainName === chainName) {
       setSelectedEndpoint(endPointFromStore.metaData);

@@ -112,11 +112,11 @@ describe('Testing Nominations component', () => {
       active: 4000000000000n
     };
 
-    const { queryByText } = render(
+    const { queryAllByText, queryByText } = render(
       <Nominations
         activeValidator={activeValidator}
-        chain={chain}
         api={chainInfo.api}
+        chain={chain}
         ledger={ledger}
         noNominatedValidators={false}
         nominatedValidators={nominatedValidators}
@@ -142,9 +142,11 @@ describe('Testing Nominations component', () => {
           expect(queryByText(acc.identity.display)).toBeTruthy();
         }
       });
-      expect(queryByText(nominatedValidator.exposure.total.toLocaleString())).toBeTruthy();
-      expect(queryByText(nominatedValidator.exposure.others.length)).toBeTruthy();
-      expect(queryByText(`${nominatedValidator.validatorPrefs.commission / (10 ** 7)}%`)).toBeTruthy();
+      const total = chainInfo.api.createType('Balance', nominatedValidator.exposure.total);
+
+      expect(queryAllByText(total.toHuman())).toBeTruthy();
+      expect(queryAllByText(nominatedValidator.exposure.others.length)).toBeTruthy();
+      expect(queryAllByText(`${nominatedValidator.validatorPrefs.commission / (10 ** 7)}%`)).toBeTruthy();
     }
 
     expect(queryByText('Stop nominating')).toBeTruthy();

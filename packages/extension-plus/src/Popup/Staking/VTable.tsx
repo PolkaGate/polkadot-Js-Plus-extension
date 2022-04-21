@@ -10,6 +10,7 @@ import { Box, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
@@ -18,10 +19,10 @@ import { StakingConsts } from '../../util/plusTypes';
 import ShowValidator from './ShowValidator';
 
 interface Props {
+  api: ApiPromise;
   activeValidator?: DeriveStakingQuery;
-  chain?: Chain | null;
+  chain: Chain;
   validators: DeriveStakingQuery[];
-  decimals: number;
   stakingConsts: StakingConsts;
   validatorsIdentities: DeriveAccountInfo[] | null;
   setInfo: React.Dispatch<React.SetStateAction<DeriveStakingQuery | null>>;
@@ -29,7 +30,7 @@ interface Props {
   height?: number;
 }
 
-export default function VTable({ activeValidator, chain, setInfo, setShowValidatorInfoModal, stakingConsts, validators, validatorsIdentities, height = 180 }: Props) {
+export default function VTable({ activeValidator, api, chain, setInfo, setShowValidatorInfoModal, stakingConsts, validators, validatorsIdentities, height = 180 }: Props) {
   const { t } = useTranslation();
 
   const handleMoreInfo = useCallback((info: DeriveStakingQuery) => {
@@ -63,6 +64,7 @@ export default function VTable({ activeValidator, chain, setInfo, setShowValidat
           {validators.slice().map((v, index) =>
             <ShowValidator
               activeValidator={activeValidator}
+              api={api}
               chain={chain}
               handleMoreInfo={handleMoreInfo}
               key={index}

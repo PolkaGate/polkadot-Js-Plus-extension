@@ -30,7 +30,7 @@ import useEndPoint from '../../hooks/useEndPoint';
 import getRewardsSlashes from '../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, savedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
+import { AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
@@ -90,12 +90,12 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   const [tabValue, setTabValue] = useState(3);
   const [unstakeAmount, setUnstakeAmount] = useState<bigint>(0n);
   const [unlockingAmount, setUnlockingAmount] = useState<bigint>(0n);
-  const [oversubscribedsCount, setOversubscribedsCount] = useState<number>(0);
+  const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
   const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
   const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
-  const [storeIsUpdate, setStroreIsUpdate] = useState<boolean>(false);
+  const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
   const [nominatorInfo, setNominatorInfo] = useState<{ minNominated: bigint, isInList: boolean } | undefined>();
   const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
   const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
@@ -258,7 +258,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     };
   };
 
-  const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: savedMetaData) => {
+  const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
     const getValidatorsInfoWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsInfo.js', import.meta.url));
 
     workers.push(getValidatorsInfoWorker);
@@ -319,7 +319,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   useEffect((): void => {
     if (!currentEraIndex || !currentEraIndexOfStore) { return; }
 
-    setStroreIsUpdate(currentEraIndex === currentEraIndexOfStore);
+    setStoreIsUpdate(currentEraIndex === currentEraIndexOfStore);
   }, [currentEraIndex, currentEraIndexOfStore]);
 
   useEffect(() => {
@@ -337,11 +337,15 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
     /** retrive validatorInfo from local sorage */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validatorsInfoFromStore: savedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
+    const validatorsInfoFromStore: SavedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
 
     if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
       console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
-      setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
+
+      // *** TODO: remove if after next version, because of inconsistency in the stored data formats
+      if (!String((validatorsInfoFromStore.metaData as Validators).current[0].stakingLedger.total).includes('.')) {
+        setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
+      }
 
       setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
       console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
@@ -442,7 +446,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
     // * retrive staking consts from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const stakingConstsFromLocalStrorage: savedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
+    const stakingConstsFromLocalStrorage: SavedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
 
     if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
       console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
@@ -451,15 +455,18 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
     // *** retrive nominated validators from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const nominatedValidatorsInfoFromLocalStrorage: savedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
+    const nominatedValidatorsInfoFromLocalStrorage: SavedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
 
     if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
-      setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
+      // *** TODO: remove if after next version, because of inconsistency in the stored data formats
+      if (!String((nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[])[0].stakingLedger.total).includes('.')) {
+        setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
+      }
     }
 
     // **** retrive validators identities from local storage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validarorsIdentitiesFromStore: savedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
+    const validarorsIdentitiesFromStore: SavedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
 
     if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
       setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
@@ -473,15 +480,15 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   useEffect(() => {
     if (validatorsInfo && nominatedValidatorsId && chain && account.address) {
       // find all information of nominated validators from all validatorsInfo(current and waiting)
-      const nominatedValidatorsIds = validatorsInfo.current
+      const nominations = validatorsInfo.current
         .concat(validatorsInfo.waiting)
         .filter((v: DeriveStakingQuery) => nominatedValidatorsId.includes(String(v.accountId)));
 
-      setNominatedValidatorsInfo(nominatedValidatorsIds);
+      setNominatedValidatorsInfo(nominations);
       // setGettingNominatedValidatorsInfoFromChain(false);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominatedValidatorsIds));
+      updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominations));
     }
   }, [nominatedValidatorsId, validatorsInfo, chain, account.address]);
 
@@ -515,7 +522,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     const nonBlockedValidatorsAccountId = allValidators.filter((v) =>
       !v.validatorPrefs.blocked && // filter blocked validators
       (Number(v.validatorPrefs.commission) / (10 ** 7)) < MAX_ACCEPTED_COMMISSION && // filter high commision validators
-      v.exposure.others.length < stakingConsts?.maxNominatorRewardedPerValidator  // filter oversubscribed
+      v.exposure.others.length < stakingConsts?.maxNominatorRewardedPerValidator // filter oversubscribed
       // && v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator / 4 // filter validators with very low nominators
     );
 
@@ -651,7 +658,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               ledger={ledger}
-              nextToStakeButtonBusy={(!ledger || !(validatorsInfoIsUpdated || storeIsUpdate)) && state !== ''}
+              nextToStakeButtonBusy={!!stakeAmount && (!ledger || !(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
               nominatedValidators={nominatedValidators}
               setStakeAmount={setStakeAmount}
               setState={setState}
@@ -744,8 +751,8 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
       {rewardSlashes && showChartModal && api &&
         <RewardChart
-          chain={chain}
           api={api}
+          chain={chain}
           rewardSlashes={rewardSlashes}
           setChartModalOpen={setChartModalOpen}
           showChartModal={showChartModal}

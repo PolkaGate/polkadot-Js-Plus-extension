@@ -7,7 +7,7 @@ import { createWsEndpoints } from '@polkadot/apps-config';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import { savedMetaData } from '../util/plusTypes';
+import { SavedMetaData } from '../util/plusTypes';
 
 export default function useEndpoint(accounts: AccountJson[] | AccountJson, address: string | null | undefined, chain: Chain | null | undefined): string | undefined {
   const endpoint = useMemo(() => {
@@ -15,7 +15,7 @@ export default function useEndpoint(accounts: AccountJson[] | AccountJson, addre
 
     const account = Array.isArray(accounts) ? accounts.find((account) => account.address === address) : accounts;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const endPointFromStore: savedMetaData = account?.endpoint ? JSON.parse(account.endpoint) : null;
+    const endPointFromStore: SavedMetaData = account?.endpoint ? JSON.parse(account.endpoint) : null;
 
     if (endPointFromStore && endPointFromStore?.chainName === chainName) {
       return endPointFromStore.metaData as string;

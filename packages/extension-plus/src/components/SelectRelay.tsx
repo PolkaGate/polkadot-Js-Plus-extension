@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import { Avatar, CircularProgress, FormControl, FormHelperText, Grid, InputLabel, Select, SelectChangeEvent } from '@mui/material';
+import { Avatar, FormControl, FormHelperText, Grid, InputLabel, Select, SelectChangeEvent } from '@mui/material';
 import React from 'react';
 
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';

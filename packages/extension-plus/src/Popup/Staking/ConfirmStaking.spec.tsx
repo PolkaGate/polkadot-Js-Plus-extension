@@ -99,10 +99,12 @@ describe('Testing ConfirmStaking component', () => {
     expect(queryByText('Nominators')).toBeTruthy();
 
     for (const validator of validatorsList) {
+      const total = api.createType('Balance', validator.exposure.total);
+
       expect(queryByText(validatorsIdentities[validatorsList.indexOf(validator)].identity.display)).toBeTruthy();
-      expect(queryByText(validator.exposure.total.toLocaleString())).toBeTruthy();
-      expect(queryByText(`${validator.validatorPrefs.commission / (10 ** 7)}%`)).toBeTruthy();
-      expect(queryByText(validator.exposure.others.length)).toBeTruthy();
+      expect(queryAllByText(total.toHuman())).toBeTruthy();
+      expect(queryAllByText(`${validator.validatorPrefs.commission / (10 ** 7)}%`)).toBeTruthy();
+      expect(queryAllByText(validator.exposure.others.length)).toBeTruthy();
     }
 
     expect(queryByLabelText('Password')).toBeTruthy();

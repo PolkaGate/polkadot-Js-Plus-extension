@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
+export const PLUS_VERSION = '0.42.8.13';
 export const SELECTED_COLOR = '#fffbed';
 export const AUCTION_GRACE_PERIOD = 27000;// BLOCKS
 export const MAX_NOMINATIONS = 16;
@@ -37,7 +38,7 @@ export const CROWDLOANS_CHAINS = [
 ];
 
 export const GOVERNANCE_CHAINS = [
-  '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',// POLKADOT
+  '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3', // POLKADOT
   '0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe' // KUSAMA
 ];
 

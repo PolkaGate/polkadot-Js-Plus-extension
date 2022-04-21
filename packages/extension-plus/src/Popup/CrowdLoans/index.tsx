@@ -13,7 +13,7 @@ import type { DeriveOwnContributions } from '@polkadot/api-derive/types';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Gavel as GavelIcon, Payments as PaymentsIcon } from '@mui/icons-material';
+import { ExtensionRounded as ExtensionRoundedIcon, Gavel as GavelIcon, Payments as PaymentsIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -38,6 +38,7 @@ import { AddressState, Auction, ChainInfo, Crowdloan } from '../../util/plusType
 import AuctionTab from './AuctionTab';
 import Contribute from './Contribute';
 import CrowdloanTab from './CrowdloanTab';
+import MyContributionsTab from './MyContributionsTab';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -158,8 +159,25 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
             textColor='secondary'
             value={tabValue}
             variant='fullWidth'>
-            <Tab icon={<GavelIcon fontSize='small' />} iconPosition='start' label='Auction' sx={{ minHeight: '60px',fontSize: 11, p: '0px 16px 0px 16px' }} value='auction' />
-            <Tab icon={<PaymentsIcon fontSize='small' />} iconPosition='start' label='Crowdloans' sx={{ minHeight: '60px', fontSize: 11, p: '0px 16px 0px 16px' }} value='crowdloan' />
+            <Tab
+              icon={<GavelIcon fontSize='small' />}
+              iconPosition='start'
+              label='Auction'
+              sx={{ fontSize: 11, minHeight: '60px', px: '5px' }}
+              value='auction'
+            />
+            <Tab
+              icon={<PaymentsIcon fontSize='small' />}
+              iconPosition='start' label='Crowdloans'
+              sx={{ fontSize: 11, minHeight: '60px', px: '5px' }}
+              value='crowdloan'
+            />
+            {/* <Tab
+              icon={<ExtensionRoundedIcon fontSize='small' />}
+              iconPosition='start' label='My contribution(s)'
+              sx={{ fontSize: 11, minHeight: '60px', px: '5px' }}
+              value='myContributions'
+            /> */}
           </Tabs>
         </Grid>
       </Grid>
@@ -186,6 +204,16 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
           myContributions={myContributions}
         />
       }
+
+      {/* {auction && tabValue === 'myContributions' && chainInfo &&
+        <MyContributionsTab
+          auction={auction}
+          chainInfo={chainInfo}
+          endpoints={endpoints}
+          handleContribute={handleContribute}
+          myContributions={myContributions}
+        />
+      } */}
 
       {contributeModal && auction && contributingTo && chainInfo &&
         <Contribute

@@ -5,7 +5,7 @@
 
 /**
  * @description
- *  this component shows a validator's info in a page including its nominators listand a link to subscan 
+ *  this component shows a validator's info in a page including its nominators listand a link to subscan
  * */
 
 import { BubbleChart as BubbleChartIcon } from '@mui/icons-material';
@@ -24,11 +24,10 @@ import Identity from '../../components/Identity';
 import { SELECTED_COLOR } from '../../util/constants';
 import getLogo from '../../util/getLogo';
 import { AccountsBalanceType } from '../../util/plusTypes';
-import { amountToHuman } from '../../util/plusUtils';
 
 interface Props {
   chain: Chain;
-  api: ApiPromise | undefined;
+  api: ApiPromise;
   showValidatorInfoModal: boolean;
   setShowValidatorInfoModal: Dispatch<SetStateAction<boolean>>;
   info: DeriveStakingQuery;
@@ -40,9 +39,12 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
   const { t } = useTranslation();
   const accountInfo = validatorsIdentities?.find((v) => v.accountId === info?.accountId);
   const chainName = chain?.name.replace(' Relay Chain', '');
+  
+  console.log('info?.exposure.own || info?.stakingLedger.active', info?.exposure.own || info?.stakingLedger.active)
+  console.log('info?.exposure.total', info?.exposure.total)
 
-  const decimals = api && api.registry.chainDecimals[0];
-  const token = api && api.registry.chainTokens[0];
+  const own = api.createType('Balance', info?.exposure.own || info?.stakingLedger.active);
+  const total = api.createType('Balance', info?.exposure.total);
 
   const handleDetailsModalClose = useCallback(
     (): void => {
@@ -51,7 +53,7 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
     }, [setShowValidatorInfoModal]);
 
   const sortedNominators = info?.exposure?.others.sort((a, b) => b.value - a.value);
-  const myIndex = sortedNominators.findIndex((n) => n.who.toString() === staker.address);
+  const myIndex = staker?.address ? sortedNominators.findIndex((n) => n.who.toString() === staker.address) : -1;
 
   return (
     <Popup handleClose={handleDetailsModalClose} id='scrollArea' showModal={showValidatorInfoModal}>
@@ -59,7 +61,7 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
       <Container sx={{ p: '0px 20px' }}>
         <Grid item sx={{ p: 1 }} xs={12}>
           <Paper elevation={3}>
-            <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, textAlign: 'center', p: '20px 10px 20px' }}>
+            <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, p: '20px 10px 20px', textAlign: 'center' }}>
               <Grid item sx={{ height: '40px' }} xs={11}>
                 {accountInfo && <Identity accountInfo={accountInfo} chain={chain} iconSize={40} showAddress={true} />}
               </Grid>
@@ -81,15 +83,15 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
                 <Divider />
               </Grid>
               <Grid item sx={{ pl: 3, textAlign: 'left' }} xs={6}>
-                {t('Own')}{': '}{Number(info?.exposure.own || info?.stakingLedger.active).toLocaleString()} {' '}{token}
+                {t('Own')}{': '}{own.toHuman()}
               </Grid>
               <Grid item sx={{ pr: 3, textAlign: 'right' }} xs={6}>
-                {t('Total')}{': '}{Number(info?.exposure.total).toLocaleString()}{' '}{token}
+                {t('Total')}{': '}{total.toHuman()}
               </Grid>
               <Grid item sx={{ pl: 3, pt: 1, textAlign: 'left' }} xs={6}>
                 {t('Commission')}{': '}   {info.validatorPrefs.commission === 1 ? 0 : info.validatorPrefs.commission / (10 ** 7)}%
               </Grid>
-              {myIndex !== -1 &&
+              {myIndex && myIndex !== -1 &&
                 <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
                   {t('Your rank')}{': '}{myIndex + 1}
                 </Grid>
@@ -98,7 +100,7 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
           </Paper>
         </Grid>
         <Grid container item justifyContent='center' spacing={1} xs={12}>
-          <Grid item sx={{ color: grey[600], textAlign: 'center', fontFamily: 'fantasy', fontSize: 15, padding: '10px 0px 5px' }}>
+          <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, textAlign: 'center', p: '10px 0px 5px' }}>
             {t('Nominators')}
           </Grid>
           <Grid item sx={{ fontSize: 12 }}>
@@ -106,26 +108,30 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
           </Grid>
         </Grid>
         <Grid item sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: 2 }} xs={12}>
-          {sortedNominators.map(({ value, who }, index) => (
-            <Paper elevation={2} key={index} sx={{ bgcolor: index === myIndex && SELECTED_COLOR, my: 1, p: '5px' }}>
-              <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
-                <Grid item xs={1}>
-                  <Identicon
-                    prefix={chain?.ss58Format ?? 42}
-                    size={30}
-                    theme={chain?.icon || 'polkadot'}
-                    value={who}
-                  />
+          {sortedNominators.map(({ value, who }, index) => {
+            const staked = api.createType('Balance', value);
+
+            return (
+              <Paper elevation={2} key={index} sx={{ bgcolor: index === myIndex ? SELECTED_COLOR : '', my: 1, p: '5px' }}>
+                <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
+                  <Grid item xs={1}>
+                    <Identicon
+                      prefix={chain?.ss58Format ?? 42}
+                      size={30}
+                      theme={chain?.icon || 'polkadot'}
+                      value={who}
+                    />
+                  </Grid>
+                  <Grid item sx={{ textAlign: 'left' }} xs={6}>
+                    <ShortAddress address={who} charsCount={8} fontSize={12} />
+                  </Grid>
+                  <Grid item sx={{ textAlign: 'right' }} xs={5}>
+                    {staked.toHuman()}
+                  </Grid>
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={6}>
-                  <ShortAddress address={who} charsCount={8} fontSize={12} />
-                </Grid>
-                <Grid item sx={{ textAlign: 'right' }} xs={5}>
-                  {Number(amountToHuman(value, decimals)).toLocaleString()} {' '}{token}
-                </Grid>
-              </Grid>
-            </Paper>
-          ))}
+              </Paper>
+            );
+          })}
         </Grid>
       </Container>
     </Popup>

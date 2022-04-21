@@ -3,7 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** NOTE this component show a list of validators, which is utilized in other components  */
+/**
+ * @description
+ *  this component show a list of validators, which is utilized in other components  
+ * */
 
 import { Grid } from '@mui/material';
 import React, { useState } from 'react';
@@ -20,7 +23,7 @@ import VTable from './VTable';
 
 interface Props {
   activeValidator?: DeriveStakingQuery;
-  chain?: Chain | null;
+  chain: Chain;
   api: ApiPromise | undefined;
   validatorsInfo: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts;
@@ -35,13 +38,11 @@ export default function ValidatorsList({ activeValidator, api, chain, height, st
   const [showValidatorInfoModal, setShowValidatorInfoModal] = useState<boolean>(false);
   const [info, setInfo] = useState<DeriveStakingQuery | null>(null);
 
-  const decimals = api && api.registry.chainDecimals[0];
-
   // put active validator at the top of list
   React.useMemo(() => {
     const index = validatorsInfo?.findIndex((v) => v.accountId === activeValidator?.accountId);
 
-    if (index !== -1) {
+    if (validatorsInfo && index && activeValidator && index !== -1) {
       validatorsInfo.splice(index, 1);
       validatorsInfo.unshift(activeValidator);
     }
@@ -50,11 +51,11 @@ export default function ValidatorsList({ activeValidator, api, chain, height, st
   return (
     <>
       <Grid item sx={{ p: '0px 10px' }} xs={12}>
-        {validatorsInfo && decimals
+        {validatorsInfo && api
           ? <VTable
             activeValidator={activeValidator}
+            api={api}
             chain={chain}
-            decimals={decimals}
             height={height}
             setInfo={setInfo}
             setShowValidatorInfoModal={setShowValidatorInfoModal}
@@ -66,7 +67,7 @@ export default function ValidatorsList({ activeValidator, api, chain, height, st
         }
       </Grid>
 
-      {showValidatorInfoModal && info && api &&
+      {showValidatorInfoModal && info && api && chain &&
         <ValidatorInfo
           api={api}
           chain={chain}

@@ -69,7 +69,7 @@ export interface ValidatorsName {
   name: string;
 }
 
-export interface savedMetaData {
+export interface SavedMetaData {
   chainName: string;
   metaData: any
 }

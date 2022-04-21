@@ -14,7 +14,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { BLOCK_RATE, FLOATING_POINT_DIGIT, SHORT_ADDRESS_CHARACTERS } from './constants';
-import { AccountsBalanceType, savedMetaData, TransactionDetail } from './plusTypes';
+import { AccountsBalanceType, SavedMetaData, TransactionDetail } from './plusTypes';
 
 interface Meta {
   docs: Text[];
@@ -136,7 +136,7 @@ export function getTransactionHistoryFromLocalStorage(
   const chainName = chain ? chain.name.replace(' Relay Chain', '') : _chainName;
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const transactionHistoryFromLocalStorage: savedMetaData = account?.history ? JSON.parse(String(account.history)) : null;
+  const transactionHistoryFromLocalStorage: SavedMetaData = account?.history ? JSON.parse(String(account.history)) : null;
 
   if (transactionHistoryFromLocalStorage) {
     if (transactionHistoryFromLocalStorage.chainName === chainName) {

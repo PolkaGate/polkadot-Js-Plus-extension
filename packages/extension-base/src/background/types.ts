@@ -50,6 +50,7 @@ export interface AccountJson extends KeyringPair$Meta {
   validatorsInfo?: string;
   validatorsIdentities?: string;
   endpoint: string;
+  plusVersion: string;
 }
 
 export type AccountWithChildren = AccountJson & {

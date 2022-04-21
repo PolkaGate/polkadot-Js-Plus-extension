@@ -59,7 +59,7 @@ let secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality
 const password = 'passw0rd';
 let chainInfo: ChainInfo;
 
-//[firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
+[firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
 
 describe('ConfirmTransfer for Successful Scenario (Note: account must have some fund to transfer)', () => {
   beforeAll(async () => {
@@ -129,7 +129,7 @@ describe('ConfirmTransfer for Successful Scenario (Note: account must have some 
     fireEvent.click(screen.queryByText('Confirm'));
 
     expect(screen.queryAllByText('Password is not correct')).toHaveLength(0);
-    await waitFor(() => expect(screen.queryByTestId('confirmButton').textContent).toEqual('Done'), { timeout: 30000 }); // wait enough to recive the transaction confirm from blockchain
+    await waitFor(() => expect(screen.queryByTestId('confirmButton').textContent).toEqual('Done'), { timeout: 60000 }); // wait enough to recive the transaction confirm from blockchain
   });
 
   test('ConfirmTransfer when password is wrong', () => {
@@ -146,10 +146,9 @@ describe('ConfirmTransfer for Successful Scenario (Note: account must have some 
 });
 
 describe('ConfirmTransfer for Failed Scenario', () => {
-  const invaliTransferAmount = amountToMachine('1000', decimals); // supposed that the address does not have 1000WSN to transfer, hence fails
+  const invaliTransferAmount = amountToMachine('100000', decimals); // supposed that the address does not have 1000WSN to transfer, hence fails
 
   beforeAll(async () => {
-    chainInfo = await getChainInfo(props.chain.name);
     sender = {
       address: firstAddress,
       balanceInfo: balanceInfo,
@@ -164,8 +163,8 @@ describe('ConfirmTransfer for Failed Scenario', () => {
     };
 
     availableBalance = balanceToHuman(sender, 'available');
-    const { api } = await getChainInfo(sender.chain);
-    const transfer = api.tx.balances.transfer;
+    chainInfo = await getChainInfo(sender.chain);
+    const transfer = chainInfo?.api.tx.balances.transfer;
 
     const { partialFee } = await transfer(sender.address, transferAmount).paymentInfo(sender.address);
 
@@ -175,9 +174,9 @@ describe('ConfirmTransfer for Failed Scenario', () => {
   test('Failed Scenario', async () => {
     render(
       <ConfirmTransfer
+        api={chainInfo.api}
         availableBalance={availableBalance}
         chain={props.chain}
-        api={chainInfo.api}
         confirmModalOpen={true}
         lastFee={fee}
         recepient={recepient}
@@ -192,6 +191,6 @@ describe('ConfirmTransfer for Failed Scenario', () => {
     expect(screen.queryAllByText('Confirm')).toHaveLength(1);
     fireEvent.click(screen.queryByText('Confirm'));
 
-    await waitFor(() => expect(screen.queryByTestId('confirmButton').textContent).toEqual('Failed'), { timeout: 30000 }); // wait enough to recive the transaction confirm from blockchain
+    await waitFor(() => expect(screen.queryByTestId('confirmButton').textContent).toEqual('Failed'), { timeout: 60000 }); // wait enough to recive the transaction confirm from blockchain
   });
 });

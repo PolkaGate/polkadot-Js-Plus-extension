@@ -3,9 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description
- *  in this component manual selection of validators is provided, with some filtering features to facilitate selection process 
+ *  in this component manual selection of validators is provided, with some filtering features to facilitate selection process
  **/
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
@@ -31,7 +31,7 @@ import ShowValidator from './ShowValidator';
 import ValidatorInfo from './ValidatorInfo';
 
 interface Props {
-  chain?: Chain | null;
+  chain: Chain;
   api: ApiPromise | undefined;
   staker: AccountsBalanceType;
   showSelectValidatorsModal: boolean;
@@ -56,11 +56,12 @@ interface Data {
 interface TableRowProps {
   chain: Chain;
   validators: DeriveStakingQuery[];
-  api: ApiPromise;
+  api: ApiPromise | undefined;
   nominatedValidators: DeriveStakingQuery[] | null;
+  staker: AccountsBalanceType;
   stakingConsts: StakingConsts;
   searchedValidators: DeriveStakingQuery[];
-  setSearchedValidators: React.Dispatch<React.SetStateAction<DeriveStakingQuery[] | null>>;
+  setSearchedValidators: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
   selected: DeriveStakingQuery[];
   setSelected: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
   searching: boolean;
@@ -121,7 +122,7 @@ const TableToolbar = (props: ToolbarProps) => {
 
     setSearching(!!keyWord);
 
-    const haveSearchKeywordInAccountId = validators?.filter((item) => String(item.accountId).toLowerCase().includes(keyWord.toLowerCase()));
+    const haveSearchKeywordInAccountId = validators?.filter((item) => String(item.accountId).toLowerCase().includes(keyWord.toLowerCase())) ?? [];
     const haveSearchKeywordInName = validatorsIdentities?.filter((item) => `${item.identity.display}${item.identity.displayParent}`.toLowerCase().includes(keyWord.toLowerCase()));
 
     haveSearchKeywordInName?.forEach((item) => {
@@ -169,7 +170,7 @@ const TableToolbar = (props: ToolbarProps) => {
   );
 };
 
-function SelectionTable({ api, chain, nominatedValidators, searchedValidators, searching, selected, setSearchedValidators, setSearching, setSelected, stakingConsts, validators, validatorsIdentities }: TableRowProps) {
+function SelectionTable({ api, chain, nominatedValidators, searchedValidators, searching, selected, setSearchedValidators, setSearching, setSelected, staker, stakingConsts, validators, validatorsIdentities }: TableRowProps) {
   const { t } = useTranslation();
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('name');
@@ -237,7 +238,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
             {t('Commision')}
           </Grid>
         </Grid>
-        <Grid alignItems='center' container item onClick={(e) => handleRequestSort(e, 'nominator')} sx={{ textAlign: 'right', cursor: 'pointer' }} xs={2}>
+        <Grid alignItems='center' container item onClick={(e) => handleRequestSort(e, 'nominator')} sx={{ cursor: 'pointer', textAlign: 'right' }} xs={2}>
           <Grid item xs={6}>
             {order === 'asc' && orderBy === 'nominator' ? <ArrowDropDownIcon /> : <ArrowDropUpIcon />}
           </Grid>
@@ -258,7 +259,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
 
       <TableHeader />
       <Container disableGutters sx={{ height: 325 }}>
-        {!!combined?.length &&
+        {!!combined?.length && api &&
           <List
             height={325}
             itemCount={combined.length}
@@ -269,6 +270,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
               <div>
                 <div key={key} style={style}>
                   <ShowValidator
+                    api={api}
                     chain={chain}
                     handleMoreInfo={handleMoreInfo}
                     handleSwitched={handleSwitched}
@@ -287,13 +289,14 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
         }
       </Container>
 
-      {showValidatorInfoModal && info &&
+      {showValidatorInfoModal && info && api &&
         <ValidatorInfo
           api={api}
           chain={chain}
           info={info}
           setShowValidatorInfoModal={setShowValidatorInfoModal}
           showValidatorInfoModal={showValidatorInfoModal}
+          staker={staker}
           validatorsIdentities={validatorsIdentities}
         />
       }
@@ -343,6 +346,7 @@ export default function SelectValidators({ api, chain, ledger, nominatedValidato
     setSelected([...selectedTemp]);
 
     setValidators(filteredValidators);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterHighCommissionsState, filterNoNamesState, filterOverSubscribedsState, filterWaitingsState, stakingConsts, validatorsInfo, validatorsIdentities]);
 
   const filterHighCommisions = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -395,6 +399,7 @@ export default function SelectValidators({ api, chain, ledger, nominatedValidato
               setSearchedValidators={setSearchedValidators}
               setSearching={setSearching}
               setSelected={setSelected}
+              staker={staker}
               stakingConsts={stakingConsts}
               validators={validators}
               validatorsIdentities={validatorsIdentities}
@@ -465,7 +470,7 @@ export default function SelectValidators({ api, chain, ledger, nominatedValidato
 
       </Grid>
 
-      {!!selected.length && showConfirmStakingModal &&
+      {!!selected.length && showConfirmStakingModal && api &&
         <ConfirmStaking
           amount={['changeValidators', 'setNominees'].includes(state) ? 0n : stakeAmount}
           api={api}

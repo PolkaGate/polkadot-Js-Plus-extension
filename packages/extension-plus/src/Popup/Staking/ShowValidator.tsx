@@ -13,6 +13,7 @@ import { DirectionsRun as DirectionsRunIcon, MoreVert as MoreVertIcon, ReportPro
 import { Grid, Paper, Switch } from '@mui/material';
 import React from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
@@ -23,11 +24,12 @@ import { SELECTED_COLOR } from '../../util/constants';
 import { StakingConsts } from '../../util/plusTypes';
 
 interface Props {
+  api: ApiPromise;
   chain: Chain;
   stakingConsts: StakingConsts | null;
   validator: DeriveStakingQuery;
   showSwitch?: boolean;
-  handleSwitched?: (arg0: React.MouseEvent<unknown>, arg1: DeriveStakingQuery) => void;
+  handleSwitched?: (event: React.ChangeEvent<HTMLInputElement>, validator: DeriveStakingQuery) => void;
   handleMoreInfo: (arg0: DeriveStakingQuery) => void;
   isSelected?: (arg0: DeriveStakingQuery) => boolean;
   isInNominatedValidators?: (arg0: DeriveStakingQuery) => boolean;
@@ -36,15 +38,18 @@ interface Props {
   showSocial?: boolean;
 }
 
-function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSwitch = false, showSocial = true, stakingConsts, validator, validatorsIdentities }: Props) {
+function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSocial = true, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? SELECTED_COLOR : '');
-  const getAccountInfo = (id: AccountId): DeriveAccountInfo => validatorsIdentities?.find((v) => v.accountId === id);
+  const getAccountInfo = (id: AccountId): DeriveAccountInfo | undefined => validatorsIdentities?.find((v) => v.accountId === id);
   const nominatorCount = validator.exposure.others.length;
   const isActive = validator.accountId === activeValidator?.accountId;
   const isOverSubscribed = validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
 
+  const total = api.createType('Balance', validator.exposure.total);
+
   return (
+
     <Paper elevation={2} sx={{ backgroundColor: rowBackground, borderRadius: '10px', mt: '4px', p: '1px 10px 2px 0px' }}>
       <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
@@ -59,7 +64,7 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
               chain={chain}
               iconSize={showSwitch ? 24 : 20}
               showSocial={showSocial}
-              totalStaked={validator.exposure.total && showSwitch ? `Total staked: ${Number(validator.exposure.total).toLocaleString()}` : ''}
+              totalStaked={total && showSwitch ? `Total staked: ${total.toHuman()}` : ''}
             />
             : <ShortAddress address={String(validator?.accountId)} fontSize={11} />
           }
@@ -67,7 +72,7 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
 
         {!showSwitch &&
           <Grid item sx={{ textAlign: 'left' }} xs={2}>
-            {validator.exposure.total ? Number(validator.exposure.total).toLocaleString() : ''}
+            {total ? total.toHuman() : ''}
           </Grid>
         }
 
@@ -76,7 +81,7 @@ function ShowValidator({ activeValidator, chain, handleMoreInfo, handleSwitched,
         </Grid>
 
         <Grid alignItems='center' container item justifyContent='center' xs={2}>
-          <Grid item xs={2} sx={{ textAlign: 'right' }}>
+          <Grid item sx={{ textAlign: 'right' }} xs={2}>
             {!!nominatorCount && isActive &&
               <Hint id='active' place='left' tip='Active'>
                 <DirectionsRunIcon color='primary' sx={{ fontSize: '17px' }} />

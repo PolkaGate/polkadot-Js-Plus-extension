@@ -26,6 +26,7 @@ import { AccountContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../extension-ui/src/messaging';
 import useApi from '../hooks/useApi';
+import useCleanUp from '../hooks/useCleanUp';
 import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
@@ -33,7 +34,7 @@ import EasyStaking from '../Popup/Staking';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
 import { SUPPORTED_CHAINS } from '../util/constants';
-import { AccountsBalanceType, BalanceType, savedMetaData } from '../util/plusTypes';
+import { AccountsBalanceType, BalanceType, SavedMetaData } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
 
@@ -52,11 +53,13 @@ interface Subscription {
 }
 const defaultSubscribtion = { chainName: '', endpoint: '' };
 
-function Plus ({ address, chain, formattedAddress, givenType, name }: Props): React.ReactElement<Props> {
+function Plus({ address, chain, formattedAddress, givenType, name }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const endpoint = useEndPoint(accounts, address, chain);
   const api = useApi(endpoint);
+
+  // useCleanUp(accounts, address);
 
   const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
   const [balance, setBalance] = useState<AccountsBalanceType | null>(null);
@@ -163,7 +166,7 @@ function Plus ({ address, chain, formattedAddress, givenType, name }: Props): Re
 
   function getBalanceFromMetaData(_account: AccountJson, _chain: Chain): AccountsBalanceType | null {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const accLastBalance: savedMetaData = _account.lastBalance ? JSON.parse(_account.lastBalance) : null;
+    const accLastBalance: SavedMetaData = _account.lastBalance ? JSON.parse(_account.lastBalance) : null;
 
     if (!accLastBalance) { return null; }
 
@@ -237,7 +240,7 @@ function Plus ({ address, chain, formattedAddress, givenType, name }: Props): Re
     }
 
     subscribeToBalanceChanges();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chain]);
 
   const handleTransferFunds = useCallback((): void => {

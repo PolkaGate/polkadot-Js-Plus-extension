@@ -29,12 +29,12 @@ import broadcast from '../../util/api/broadcast';
 import { bondOrBondExtra } from '../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../util/constants';
 import getLogo from '../../util/getLogo';
-import { AccountsBalanceType, ChainInfo, PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
+import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
-  chain?: Chain | null;
+  chain: Chain;
   api: ApiPromise;
   state: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
@@ -49,11 +49,11 @@ interface Props {
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
   selectedValidators: DeriveStakingQuery[] | null;
-  putInFrontInfo: PutInFrontInfo | undefined;
-  rebagInfo: RebagInfo | undefined;
+  putInFrontInfo?: PutInFrontInfo | undefined;
+  rebagInfo?: RebagInfo | undefined;
 }
 
-export default function ConfirmStaking({ amount, chain, api, handleEasyStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, handleEasyStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -88,8 +88,8 @@ export default function ConfirmStaking({ amount, chain, api, handleEasyStakingMo
   const rebaged = api.tx.bagsList.rebag;
   const putInFrontOf = api.tx.bagsList.putInFrontOf;
 
-  async function saveHistory(chain: Chain | null, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
-    if (!chain || !history.length) return false;
+  async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
+    if (!history.length) return false;
 
     const accountSubstrateAddress = getSubstrateAddress(address);
     const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
