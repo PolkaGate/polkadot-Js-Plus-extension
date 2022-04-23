@@ -58,7 +58,7 @@ function InfoTab({ auction, chainInfo, className, endpoints, myContributions }: 
   return (
     <Grid container sx={{ p: '50px 60px' }}>
 
-      <Grid container item justifyContent='space-between' sx={{ fontSize: 12, fontWeight: 'Bold', paddingBottom: '5px' }} xs={12}>
+      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, fontWeight: 'Bold', paddingBottom: '5px' }} xs={12}>
         <Grid item>
           {t('Contributed parachains')}
         </Grid>
@@ -67,7 +67,7 @@ function InfoTab({ auction, chainInfo, className, endpoints, myContributions }: 
         </Grid>
       </Grid>
 
-      <Grid container item justifyContent='space-between' sx={{ fontSize: 12, fontWeight: 'Bold', paddingBottom: '5px' }} xs={12}>
+      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, fontWeight: 'Bold', paddingBottom: '5px' }} xs={12}>
         <Grid item>
           {t('Your contributed')}
         </Grid>
@@ -76,7 +76,7 @@ function InfoTab({ auction, chainInfo, className, endpoints, myContributions }: 
         </Grid>
       </Grid>
 
-      <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, paddingBottom: '5px' }} xs={12}>
         <Grid item>
           {t('Total crowdloans')}
         </Grid>
@@ -85,7 +85,7 @@ function InfoTab({ auction, chainInfo, className, endpoints, myContributions }: 
         </Grid>
       </Grid>
 
-      <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+      <Grid container item justifyContent='space-between' sx={{ fontSize: 13, paddingBottom: '5px' }} xs={12}>
         <Grid item>
           {t('Total parachains')}
         </Grid>
