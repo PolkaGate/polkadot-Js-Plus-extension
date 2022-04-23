@@ -172,12 +172,12 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
               sx={{ fontSize: 11, minHeight: '60px', px: '5px' }}
               value='crowdloan'
             />
-            {/* <Tab
+            <Tab
               icon={<ExtensionRoundedIcon fontSize='small' />}
               iconPosition='start' label='My contribution(s)'
               sx={{ fontSize: 11, minHeight: '60px', px: '5px' }}
               value='myContributions'
-            /> */}
+            />
           </Tabs>
         </Grid>
       </Grid>
