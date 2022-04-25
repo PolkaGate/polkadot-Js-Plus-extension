@@ -11,16 +11,15 @@
 // eslint-disable-next-line simple-import-sort/imports
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Container, Grid } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Divider, Grid } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import { Balance } from '@polkadot/types/interfaces';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Auction, ChainInfo, Crowdloan } from '../../util/plusTypes';
-import CrowdloanList from './CrowdloanList';
+import { Auction, ChainInfo } from '../../util/plusTypes';
 import { ShowValue, ShowBalance } from '../../components';
 
 interface Props extends ThemeProps {
@@ -76,6 +75,10 @@ function InfoTab({ auction, chainInfo, className, endpoints, myContributions }: 
         </Grid>
       </Grid>
 
+      <Grid item xs={12} sx={{ py: 2 }}>
+        <Divider light />
+      </Grid>
+
       <Grid container item justifyContent='space-between' sx={{ fontSize: 13, paddingBottom: '5px' }} xs={12}>
         <Grid item>
           {t('Total crowdloans')}
@@ -94,7 +97,7 @@ function InfoTab({ auction, chainInfo, className, endpoints, myContributions }: 
         </Grid>
       </Grid>
 
-    </Grid>
+    </Grid >
   );
 }
 
