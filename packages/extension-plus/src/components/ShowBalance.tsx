@@ -24,12 +24,12 @@ export interface Props {
 }
 
 
-function ShowBalance({ balance, chainInfo, decimalDigits, title }: Props): React.ReactElement<Props> {
+function ShowBalance({ balance, chainInfo, title }: Props): React.ReactElement<Props> {
   const amountToHuman = (x: bigint): string => chainInfo?.api.createType('Balance', x).toHuman();
 
   return (
     <div data-testid='showPlus'>
-      {title && <>{title}:{' '}</>}
+      {title && <>{`${title}: `}</>}
 
       {balance && chainInfo
         ? <>

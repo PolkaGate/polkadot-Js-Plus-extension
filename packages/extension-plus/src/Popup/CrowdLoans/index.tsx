@@ -13,7 +13,7 @@ import type { DeriveOwnContributions } from '@polkadot/api-derive/types';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { ExtensionRounded as ExtensionRoundedIcon, Gavel as GavelIcon, Payments as PaymentsIcon } from '@mui/icons-material';
+import { Gavel as GavelIcon, InfoOutlined as InfoOutlinedIcon, Payments as PaymentsIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -38,7 +38,7 @@ import { AddressState, Auction, ChainInfo, Crowdloan } from '../../util/plusType
 import AuctionTab from './AuctionTab';
 import Contribute from './Contribute';
 import CrowdloanTab from './CrowdloanTab';
-import MyContributionsTab from './MyContributionsTab';
+import InfoTab from './InfoTab';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -54,7 +54,7 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
 
   const [contributingTo, setContributingTo] = useState<Crowdloan | null>(null);
   const [auction, setAuction] = useState<Auction | null>(null);
-  const [tabValue, setTabValue] = React.useState('auction');
+  const [tabValue, setTabValue] = useState('auction');
   const [contributeModal, setContributeModalOpen] = useState<boolean>(false);
   const [endpoints, setEndpoints] = useState<LinkOption[]>([]);
   const [chainInfo, setChainInfo] = useState<ChainInfo>();
@@ -172,12 +172,12 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
               sx={{ fontSize: 11, minHeight: '60px', px: '5px' }}
               value='crowdloan'
             />
-            {/* <Tab
-              icon={<ExtensionRoundedIcon fontSize='small' />}
-              iconPosition='start' label='My contribution(s)'
+            <Tab
+              icon={<InfoOutlinedIcon fontSize='small' />}
+              iconPosition='start' label='Info'
               sx={{ fontSize: 11, minHeight: '60px', px: '5px' }}
-              value='myContributions'
-            /> */}
+              value='info'
+            />
           </Tabs>
         </Grid>
       </Grid>
@@ -205,15 +205,14 @@ function Crowdloans({ className }: Props): React.ReactElement<Props> {
         />
       }
 
-      {/* {auction && tabValue === 'myContributions' && chainInfo &&
-        <MyContributionsTab
+      {auction && tabValue === 'info' && chainInfo &&
+        <InfoTab
           auction={auction}
           chainInfo={chainInfo}
           endpoints={endpoints}
-          handleContribute={handleContribute}
           myContributions={myContributions}
         />
-      } */}
+      }
 
       {contributeModal && auction && contributingTo && chainInfo &&
         <Contribute

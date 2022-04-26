@@ -40,9 +40,6 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
   const accountInfo = validatorsIdentities?.find((v) => v.accountId === info?.accountId);
   const chainName = chain?.name.replace(' Relay Chain', '');
   
-  console.log('info?.exposure.own || info?.stakingLedger.active', info?.exposure.own || info?.stakingLedger.active)
-  console.log('info?.exposure.total', info?.exposure.total)
-
   const own = api.createType('Balance', info?.exposure.own || info?.stakingLedger.active);
   const total = api.createType('Balance', info?.exposure.total);
 
