@@ -343,7 +343,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
       console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
 
       // *** TODO: remove if after next version, because of inconsistency in the stored data formats
-      if (!String((validatorsInfoFromStore.metaData as Validators).current[0].stakingLedger.total).includes('.')) {
+      if (!String((validatorsInfoFromStore.metaData as Validators)?.current[0]?.stakingLedger?.total)?.includes('.')) {
         setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
       }
 
@@ -459,7 +459,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
     if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
       // *** TODO: remove if after next version, because of inconsistency in the stored data formats
-      if (!String((nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[])[0].stakingLedger.total).includes('.')) {
+      if (!String((nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[])[0]?.stakingLedger?.total)?.includes('.')) {
         setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
       }
     }
