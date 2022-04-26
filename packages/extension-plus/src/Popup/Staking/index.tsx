@@ -420,7 +420,11 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
       console.log('maxPoolMembersPerPool:', r.unwrap().toNumber())
     );
 
+  // eslint-disable-next-line no-void
+    void api.query.nominationPools.maxPools().then((r) =>
 
+      console.log('maxPools:', r.unwrap().toNumber())
+    );
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
