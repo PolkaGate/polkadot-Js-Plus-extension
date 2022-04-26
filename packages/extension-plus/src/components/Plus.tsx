@@ -57,7 +57,8 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const endpoint = useEndPoint(accounts, address, chain);
-  const api = useApi(endpoint);
+  const stakingPoolTestEndpoint='wss://109.109.36.23'
+  const api = useApi(stakingPoolTestEndpoint);
 
   // useCleanUp(accounts, address);
 
