@@ -10,16 +10,16 @@
 
 import { Email, LaunchRounded, SendTimeExtensionOutlined, Twitter } from '@mui/icons-material';
 import { Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React from 'react';
 
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import { Balance } from '@polkadot/types/interfaces';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import getLogo from '../../util/getLogo';
 import { Crowdloan } from '../../util/plusTypes';
 import { amountToHuman, getWebsiteFavico } from '../../util/plusUtils';
-import { grey } from '@mui/material/colors';
-import { Balance } from '@polkadot/types/interfaces';
 
 interface Props {
   coin: string;
@@ -41,7 +41,7 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
 
   /** FIXME:  new parachains who does not have onchain identity or information in polkadot/apps-config module won't be listed! */
   /** reason: apps-Config needs to be updated regularly buy its developer */
-  if (!name) return (<></>);
+  // if (!name) return (<></>);
 
   return (
     <Grid item sx={{ pb: '10px' }} xs={12}>
@@ -60,6 +60,10 @@ export default function Fund({ coin, crowdloan, decimals, endpoints, handleContr
                 <Grid item>
                   {name?.slice(0, 15)}
                 </Grid>
+                {!name && <Grid item sx={{color: grey[600]}}>
+                  {t('No on-chain identity')}
+                </Grid>
+                }
                 {(crowdloan.identity.info.web || getHomePage(crowdloan.fund.paraId)) &&
                   <Grid item>
                     <Link
