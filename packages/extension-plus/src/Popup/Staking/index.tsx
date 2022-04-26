@@ -409,9 +409,17 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     // );
 
     // eslint-disable-next-line no-void
-    // void api.query.nominationPools.lastPoolId().then((id) =>
-    //   console.log('lastPoolId:', id)
-    // );
+    void api.query.nominationPools.maxPoolMembers().then((r) =>
+
+      console.log('maxPoolMembers:', r.unwrap().toNumber())
+    );
+
+    // eslint-disable-next-line no-void
+    void api.query.nominationPools.maxPoolMembersPerPool().then((r) =>
+
+      console.log('maxPoolMembersPerPool:', r.unwrap().toNumber())
+    );
+
 
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
