@@ -29,7 +29,7 @@ function ShowBalance({ balance, chainInfo, title }: Props): React.ReactElement<P
 
   return (
     <div data-testid='showPlus'>
-      {title && <>{title}:{' '}</>}
+      {title && <>{`${title}: `}</>}
 
       {balance && chainInfo
         ? <>
