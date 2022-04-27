@@ -11,7 +11,13 @@ async function needsRebag (endpoint, currentAccount) {
   const at = await api.rpc.chain.getFinalizedHead();
   const apiAt = await api.at(at);
 
-  const currentCtrl = (await apiAt.query.staking.bonded(currentAccount)).unwrap();
+  const unwrappedCurrentCtrl = await apiAt.query.staking.bonded(currentAccount);
+  const currentCtrl = unwrappedCurrentCtrl.isSome ? unwrappedCurrentCtrl.unwrap() : undefined;
+
+  if (!currentCtrl) {
+    // account does not have staked yet
+    return { currentBagThreshold: '0.00 DOT', shouldRebag: false };
+  }
 
   const currentWeight = api.createType('Balance', (await apiAt.query.staking.ledger(currentCtrl)).unwrapOrDefault().active);
   const unwrapedCurrentNode = await apiAt.query.bagsList.listNodes(currentCtrl);
