@@ -10,7 +10,8 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import { WorkspacesOutlined as WorkspacesOutlinedIcon } from '@mui/icons-material';
+import { grey } from '@mui/material/colors';
+import { WorkspacesOutlined as WorkspacesOutlinedIcon, CircleOutlined as CircleOutlinedIcon } from '@mui/icons-material';
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
@@ -622,18 +623,34 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
       <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
-      <Grid alignItems='center' container justifyContent='space-around' sx={{ fontSize: 15, fontWeight: 600, pt: 4 }} >
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 95, p: 2, width: '40%' }}>
-          {t('Solo staking')}
+      <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: 4 }}>
+        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '46%', cursor:'pointer' }}>
+          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700 }}>
+            <Grid item>
+              <p>{t('Solo staking')}</p>
+            </Grid>
+            <Grid item>
+              <CircleOutlinedIcon sx={{ fontSize: 'medium', p: '20px 0 0 5px' }} />
+            </Grid>
+          </Grid>
+
+          <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }} color={grey[500]}>
+            {t('Lorem ipsum, or lipsum as it is sometimes known, is dummy text used in laying out print, graphic or web designs. The passage is attributed to an unknown')}
+          </Grid>
         </Paper>
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 95, p: 2, width: '40%' }} onClick={() => setPoolStakingOpen(true)}>
-          <Grid container justifyContent='center'>
-            <Grid item xs={12}>
-              {t('Pool staking')}
+
+        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '46%', cursor:'pointer' }} onClick={() => setPoolStakingOpen(true)}>
+          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700 }}>
+            <Grid item>
+              <p>{t('Pool staking')}</p>
             </Grid>
-            <Grid item xs={12} sx={{ pt: 5 }}>
-              <WorkspacesOutlinedIcon sx={{ fontSize: 40 }} />
+            <Grid item>
+              <WorkspacesOutlinedIcon sx={{ fontSize: 40, p: '5px 0 0 5px' }} />
             </Grid>
+          </Grid>
+
+          <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }} color={grey[500]}>
+            {t('Lorem ipsum, or lipsum as it is sometimes known, is dummy text used in laying out print, graphic or web designs. The passage is attributed to an unknown')}
           </Grid>
         </Paper>
       </Grid>
