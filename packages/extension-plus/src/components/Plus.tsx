@@ -31,13 +31,15 @@ import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
 import EasyStaking from '../Popup/Staking';
+import StakingIndex from '../Popup/Staking/StakingIndex';
+
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
 import { SUPPORTED_CHAINS } from '../util/constants';
 import { AccountsBalanceType, BalanceType, SavedMetaData } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
-
+ 
 interface Props {
   address?: string | null;
   formattedAddress?: string | null;
@@ -405,7 +407,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
         />
       }
       {showStakingModal && sender && account && chain &&
-        <EasyStaking
+        <StakingIndex
           account={account}
           api={api}
           chain={chain}
