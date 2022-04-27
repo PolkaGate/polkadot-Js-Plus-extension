@@ -17,12 +17,12 @@ import { ApiPromise } from '@polkadot/api';
 
 export interface Props {
   balance: Balance | bigint | string | number | null | undefined;
-  api: ApiPromise;
+  api: ApiPromise | undefined;
   title?: string;
 }
 
 function ShowBalance2({ api, balance, title }: Props): React.ReactElement<Props> {
-  const amountToHuman = (x: bigint): string => api.createType('Balance', x).toHuman();
+  const amountToHuman = (x: bigint): string | undefined => api && api.createType('Balance', x).toHuman();
 
   return (
     <div data-testid='showPlus'>

@@ -10,11 +10,11 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import { WorkspacesOutlined as WorkspacesOutlinedIcon } from '@mui/icons-material';
+
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
-import { Badge, Box, CircularProgress, Grid, Paper, Tab, Tabs } from '@mui/material';
+import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -41,7 +41,7 @@ import SelectValidators from './SelectValidators';
 import Stake from './Stake';
 import TabPanel from './TabPanel';
 import Unstake from './Unstake';
-import Pools from './Pools';
+import PoolInfoTab from './PoolInfoTab';
 
 interface Props {
   account: AccountJson,
@@ -65,10 +65,9 @@ const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
-export default function StakingIndex({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function Pools({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const endpoint = useEndPoint(account, undefined, chain);
-  const [poolStakingOpen, setPoolStakingOpen] = useState<boolean>(false);
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -409,6 +408,23 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
     //   console.log('erasTotalStake', amountToHuman(t?.toString(), decimals))
     // );
 
+    // eslint-disable-next-line no-void
+    void api.query.nominationPools.maxPoolMembers().then((r) =>
+
+      console.log('maxPoolMembers:', r.unwrap().toNumber())
+    );
+
+    // eslint-disable-next-line no-void
+    void api.query.nominationPools.maxPoolMembersPerPool().then((r) =>
+
+      console.log('maxPoolMembersPerPool:', r.unwrap().toNumber())
+    );
+
+  // eslint-disable-next-line no-void
+    void api.query.nominationPools.maxPools().then((r) =>
+
+      console.log('maxPools:', r.unwrap().toNumber())
+    );
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
@@ -620,35 +636,137 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
   return (
     <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
 
-      <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
+      <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Pool Staking'} />
 
-      <Grid alignItems='center' container justifyContent='space-around' sx={{ fontSize: 15, fontWeight: 600, pt: 4 }} >
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 95, p: 2, width: '40%' }}>
-          {t('Solo staking')}
-        </Paper>
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 95, p: 2, width: '40%' }} onClick={() => setPoolStakingOpen(true)}>
-          <Grid container justifyContent='center'>
-            <Grid item xs={12}>
-              {t('Pool staking')}
-            </Grid>
-            <Grid item xs={12} sx={{ pt: 5 }}>
-              <WorkspacesOutlinedIcon sx={{ fontSize: 40 }} />
-            </Grid>
-          </Grid>
-        </Paper>
+      <Grid alignItems='center' container>
+        <Grid container item xs={12}>
+          <Overview
+            api={api}
+            availableBalanceInHuman={availableBalanceInHuman}
+            currentlyStakedInHuman={currentlyStakedInHuman}
+            handleViewChart={handleViewChart}
+            handleWithdrowUnbound={handleWithdrowUnbound}
+            ledger={ledger}
+            redeemable={redeemable}
+            rewardSlashes={rewardSlashes}
+            totalReceivedReward={totalReceivedReward}
+            unlockingAmount={unlockingAmount}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
+              <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
+                iconPosition='start' label='Info' sx={{ fontSize: 11, px: '15px' }}
+              />
+            </Tabs>
+          </Box>
+          <TabPanel index={0} value={tabValue}>
+            <Stake
+              api={api}
+              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
+              ledger={ledger}
+              nextToStakeButtonBusy={!!stakeAmount && (!ledger || !(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
+              nominatedValidators={nominatedValidators}
+              setStakeAmount={setStakeAmount}
+              setState={setState}
+              staker={staker}
+              stakingConsts={stakingConsts}
+              state={state}
+            />
+          </TabPanel>
+          <TabPanel index={1} value={tabValue}>
+            <Unstake
+              api={api}
+              availableBalance={staker?.balanceInfo?.available ?? 0n}
+              currentlyStakedInHuman={currentlyStakedInHuman}
+              handleNextToUnstake={handleNextToUnstake}
+              ledger={ledger}
+              nextToUnStakeButtonBusy={state === 'unstake'}
+              setUnstakeAmount={setUnstakeAmount}
+              stakingConsts={stakingConsts}
+            />
+          </TabPanel>
+          <TabPanel index={2} padding={1} value={tabValue}>
+            <Nominations
+              activeValidator={activeValidator}
+              api={api}
+              chain={chain}
+              handleRebag={handleRebag}
+              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
+              handleStopNominating={handleStopNominating}
+              ledger={ledger}
+              noNominatedValidators={noNominatedValidators}
+              nominatedValidators={nominatedValidators}
+              nominatorInfo={nominatorInfo}
+              putInFrontInfo={putInFrontInfo}
+              rebagInfo={rebagInfo}
+              staker={staker}
+              stakingConsts={stakingConsts}
+              state={state}
+              validatorsIdentities={validatorsIdentities}
+              validatorsInfo={validatorsInfo}
+            />
+          </TabPanel>
+          <TabPanel index={3} value={tabValue}>
+            <PoolInfoTab
+              api={api}
+            />
+          </TabPanel>
+        </Grid>
       </Grid>
 
-      {poolStakingOpen &&
-        <Pools
-          account={account}
+      {stakingConsts && validatorsInfo &&
+        <SelectValidators
           api={api}
           chain={chain}
           ledger={ledger}
-          redeemable={redeemable}
-          setStakingModalOpen={setStakingModalOpen}
-          showStakingModal={showStakingModal}
+          nominatedValidators={nominatedValidators}
+          setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
+          setState={setState}
+          showSelectValidatorsModal={showSelectValidatorsModal}
+          stakeAmount={stakeAmount}
           staker={staker}
-        />}
+          stakingConsts={stakingConsts}
+          state={state}
+          validatorsIdentities={validatorsIdentities}
+          validatorsInfo={validatorsInfo}
+        />
+      }
+      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api &&
+        <ConfirmStaking
+          amount={getAmountToConfirm()}
+          api={api}
+          chain={chain}
+          handleEasyStakingModalClose={handleEasyStakingModalClose}
+          ledger={ledger}
+          nominatedValidators={nominatedValidators}
+          putInFrontInfo={putInFrontInfo}
+          rebagInfo={rebagInfo}
+          selectedValidators={selectedValidators}
+          setConfirmStakingModalOpen={setConfirmStakingModalOpen}
+          setState={setState}
+          showConfirmStakingModal={showConfirmStakingModal}
+          staker={staker}
+          stakingConsts={stakingConsts}
+          state={state}
+          validatorsIdentities={validatorsIdentities}
+        />
+      }
+
+      {rewardSlashes && showChartModal && api &&
+        <RewardChart
+          api={api}
+          chain={chain}
+          rewardSlashes={rewardSlashes}
+          setChartModalOpen={setChartModalOpen}
+          showChartModal={showChartModal}
+        />
+      }
     </Popup>
   );
 }
