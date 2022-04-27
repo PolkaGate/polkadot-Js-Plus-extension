@@ -206,7 +206,7 @@ describe('Testing Democracy component', () => {
   });
 
   test('Checking the Proposal\'s tab elements', () => {
-    const { queryByRole, queryByText } = render(
+    const { queryAllByRole, queryAllByText, queryByText } = render(
       <DemocracyProposals
         chain={chain}
         chainInfo={chainInfo}
@@ -218,14 +218,14 @@ describe('Testing Democracy component', () => {
       expect(queryByText('No active proposal')).toBeFalsy();
       if (pValue) expect(queryByText(`${pMeta.section}. ${pMeta.method}`)).toBeTruthy();
       expect(queryByText(`#${pIndex}`)).toBeTruthy();
-      expect(queryByText(`Locked: ${locked} ${chainInfo.coin}`)).toBeTruthy();
-      expect(queryByText(`Deposit: ${deposit} ${chainInfo.coin}`)).toBeTruthy();
-      expect(queryByText(`Seconds: ${seconds}`)).toBeTruthy();
+      expect(queryAllByText(`Locked: ${locked} ${chainInfo.coin}`)).toBeTruthy();
+      expect(queryAllByText(`Deposit: ${deposit} ${chainInfo.coin}`)).toBeTruthy();
+      expect(queryAllByText(`Seconds: ${seconds}`)).toBeTruthy();
       // expect(queryByText(pDescription)).toBeTruthy();
-      expect(queryByText('Proposer')).toBeTruthy();
+      expect(queryAllByText('Proposer')).toBeTruthy();
       expect(queryByText(proposalsInfo.accountsInfo[0].identity.display)).toBeTruthy();
       expect(queryByText(proposalsInfo.accountsInfo[0].accountId)).toBeTruthy();
-      expect(queryByRole('button')).toBeTruthy();
+      expect(queryAllByRole('button')).toBeTruthy();
     } else {
       expect(queryByText('No active proposal')).toBeTruthy();
     }
