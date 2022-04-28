@@ -70,6 +70,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
   const { t } = useTranslation();
   const endpoint = useEndPoint(account, undefined, chain);
   const [poolStakingOpen, setPoolStakingOpen] = useState<boolean>(false);
+  const [stakingType, setStakingType] = useState<string | undefined>(undefined);
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -624,28 +625,28 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
       <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
       <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: 6 }}>
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '40%', cursor: 'pointer' }}>
-          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700 }}>
+        <Paper elevation={stakingType === 'solo' ? 8 : 4} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '40%', cursor: 'pointer' }} onMouseOver={() => setStakingType('solo')}>
+          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700, py: 3 }}>
             <Grid item>
-              <p>{t('Solo staking')}</p>
+              <p>{t('SOLO STAKING')}</p>
             </Grid>
             <Grid item>
-              <CircleOutlinedIcon sx={{ fontSize: 'medium', p: '20px 0 0 5px' }} />
+              <CircleOutlinedIcon sx={{ fontSize: 30, p: '15px 0 0 5px' }} />
             </Grid>
           </Grid>
 
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }} color={grey[500]}>
-            {t('Lorem ipsum, or lipsum as it is sometimes known, is dummy text used in laying out print, graphic or web designs. The passage is attributed to an unknown')}
+            {t('If one has enough tokens to stake, solo staking can be chosen. The staker will be responsible to choose validators and keep eyes on them to re-moninate when needed.')}
           </Grid>
         </Paper>
 
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '40%', cursor: 'pointer' }} onClick={() => setPoolStakingOpen(true)}>
-          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700 }}>
+        <Paper elevation={stakingType === 'pool' ? 8 : 4} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '40%', cursor: 'pointer' }} onMouseOver={() => setStakingType('pool')} onClick={() => setPoolStakingOpen(true)}>
+          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700, py: 3 }}>
             <Grid item>
-              <p>{t('Pool staking')}</p>
+              <p>{t('POOL STAKING')}</p>
             </Grid>
             <Grid item>
-              <WorkspacesOutlinedIcon sx={{ fontSize: 40, p: '5px 0 0 5px' }} />
+              <WorkspacesOutlinedIcon sx={{ fontSize: 40, p: '10px 0 0 5px' }} />
             </Grid>
           </Grid>
 

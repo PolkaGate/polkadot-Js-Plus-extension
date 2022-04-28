@@ -10,6 +10,8 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { Bytes, Option } from '@polkadot/types';
+import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsRewardPool, PalletNominationPoolsPoolMember, PalletStakingNominations } from '@polkadot/types/lookup';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -409,22 +411,31 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
     // );
 
     // eslint-disable-next-line no-void
-    void api.query.nominationPools.maxPoolMembers().then((r) =>
-
-      console.log('maxPoolMembers:', r.unwrap().toNumber())
+    void api.query.nominationPools.metadata(1).then((metadata: Bytes) =>
+      console.log('metadata:',
+        metadata.length
+          ? metadata.isUtf8
+            ? metadata.toUtf8()
+            : metadata.toString()
+          : null)
     );
 
-    // eslint-disable-next-line no-void
-    void api.query.nominationPools.maxPoolMembersPerPool().then((r) =>
-
-      console.log('maxPoolMembersPerPool:', r.unwrap().toNumber())
+    // eslint-disable-next-line no-void, point state , member counter, roles: root, ...
+    void api.query.nominationPools.bondedPools(1).then((r: Option<PalletNominationPoolsBondedPoolInner>) =>
+      console.log('bondedPools:', r.unwrap())
     );
 
-  // eslint-disable-next-line no-void
-    void api.query.nominationPools.maxPools().then((r) =>
-
-      console.log('maxPools:', r.unwrap().toNumber())
+    // eslint-disable-next-line no-void  information about balance, totalearning, apoints of a pool
+    void api.query.nominationPools.rewardPools(1).then((r: Option<PalletNominationPoolsRewardPool>) =>
+      console.log('rewardPools:', r.unwrap())
     );
+
+    // eslint-disable-next-line no-void  
+    void api.query.nominationPools.poolMembers('5CiPPseXPECbkjWCa6MnjNokrgYjMqmKndv2rSnekmSK2DjL').then((r: Option<PalletNominationPoolsPoolMember>[]) =>
+      console.log('poolMembers:', r.unwrap())
+    );
+
+
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
