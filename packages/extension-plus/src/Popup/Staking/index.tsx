@@ -342,10 +342,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
       console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
 
-      // *** TODO: remove if after next version, because of inconsistency in the stored data formats
-      if (!String((validatorsInfoFromStore.metaData as Validators)?.current[0]?.stakingLedger?.total)?.includes('.')) {
-        setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
-      }
+      setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
 
       setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
       console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
@@ -403,28 +400,6 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     //   console.log('totalIssuance', amountToHuman(t?.toString(), decimals))
     // );
 
-    // // eslint-disable-next-line no-void
-    // void api.query.balances.erasTotalStake().then((t) =>
-    //   console.log('erasTotalStake', amountToHuman(t?.toString(), decimals))
-    // );
-
-    // eslint-disable-next-line no-void
-    void api.query.nominationPools.maxPoolMembers().then((r) =>
-
-      console.log('maxPoolMembers:', r.unwrap().toNumber())
-    );
-
-    // eslint-disable-next-line no-void
-    void api.query.nominationPools.maxPoolMembersPerPool().then((r) =>
-
-      console.log('maxPoolMembersPerPool:', r.unwrap().toNumber())
-    );
-
-  // eslint-disable-next-line no-void
-    void api.query.nominationPools.maxPools().then((r) =>
-
-      console.log('maxPools:', r.unwrap().toNumber())
-    );
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
@@ -470,10 +445,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     const nominatedValidatorsInfoFromLocalStrorage: SavedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
 
     if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
-      // *** TODO: remove if after next version, because of inconsistency in the stored data formats
-      if (!String((nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[])[0]?.stakingLedger?.total)?.includes('.')) {
         setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
-      }
     }
 
     // **** retrive validators identities from local storage
