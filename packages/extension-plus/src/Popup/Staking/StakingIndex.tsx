@@ -623,8 +623,8 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
       <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
-      <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: 4 }}>
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '46%', cursor:'pointer' }}>
+      <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: 6 }}>
+        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '40%', cursor: 'pointer' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700 }}>
             <Grid item>
               <p>{t('Solo staking')}</p>
@@ -639,7 +639,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
           </Grid>
         </Paper>
 
-        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '46%', cursor:'pointer' }} onClick={() => setPoolStakingOpen(true)}>
+        <Paper elevation={4} sx={{ borderRadius: '10px', height: 200, pt: 1, width: '40%', cursor: 'pointer' }} onClick={() => setPoolStakingOpen(true)}>
           <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700 }}>
             <Grid item>
               <p>{t('Pool staking')}</p>
