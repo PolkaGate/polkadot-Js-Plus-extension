@@ -15,7 +15,7 @@ import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, Pall
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
+import { WorkspacesOutlined as WorkspacesOutlinedIcon, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -24,25 +24,25 @@ import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/type
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { updateMeta } from '../../../../extension-ui/src/messaging';
-import { PlusHeader, Popup } from '../../components';
-import Hint from '../../components/Hint';
-import useEndPoint from '../../hooks/useEndPoint';
-import getRewardsSlashes from '../../util/api/getRewardsSlashes';
-import { getStakingReward } from '../../util/api/staking';
-import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
-import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
-import ConfirmStaking from './ConfirmStaking';
-import InfoTab from './InfoTab';
-import Nominations from './Nominations';
-import Overview from './Overview';
-import RewardChart from './RewardChart';
-import SelectValidators from './SelectValidators';
-import Stake from './Stake';
-import TabPanel from './TabPanel';
-import Unstake from './Unstake';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { updateMeta } from '../../../../../extension-ui/src/messaging';
+import { PlusHeader, Popup } from '../../../components';
+import Hint from '../../../components/Hint';
+import useEndPoint from '../../../hooks/useEndPoint';
+import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
+import { getStakingReward } from '../../../util/api/staking';
+import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
+import { AccountsBalanceType, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
+import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
+import ConfirmStaking from '../ConfirmStaking';
+import InfoTab from '../InfoTab';
+import Nominations from '../Nominations';
+import Overview from '../Overview';
+import RewardChart from '../RewardChart';
+import SelectValidators from '../SelectValidators';
+import Pools from './Pools';
+import TabPanel from '../TabPanel';
+import Unstake from '../Unstake';
 import PoolInfoTab from './PoolInfoTab';
 
 interface Props {
@@ -67,9 +67,11 @@ const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
-export default function Pools({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function PoolStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+
   const endpoint = useEndPoint(account, undefined, chain);
+  const [poolsInfo, setPoolsInfo] = useState()
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -98,9 +100,6 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
   const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
   const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
   const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
-  const [nominatorInfo, setNominatorInfo] = useState<{ minNominated: bigint, isInList: boolean } | undefined>();
-  const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
-  const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
 
   const decimals = api && api.registry.chainDecimals[0];
   const chainName = chain?.name.replace(' Relay Chain', '');
@@ -109,80 +108,9 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
     setTabValue(newValue);
   }, []);
 
-  const checkNeedsTuneUp = (endpoint: string, stakerAddress: string) => {
-    checkNeedsRebag(endpoint, stakerAddress);
-    checkNeedsPutInFrontOf(endpoint, stakerAddress);
-  };
-
-  const checkNeedsRebag = (endpoint: string, stakerAddress: string) => {
-    const needsRebag: Worker = new Worker(new URL('../../util/workers/needsRebag.js', import.meta.url));
-
-    workers.push(needsRebag);
-
-    needsRebag.postMessage({ endpoint, stakerAddress });
-
-    needsRebag.onerror = (err) => {
-      console.log(err);
-    };
-
-    needsRebag.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const info: RebagInfo | undefined = e.data;
-
-      setRebagInfo(info);
-
-      needsRebag.terminate();
-    };
-  };
-
-  const checkNeedsPutInFrontOf = (endpoint: string, stakerAddress: string) => {
-    const needsPutInFrontOf: Worker = new Worker(new URL('../../util/workers/needsPutInFrontOf.js', import.meta.url));
-
-    workers.push(needsPutInFrontOf);
-
-    needsPutInFrontOf.postMessage({ endpoint, stakerAddress });
-
-    needsPutInFrontOf.onerror = (err) => {
-      console.log(err);
-    };
-
-    needsPutInFrontOf.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const lighter: string | undefined = e.data;
-
-      console.log('lighter:', lighter);
-
-      setPutInFrontOfInfo({ lighter: lighter, shouldPutInFront: !!lighter });
-      needsPutInFrontOf.terminate();
-    };
-  };
-
-  // const getStakingRewardsFromChain = (chain: Chain, stakerAddress: string) => {
-  //   // TODO: does not work on polkadot/kusama but Westend!!
-  //   /**  get some staking rewards ,... */
-  //   const getRewards: Worker = new Worker(new URL('../../util/workers/getRewards.js', import.meta.url));
-
-  //   workers.push(getRewards);
-
-  //   getRewards.postMessage({ chain, stakerAddress });
-
-  //   getRewards.onerror = (err) => {
-  //     console.log(err);
-  //   };
-
-  //   getRewards.onmessage = (e: MessageEvent<any>) => {
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  //     const rewards: RewardInfo[] = e.data;
-
-  //     setRewardSlashes((r) => r.concat(rewards));
-  //     console.log('REWARDS:', rewards);
-
-  //     getRewards.terminate();
-  //   };
-  // };
 
   const getNominations = (endpoint: string, stakerAddress: string) => {
-    const getNominatorsWorker: Worker = new Worker(new URL('../../util/workers/getNominations.js', import.meta.url));
+    const getNominatorsWorker: Worker = new Worker(new URL('../../../util/workers/getNominations.js', import.meta.url));
 
     workers.push(getNominatorsWorker);
 
@@ -203,65 +131,34 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
     };
   };
 
-  const getStakingConsts = (chain: Chain, endpoint: string) => {
-    /** 1- get some staking constant like min Nominator Bond ,... */
-    const getStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getStakingConsts.js', import.meta.url));
+  const getPools = (endpoint: string) => {
+    const getPoolsWorker: Worker = new Worker(new URL('../../../util/workers/getPools.js', import.meta.url));
 
-    workers.push(getStakingConstsWorker);
+    workers.push(getPoolsWorker);
 
-    getStakingConstsWorker.postMessage({ endpoint });
+    getPoolsWorker.postMessage({ endpoint });
 
-    getStakingConstsWorker.onerror = (err) => {
+    getPoolsWorker.onerror = (err) => {
       console.log(err);
     };
 
-    getStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
+    getPoolsWorker.onmessage = (e: MessageEvent<any>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const sConsts: StakingConsts = e.data;
+      const poolsInfo: string = e.data;
 
-      if (sConsts) {
-        setStakingConsts(sConsts);
+      if (poolsInfo) {
 
-        setgettingStakingConstsFromBlockchain(false);
-
-        if (staker?.address) {
-          //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
-
-          // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
-          // eslint-disable-next-line no-void
-          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
-        }
+        console.log('poolsInfo:', JSON.parse(poolsInfo));
+        
+        setPoolsInfo(JSON.parse(poolsInfo))
       }
 
-      getStakingConstsWorker.terminate();
-    };
-  };
-
-  const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
-    const getNominatorInfoWorker: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
-
-    workers.push(getNominatorInfoWorker);
-
-    getNominatorInfoWorker.postMessage({ endpoint, stakerAddress });
-
-    getNominatorInfoWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getNominatorInfoWorker.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const nominatorInfo = e.data;
-
-      console.log('nominatorInfo:', nominatorInfo);
-
-      setNominatorInfo(nominatorInfo);
-      getNominatorInfoWorker.terminate();
+      getPoolsWorker.terminate();
     };
   };
 
   const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
-    const getValidatorsInfoWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsInfo.js', import.meta.url));
+    const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
 
     workers.push(getValidatorsInfoWorker);
 
@@ -326,16 +223,9 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
 
   useEffect(() => {
     /** get some staking constant like min Nominator Bond ,... */
-    endpoint && getStakingConsts(chain, endpoint);
-
-    /**  get nominator staking info to consider rebag ,... */
-    endpoint && getNominatorInfo(endpoint, staker.address);
-
+    endpoint && getPools(endpoint); 
     // *** get nominated validators list
     endpoint && getNominations(endpoint, staker.address);
-
-    /** to check if rebag and putInFrontOf is needed */
-    endpoint && checkNeedsTuneUp(endpoint, staker.address);
 
     /** retrive validatorInfo from local sorage */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -363,7 +253,7 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
 
     const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
     /** get validators identities */
-    const getValidatorsIdWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsId.js', import.meta.url));
+    const getValidatorsIdWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsId.js', import.meta.url));
 
     workers.push(getValidatorsIdWorker);
 
@@ -394,47 +284,6 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
 
   useEffect(() => {
     if (!api || !decimals) return;
-
-    // // eslint-disable-next-line no-void
-    // void api.derive.staking.stakerRewards(staker.address).then((t) =>
-    //   console.log('stakerRewards', JSON.parse(JSON.stringify(t)))
-    // );
-
-    // // eslint-disable-next-line no-void
-    // void api.query.balances.totalIssuance().then((t) =>
-    //   console.log('totalIssuance', amountToHuman(t?.toString(), decimals))
-    // );
-
-    // // eslint-disable-next-line no-void
-    // void api.query.balances.erasTotalStake().then((t) =>
-    //   console.log('erasTotalStake', amountToHuman(t?.toString(), decimals))
-    // );
-
-    // eslint-disable-next-line no-void
-    void api.query.nominationPools.metadata(1).then((metadata: Bytes) =>
-      console.log('metadata:',
-        metadata.length
-          ? metadata.isUtf8
-            ? metadata.toUtf8()
-            : metadata.toString()
-          : null)
-    );
-
-    // eslint-disable-next-line no-void, point state , member counter, roles: root, ...
-    void api.query.nominationPools.bondedPools(1).then((r: Option<PalletNominationPoolsBondedPoolInner>) =>
-      console.log('bondedPools:', r.unwrap())
-    );
-
-    // eslint-disable-next-line no-void  information about balance, totalearning, apoints of a pool
-    void api.query.nominationPools.rewardPools(1).then((r: Option<PalletNominationPoolsRewardPool>) =>
-      console.log('rewardPools:', r.unwrap())
-    );
-
-    // eslint-disable-next-line no-void  
-    void api.query.nominationPools.poolMembers('5CiPPseXPECbkjWCa6MnjNokrgYjMqmKndv2rSnekmSK2DjL').then((r: Option<PalletNominationPoolsPoolMember>[]) =>
-      console.log('poolMembers:', r.unwrap())
-    );
-
 
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
@@ -625,7 +474,7 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
   }, [nominatedValidators, staker.address]);
 
   const NominationsIcon = useMemo((): React.ReactElement<any> => (
-    gettingNominatedValidatorsInfoFromChain || !rebagInfo || !putInFrontInfo
+    gettingNominatedValidatorsInfoFromChain
       ? <CircularProgress size={12} sx={{ px: '5px' }} thickness={2} />
       : Number(currentlyStakedInHuman) && !nominatedValidators?.length
         ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
@@ -642,7 +491,7 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
               </Badge>
             </Hint>
             : <CheckOutlined fontSize='small' />
-  ), [gettingNominatedValidatorsInfoFromChain, rebagInfo, putInFrontInfo, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
+  ), [gettingNominatedValidatorsInfoFromChain, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
   return (
     <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
@@ -667,7 +516,7 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
         <Grid item xs={12}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
-              <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={<WorkspacesOutlinedIcon fontSize='small' />} iconPosition='start' label='Pools' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
@@ -676,18 +525,11 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
             </Tabs>
           </Box>
           <TabPanel index={0} value={tabValue}>
-            <Stake
+            <Pools
               api={api}
-              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
-              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
-              ledger={ledger}
-              nextToStakeButtonBusy={!!stakeAmount && (!ledger || !(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
-              nominatedValidators={nominatedValidators}
-              setStakeAmount={setStakeAmount}
-              setState={setState}
+              chain={chain}
+              poolsInfo={poolsInfo}
               staker={staker}
-              stakingConsts={stakingConsts}
-              state={state}
             />
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
@@ -713,9 +555,6 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
               ledger={ledger}
               noNominatedValidators={noNominatedValidators}
               nominatedValidators={nominatedValidators}
-              nominatorInfo={nominatorInfo}
-              putInFrontInfo={putInFrontInfo}
-              rebagInfo={rebagInfo}
               staker={staker}
               stakingConsts={stakingConsts}
               state={state}
@@ -756,8 +595,6 @@ export default function Pools({ account, api, chain, ledger, redeemable, setStak
           handleEasyStakingModalClose={handleEasyStakingModalClose}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
-          putInFrontInfo={putInFrontInfo}
-          rebagInfo={rebagInfo}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setState={setState}

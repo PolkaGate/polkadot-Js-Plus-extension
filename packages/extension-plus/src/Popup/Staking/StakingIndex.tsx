@@ -10,8 +10,8 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import { grey } from '@mui/material/colors';
-import { WorkspacesOutlined as WorkspacesOutlinedIcon, CircleOutlined as CircleOutlinedIcon } from '@mui/icons-material';
+import { blue, green, grey } from '@mui/material/colors';
+import { GroupWorkOutlined as GroupWorkOutlinedIcon , CircleOutlined as CircleOutlinedIcon } from '@mui/icons-material';
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
@@ -42,7 +42,7 @@ import SelectValidators from './SelectValidators';
 import Stake from './Stake';
 import TabPanel from './TabPanel';
 import Unstake from './Unstake';
-import Pools from './Pools';
+import PoolStaking from './PoolStaking/PoolStaking';
 
 interface Props {
   account: AccountJson,
@@ -396,21 +396,6 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
   useEffect(() => {
     if (!api || !decimals) return;
 
-    // // eslint-disable-next-line no-void
-    // void api.derive.staking.stakerRewards(staker.address).then((t) =>
-    //   console.log('stakerRewards', JSON.parse(JSON.stringify(t)))
-    // );
-
-    // // eslint-disable-next-line no-void
-    // void api.query.balances.totalIssuance().then((t) =>
-    //   console.log('totalIssuance', amountToHuman(t?.toString(), decimals))
-    // );
-
-    // // eslint-disable-next-line no-void
-    // void api.query.balances.erasTotalStake().then((t) =>
-    //   console.log('erasTotalStake', amountToHuman(t?.toString(), decimals))
-    // );
-
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
@@ -625,39 +610,39 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
       <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
       <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: 6 }}>
-        <Paper elevation={stakingType === 'solo' ? 8 : 4} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '40%', cursor: 'pointer' }} onMouseOver={() => setStakingType('solo')}>
-          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700, py: 3 }}>
-            <Grid item>
+        <Paper elevation={stakingType === 'solo' ? 8 : 4} onMouseOver={() => setStakingType('solo')} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '40%', cursor: 'pointer' }}>
+          <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
+            <Grid color={blue[600]}  item>
               <p>{t('SOLO STAKING')}</p>
             </Grid>
             <Grid item>
-              <CircleOutlinedIcon sx={{ fontSize: 30, p: '15px 0 0 5px' }} />
+              <CircleOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px' }} />
             </Grid>
           </Grid>
 
-          <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }} color={grey[500]}>
+          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
             {t('If one has enough tokens to stake, solo staking can be chosen. The staker will be responsible to choose validators and keep eyes on them to re-moninate when needed.')}
           </Grid>
         </Paper>
 
-        <Paper elevation={stakingType === 'pool' ? 8 : 4} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '40%', cursor: 'pointer' }} onMouseOver={() => setStakingType('pool')} onClick={() => setPoolStakingOpen(true)}>
-          <Grid container justifyContent='center' sx={{ fontSize: 16, fontWeight: 700, py: 3 }}>
-            <Grid item>
+        <Paper elevation={stakingType === 'pool' ? 8 : 4} onClick={() => setPoolStakingOpen(true)} onMouseOver={() => setStakingType('pool')} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '40%', cursor: 'pointer' }}>
+          <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
+            <Grid color={green[600]} item>
               <p>{t('POOL STAKING')}</p>
             </Grid>
             <Grid item>
-              <WorkspacesOutlinedIcon sx={{ fontSize: 40, p: '10px 0 0 5px' }} />
+              <GroupWorkOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px' }} />
             </Grid>
           </Grid>
 
-          <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }} color={grey[500]}>
-            {t('Lorem ipsum, or lipsum as it is sometimes known, is dummy text used in laying out print, graphic or web designs. The passage is attributed to an unknown')}
+          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
+            {t('Stakers with a small amount of tokens can join/create a pool, stake together, and receive rewards. Each pool has roles such as root, creator, nominator, and toggler')}
           </Grid>
         </Paper>
       </Grid>
 
       {poolStakingOpen &&
-        <Pools
+        <PoolStaking
           account={account}
           api={api}
           chain={chain}
