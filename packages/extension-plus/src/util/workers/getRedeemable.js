@@ -4,7 +4,7 @@
 
 import getApi from '../getApi.ts';
 
-async function getRedeemable (stashAccountId, endpoint ) {
+async function getRedeemable (stashAccountId, endpoint) {
   console.log(`getRedeemable is called for ${stashAccountId} endpoint:${endpoint}`);
 
   const api = await getApi(endpoint);
