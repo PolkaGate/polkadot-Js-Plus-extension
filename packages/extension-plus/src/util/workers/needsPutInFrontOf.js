@@ -12,7 +12,15 @@ async function needsPutInFrontOf (endpoint, target) {
   const apiAt = await api.at(at);
 
   const targetAccount = api.createType('AccountId', target);
-  const targetCtrl = (await apiAt.query.staking.bonded(targetAccount)).unwrap();
+  const unwrappedTargetCtrl = await apiAt.query.staking.bonded(targetAccount);
+  const targetCtrl = unwrappedTargetCtrl.isSome ? unwrappedTargetCtrl.unwrap() : undefined;
+
+  if (!targetCtrl) {
+    // account does not have staked yet
+
+    return undefined;
+  }
+
   const targetWeight = api.createType('Balance', (await apiAt.query.staking.ledger(targetCtrl)).unwrapOrDefault().active);
   const unWrappedTargetNode = await apiAt.query.bagsList.listNodes(targetCtrl);
   const targetNode = unWrappedTargetNode.isSome ? unWrappedTargetNode.unwrap() : undefined;
