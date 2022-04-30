@@ -9,7 +9,7 @@ async function getPools (endpoint) {
 
   const lastPoolId = await api.query.nominationPools.lastPoolId();
 
-  console.log(`gepools for lastPoolId.toNumber()`, lastPoolId.toNumber())
+  console.log('gepools for lastPoolId.toNumber()', lastPoolId.toNumber());
   if (!lastPoolId) return null;
 
   const queries = [];
@@ -22,26 +22,23 @@ async function getPools (endpoint) {
     ]));
   }
 
-  console.log('queries in worker',queries)
+  console.log('queries in worker', queries);
 
   const poolsInfo = await Promise.all(queries);
 
-  console.log('poolsInfo in worker',poolsInfo)
-
-
   const info = poolsInfo.map((poolInfo) => {
     return {
+      bondedPools: poolInfo[1].isSome ? poolInfo[1].unwrap() : null,
       metadata: poolInfo[0].length
         ? poolInfo[0].isUtf8
           ? poolInfo[0].toUtf8()
           : poolInfo[0].toString()
         : null,
-      bondedPools: poolInfo[1].isSome ? poolInfo[1].unwrap() : null,
-      rewardPools: poolInfo[1].isSome ? poolInfo[2].unwrap() : null
+      rewardPools: poolInfo[2].isSome ? poolInfo[2].unwrap() : null
     };
   });
 
-  console.log('info in worker',info)
+  console.log('info in worker', info);
 
   return JSON.stringify(info);
 }

@@ -35,7 +35,6 @@ import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
 import { AccountsBalanceType, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import ConfirmStaking from '../ConfirmStaking';
-import InfoTab from '../InfoTab';
 import Nominations from '../Nominations';
 import Overview from '../Overview';
 import RewardChart from '../RewardChart';
@@ -43,7 +42,7 @@ import SelectValidators from '../SelectValidators';
 import Pools from './Pools';
 import TabPanel from '../TabPanel';
 import Unstake from '../Unstake';
-import PoolInfoTab from './PoolInfoTab';
+import InfoTab from './InfoTab';
 
 interface Props {
   account: AccountJson,
@@ -67,11 +66,11 @@ const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
-export default function PoolStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function Index({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const endpoint = useEndPoint(account, undefined, chain);
-  const [poolsInfo, setPoolsInfo] = useState()
+  const [poolsInfo, setPoolsInfo] = useState();
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -149,7 +148,7 @@ export default function PoolStaking({ account, api, chain, ledger, redeemable, s
       if (poolsInfo) {
 
         console.log('poolsInfo:', JSON.parse(poolsInfo));
-        
+
         setPoolsInfo(JSON.parse(poolsInfo))
       }
 
@@ -195,6 +194,9 @@ export default function PoolStaking({ account, api, chain, ledger, redeemable, s
       setCurrentEraIndex(Number(ce));
     });
 
+    api && void api.query.nominationPools.poolMembers('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY').then((res) => {
+      console.log('members', res.isSome && res.unwrap())
+    })
     // staker.address && getStakingRewardsFromChain(chain, staker.address);
 
     // eslint-disable-next-line no-void
@@ -223,7 +225,7 @@ export default function PoolStaking({ account, api, chain, ledger, redeemable, s
 
   useEffect(() => {
     /** get some staking constant like min Nominator Bond ,... */
-    endpoint && getPools(endpoint); 
+    endpoint && getPools(endpoint);
     // *** get nominated validators list
     endpoint && getNominations(endpoint, staker.address);
 
@@ -473,6 +475,10 @@ export default function PoolStaking({ account, api, chain, ledger, redeemable, s
     setActiveValidator(active);
   }, [nominatedValidators, staker.address]);
 
+  const PoolsIcon = useMemo((): React.ReactElement<any> => (
+    !poolsInfo ? <CircularProgress size={12} thickness={2} /> : <WorkspacesOutlinedIcon fontSize='small' />
+  ), [poolsInfo]);
+
   const NominationsIcon = useMemo((): React.ReactElement<any> => (
     gettingNominatedValidatorsInfoFromChain
       ? <CircularProgress size={12} sx={{ px: '5px' }} thickness={2} />
@@ -516,7 +522,7 @@ export default function PoolStaking({ account, api, chain, ledger, redeemable, s
         <Grid item xs={12}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
-              <Tab icon={<WorkspacesOutlinedIcon fontSize='small' />} iconPosition='start' label='Pools' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={PoolsIcon} iconPosition='start' label='Pools' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
@@ -563,7 +569,7 @@ export default function PoolStaking({ account, api, chain, ledger, redeemable, s
             />
           </TabPanel>
           <TabPanel index={3} value={tabValue}>
-            <PoolInfoTab
+            <InfoTab
               api={api}
             />
           </TabPanel>

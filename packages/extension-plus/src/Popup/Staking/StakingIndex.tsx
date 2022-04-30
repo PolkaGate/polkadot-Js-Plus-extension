@@ -10,12 +10,13 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import { blue, green, grey } from '@mui/material/colors';
-import { GroupWorkOutlined as GroupWorkOutlinedIcon , CircleOutlined as CircleOutlinedIcon } from '@mui/icons-material';
+
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { CircleOutlined as CircleOutlinedIcon,GroupWorkOutlined as GroupWorkOutlinedIcon  } from '@mui/icons-material';
 import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Paper, Tab, Tabs } from '@mui/material';
+import { blue, green, grey } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -33,6 +34,7 @@ import { getStakingReward } from '../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
 import { AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
+import PoolStaking from './PoolStaking/Index';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
 import Nominations from './Nominations';
@@ -42,7 +44,6 @@ import SelectValidators from './SelectValidators';
 import Stake from './Stake';
 import TabPanel from './TabPanel';
 import Unstake from './Unstake';
-import PoolStaking from './PoolStaking/PoolStaking';
 
 interface Props {
   account: AccountJson,

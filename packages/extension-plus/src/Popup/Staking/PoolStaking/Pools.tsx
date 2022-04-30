@@ -12,7 +12,7 @@ import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { MoreVert as MoreVertIcon, Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon } from '@mui/icons-material';
 import { Box, Button, Button as MuiButton, Checkbox, FormControlLabel, Grid, Paper } from '@mui/material';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
@@ -22,6 +22,7 @@ import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation
 import { Hint, Progress } from '../../../components';
 import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
 import { grey } from '@mui/material/colors';
+import PoolInfo from './PoolInfo';
 
 interface Props {
   chain: Chain;
@@ -32,6 +33,19 @@ interface Props {
 
 export default function Nominations({ api, chain, poolsInfo, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const [info, setInfo] = useState(undefined);
+  const [showPoolInfo, setShowPoolInfo] = useState(false);
+
+  const handleMorePoolInfoOpen = useCallback((i) => {
+    setInfo(i);
+    setShowPoolInfo(true);
+  }, []);
+
+  const handleMorePoolInfoClose = useCallback((i) => {
+    setInfo(undefined);
+    setShowPoolInfo(false);
+  }, []);
+
 
   return (
     <Grid container sx={{ p: 0 }}>
@@ -52,13 +66,13 @@ export default function Nominations({ api, chain, poolsInfo, staker }: Props): R
               <Grid item sx={{ textAlign: 'left' }} xs={1}>
                 {t('state')}
               </Grid>
-              <Grid sx={{ textAlign: 'center' }} item xs={3}>
+              <Grid item sx={{ textAlign: 'center' }} xs={3}>
                 {t('Points')}
               </Grid>
-              <Grid sx={{ textAlign: 'center' }} item xs={2}>
+              <Grid item sx={{ textAlign: 'center' }} xs={2}>
                 {t('Members')}
               </Grid>
-              <Grid sx={{ textAlign: 'center' }} item xs={1}>
+              <Grid item sx={{ textAlign: 'center' }} xs={1}>
                 {t('Join')}
               </Grid>
             </Grid>
@@ -69,11 +83,11 @@ export default function Nominations({ api, chain, poolsInfo, staker }: Props): R
                 const points = api.createType('Balance', p.bondedPools.points);
 
                 return (
-                  <Paper key={index} elevation={2} sx={{ backgroundColor: '', borderRadius: '10px', mt: '4px', p: '1px 10px 2px 0px' }}>
+                  <Paper elevation={2} key={index} sx={{ backgroundColor: '', borderRadius: '10px', mt: '4px', p: '1px 10px 2px 0px' }}>
                     <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
                       <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
-                        <MoreVertIcon fontSize='small' sx={{ cursor: 'pointer' }} />
+                        <MoreVertIcon fontSize='small' onClick={() => handleMorePoolInfoOpen(p)} sx={{ cursor: 'pointer' }} />
                       </Grid>
                       <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
                         {index + 1}
@@ -91,7 +105,7 @@ export default function Nominations({ api, chain, poolsInfo, staker }: Props): R
                         {p.bondedPools.memberCounter}
                       </Grid>
                       <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
-                        <AddIcon fontSize='small' sx={{ cursor: 'pointer' }} color='warning' />
+                        <AddIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />
                       </Grid>
                     </Grid>
                   </Paper>
@@ -118,19 +132,27 @@ export default function Nominations({ api, chain, poolsInfo, staker }: Props): R
             <Grid item>
               <Button
                 // onClick={handleStopNominating}
+                color='warning'
                 size='medium'
                 startIcon={<AddCircleOutlineIcon />}
                 sx={{ textTransform: 'none' }}
                 variant='text'
-                color='warning'
               >
                 {t('Add pool')}
               </Button>
             </Grid>
           </Grid>
-
         </>
         : <Progress title={t('Loading pools ....')} />
+      }
+      {showPoolInfo && info &&
+        <PoolInfo
+          api={api}
+          chain={chain}
+          handleMorePoolInfoClose={handleMorePoolInfoClose} 
+          info={info}
+          showPoolInfo={showPoolInfo}
+        />
       }
     </Grid>
 

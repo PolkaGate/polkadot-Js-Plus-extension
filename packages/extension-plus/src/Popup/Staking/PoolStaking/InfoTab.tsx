@@ -22,7 +22,7 @@ interface Props {
   api: ApiPromise | undefined;
 }
 
-function PoolInfoTab({ api }: Props): React.ReactElement<Props> {
+function InfoTab({ api }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [info, setInfo] = useState(undefined);
@@ -127,4 +127,4 @@ function PoolInfoTab({ api }: Props): React.ReactElement<Props> {
   );
 }
 
-export default React.memo(PoolInfoTab);
+export default React.memo(InfoTab);
