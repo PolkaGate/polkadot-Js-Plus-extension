@@ -112,7 +112,7 @@ export default function Pools ({ api, chain, poolsInfo, staker }: Props): React.
             </Box>
 
             <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
-              <Grid item sx={{ fontSize: 13, textAlign: 'left' }}>
+              {/* <Grid item sx={{ fontSize: 13, textAlign: 'left' }}>
                 <FormControlLabel
                   control={<Checkbox
                     color='default'
@@ -123,7 +123,7 @@ export default function Pools ({ api, chain, poolsInfo, staker }: Props): React.
                   }
                   label={<Box fontSize={12} sx={{ whiteSpace: 'nowrap' }}>{t('Show only my pools')}</Box>}
                 />
-              </Grid>
+              </Grid> */}
 
               <Grid item>
                 <Button
