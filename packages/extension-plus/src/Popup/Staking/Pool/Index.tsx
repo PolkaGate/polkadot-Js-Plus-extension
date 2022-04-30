@@ -34,7 +34,7 @@ import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
 import { AccountsBalanceType, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
-import ConfirmStaking from '../Solo/ConfirmStaking';
+import ConfirmStaking from './ConfirmStaking';
 import Nominations from '../Solo/Nominations';
 import RewardChart from '../Solo/RewardChart';
 import SelectValidators from '../Solo/SelectValidators';
@@ -70,6 +70,12 @@ interface PoolInfo {
 }
 
 const workers: Worker[] = [];
+const DEFAULT_MEMBER_INFO = {
+  points: 0,
+  poolId: 0,
+  rewardPoolTotalEarnings: 0,
+  unbondingEras: []
+}
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
@@ -202,10 +208,10 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     });
 
     // eslint-disable-next-line no-void
-    api && void api.query.nominationPools.poolMembers('5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty').then((res) => {
-      const members = res.isSome ? res.unwrap() : null;
-      
-      console.log('members', members);
+    api && void api.query.nominationPools.poolMembers(staker.address).then((res) => {
+      const members = res.isSome ? res.unwrap() : DEFAULT_MEMBER_INFO;
+
+      console.log('members', JSON.parse(JSON.stringify(members)));
       setMemberInfo(members);
     });
   }, [api, chainName, staker.address]);
@@ -396,7 +402,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     return nonBlockedValidatorsAccountId.slice(0, stakingConsts?.maxNominations);
   }
 
-  const handleEasyStakingModalClose = useCallback(
+  const handlePoolStakingModalClose = useCallback(
     (): void => {
       // should terminate workers
       workers.forEach((w) => w.terminate());
@@ -453,7 +459,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
         return unstakeAmount;
       case ('stakeAuto'):
       case ('stakeManual'):
-      case ('stakeKeepNominated'):
         return stakeAmount;
       case ('withdrawUnbound'):
         return redeemable || 0n;
@@ -473,9 +478,9 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   ), [poolsInfo]);
 
   return (
-    <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
+    <Popup handleClose={handlePoolStakingModalClose} showModal={showStakingModal}>
 
-      <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<GroupWorkOutlinedIcon fontSize='small' />} title={'Pool Staking'} />
+      <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<GroupWorkOutlinedIcon fontSize='small' />} title={'Pool Staking'} />
 
       <Grid alignItems='center' container>
         <Grid container item xs={12}>
@@ -492,7 +497,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
             <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
               <Tab icon={<AddCircleOutlineOutlinedIcon fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlinedIcon fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
-              <Tab icon={PoolsIcon} iconPosition='start' label='Pools' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={PoolsIcon} iconPosition='start' label='Pool' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={!poolsInfo ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
                 iconPosition='start' label='Info' sx={{ fontSize: 11, px: '15px' }}
               />
@@ -530,6 +535,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               api={api}
               chain={chain}
               poolsInfo={poolsInfo}
+              memberInfo={memberInfo}
               staker={staker}
             />
           </TabPanel>
@@ -563,8 +569,10 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           amount={getAmountToConfirm()}
           api={api}
           chain={chain}
-          handleEasyStakingModalClose={handleEasyStakingModalClose}
-          ledger={ledger}
+          endpoint={endpoint}
+          handlePoolStakingModalClose={handlePoolStakingModalClose}
+          memberInfo={memberInfo}
+          nextPoolId={poolsInfo?.length ? poolsInfo?.length + 1 : 1}
           nominatedValidators={nominatedValidators}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}

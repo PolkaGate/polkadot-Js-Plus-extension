@@ -101,12 +101,8 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
           handleSelectValidatorsModalOpen();
           if (!state) setState('stakeManual');
           break;
-        case ('KeepNominated'):
-          handleConfirmStakingModaOpen();
-          if (!state) setState('stakeKeepNominated');
-          break;
         default:
-          console.log('unknown validatorSelectionType !!');
+          console.log('unknown!!');
       }
     }
   }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleSelectValidatorsModalOpen]);
@@ -169,7 +165,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
     handleStakeAmountInput(String(maxStake));
   }, [handleStakeAmountInput, maxStake]);
 
-  const ValidatorSelectionRadionButtons = () => (
+  const PoolSelectionRadionButtons = () => (
     <FormControl fullWidth>
       <Grid alignItems='center' container justifyContent='center'>
         <Grid item sx={{ fontSize: 12 }} xs={3}>
@@ -253,7 +249,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
             }
           </Grid>
           <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
-            <ValidatorSelectionRadionButtons />
+            <PoolSelectionRadionButtons />
           </Grid>
         </Grid>
       </Grid>

@@ -11,7 +11,7 @@
 import { Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { Box, Button, Checkbox, FormControlLabel, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 
 import { ApiPromise } from '@polkadot/api';
@@ -30,13 +30,10 @@ interface Props {
   memberInfo: PalletNominationPoolsPoolMember | undefined;
 }
 
-export default function Pools({ api, chain, poolsInfo, memberInfo, staker }: Props): React.ReactElement<Props> {
+export default function Pools ({ api, chain, poolsInfo, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [info, setInfo] = useState(undefined);
   const [showPoolInfo, setShowPoolInfo] = useState(false);
-
-  const myPool = useMemo(() => poolsInfo?.find((p) => p.index + 1 === memberInfo?.poolId), [memberInfo, poolsInfo]);
-  console.log('myPool:', myPool)
 
   const handleMorePoolInfoOpen = useCallback((i) => {
     setInfo(i);

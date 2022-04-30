@@ -10,6 +10,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { ISubmittableResult } from '@polkadot/types/types';
 
+import getApi from '../getApi';
 import getChainInfo from '../getChainInfo';
 import { TxInfo, ValidatorsFromSubscan } from '../plusTypes';
 import { postData } from '../postData';
@@ -209,6 +210,52 @@ export async function bondOrBondExtra(
       bonded = api.tx.staking.bondExtra(_value);
     } else {
       bonded = api.tx.staking.bond(_stashAccountId, _value, payee);
+    }
+
+    return signAndSend(api, bonded, _signer, _stashAccountId);
+  } catch (error) {
+    console.log('Something went wrong while bond/nominate', error);
+
+    return { status: 'failed' };
+  }
+}
+
+export async function poolBondOrBondExtra(
+  _chain: Chain | null | undefined,
+  _endpoint: string,
+  _stashAccountId: string | null,
+  _signer: KeyringPair,
+  _value: bigint,
+  _nextPoolId: number,
+  _alreadyBondedAmount: boolean,
+  payee = 'Staked'): Promise<TxInfo> {
+  try {
+    console.log('poolBondOrBondExtra is called! nextPoolId:', _nextPoolId);
+
+    if (!_stashAccountId) {
+      console.log('polBondOrBondExtra:  _stashAccountId is empty!');
+
+      return { status: 'failed' };
+    }
+
+    /** payee:
+     * Staked - Pay into the stash account, increasing the amount at stake accordingly.
+     * Stash - Pay into the stash account, not increasing the amount at stake.
+     * Account - Pay into a custom account.
+     * Controller - Pay into the controller account.
+     */
+
+    const api = await getApi(_endpoint);
+    let bonded: SubmittableExtrinsic<'promise', ISubmittableResult>;
+
+    if (_alreadyBondedAmount) {
+      bonded = api.tx.staking.bondExtra(_value);
+    } else {
+      bonded = api.tx.utility.batch([
+        api.tx.nominationPools.create(_value, _stashAccountId, _stashAccountId, _stashAccountId),
+        api.tx.nominationPools.setMetadata(_nextPoolId, 'metadata')
+      ]);
+      // (, _value, payee);
     }
 
     return signAndSend(api, bonded, _signer, _stashAccountId);

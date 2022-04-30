@@ -29,7 +29,7 @@ function ShowBalance2({ api, balance, direction = 'row', title }: Props): React.
     <div data-testid='showPlus'>
       {title && <>{title} {direction === 'row' ? ': ' : <br />}</>}
 
-      {balance && api
+      {balance !== undefined && api
         ? <>
           {amountToHuman(balance)}
         </>
