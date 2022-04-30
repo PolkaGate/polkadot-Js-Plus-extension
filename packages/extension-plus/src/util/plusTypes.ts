@@ -43,6 +43,20 @@ export interface StakingConsts {
   unbondingDuration: number
 }
 
+export interface PoolStakingConsts {
+  maxPoolMembers: bigint,
+  maxPoolMembersPerPool: bigint,
+  maxPools: bigint,
+  minCreateBond: Balance,
+  minJoinBond: Balance,
+  minNominatorBond: Balance
+
+  existentialDeposit: bigint,
+  maxNominations: number,
+  maxNominatorRewardedPerValidator: number,
+  unbondingDuration: number
+}
+
 export interface ValidatorInfo extends DeriveStakingQuery {
   accountInfo?: DeriveAccountInfo;
 }
