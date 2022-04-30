@@ -19,13 +19,12 @@ import { FixedSizeList as List } from "react-window";
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 
-import { Chain } from '../../../../extension-chains/src/types';
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup } from '../../components';
-import Hint from '../../components/Hint';
-import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../util/constants';
-import { AccountsBalanceType, StakingConsts, Validators } from '../../util/plusTypes';
+import { Chain } from '../../../../../extension-chains/src/types';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Hint, PlusHeader, Popup } from '../../../components';
+import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
+import { AccountsBalanceType, StakingConsts, Validators } from '../../../util/plusTypes';
 import ConfirmStaking from './ConfirmStaking';
 import ShowValidator from './ShowValidator';
 import ValidatorInfo from './ValidatorInfo';
@@ -304,7 +303,9 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, ledger, nominatedValidators, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function SelectValidators({ api, chain, ledger, nominatedValidators, setSelectValidatorsModalOpen, 
+  setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo 
+}: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);

@@ -11,11 +11,11 @@ import ReactDOM from 'react-dom';
 
 import { DeriveStakingQuery } from '@polkadot/api-derive/types';
 
-import { Chain } from '../../../../extension-chains/src/types';
-import getChainInfo from '../../util/getChainInfo';
-import { AccountsBalanceType, BalanceType, ChainInfo, Validators } from '../../util/plusTypes';
-import { amountToMachine } from '../../util/plusUtils';
-import { nominatedValidators, stakingConsts, validatorsIdentities, validatorsName } from '../../util/test/testHelper';
+import { Chain } from '../../../../../extension-chains/src/types';
+import getChainInfo from '../../../util/getChainInfo';
+import { AccountsBalanceType, BalanceType, ChainInfo, Validators } from '../../../util/plusTypes';
+import { amountToMachine } from '../../../util/plusUtils';
+import { nominatedValidators, stakingConsts, validatorsIdentities, validatorsName } from '../../../util/test/testHelper';
 import Nominations from './Nominations';
 
 const activeValidator: DeriveStakingQuery = {};

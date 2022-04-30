@@ -15,9 +15,9 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Progress } from '../../components';
-import { AccountsBalanceType, StakingConsts } from '../../util/plusTypes';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Progress } from '../../../components';
+import { AccountsBalanceType, StakingConsts } from '../../../util/plusTypes';
 import ValidatorInfo from './ValidatorInfo';
 import VTable from './VTable';
 

@@ -5,7 +5,7 @@
 
 /**
  * @description
- *  render unstake tab in easy staking component 
+ *  render unstake tab in easy staking component
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -15,10 +15,10 @@ import React, { useCallback, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { StakingConsts } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../util/plusUtils';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { StakingConsts } from '../../../util/plusTypes';
+import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../../util/plusUtils';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -43,6 +43,8 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
   const token = api?.registry?.chainTokens[0];
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
+    if (!decimals) return;
+
     setAlert('');
     value = fixFloatingPoint(value);
     setUnstakeAmountInHuman(value);

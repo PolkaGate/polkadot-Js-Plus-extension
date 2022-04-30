@@ -10,29 +10,24 @@
  *  total reward received, etc.
  * */
 
-import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 
-import { BarChart as BarChartIcon, Redeem as RedeemIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { BarChart as BarChartIcon, MoreVert as MoreVertIcon, Redeem as RedeemIcon } from '@mui/icons-material';
 import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
 import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import Hint from '../../components/Hint';
-import { amountToHuman } from '../../util/plusUtils';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Hint, ShowBalance2 } from '../../../components';
+import { amountToHuman } from '../../../util/plusUtils';
 
 interface Props {
   availableBalanceInHuman: string,
   api: ApiPromise | undefined;
-  ledger: StakingLedger | null;
-  redeemable: bigint | null;
-  currentlyStakedInHuman: string | null;
-  totalReceivedReward: string | undefined;
   handleWithdrowUnbound: () => void;
   handleViewChart: () => void;
-  unlockingAmount: bigint;
-  rewardSlashes: any | undefined;
+  memberInfo: PalletNominationPoolsPoolMember | undefined;
 }
 
 interface BalanceProps {
@@ -55,7 +50,7 @@ function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<Bala
   </>);
 }
 
-export default function Overview({ api, availableBalanceInHuman, currentlyStakedInHuman, handleViewChart, handleWithdrowUnbound, ledger, redeemable, rewardSlashes, totalReceivedReward, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalanceInHuman, memberInfo, handleViewChart, handleWithdrowUnbound }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const decimals = api && api.registry.chainDecimals[0];
   const token = api?.registry?.chainTokens[0] ?? '';
@@ -81,42 +76,29 @@ export default function Overview({ api, availableBalanceInHuman, currentlyStaked
                 <Balance amount={availableBalanceInHuman} coin={token} label={t('Available')} />
               </Grid>
               <Grid item xs={4}>
-                <Balance amount={currentlyStakedInHuman} coin={token} label={t('Staked')} />
+                <ShowBalance2 api={api} balance={memberInfo?.points} direction='collumn' title={t('Staked')} />
               </Grid>
             </Grid>
             <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item xs={4}>
-                <Balance amount={totalReceivedReward} coin={token}
-                  label={
-                    <Grid container item justifyContent='center'>
-                      <Grid item>
-                        {t('Rewards')}
-                      </Grid>
-                      <Grid item>
-                        <Hint id='redeem' place='top' tip={t('View chart')}>
-                          <BarChartIcon color={rewardSlashes?.length ? 'warning' : 'disabled'} onClick={handleViewChart} sx={{ cursor: 'pointer', fontSize: 15 }} />
-                        </Hint>
-                      </Grid>
-                    </Grid>
-                  }
-                />
+                <ShowBalance2 api={api} balance={memberInfo?.rewardPoolTotalEarnings} direction='collumn' title={t('Rewards')}/>
               </Grid>
 
               <Grid container item justifyContent='center' xs={4}>
                 <Grid container item justifyContent='center' xs={12}>
                   <Balance
-                    amount={amountToHuman(String(redeemable), decimals)}
+                    amount={amountToHuman(String('0'), decimals)}
                     coin={token}
                     label={
                       <Grid container item justifyContent='center'>
                         <Grid item>
                           {t('Redeemable')}
                         </Grid>
-                        <Grid item>
+                        {/* <Grid item>
                           <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
                             <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
                           </Hint>
-                        </Grid>
+                        </Grid> */}
                       </Grid>
                     }
                   />
@@ -124,7 +106,7 @@ export default function Overview({ api, availableBalanceInHuman, currentlyStaked
               </Grid>
 
               <Grid item xs={4}>
-                <Balance amount={amountToHuman(String(unlockingAmount), decimals)} coin={token} label={t('Unstaking')} />
+                <Balance amount={amountToHuman(String('0'), decimals)} coin={token} label={t('Unstaking')} />
               </Grid>
             </Grid>
           </Grid>
@@ -148,8 +130,8 @@ export default function Overview({ api, availableBalanceInHuman, currentlyStaked
           horizontal: 'right',
         }}
       >
-        <MenuItem onClick={handleClose}  sx={{ fontSize: 12 }}>Set payee</MenuItem>
-        <MenuItem onClick={handleClose}  sx={{ fontSize: 12 }}>Set controller</MenuItem>
+        <MenuItem onClick={handleClose} sx={{ fontSize: 12 }}>Set payee</MenuItem>
+        <MenuItem onClick={handleClose} sx={{ fontSize: 12 }}>Set controller</MenuItem>
       </Menu></>
   );
 }

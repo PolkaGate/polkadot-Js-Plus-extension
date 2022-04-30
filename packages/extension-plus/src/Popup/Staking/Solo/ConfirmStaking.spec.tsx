@@ -11,11 +11,11 @@ import ReactDOM from 'react-dom';
 
 import { ApiPromise } from '@polkadot/api';
 
-import { Chain } from '../../../../extension-chains/src/types';
-import getChainInfo from '../../util/getChainInfo';
-import { BalanceType } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine } from '../../util/plusUtils';
-import { makeShortAddr, putInFront, rebagFalse, rebagTrue, stakingConsts, validatorsIdentities, validatorsList } from '../../util/test/testHelper';
+import { Chain } from '../../../../../extension-chains/src/types';
+import getChainInfo from '../../../util/getChainInfo';
+import { BalanceType } from '../../../util/plusTypes';
+import { amountToHuman, amountToMachine } from '../../../util/plusUtils';
+import { makeShortAddr, putInFront, rebagFalse, rebagTrue, stakingConsts, validatorsIdentities, validatorsList } from '../../../util/test/testHelper';
 import ConfirmStaking from './ConfirmStaking';
 
 jest.setTimeout(60000);

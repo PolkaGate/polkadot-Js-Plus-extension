@@ -18,12 +18,11 @@ import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/type
 import { Chain } from '@polkadot/extension-chains/types';
 import Identicon from '@polkadot/react-identicon';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, ShortAddress } from '../../components';
-import Identity from '../../components/Identity';
-import { SELECTED_COLOR } from '../../util/constants';
-import getLogo from '../../util/getLogo';
-import { AccountsBalanceType } from '../../util/plusTypes';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Identity, PlusHeader, Popup, ShortAddress } from '../../../components';
+import { SELECTED_COLOR } from '../../../util/constants';
+import getLogo from '../../../util/getLogo';
+import { AccountsBalanceType } from '../../../util/plusTypes';
 
 interface Props {
   chain: Chain;
@@ -39,7 +38,7 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
   const { t } = useTranslation();
   const accountInfo = validatorsIdentities?.find((v) => v.accountId === info?.accountId);
   const chainName = chain?.name.replace(' Relay Chain', '');
-  
+
   const own = api.createType('Balance', info?.exposure.own || info?.stakingLedger.active);
   const total = api.createType('Balance', info?.exposure.total);
 

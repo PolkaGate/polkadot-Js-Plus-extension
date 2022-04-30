@@ -17,11 +17,11 @@ import React, { useCallback } from 'react';
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 
-import { Chain } from '../../../../extension-chains/src/types';
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, Progress } from '../../components';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
+import { Chain } from '../../../../../extension-chains/src/types';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Hint, Progress } from '../../../components';
+import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../../util/plusTypes';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {

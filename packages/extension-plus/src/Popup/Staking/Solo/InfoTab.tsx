@@ -14,9 +14,9 @@ import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ShowBalance2, ShowValue } from '../../components';
-import { StakingConsts } from '../../util/plusTypes';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { ShowBalance2, ShowValue } from '../../../components';
+import { StakingConsts } from '../../../util/plusTypes';
 
 interface Props {
   api: ApiPromise | undefined;

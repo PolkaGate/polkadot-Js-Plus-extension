@@ -16,11 +16,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ApiPromise } from '@polkadot/api';
 import { DeriveStakingQuery } from '@polkadot/api-derive/types';
 
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { MIN_EXTRA_BOND } from '../../util/constants';
-import { AccountsBalanceType, StakingConsts } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { MIN_EXTRA_BOND } from '../../../util/constants';
+import { AccountsBalanceType, StakingConsts } from '../../../util/plusTypes';
+import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -173,7 +173,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
     <FormControl fullWidth>
       <Grid alignItems='center' container justifyContent='center'>
         <Grid item sx={{ fontSize: 12 }} xs={3}>
-          <FormLabel sx={{ fontSize: 12, fontWeight: '500', color: 'black' }}>{t('Validator selection')}:</FormLabel>
+          <FormLabel sx={{ fontSize: 12, fontWeight: '500', color: 'black' }}>{t('Pool selection')}:</FormLabel>
         </Grid>
         <Grid item sx={{ textAlign: 'right' }} xs={9}>
           <RadioGroup defaultValue='Auto' onChange={handleValidatorSelectionType} row value={validatorSelectionType}>
@@ -194,17 +194,6 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
               sx={{ fontSize: 12 }}
               value='Manual'
             />
-            {!!nominatedValidators?.length &&
-              <FormControlLabel
-                control={<Radio sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
-                label={
-                  <Box fontSize={12}>
-                    {t('Keep nominated')}
-                  </Box>}
-                sx={{ fontSize: 12 }}
-                value='KeepNominated'
-              />
-            }
           </RadioGroup>
         </Grid>
       </Grid>

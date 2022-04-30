@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable react/jsx-max-props-per-line */
 /* eslint-disable header/header */
+/* eslint-disable react/jsx-first-prop-new-line */
 
 /**
  * @description
@@ -9,13 +10,13 @@
  *  unstake, redeem, change validators, staking generak info,etc.
  * */
 
-import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { Bytes, Option } from '@polkadot/types';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsRewardPool, PalletNominationPoolsPoolMember, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { WorkspacesOutlined as WorkspacesOutlinedIcon, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
+import { AddCircleOutlineOutlined as AddCircleOutlineOutlinedIcon, CheckOutlined, GroupWorkOutlined as GroupWorkOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined as RemoveCircleOutlineOutlinedIcon, ReportOutlined as ReportOutlinedIcon, WorkspacesOutlined as WorkspacesOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -26,23 +27,23 @@ import { Chain } from '@polkadot/extension-chains/types';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
-import { PlusHeader, Popup } from '../../../components';
-import Hint from '../../../components/Hint';
+import { Hint, PlusHeader, Popup } from '../../../components';
 import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
 import { AccountsBalanceType, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
-import ConfirmStaking from '../ConfirmStaking';
-import Nominations from '../Nominations';
-import Overview from '../Overview';
-import RewardChart from '../RewardChart';
-import SelectValidators from '../SelectValidators';
-import Pools from './Pools';
-import TabPanel from '../TabPanel';
-import Unstake from '../Unstake';
+import ConfirmStaking from '../Solo/ConfirmStaking';
+import Nominations from '../Solo/Nominations';
+import RewardChart from '../Solo/RewardChart';
+import SelectValidators from '../Solo/SelectValidators';
+import TabPanel from '../Solo/TabPanel';
+import Unstake from '../Solo/Unstake';
 import InfoTab from './InfoTab';
+import Overview from './Overview';
+import Pools from './Pools';
+import Stake from './Stake';
 
 interface Props {
   account: AccountJson,
@@ -62,6 +63,12 @@ interface RewardInfo {
   event?: string;
 }
 
+interface PoolInfo {
+  bondedPools: unknown | null;
+  metadata: string | null;
+  rewardPools: unknown | null
+}
+
 const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
@@ -70,7 +77,8 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const { t } = useTranslation();
 
   const endpoint = useEndPoint(account, undefined, chain);
-  const [poolsInfo, setPoolsInfo] = useState();
+  const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
+  const [memberInfo, setMemberInfo] = useState<PalletNominationPoolsPoolMember | undefined>();
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -146,7 +154,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       const poolsInfo: string = e.data;
 
       if (poolsInfo) {
-
         console.log('poolsInfo:', JSON.parse(poolsInfo));
 
         setPoolsInfo(JSON.parse(poolsInfo))
@@ -194,26 +201,12 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       setCurrentEraIndex(Number(ce));
     });
 
-    api && void api.query.nominationPools.poolMembers('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY').then((res) => {
-      console.log('members', res.isSome && res.unwrap())
-    })
-    // staker.address && getStakingRewardsFromChain(chain, staker.address);
-
     // eslint-disable-next-line no-void
-    staker.address && void getRewardsSlashes(chainName, 0, 10, staker.address).then((r) => {
-      const rewardsFromSubscan = r?.data.list?.map((d): RewardInfo => {
-        return {
-          reward: d.amount,
-          era: d.era,
-          timeStamp: d.block_timestamp,
-          event: d.event_id
-        };
-      });
-
-      if (rewardsFromSubscan?.length) {
-        setRewardSlashes((getRewardsSlashes) => getRewardsSlashes.concat(rewardsFromSubscan));
-      }
-      console.log('rewards from subscan:', r);
+    api && void api.query.nominationPools.poolMembers('5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty').then((res) => {
+      const members = res.isSome ? res.unwrap() : null;
+      
+      console.log('members', members);
+      setMemberInfo(members);
     });
   }, [api, chainName, staker.address]);
 
@@ -479,63 +472,45 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     !poolsInfo ? <CircularProgress size={12} thickness={2} /> : <WorkspacesOutlinedIcon fontSize='small' />
   ), [poolsInfo]);
 
-  const NominationsIcon = useMemo((): React.ReactElement<any> => (
-    gettingNominatedValidatorsInfoFromChain
-      ? <CircularProgress size={12} sx={{ px: '5px' }} thickness={2} />
-      : Number(currentlyStakedInHuman) && !nominatedValidators?.length
-        ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
-          <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
-        </Hint>
-        : !activeValidator && nominatedValidators?.length
-          ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
-            <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
-          </Hint>
-          : oversubscribedsCount
-            ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
-              <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
-                <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
-              </Badge>
-            </Hint>
-            : <CheckOutlined fontSize='small' />
-  ), [gettingNominatedValidatorsInfoFromChain, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
-
   return (
     <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
 
-      <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Pool Staking'} />
+      <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<GroupWorkOutlinedIcon fontSize='small' />} title={'Pool Staking'} />
 
       <Grid alignItems='center' container>
         <Grid container item xs={12}>
           <Overview
             api={api}
             availableBalanceInHuman={availableBalanceInHuman}
-            currentlyStakedInHuman={currentlyStakedInHuman}
             handleViewChart={handleViewChart}
             handleWithdrowUnbound={handleWithdrowUnbound}
-            ledger={ledger}
-            redeemable={redeemable}
-            rewardSlashes={rewardSlashes}
-            totalReceivedReward={totalReceivedReward}
-            unlockingAmount={unlockingAmount}
+            memberInfo={memberInfo}
           />
         </Grid>
         <Grid item xs={12}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs centered indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue}>
+              <Tab icon={<AddCircleOutlineOutlinedIcon fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={<RemoveCircleOutlineOutlinedIcon fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={PoolsIcon} iconPosition='start' label='Pools' sx={{ fontSize: 11, px: '15px' }} />
-              <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
-              <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, px: '15px' }} />
-              <Tab icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
+              <Tab icon={!poolsInfo ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
                 iconPosition='start' label='Info' sx={{ fontSize: 11, px: '15px' }}
               />
             </Tabs>
           </Box>
           <TabPanel index={0} value={tabValue}>
-            <Pools
+            <Stake
               api={api}
-              chain={chain}
-              poolsInfo={poolsInfo}
+              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
+              ledger={ledger}
+              nextToStakeButtonBusy={!!stakeAmount && (!ledger || !(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
+              nominatedValidators={nominatedValidators}
+              setStakeAmount={setStakeAmount}
+              setState={setState}
               staker={staker}
+              stakingConsts={stakingConsts}
+              state={state}
             />
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
@@ -551,21 +526,11 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
             />
           </TabPanel>
           <TabPanel index={2} padding={1} value={tabValue}>
-            <Nominations
-              activeValidator={activeValidator}
+            <Pools
               api={api}
               chain={chain}
-              handleRebag={handleRebag}
-              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
-              handleStopNominating={handleStopNominating}
-              ledger={ledger}
-              noNominatedValidators={noNominatedValidators}
-              nominatedValidators={nominatedValidators}
+              poolsInfo={poolsInfo}
               staker={staker}
-              stakingConsts={stakingConsts}
-              state={state}
-              validatorsIdentities={validatorsIdentities}
-              validatorsInfo={validatorsInfo}
             />
           </TabPanel>
           <TabPanel index={3} value={tabValue}>

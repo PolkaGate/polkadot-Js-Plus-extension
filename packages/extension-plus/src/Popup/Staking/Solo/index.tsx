@@ -11,9 +11,7 @@
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
-import { faCoins } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { AddCircleOutlineOutlined, CheckOutlined, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
+import { AddCircleOutlineOutlined, CheckOutlined, CircleOutlined as CircleOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -22,16 +20,16 @@ import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/type
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { updateMeta } from '../../../../extension-ui/src/messaging';
-import { PlusHeader, Popup } from '../../components';
-import Hint from '../../components/Hint';
-import useEndPoint from '../../hooks/useEndPoint';
-import getRewardsSlashes from '../../util/api/getRewardsSlashes';
-import { getStakingReward } from '../../util/api/staking';
-import { MAX_ACCEPTED_COMMISSION } from '../../util/constants';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
-import { amountToHuman, balanceToHuman, prepareMetaData } from '../../util/plusUtils';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { updateMeta } from '../../../../../extension-ui/src/messaging';
+import { PlusHeader, Popup } from '../../../components';
+import Hint from '../../../components/Hint';
+import useEndPoint from '../../../hooks/useEndPoint';
+import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
+import { getStakingReward } from '../../../util/api/staking';
+import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
+import { AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
+import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
 import Nominations from './Nominations';
@@ -65,7 +63,7 @@ const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
-export default function EasyStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function SoloStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const endpoint = useEndPoint(account, undefined, chain);
 
@@ -113,7 +111,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   };
 
   const checkNeedsRebag = (endpoint: string, stakerAddress: string) => {
-    const needsRebag: Worker = new Worker(new URL('../../util/workers/needsRebag.js', import.meta.url));
+    const needsRebag: Worker = new Worker(new URL('../../../util/workers/needsRebag.js', import.meta.url));
 
     workers.push(needsRebag);
 
@@ -134,7 +132,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   };
 
   const checkNeedsPutInFrontOf = (endpoint: string, stakerAddress: string) => {
-    const needsPutInFrontOf: Worker = new Worker(new URL('../../util/workers/needsPutInFrontOf.js', import.meta.url));
+    const needsPutInFrontOf: Worker = new Worker(new URL('../../../util/workers/needsPutInFrontOf.js', import.meta.url));
 
     workers.push(needsPutInFrontOf);
 
@@ -158,7 +156,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   // const getStakingRewardsFromChain = (chain: Chain, stakerAddress: string) => {
   //   // TODO: does not work on polkadot/kusama but Westend!!
   //   /**  get some staking rewards ,... */
-  //   const getRewards: Worker = new Worker(new URL('../../util/workers/getRewards.js', import.meta.url));
+  //   const getRewards: Worker = new Worker(new URL('../../../util/workers/getRewards.js', import.meta.url));
 
   //   workers.push(getRewards);
 
@@ -180,7 +178,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   // };
 
   const getNominations = (endpoint: string, stakerAddress: string) => {
-    const getNominatorsWorker: Worker = new Worker(new URL('../../util/workers/getNominations.js', import.meta.url));
+    const getNominatorsWorker: Worker = new Worker(new URL('../../../util/workers/getNominations.js', import.meta.url));
 
     workers.push(getNominatorsWorker);
 
@@ -203,7 +201,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
   const getStakingConsts = (chain: Chain, endpoint: string) => {
     /** 1- get some staking constant like min Nominator Bond ,... */
-    const getStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getStakingConsts.js', import.meta.url));
+    const getStakingConstsWorker: Worker = new Worker(new URL('../../../util/workers/getStakingConsts.js', import.meta.url));
 
     workers.push(getStakingConstsWorker);
 
@@ -237,7 +235,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   };
 
   const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
-    const getNominatorInfoWorker: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
+    const getNominatorInfoWorker: Worker = new Worker(new URL('../../../util/workers/getNominatorInfo.js', import.meta.url));
 
     workers.push(getNominatorInfoWorker);
 
@@ -259,7 +257,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   };
 
   const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
-    const getValidatorsInfoWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsInfo.js', import.meta.url));
+    const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
 
     workers.push(getValidatorsInfoWorker);
 
@@ -358,7 +356,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
 
     const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
     /** get validators identities */
-    const getValidatorsIdWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsId.js', import.meta.url));
+    const getValidatorsIdWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsId.js', import.meta.url));
 
     workers.push(getValidatorsIdWorker);
 
@@ -445,7 +443,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     const nominatedValidatorsInfoFromLocalStrorage: SavedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
 
     if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
-        setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
+      setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
     }
 
     // **** retrive validators identities from local storage
@@ -513,7 +511,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
     return nonBlockedValidatorsAccountId.slice(0, stakingConsts?.maxNominations);
   }
 
-  const handleEasyStakingModalClose = useCallback(
+  const handleSoloStakingModalClose = useCallback(
     (): void => {
       // should terminate workers
       workers.forEach((w) => w.terminate());
@@ -606,9 +604,9 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
   ), [gettingNominatedValidatorsInfoFromChain, rebagInfo, putInFrontInfo, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
   return (
-    <Popup handleClose={handleEasyStakingModalClose} showModal={showStakingModal}>
+    <Popup handleClose={handleSoloStakingModalClose} showModal={showStakingModal}>
 
-      <PlusHeader action={handleEasyStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
+      <PlusHeader action={handleSoloStakingModalClose} chain={chain} closeText={'Close'} icon={<CircleOutlinedIcon fontSize='small' />} title={'Solo Staking'} />
 
       <Grid alignItems='center' container>
         <Grid container item xs={12}>
@@ -717,7 +715,7 @@ export default function EasyStaking({ account, api, chain, ledger, redeemable, s
           amount={getAmountToConfirm()}
           api={api}
           chain={chain}
-          handleEasyStakingModalClose={handleEasyStakingModalClose}
+          handleSoloStakingModalClose={handleSoloStakingModalClose}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
           putInFrontInfo={putInFrontInfo}
