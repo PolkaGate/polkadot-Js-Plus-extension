@@ -8,49 +8,25 @@
  *  this component shows some general staking informathion including minNominatorBond, maxNominatorRewardedPerValidator, etc.
  * */
 
+import type { PoolStakingConsts } from '../../../util/plusTypes';
+
 import { Divider, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ShowBalance2, ShowValue } from '../../../components';
-import { StakingConsts } from '../../../util/plusTypes';
 
 interface Props {
   api: ApiPromise | undefined;
+  info: PoolStakingConsts | undefined;
 }
 
-function InfoTab({ api }: Props): React.ReactElement<Props> {
+function InfoTab({ api, info }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-
-  const [info, setInfo] = useState(undefined);
-
   const token = api && api.registry.chainTokens[0];
-
-  useEffect(() => {
-    // eslint-disable-next-line no-void
-    api && Promise.all([
-      api.query.nominationPools.maxPoolMembers(),
-      api.query.nominationPools.maxPoolMembersPerPool(),
-      api.query.nominationPools.maxPools(),
-      api.query.nominationPools.minCreateBond(),
-      api.query.nominationPools.minJoinBond(),
-      api.query.staking.minNominatorBond(),
-      api.query.nominationPools.lastPoolId()
-    ]).then(([maxPoolMembers, maxPoolMembersPerPool, maxPools, minCreateBond, minJoinBond, minNominatorBond, lastPoolId]) => {
-      setInfo({
-        lastPoolId: String(lastPoolId as bigint),
-        maxPoolMembers: maxPoolMembers.isSome ? maxPoolMembers.unwrap().toNumber() : 0,
-        maxPoolMembersPerPool: maxPoolMembersPerPool.isSome ? maxPoolMembersPerPool.unwrap().toNumber() : 0,
-        maxPools: maxPools.isSome ? maxPools.unwrap().toNumber() : 0,
-        minCreateBond: minCreateBond,
-        minJoinBond: minJoinBond,
-        minNominatorBond: minNominatorBond
-      });
-    });
-  }, [api]);
 
   return (
     <Grid container data-testid='info' sx={{ paddingTop: '15px', textAlign: 'center' }}>
@@ -72,7 +48,7 @@ function InfoTab({ api }: Props): React.ReactElement<Props> {
           </Grid>
         </Grid>
 
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('Total pools')}:
           </Grid>
@@ -90,7 +66,7 @@ function InfoTab({ api }: Props): React.ReactElement<Props> {
           </Grid>
         </Grid>
 
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('Maximum pool members per pool')}:
           </Grid>
@@ -107,7 +83,7 @@ function InfoTab({ api }: Props): React.ReactElement<Props> {
             <ShowBalance2 api={api} balance={info?.minCreateBond} />
           </Grid>
         </Grid>
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('Minimum to join a pool')}:
           </Grid>

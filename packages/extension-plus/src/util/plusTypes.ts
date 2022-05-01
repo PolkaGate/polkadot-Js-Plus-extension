@@ -329,3 +329,7 @@ export interface PoolStakingConsts{
   minJoinBond: BN,
   minNominatorBond: BN
 }
+
+export interface MyPoolInfo extends PoolInfo {
+  poolIndex: number;
+}

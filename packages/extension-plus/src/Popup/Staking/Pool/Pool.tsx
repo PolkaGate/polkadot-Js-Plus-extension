@@ -28,26 +28,11 @@ interface Props {
   api: ApiPromise | undefined;
   poolsInfo: PoolInfo[] | undefined;
   staker: AccountsBalanceType;
-  memberInfo: PalletNominationPoolsPoolMember | undefined;
+  myPool: PalletNominationPoolsPoolMember | undefined;
 }
 
-interface MyPoolInfo extends PoolInfo {
-  poolIndex: number;
-}
-
-export default function Pool({ api, chain, memberInfo, poolsInfo, staker }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, myPool, poolsInfo, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [info, setInfo] = useState(undefined);
-  const [myPool, setMyPool] = useState<MyPoolInfo | undefined>();
-
-  useEffect(() => {
-    if (!(api && poolsInfo)) return;
-    const myPool = poolsInfo.find((p, index) => index + 1 === memberInfo?.poolId?.toNumber());
-    const myPoolIndex = poolsInfo.findIndex((p, index) => index + 1 === memberInfo?.poolId?.toNumber()); // FIXME should do in a better way
-
-    myPoolIndex !== -1 && setMyPool({ poolIndex: myPoolIndex + 1, ...myPool })
-  }, [memberInfo, poolsInfo, api]);
-
 
   return (
     <Grid container sx={{ p: 0 }}>
@@ -79,7 +64,7 @@ export default function Pool({ api, chain, memberInfo, poolsInfo, staker }: Prop
             <Box sx={{ bgcolor: 'background.paper', overflowY: 'auto', scrollbarWidth: 'none', width: '100%' }}>
               <Grid id='body' item xs={12}>
                 {myPool && myPool?.poolIndex !== -1 &&
-                  <Paper elevation={2} sx={{ backgroundColor: '', borderRadius: '10px', mt: '4px', p: '1px 15px 2px 15px' }}>
+                  <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 15px 2px 15px' }}>
                     <Grid alignItems='center' container sx={{ fontSize: 11 }}>
                       <Grid item sx={{ textAlign: 'left' }} xs={1}>
                         {myPool.poolIndex}
@@ -87,16 +72,16 @@ export default function Pool({ api, chain, memberInfo, poolsInfo, staker }: Prop
                       <Grid item sx={{ textAlign: 'left' }} xs={4}>
                         {myPool.metadata}
                       </Grid>
-                      <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
+                      <Grid item sx={{ textAlign: 'left' }} xs={1}>
                         {myPool.bondedPools.state}
                       </Grid>
-                      <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={3}>
-                        {myPool.bondedPools.points.toHuman()}
+                      <Grid item sx={{ textAlign: 'center' }} xs={3}>
+                        {myPool.bondedPools.points?.toHuman()}
                       </Grid>
-                      <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={2}>
+                      <Grid item sx={{ textAlign: 'center' }} xs={2}>
                         {myPool.bondedPools.memberCounter}
                       </Grid>
-                      <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
+                      <Grid item sx={{ textAlign: 'center' }} xs={1}>
                         <AddIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />
                       </Grid>
                     </Grid>
@@ -105,7 +90,7 @@ export default function Pool({ api, chain, memberInfo, poolsInfo, staker }: Prop
               </Grid>
             </Box>
 
-            <Grid item sx={{ pt: 1}} xs={12}>
+            <Grid item sx={{ pt: 1 }} xs={12}>
               <Paper elevation={3}>
                 <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, p: '10px', textAlign: 'center' }}>
 
@@ -171,7 +156,7 @@ export default function Pool({ api, chain, memberInfo, poolsInfo, staker }: Prop
           : <Grid item sx={{ textAlign: 'center', fontSize: 12, pt: 7 }} xs={12}>
             {t('No active pool found')}
           </Grid>
-        : <Progress title={t('Loading pools ....')} />
+        : <Progress title={t('Loading pool ....')} />
       }
     </Grid>
 

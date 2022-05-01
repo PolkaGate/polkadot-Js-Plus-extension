@@ -13,7 +13,7 @@
 import type { Bytes, Option } from '@polkadot/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
-import type { AccountsBalanceType, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators, MyPoolInfo } from '../../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -25,6 +25,7 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
@@ -71,7 +72,8 @@ const DEFAULT_MEMBER_INFO = {
   unbondingEras: []
 };
 
-BigInt.prototype.toJSON = function () { return this.toString() };
+
+BigInt.prototype.toJSON = function () { return this.toString(); };
 
 export default function Index({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -79,7 +81,8 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const endpoint = useEndPoint(account, undefined, chain);
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [memberInfo, setMemberInfo] = useState<PalletNominationPoolsPoolMember | undefined>();
-  const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts|undefined>();
+  const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
+  const [myPool, setMyPool] = useState<MyPoolInfo | undefined>();
 
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
@@ -134,10 +137,13 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       const sConsts: PoolStakingConsts = e.data;
 
       if (sConsts) {
+        sConsts.minCreateBond = new BN(sConsts.minCreateBond);
+        sConsts.minJoinBond = new BN(sConsts.minJoinBond);
+        sConsts.minNominatorBond = new BN(sConsts.minNominatorBond);
         setPoolStakingConsts(sConsts);
 
-        console.log('poolStakingConst:', sConsts)
-        console.log('poolStakingConst: lastPoolId', String(sConsts.lastPoolId))
+        console.log('poolStakingConst:', sConsts);
+        console.log('poolStakingConst: lastPoolId', String(sConsts.lastPoolId));
         // setgettingStakingConstsFromBlockchain(false);
 
         // if (staker?.address) {
@@ -288,6 +294,15 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     /** get validators info, including current and waiting, should be called after validatorsInfoFromStore gets value */
     endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
   }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
+
+  useEffect(() => {
+    if (!(api && poolsInfo)) return;
+
+    const myPool = poolsInfo.find((p, index) => index + 1 === Number(memberInfo?.poolId));
+    const myPoolIndex = poolsInfo.findIndex((p, index) => index + 1 === Number(memberInfo?.poolId)); // FIXME should do in a better way
+
+    myPoolIndex !== -1 && setMyPool({ poolIndex: myPoolIndex + 1, ...myPool })
+  }, [memberInfo, poolsInfo, api]);
 
   useEffect(() => {
     if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
@@ -548,14 +563,13 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               api={api}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
-              ledger={ledger}
-              nextToStakeButtonBusy={!!stakeAmount && (!ledger || !(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
-              nominatedValidators={nominatedValidators}
+              nextToStakeButtonBusy={!!stakeAmount && (!(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
+              poolStakingConsts={poolStakingConsts}
               setStakeAmount={setStakeAmount}
               setState={setState}
               staker={staker}
-              stakingConsts={stakingConsts}
               state={state}
+              myPool={myPool}
             />
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
@@ -574,14 +588,15 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
             <Pool
               api={api}
               chain={chain}
+              myPool={myPool}
               poolsInfo={poolsInfo}
-              memberInfo={memberInfo}
               staker={staker}
             />
           </TabPanel>
           <TabPanel index={3} value={tabValue}>
             <InfoTab
               api={api}
+              info={poolStakingConsts}
             />
           </TabPanel>
         </Grid>

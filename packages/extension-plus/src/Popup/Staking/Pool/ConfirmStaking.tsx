@@ -564,7 +564,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         {stakingConsts && !(STATES_NEEDS_MESSAGE.includes(state) || note)
           ? <>
             <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
-              {t('VALIDATORS')}{` (${validatorsToList?.length})`}
+              {t('Pool')}
             </Grid>
             <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
               <ValidatorsList

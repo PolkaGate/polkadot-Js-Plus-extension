@@ -3,40 +3,38 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description
- * render stake tab in easy staking component 
+ * render stake tab in pool staking
  * */
 
-import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Alert, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, TextField } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { DeriveStakingQuery } from '@polkadot/api-derive/types';
+import { BN, BN_ZERO, bnMax } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { MIN_EXTRA_BOND } from '../../../util/constants';
-import { AccountsBalanceType, StakingConsts } from '../../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
+import { grey } from '@mui/material/colors';
 
 interface Props {
   api: ApiPromise | undefined;
   nextToStakeButtonBusy: boolean;
-  nominatedValidators: DeriveStakingQuery[] | null;
   setStakeAmount: React.Dispatch<React.SetStateAction<bigint>>
   setState: React.Dispatch<React.SetStateAction<string>>;
   staker?: AccountsBalanceType;
   state: string;
-  ledger: StakingLedger | null;
-  stakingConsts: StakingConsts | null;
+  poolStakingConsts: PoolStakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
+  myPool: MyPoolInfo | undefined;
 }
 
-export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, myPool, nextToStakeButtonBusy, poolStakingConsts, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -50,6 +48,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api && api.registry.chainTokens[0];
+  const existentialDeposit = useMemo(() => api ? new BN(api.consts.balances.existentialDeposit.toString()) : BN_ZERO, [api]);
 
   useEffect(() => {
     decimals && setStakeAmount(amountToMachine(stakeAmountInHuman, decimals));
@@ -108,14 +107,12 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
   }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleSelectValidatorsModalOpen]);
 
   useEffect(() => {
-    if (!stakingConsts || !decimals) return;
-    const ED = Number(amountToHuman(stakingConsts?.existentialDeposit.toString(), decimals));
+    if (!poolStakingConsts || !decimals || existentialDeposit === undefined) return;
+    const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
     let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 2 * ED));
-    let min = Number(amountToHuman(stakingConsts?.minNominatorBond, decimals));
-
-    if (Number(ledger?.active)) { // TODO: check if it is below minNominatorBond
-      min = MIN_EXTRA_BOND;
-    }
+    const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
+    const m = bnMax(minNominatorBond, minCreateBond, minJoinBond, existentialDeposit);
+    let min = Number(amountToHuman(m.toString(), decimals));
 
     if (min > max) {
       min = max = 0;
@@ -123,7 +120,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
 
     setMaxStake(max);
     setMinStakeable(min);
-  }, [availableBalanceInHuman, ledger, stakingConsts, decimals]);
+  }, [availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit]);
 
   useEffect(() => {
     if (stakeAmountInHuman && minStakeable <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStake) {
@@ -248,9 +245,14 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
               : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
             }
           </Grid>
-          <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
-            <PoolSelectionRadionButtons />
-          </Grid>
+          {(myPool === undefined || !myPool?.poolIndex)
+            ? <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
+              <PoolSelectionRadionButtons />
+            </Grid>
+            : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+              {t('You are staking in {{poolName}} pool with index {{poolIndex}}', { replace: { poolName: myPool.metadata ?? 'no name', poolIndex: myPool.poolIndex } })}
+            </Grid>
+          }
         </Grid>
       </Grid>
 
