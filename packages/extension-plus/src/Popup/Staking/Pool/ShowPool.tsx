@@ -34,7 +34,7 @@ interface Props {
   handleMorePoolInfoClose: () => void;
 }
 
-export default function PoolInfo({ api, chain, handleMorePoolInfoClose, info, showPoolInfo }: Props): React.ReactElement<Props> {
+export default function ShowPool({ api, chain, handleMorePoolInfoClose, info, showPoolInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (
@@ -44,7 +44,6 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, info, sh
         <Grid item sx={{ p: 1 }} xs={12}>
           <Paper elevation={3}>
             <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, p: '20px 10px 20px', textAlign: 'center' }}>
-
 
               <Grid item sx={{ py: 1, textAlign: 'left' }} xs={12}>
                 <b>{t('Root')}</b>{': '}{info.bondedPools.roles.root}

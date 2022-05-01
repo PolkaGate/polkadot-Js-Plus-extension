@@ -13,6 +13,7 @@
 import type { Bytes, Option } from '@polkadot/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { AccountsBalanceType, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -32,17 +33,16 @@ import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
-import { AccountsBalanceType, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
-import ConfirmStaking from './ConfirmStaking';
 import Nominations from '../Solo/Nominations';
 import RewardChart from '../Solo/RewardChart';
 import SelectValidators from '../Solo/SelectValidators';
 import TabPanel from '../Solo/TabPanel';
 import Unstake from '../Solo/Unstake';
+import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
 import Overview from './Overview';
-import Pools from './Pools';
+import Pool from './Pool';
 import Stake from './Stake';
 
 interface Props {
@@ -63,19 +63,13 @@ interface RewardInfo {
   event?: string;
 }
 
-interface PoolInfo {
-  bondedPools: unknown | null;
-  metadata: string | null;
-  rewardPools: unknown | null
-}
-
 const workers: Worker[] = [];
 const DEFAULT_MEMBER_INFO = {
   points: 0,
   poolId: 0,
   rewardPoolTotalEarnings: 0,
   unbondingEras: []
-}
+};
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
@@ -85,6 +79,8 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const endpoint = useEndPoint(account, undefined, chain);
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [memberInfo, setMemberInfo] = useState<PalletNominationPoolsPoolMember | undefined>();
+  const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts|undefined>();
+
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
@@ -121,6 +117,42 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     setTabValue(newValue);
   }, []);
 
+  const getPoolStakingConsts = (endpoint: string) => {
+    /** 1- get some staking constant like min Nominator Bond ,... */
+    const getPoolStakingConstsWorker: Worker = new Worker(new URL('../../../util/workers/getPoolStakingConsts.js', import.meta.url));
+
+    workers.push(getPoolStakingConstsWorker);
+
+    getPoolStakingConstsWorker.postMessage({ endpoint });
+
+    getPoolStakingConstsWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getPoolStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const sConsts: PoolStakingConsts = e.data;
+
+      if (sConsts) {
+        setPoolStakingConsts(sConsts);
+
+        console.log('poolStakingConst:', sConsts)
+        console.log('poolStakingConst: lastPoolId', String(sConsts.lastPoolId))
+        // setgettingStakingConstsFromBlockchain(false);
+
+        // if (staker?.address) {
+        //   //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        //   //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
+
+        //   // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
+        //   // eslint-disable-next-line no-void
+        //   //void updateMeta(account.address, prepareMetaData(chain, 'poolStakingConsts', JSON.stringify(sConsts)));
+        // }
+      }
+
+      getPoolStakingConstsWorker.terminate();
+    };
+  };
 
   const getNominations = (endpoint: string, stakerAddress: string) => {
     const getNominatorsWorker: Worker = new Worker(new URL('../../../util/workers/getNominations.js', import.meta.url));
@@ -161,8 +193,13 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
 
       if (poolsInfo) {
         console.log('poolsInfo:', JSON.parse(poolsInfo));
+        const parsedPoolsInfo = JSON.parse(poolsInfo) as PoolInfo[];
 
-        setPoolsInfo(JSON.parse(poolsInfo))
+        parsedPoolsInfo?.forEach((poolInfo: PoolInfo) => {
+          poolInfo.bondedPools.points = api?.createType('Balance', poolInfo.bondedPools.points);
+        });
+
+        setPoolsInfo(parsedPoolsInfo);
       }
 
       getPoolsWorker.terminate();
@@ -223,8 +260,11 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [currentEraIndex, currentEraIndexOfStore]);
 
   useEffect(() => {
-    /** get some staking constant like min Nominator Bond ,... */
+    /** get poolsInfo  */
     endpoint && getPools(endpoint);
+
+    endpoint && getPoolStakingConsts(endpoint);
+
     // *** get nominated validators list
     endpoint && getNominations(endpoint, staker.address);
 
@@ -531,7 +571,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
             />
           </TabPanel>
           <TabPanel index={2} padding={1} value={tabValue}>
-            <Pools
+            <Pool
               api={api}
               chain={chain}
               poolsInfo={poolsInfo}

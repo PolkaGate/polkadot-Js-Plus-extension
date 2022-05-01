@@ -26,6 +26,7 @@ function InfoTab({ api }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [info, setInfo] = useState(undefined);
+
   const token = api && api.registry.chainTokens[0];
 
   useEffect(() => {

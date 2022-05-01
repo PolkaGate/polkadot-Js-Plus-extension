@@ -4,10 +4,12 @@
 /* eslint-disable camelcase */
 
 import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveReferendumExt, DeriveStakingQuery } from '@polkadot/api-derive/types';
-
+import type { Bytes, Option } from '@polkadot/types';
+import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 import { ApiPromise } from '@polkadot/api';
 import { AccountId, Balance } from '@polkadot/types/interfaces';
 import { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import type { BN } from '@polkadot/util';
 
 export interface TransactionStatus {
   blockNumber: string | null;
@@ -40,20 +42,6 @@ export interface StakingConsts {
   maxNominations: number,
   maxNominatorRewardedPerValidator: number,
   minNominatorBond: bigint,
-  unbondingDuration: number
-}
-
-export interface PoolStakingConsts {
-  maxPoolMembers: bigint,
-  maxPoolMembersPerPool: bigint,
-  maxPools: bigint,
-  minCreateBond: Balance,
-  minJoinBond: Balance,
-  minNominatorBond: Balance
-
-  existentialDeposit: bigint,
-  maxNominations: number,
-  maxNominatorRewardedPerValidator: number,
   unbondingDuration: number
 }
 
@@ -324,4 +312,20 @@ export interface Tip {
 export interface Option {
   text: string;
   value: string;
+}
+
+export interface PoolInfo {
+  bondedPools: PalletNominationPoolsBondedPoolInner | null;
+  metadata: string | null;
+  rewardPools: unknown | null
+}
+
+export interface PoolStakingConsts{
+  lastPoolId: BN,
+  maxPoolMembers: number,
+  maxPoolMembersPerPool: number,
+  maxPools: number,
+  minCreateBond: BN,
+  minJoinBond: BN,
+  minNominatorBond: BN
 }
