@@ -8,20 +8,19 @@
  *
  * */
 
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { PalletNominationPoolsPoolMember } from '@polkadot/types/lookup';
 import type { AccountsBalanceType, PoolInfo } from '../../../util/plusTypes';
 
-import { Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
-import { Box, Button, Checkbox, Divider, FormControlLabel, Grid, Paper } from '@mui/material';
+import { Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon } from '@mui/icons-material';
+import { Box, Button, Divider, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
 import { Chain } from '../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
-import ShowPool from './ShowPool';
 
 interface Props {
   chain: Chain;
@@ -33,6 +32,7 @@ interface Props {
 
 export default function Pool({ api, chain, myPool, poolsInfo, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const points = useMemo(() => api && myPool && api.createType('Balance', myPool.bondedPools.points), [api, myPool]);
 
   return (
     <Grid container sx={{ p: 0 }}>
@@ -70,13 +70,13 @@ export default function Pool({ api, chain, myPool, poolsInfo, staker }: Props): 
                         {myPool.poolIndex}
                       </Grid>
                       <Grid item sx={{ textAlign: 'left' }} xs={4}>
-                        {myPool.metadata}
+                        {myPool.metadata ?? t('no name')}
                       </Grid>
                       <Grid item sx={{ textAlign: 'left' }} xs={1}>
                         {myPool.bondedPools.state}
                       </Grid>
                       <Grid item sx={{ textAlign: 'center' }} xs={3}>
-                        {myPool.bondedPools.points?.toHuman()}
+                        {points?.toHuman()}
                       </Grid>
                       <Grid item sx={{ textAlign: 'center' }} xs={2}>
                         {myPool.bondedPools.memberCounter}

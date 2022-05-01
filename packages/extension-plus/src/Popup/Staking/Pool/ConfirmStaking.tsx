@@ -32,6 +32,7 @@ import getLogo from '../../../util/getLogo';
 import { AccountsBalanceType, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
 import ValidatorsList from '../Solo/ValidatorsList';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 interface Props {
   chain: Chain;
@@ -45,7 +46,7 @@ interface Props {
   setSelectValidatorsModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   handlePoolStakingModalClose?: () => void;
   stakingConsts: StakingConsts | null;
-  amount: bigint;
+  amount: BN;
   memberInfo: PalletNominationPoolsPoolMember | undefined;
   nextPoolId: number;
   nominatedValidators: DeriveStakingQuery[] | null;
@@ -59,19 +60,19 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   const [confirmingState, setConfirmingState] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
-  const [currentlyStaked, setCurrentlyStaked] = useState<bigint | undefined>(undefined);
+  const [currentlyStaked, setCurrentlyStaked] = useState<BN | undefined>();
   const [totalStakedInHuman, setTotalStakedInHuman] = useState<string>('');
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean>(false);
   const [confirmButtonText, setConfirmButtonText] = useState<string>(t('Confirm'));
   const [amountNeedsAdjust, setAmountNeedsAdjust] = useState<boolean>(false);
-  const [surAmount, setSurAmount] = useState<bigint>(amount); /** SUR: Staking Unstaking Redeem amount */
+  const [surAmount, setSurAmount] = useState<BN>(amount); /** SUR: Staking Unstaking Redeem amount */
   const [note, setNote] = useState<string>('');
-  const [availableBalance, setAvailableBalance] = useState<bigint>(0n);
+  const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
 
-  const chainName = chain?.name.replace(' Relay Chain', '');
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
+  const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
 
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
@@ -95,8 +96,6 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   const bond = api.tx.staking.bond;
   const redeem = api.tx.staking.withdrawUnbonded;
   const bonding = currentlyStaked ? bondExtra : bond;
-  const rebaged = api.tx.bagsList.rebag;
-  const putInFrontOf = api.tx.bagsList.putInFrontOf;
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) return false;
@@ -110,7 +109,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   }
 
   useEffect(() => {
-    if (staker?.balanceInfo?.available) { setAvailableBalance(staker.balanceInfo.available); }
+    if (staker?.balanceInfo?.available) { setAvailableBalance(new BN(String(staker.balanceInfo.available))); }
   }, [staker?.balanceInfo?.available]);
 
   useEffect(() => {
@@ -170,7 +169,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         }
         );
 
-        setTotalStakedInHuman(amountToHuman((currentlyStaked + surAmount).toString(), decimals));
+        setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
         break;
       case ('unstake'):
         params = [surAmount];
@@ -184,7 +183,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
             void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
           } else { setEstimatedFee(fee); }
         });
-        setTotalStakedInHuman(amountToHuman((currentlyStaked - surAmount).toString(), decimals));
+        setTotalStakedInHuman(amountToHuman((currentlyStaked.sub(surAmount)).toString(), decimals));
         break;
       case ('stopNominating'):
         // eslint-disable-next-line no-void
@@ -212,20 +211,20 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, memberInfo, decimals]);
 
   useEffect(() => {
-    if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !stakingConsts?.existentialDeposit) { return; }
+    if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
 
     if (['confirming', 'success', 'failed'].includes(confirmingState)) {
       // do not run following code while confirming
       return;
     }
 
-    let partialSubtrahend = BigInt(surAmount);
+    let partialSubtrahend = surAmount;
 
-    if (['withdrawUnbound', 'unstake'].includes(state)) { partialSubtrahend = 0n; }
+    if (['withdrawUnbound', 'unstake'].includes(state)) { partialSubtrahend = BN_ZERO; }
 
-    const fee = BigInt(estimatedFee.toString());
+    const fee = new BN(estimatedFee.toString());
 
-    if (BigInt(availableBalance) - (partialSubtrahend + fee) < stakingConsts?.existentialDeposit) {
+    if (availableBalance.sub((partialSubtrahend.add(fee))).lt(existentialDeposit)) {
       setConfirmButtonDisabled(true);
       setConfirmButtonText(t('Account reap issue, consider fee!'));
 
@@ -236,12 +235,12 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
       // setConfirmButtonDisabled(false);
       setConfirmButtonText(t('Confirm'));
     }
-  }, [surAmount, estimatedFee, availableBalance, stakingConsts?.existentialDeposit, state, t, confirmingState]);
+  }, [surAmount, estimatedFee, availableBalance, existentialDeposit, state, t, confirmingState]);
 
   useEffect(() => {
     if (!memberInfo) { return; }
 
-    setCurrentlyStaked(BigInt(String(memberInfo.points)));
+    setCurrentlyStaked(new BN(memberInfo.points));
   }, [memberInfo]);
 
   const handleCloseModal = useCallback((): void => {
@@ -399,7 +398,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         setConfirmingState(status);
       }
 
-      if (localState === 'withdrawUnbound' && surAmount > 0n) {
+      if (localState === 'withdrawUnbound' && surAmount.gt(BN_ZERO)) {
         const optSpans = await api.query.staking.slashingSpans(staker.address);
         const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
 
@@ -467,7 +466,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         return <Typography sx={{ mt: '50px' }} variant='h6'>
           {t('Available balance after redeem will be')}<br />
           {estimatedFee
-            ? amountToHuman(String(BigInt(surAmount + availableBalance) - BigInt(String(estimatedFee))), decimals)
+            ? amountToHuman(String(surAmount.add(availableBalance).sub(new BN(String(estimatedFee)))), decimals)
             : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
           }
           {' '} {token}
@@ -486,17 +485,15 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   }, [surAmount, token, decimals, estimatedFee, stakingConsts?.unbondingDuration, t]);
 
   const handleAutoAdjust = useCallback((): void => {
-    const ED = stakingConsts?.existentialDeposit;
+    if (!existentialDeposit) { return; }
 
-    if (!ED) { return; }
-
-    const fee = BigInt(String(estimatedFee));
-    const adjustedAmount = availableBalance - (ED + fee);
+    const fee = new BN(String(estimatedFee));
+    const adjustedAmount = availableBalance.sub(existentialDeposit.add(fee));
 
     setSurAmount(adjustedAmount);
     setAmountNeedsAdjust(false);
     setConfirmButtonDisabled(false);
-  }, [estimatedFee, availableBalance, stakingConsts?.existentialDeposit]);
+  }, [existentialDeposit, estimatedFee, availableBalance]);
 
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmStakingModal}>

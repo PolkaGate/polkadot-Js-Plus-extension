@@ -13,7 +13,7 @@
 import type { Bytes, Option } from '@polkadot/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
-import type { AccountsBalanceType, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators, MyPoolInfo } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -25,7 +25,7 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
-import { BN } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
@@ -39,7 +39,7 @@ import Nominations from '../Solo/Nominations';
 import RewardChart from '../Solo/RewardChart';
 import SelectValidators from '../Solo/SelectValidators';
 import TabPanel from '../Solo/TabPanel';
-import Unstake from '../Solo/Unstake';
+import Unstake from '../pool/Unstake';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
 import Overview from './Overview';
@@ -92,7 +92,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
   const [showChartModal, setChartModalOpen] = useState<boolean>(false);
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
-  const [stakeAmount, setStakeAmount] = useState<bigint>(0n);
+  const [stakeAmount, setStakeAmount] = useState<BN>(BN_ZERO);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
   const [currentlyStakedInHuman, setCurrentlyStakedInHuman] = useState<string | null>(null);
   const [validatorsInfo, setValidatorsInfo] = useState<Validators | null>(null); // validatorsInfo is all validators (current and waiting) information
@@ -104,7 +104,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [nominatedValidators, setNominatedValidatorsInfo] = useState<DeriveStakingQuery[] | null>(null);
   const [state, setState] = useState<string>('');
   const [tabValue, setTabValue] = useState(3);
-  const [unstakeAmount, setUnstakeAmount] = useState<bigint>(0n);
+  const [unstakeAmount, setUnstakeAmount] = useState<BN>(0n);
   const [unlockingAmount, setUnlockingAmount] = useState<bigint>(0n);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
@@ -351,17 +351,18 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [chain, api, staker.address, decimals]);
 
   useEffect(() => {
-    if (!ledger || !api || !decimals) { return; }
+    if (!memberInfo || !api || !decimals) { return; }
 
-    setCurrentlyStakedInHuman(amountToHuman(String(ledger.active), decimals));
+    setCurrentlyStakedInHuman(amountToHuman(String(memberInfo.points), decimals));
 
     // set unlocking
     let unlockingValue = 0n;
 
-    ledger?.unlocking?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
+    //TODO: check when have unlocking ...........................................
+    memberInfo?.unbondingEras?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
 
     setUnlockingAmount(redeemable ? unlockingValue - redeemable : unlockingValue);
-  }, [ledger, api, redeemable, decimals]);
+  }, [memberInfo, api, redeemable, decimals]);
 
   useEffect(() => {
     if (!account) {
@@ -563,22 +564,22 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               api={api}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
+              myPool={myPool}
               nextToStakeButtonBusy={!!stakeAmount && (!(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
               poolStakingConsts={poolStakingConsts}
               setStakeAmount={setStakeAmount}
               setState={setState}
               staker={staker}
               state={state}
-              myPool={myPool}
             />
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
             <Unstake
               api={api}
-              availableBalance={staker?.balanceInfo?.available ?? 0n}
+              availableBalance={staker?.balanceInfo?.available ? new BN(staker?.balanceInfo?.available) : BN_ZERO}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
-              ledger={ledger}
+              memberInfo={memberInfo}
               nextToUnStakeButtonBusy={state === 'unstake'}
               setUnstakeAmount={setUnstakeAmount}
               stakingConsts={stakingConsts}
@@ -619,7 +620,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && ledger && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api &&
+      {((showConfirmStakingModal && memberInfo && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           api={api}

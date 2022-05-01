@@ -11,6 +11,7 @@
 import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Alert, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, TextField } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -19,12 +20,11 @@ import { BN, BN_ZERO, bnMax } from '@polkadot/util';
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
-import { grey } from '@mui/material/colors';
 
 interface Props {
   api: ApiPromise | undefined;
   nextToStakeButtonBusy: boolean;
-  setStakeAmount: React.Dispatch<React.SetStateAction<bigint>>
+  setStakeAmount: React.Dispatch<React.SetStateAction<BN>>
   setState: React.Dispatch<React.SetStateAction<string>>;
   staker?: AccountsBalanceType;
   state: string;
@@ -51,7 +51,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
   const existentialDeposit = useMemo(() => api ? new BN(api.consts.balances.existentialDeposit.toString()) : BN_ZERO, [api]);
 
   useEffect(() => {
-    decimals && setStakeAmount(amountToMachine(stakeAmountInHuman, decimals));
+    decimals && setStakeAmount(new BN(String(amountToMachine(stakeAmountInHuman, decimals))));
   }, [decimals, setStakeAmount, stakeAmountInHuman]);
 
   useEffect(() => {
