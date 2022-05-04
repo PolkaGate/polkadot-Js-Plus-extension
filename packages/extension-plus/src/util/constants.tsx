@@ -3,7 +3,7 @@
 /* eslint-disable header/header */
 
 export const PLUS_VERSION = '0.42.8.13';
-export const ENVIREONMENT = 'developement';
+export const ENVIREONMENT = 'production'; //developement or production
 export const DEVELOPEMENT_ENDPOINT = 'wss://109.109.36.23:443'
 export const SELECTED_COLOR = '#fffbed';
 export const AUCTION_GRACE_PERIOD = 27000;// BLOCKS

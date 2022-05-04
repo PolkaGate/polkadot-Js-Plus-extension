@@ -70,6 +70,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
 
+  console.log('stakingConsts in confirm staking is:', stakingConsts)
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
@@ -78,23 +79,25 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
   const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
-  const CreatPoolExtrinsic = useMemo(
-    () => amount && staker?.address && nextPoolId
-      ? api.tx.utility.batch([
-        api.tx.nominationPools.create(amount, staker.address, staker.address, staker.address),
-        api.tx.nominationPools.setMetadata(nextPoolId, 'metadata')
-      ])
-      : null,
-    [amount, staker.address, nextPoolId, api.tx.utility, api.tx.nominationPools]
+  const CreatPoolExtrinsic = useCallback(
+    (amount, root, nominator, stateToggler, nextPoolId, metadata) =>
+      amount && root && nominator && stateToggler && nextPoolId
+        ? api.tx.utility.batch([
+          api.tx.nominationPools.create(amount, root, nominator, stateToggler),
+          api.tx.nominationPools.setMetadata(nextPoolId, metadata)
+        ])
+        : null,
+    [api.tx.utility, api.tx.nominationPools]
   );
 
+  const joined = api.tx.nominationPools.join;// (amount, poolId)
   /** list of available trasaction types */
-  const chilled = api.tx.staking.chill;
-  const unbonded = api.tx.staking.unbond;
-  const nominated = api.tx.staking.nominate;
-  const bondExtra = api.tx.staking.bondExtra;
-  const bond = api.tx.staking.bond;
-  const redeem = api.tx.staking.withdrawUnbonded;
+  const chilled = api.tx.nominationPools.chill;
+  const unbonded = api.tx.nominationPools.unbond;
+  const nominated = api.tx.nominationPools.nominate;
+  const bondExtra = api.tx.nominationPools.bondExtra;
+  const bond = api.tx.nominationPools.bond;
+  const redeem = api.tx.nominationPools.withdrawUnbonded;
   const bonding = currentlyStaked ? bondExtra : bond;
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
@@ -146,7 +149,26 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
     let params;
 
     switch (state) {
-      case ('stakeAuto'):
+      case ('stakeAuto'):// can be createPool or joinPool
+        if (currentlyStaked) {
+          // eslint-disable-next-line no-void
+          void bondExtra({ FreeBalance: surAmount }).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+        } else {
+          const poolIdToJoin = 6;// needs to select a poolId based on some parameters to join
+
+          params = [surAmount, poolIdToJoin];
+          // eslint-disable-next-line no-void
+          void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+
+          // if there is no pool to join then needs to create one
+
+          //params =  [surAmount, poolIdToJoin] : [surAmount, staker.address, staker.address, staker.address, nextPoolId, 'metadata'];
+          // call CreatPoolExtrinsic(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+        }
+
+        setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
+
+        break;
       case ('stakeManual'):
         params = currentlyStaked ? [surAmount] : [staker.address, surAmount, 'Staked'];
 
@@ -292,7 +314,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         const { block, failureText, fee, status, txHash } = await poolBondOrBondExtra(chain, endpoint, staker.address, signer, surAmount, nextPoolId, hasAlreadyBonded);
 
         history.push({
-          action: hasAlreadyBonded ? 'poo_bond_extra' : 'poo_bond',
+          action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
           amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),

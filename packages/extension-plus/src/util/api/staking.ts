@@ -249,7 +249,7 @@ export async function poolBondOrBondExtra(
     let bonded: SubmittableExtrinsic<'promise', ISubmittableResult>;
 
     if (_alreadyBondedAmount) {
-      bonded = api.tx.staking.bondExtra(_value);
+      bonded = api.tx.nominationPools.bondExtra({ FreeBalance: _value });
     } else {
       bonded = api.tx.utility.batch([
         api.tx.nominationPools.create(_value, _stashAccountId, _stashAccountId, _stashAccountId),

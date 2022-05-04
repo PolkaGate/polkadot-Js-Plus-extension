@@ -53,7 +53,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
             {t('Total pools')}:
           </Grid>
           <Grid item>
-            <ShowValue value={info?.maxPoolMembersPerPool} />
+            <ShowValue value={info?.maxPoolMembersPerPool === -1 ? t('unlimited') : info?.maxPoolMembersPerPool} />
           </Grid>
         </Grid>
 
@@ -62,7 +62,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
             {t('Maximum pool members')}:
           </Grid>
           <Grid item>
-            <ShowValue value={info?.maxPoolMembers} />
+            <ShowValue value={info?.maxPoolMembers === -1 ? t('unlimited') : info?.maxPoolMembers} />
           </Grid>
         </Grid>
 
@@ -71,7 +71,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
             {t('Maximum pool members per pool')}:
           </Grid>
           <Grid item>
-            <ShowValue value={info?.maxPoolMembersPerPool} />
+            <ShowValue value={info?.maxPoolMembersPerPool === -1 ? t('unlimited') : info?.maxPoolMembersPerPool} />
           </Grid>
         </Grid>
 

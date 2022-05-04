@@ -23,9 +23,9 @@ async function getPoolStackingConsts(endpoint) {
 
     return {
       lastPoolId: lastPoolId?.toNumber(),
-      maxPoolMembers: maxPoolMembers.isSome ? maxPoolMembers.unwrap().toNumber() : 0,
-      maxPoolMembersPerPool: maxPoolMembersPerPool.isSome ? maxPoolMembersPerPool.unwrap().toNumber() : 0,
-      maxPools: maxPools.isSome ? maxPools.unwrap().toNumber() : 0,
+      maxPoolMembers: maxPoolMembers.isSome ? maxPoolMembers.unwrap().toNumber() : -1,
+      maxPoolMembersPerPool: maxPoolMembersPerPool.isSome ? maxPoolMembersPerPool.unwrap().toNumber() : -1,
+      maxPools: maxPools.isSome ? maxPools.unwrap().toNumber() : -1,
       minCreateBond: minCreateBond,
       minJoinBond: minJoinBond,
       minNominatorBond: minNominatorBond

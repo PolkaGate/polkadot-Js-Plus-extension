@@ -212,6 +212,41 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     };
   };
 
+  const getStakingConsts = (chain: Chain, endpoint: string) => {
+    /** 1- get some staking constant like min Nominator Bond ,... */
+    const getStakingConstsWorker: Worker = new Worker(new URL('../../../util/workers/getStakingConsts.js', import.meta.url));
+
+    workers.push(getStakingConstsWorker);
+
+    getStakingConstsWorker.postMessage({ endpoint });
+
+    getStakingConstsWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const sConsts: StakingConsts = e.data;
+
+      if (sConsts) {
+        setStakingConsts(sConsts);
+
+        setgettingStakingConstsFromBlockchain(false);
+
+        if (staker?.address) {
+          //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
+
+          // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
+          // eslint-disable-next-line no-void
+          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
+        }
+      }
+
+      getStakingConstsWorker.terminate();
+    };
+  };
+
   const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
     const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
 
@@ -270,6 +305,8 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     endpoint && getPools(endpoint);
 
     endpoint && getPoolStakingConsts(endpoint);
+
+    endpoint && getStakingConsts(chain, endpoint);
 
     // *** get nominated validators list
     endpoint && getNominations(endpoint, staker.address);

@@ -23,7 +23,7 @@ function ShowValue({ title, unit, value }: Props): React.ReactElement<Props> {
   return (
     <div data-testid='showValue'>
       {title && <> {title}:{' '}</>}
-      {value
+      {value !== undefined && value !== null
         ? <>
           {value}{' '}{unit}
         </>
