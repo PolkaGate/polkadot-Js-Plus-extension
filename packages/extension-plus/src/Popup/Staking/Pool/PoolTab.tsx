@@ -103,16 +103,16 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
             <Grid item sx={{ pt: 1 }} xs={12}>
               <Paper elevation={3}>
                 <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, p: '10px', textAlign: 'center' }}>
-                  <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={6}>
+                  <Grid item xs={12}>
                     <ShowAddress address={myPool.bondedPools.roles.root} chain={chain} role={'Root'} />
                   </Grid>
-                  <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={6}>
+                  <Grid item  xs={12}>
                     <ShowAddress address={myPool.bondedPools.roles.depositor} chain={chain} role={'Depositor'} />
                   </Grid>
-                  <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={6}>
+                  <Grid item  xs={12}>
                     <ShowAddress address={myPool.bondedPools.roles.nominator} chain={chain} role={'Nominator'} />
                   </Grid>
-                  <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={6}>
+                  <Grid item  xs={12}>
                     <ShowAddress address={myPool.bondedPools.roles.stateToggler} chain={chain} role={'State Toggler'} />
                   </Grid>
 

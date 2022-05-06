@@ -26,11 +26,10 @@ export default function ShowAddress({ address, chain, role }: Props): React.Reac
 
   return (
     <Grid container item xs={12}>
-      <Grid item sx={{ color: grey[600], fontSize: 11, fontWeight: '600', textAlign: 'left', pr: 1 }} xs={'auto'}>
+      <Grid item sx={{ color: grey[600], fontSize: 11, fontWeight: '600', textAlign: 'left', pr: 1 }} xs={4}>
         {role}:
       </Grid>
-      <Grid item sx={{ flexGrow: 1 }}>
-        <Box sx={{ borderBottom: '1px groove silver', borderRadius: '10px', px: 1 }}>
+      <Grid item xs={8}>
           <Grid alignItems='center' container>
 
             {address &&
@@ -59,7 +58,6 @@ export default function ShowAddress({ address, chain, role }: Props): React.Reac
               </Grid>
             }
           </Grid>
-        </Box>
       </Grid>
     </Grid>
   );
