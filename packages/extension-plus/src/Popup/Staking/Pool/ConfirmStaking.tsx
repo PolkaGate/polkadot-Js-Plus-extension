@@ -26,7 +26,7 @@ import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Hint, Password, PlusHeader, Popup, ShortAddress } from '../../../components';
 import broadcast from '../../../util/api/broadcast';
-import { poolBondOrBondExtra } from '../../../util/api/staking';
+import { poolJoinOrBondExtra } from '../../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import getLogo from '../../../util/getLogo';
 import { AccountsBalanceType, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
@@ -48,7 +48,7 @@ interface Props {
   stakingConsts: StakingConsts | null;
   amount: BN;
   memberInfo: PalletNominationPoolsPoolMember | undefined;
-  nextPoolId: number;
+  nextPoolId: BN;
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
   selectedValidators: DeriveStakingQuery[] | null;
@@ -310,8 +310,8 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
       setPasswordStatus(PASS_MAP.CORRECT);
       const hasAlreadyBonded = !!memberInfo?.points || !!memberInfo?.unbondingEras?.length;
 
-      if (['stakeAuto', 'stakeManual'].includes(localState) && surAmount !== 0n) {
-        const { block, failureText, fee, status, txHash } = await poolBondOrBondExtra(chain, endpoint, staker.address, signer, surAmount, nextPoolId, hasAlreadyBonded);
+      if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) {
+        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, endpoint, staker.address, signer, surAmount, nextPoolId, hasAlreadyBonded);
 
         history.push({
           action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
@@ -334,6 +334,33 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
           return;
         }
       }
+
+
+      // if (['stakeManual'].includes(localState) && surAmount !== BN_ZERO) {
+      //   const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, endpoint, staker.address, signer, surAmount, nextPoolId, hasAlreadyBonded);
+
+      //   history.push({
+      //     action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
+      //     amount: amountToHuman(String(surAmount), decimals),
+      //     block: block,
+      //     date: Date.now(),
+      //     fee: fee || '',
+      //     from: staker.address,
+      //     hash: txHash || '',
+      //     status: failureText || status,
+      //     to: ''
+      //   });
+
+      //   if (status === 'failed') {
+      //     setConfirmingState(status);
+
+      //     // eslint-disable-next-line no-void
+      //     void saveHistory(chain, hierarchy, staker.address, history);
+
+      //     return;
+      //   }
+      // }
+
 
       // if (['changeValidators', 'stakeAuto', 'stakeManual', 'setNominees'].includes(localState)) {
       //   if (localState === 'stakeAuto') {

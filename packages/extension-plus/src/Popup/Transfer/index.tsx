@@ -9,6 +9,7 @@
  * facilities like transfering ALL/Max amount considering existential deposit/fee
  * */
 
+import type { Balance } from '@polkadot/types/interfaces';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { AccountJson, AccountWithChildren } from '../../../../extension-base/src/background/types';
@@ -22,7 +23,6 @@ import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, us
 
 import { ApiPromise } from '@polkadot/api';
 import Identicon from '@polkadot/react-identicon';
-import { Balance } from '@polkadot/types/interfaces';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { Chain } from '../../../../extension-chains/src/types';

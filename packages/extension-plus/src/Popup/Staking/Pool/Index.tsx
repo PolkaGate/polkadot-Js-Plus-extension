@@ -25,7 +25,7 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
-import { BN, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO, BN_ONE } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
@@ -34,16 +34,17 @@ import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
+import getPoolAccounts from '../../../util/getPoolAccounts';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
-import Nominations from '../Solo/Nominations';
+import Nominations from '../Pool/Nominations';
+import Unstake from '../pool/Unstake';
 import RewardChart from '../Solo/RewardChart';
 import SelectValidators from '../Solo/SelectValidators';
 import TabPanel from '../Solo/TabPanel';
-import Unstake from '../pool/Unstake';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
 import Overview from './Overview';
-import Pool from './Pool';
+import PoolTab from './PoolTab';
 import Stake from './Stake';
 
 interface Props {
@@ -51,7 +52,7 @@ interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   ledger: StakingLedger | null;
-  redeemable: bigint | null;
+  redeemable: BN | null;
   showStakingModal: boolean;
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
@@ -103,15 +104,16 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [noNominatedValidators, setNoNominatedValidators] = useState<boolean>(false);
   const [nominatedValidators, setNominatedValidatorsInfo] = useState<DeriveStakingQuery[] | null>(null);
   const [state, setState] = useState<string>('');
-  const [tabValue, setTabValue] = useState(3);
-  const [unstakeAmount, setUnstakeAmount] = useState<BN>(0n);
-  const [unlockingAmount, setUnlockingAmount] = useState<bigint>(0n);
+  const [tabValue, setTabValue] = useState(4);
+  const [unstakeAmount, setUnstakeAmount] = useState<BN>(BN_ZERO);
+  const [unlockingAmount, setUnlockingAmount] = useState<BN>(BN_ZERO);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
   const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
   const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
   const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
+  const [nominatorInfo, setNominatorInfo] = useState<{ minNominated: bigint, isInList: boolean } | undefined>();
 
   const decimals = api && api.registry.chainDecimals[0];
   const chainName = chain?.name.replace(' Relay Chain', '');
@@ -160,7 +162,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     };
   };
 
-  const getNominations = (endpoint: string, stakerAddress: string) => {
+  const getPoolNominations = (endpoint: string, stakerAddress: string) => {
     const getNominatorsWorker: Worker = new Worker(new URL('../../../util/workers/getNominations.js', import.meta.url));
 
     workers.push(getNominatorsWorker);
@@ -247,6 +249,28 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     };
   };
 
+  const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
+    const getNominatorInfoWorker: Worker = new Worker(new URL('../../../util/workers/getNominatorInfo.js', import.meta.url));
+
+    workers.push(getNominatorInfoWorker);
+
+    getNominatorInfoWorker.postMessage({ endpoint, stakerAddress });
+
+    getNominatorInfoWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getNominatorInfoWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const nominatorInfo = e.data;
+
+      console.log('nominatorInfo:', nominatorInfo);
+
+      setNominatorInfo(nominatorInfo);
+      getNominatorInfoWorker.terminate();
+    };
+  };
+
   const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
     const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
 
@@ -308,9 +332,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
 
     endpoint && getStakingConsts(chain, endpoint);
 
-    // *** get nominated validators list
-    endpoint && getNominations(endpoint, staker.address);
-
     /** retrive validatorInfo from local sorage */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const validatorsInfoFromStore: SavedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
@@ -333,12 +354,35 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
 
   useEffect(() => {
-    if (!(api && poolsInfo)) return;
+    /* get nominated validators list */
+    endpoint && myPool && getPoolNominations(endpoint, myPool.accounts.stashId);
+
+    /**  get nominator staking info to consider rebag ,... */
+    endpoint && myPool && getNominatorInfo(endpoint, myPool.accounts.stashId);
+  }, [endpoint, myPool]);
+
+  useEffect(() => {
+    if (!api || !poolsInfo) return;
 
     const myPool = poolsInfo.find((p, index) => index + 1 === Number(memberInfo?.poolId));
     const myPoolIndex = poolsInfo.findIndex((p, index) => index + 1 === Number(memberInfo?.poolId)); // FIXME should do in a better way
 
-    myPoolIndex !== -1 && setMyPool({ poolIndex: myPoolIndex + 1, ...myPool })
+    const myPoolAccounts = myPoolIndex !== -1 && getPoolAccounts(api, new BN(myPoolIndex + 1));
+
+    console.log('myPoolAccounts', myPoolAccounts)
+
+    if (myPoolIndex === -1 || !myPoolAccounts) {
+      console.log(' no poolId or pool accounts');
+      setNoNominatedValidators(true); // show that nominators not need to be fetched
+
+      return;
+    }
+
+    setMyPool({
+      poolId: new BN(myPoolIndex + 1),
+      accounts: myPoolAccounts || undefined,
+      ...myPool
+    });
   }, [memberInfo, poolsInfo, api]);
 
   useEffect(() => {
@@ -393,12 +437,12 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     setCurrentlyStakedInHuman(amountToHuman(String(memberInfo.points), decimals));
 
     // set unlocking
-    let unlockingValue = 0n;
+    const unlockingValue = BN_ZERO;
 
     //TODO: check when have unlocking ...........................................
-    memberInfo?.unbondingEras?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
+    memberInfo?.unbondingEras?.forEach((u) => { unlockingValue.iadd(new BN(u.value)); });
 
-    setUnlockingAmount(redeemable ? unlockingValue - redeemable : unlockingValue);
+    // setUnlockingAmount(redeemable ? unlockingValue.sub(redeemable) : unlockingValue);
   }, [memberInfo, api, redeemable, decimals]);
 
   useEffect(() => {
@@ -554,9 +598,9 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       case ('stakeManual'):
         return stakeAmount;
       case ('withdrawUnbound'):
-        return redeemable || 0n;
+        return redeemable || BN_ZERO;
       default:
-        return 0n;
+        return BN_ZERO;
     }
   }, [state, unstakeAmount, stakeAmount, redeemable]);
 
@@ -569,6 +613,27 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const PoolsIcon = useMemo((): React.ReactElement<any> => (
     !poolsInfo ? <CircularProgress size={12} thickness={2} /> : <WorkspacesOutlinedIcon fontSize='small' />
   ), [poolsInfo]);
+
+  const NominationsIcon = useMemo((): React.ReactElement<any> => (
+    gettingNominatedValidatorsInfoFromChain
+      ? <CircularProgress size={12} sx={{ px: '5px' }} thickness={2} />
+      : Number(currentlyStakedInHuman) && !nominatedValidators?.length
+        ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
+          <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
+        </Hint>
+        : !activeValidator && nominatedValidators?.length
+          ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
+            <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
+          </Hint>
+          : oversubscribedsCount
+            ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
+              <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
+                <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
+              </Badge>
+            </Hint>
+            : <CheckOutlined fontSize='small' />
+  ), [gettingNominatedValidatorsInfoFromChain, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
+
 
   return (
     <Popup handleClose={handlePoolStakingModalClose} showModal={showStakingModal}>
@@ -591,6 +656,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               <Tab icon={<AddCircleOutlineOutlinedIcon fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlinedIcon fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={PoolsIcon} iconPosition='start' label='Pool' sx={{ fontSize: 11, px: '15px' }} />
+              <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={!poolsInfo ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
                 iconPosition='start' label='Info' sx={{ fontSize: 11, px: '15px' }}
               />
@@ -623,7 +689,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
             />
           </TabPanel>
           <TabPanel index={2} padding={1} value={tabValue}>
-            <Pool
+            <PoolTab
               api={api}
               chain={chain}
               myPool={myPool}
@@ -631,7 +697,25 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               staker={staker}
             />
           </TabPanel>
-          <TabPanel index={3} value={tabValue}>
+          <TabPanel index={3} padding={1} value={tabValue}>
+            <Nominations
+              activeValidator={activeValidator}
+              api={api}
+              chain={chain}
+              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
+              handleStopNominating={handleStopNominating}
+              ledger={ledger}
+              noNominatedValidators={noNominatedValidators}
+              nominatedValidators={nominatedValidators}
+              nominatorInfo={nominatorInfo}
+              staker={staker}
+              stakingConsts={stakingConsts}
+              state={state}
+              validatorsIdentities={validatorsIdentities}
+              validatorsInfo={validatorsInfo}
+            />
+          </TabPanel>
+          <TabPanel index={4} value={tabValue}>
             <InfoTab
               api={api}
               info={poolStakingConsts}
@@ -665,7 +749,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           endpoint={endpoint}
           handlePoolStakingModalClose={handlePoolStakingModalClose}
           memberInfo={memberInfo}
-          nextPoolId={poolsInfo?.length ? poolsInfo?.length + 1 : 1}
+          nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
           nominatedValidators={nominatedValidators}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}

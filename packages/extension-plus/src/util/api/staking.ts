@@ -15,6 +15,7 @@ import getChainInfo from '../getChainInfo';
 import { TxInfo, ValidatorsFromSubscan } from '../plusTypes';
 import { postData } from '../postData';
 import { signAndSend } from './signAndSend';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 export async function getAllValidatorsFromSubscan(_chain: Chain): Promise<{ current: ValidatorsFromSubscan[] | null, waiting: ValidatorsFromSubscan[] | null } | null> {
   if (!_chain) {
@@ -220,17 +221,17 @@ export async function bondOrBondExtra(
   }
 }
 
-export async function poolBondOrBondExtra(
+export async function poolJoinOrBondExtra(
   _chain: Chain | null | undefined,
   _endpoint: string,
   _stashAccountId: string | null,
   _signer: KeyringPair,
-  _value: bigint,
-  _nextPoolId: number,
+  _value: BN,
+  _nextPoolId: BN,
   _alreadyBondedAmount: boolean,
   payee = 'Staked'): Promise<TxInfo> {
   try {
-    console.log('poolBondOrBondExtra is called! nextPoolId:', _nextPoolId);
+    console.log('poolJoinOrBondExtra is called! nextPoolId:', _nextPoolId);
 
     if (!_stashAccountId) {
       console.log('polBondOrBondExtra:  _stashAccountId is empty!');
@@ -246,19 +247,22 @@ export async function poolBondOrBondExtra(
      */
 
     const api = await getApi(_endpoint);
-    let bonded: SubmittableExtrinsic<'promise', ISubmittableResult>;
+    let tx: SubmittableExtrinsic<'promise', ISubmittableResult>;
 
     if (_alreadyBondedAmount) {
-      bonded = api.tx.nominationPools.bondExtra({ FreeBalance: _value });
+      tx = api.tx.nominationPools.bondExtra({ FreeBalance: _value });
     } else {
-      bonded = api.tx.utility.batch([
-        api.tx.nominationPools.create(_value, _stashAccountId, _stashAccountId, _stashAccountId),
-        api.tx.nominationPools.setMetadata(_nextPoolId, 'metadata')
-      ]);
+      // bonded = api.tx.utility.batch([
+      //   api.tx.nominationPools.create(_value, _stashAccountId, _stashAccountId, _stashAccountId),
+      //   api.tx.nominationPools.setMetadata(_nextPoolId, 'metadata')
+      // ]);
+
+      tx = api.tx.nominationPools.join(_value, _nextPoolId);
+
       // (, _value, payee);
     }
 
-    return signAndSend(api, bonded, _signer, _stashAccountId);
+    return signAndSend(api, tx, _signer, _stashAccountId);
   } catch (error) {
     console.log('Something went wrong while bond/nominate', error);
 

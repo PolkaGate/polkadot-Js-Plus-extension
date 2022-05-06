@@ -245,12 +245,12 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
               : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
             }
           </Grid>
-          {(myPool === undefined || !myPool?.poolIndex)
+          {(myPool === undefined || !myPool?.poolId)
             ? <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
               <PoolSelectionRadionButtons />
             </Grid>
             : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-              {t('You are staking in {{poolName}} pool with index {{poolIndex}}', { replace: { poolName: myPool.metadata ?? 'no name', poolIndex: myPool.poolIndex } })}
+              {t('You are staking in {{poolName}} pool with index {{poolId}}', { replace: { poolName: myPool.metadata ?? 'no name', poolId: myPool.poolId } })}
             </Grid>
           }
         </Grid>

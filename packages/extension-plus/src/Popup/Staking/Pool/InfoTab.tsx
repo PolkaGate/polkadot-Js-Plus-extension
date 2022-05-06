@@ -41,7 +41,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
       <Grid container item sx={{ px: '5px' }} xs={12}>
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Curent pools count')}:
+            {t('The number of current pools')}:
           </Grid>
           <Grid item>
             <ShowValue value={info?.lastPoolId} />
@@ -50,7 +50,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
 
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Total pools')}:
+            {t('Maximum possible pools')}:
           </Grid>
           <Grid item>
             <ShowValue value={info?.maxPoolMembersPerPool === -1 ? t('unlimited') : info?.maxPoolMembersPerPool} />

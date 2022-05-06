@@ -314,13 +314,7 @@ export interface Option {
   value: string;
 }
 
-export interface PoolInfo {
-  bondedPools: PalletNominationPoolsBondedPoolInner | null;
-  metadata: string | null;
-  rewardPools: unknown | null
-}
-
-export interface PoolStakingConsts{
+export interface PoolStakingConsts {
   lastPoolId: BN,
   maxPoolMembers: number,
   maxPoolMembersPerPool: number,
@@ -330,6 +324,17 @@ export interface PoolStakingConsts{
   minNominatorBond: BN
 }
 
+export interface PoolInfo {
+  bondedPools: PalletNominationPoolsBondedPoolInner | null;
+  metadata: string | null;
+  rewardPools: unknown | null
+}
 export interface MyPoolInfo extends PoolInfo {
-  poolIndex: number;
+  poolId: BN;
+  accounts: PoolAccounts;
+}
+
+export interface PoolAccounts {
+  rewardId: string;
+  stashId: string;
 }

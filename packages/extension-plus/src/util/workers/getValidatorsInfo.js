@@ -5,6 +5,8 @@
 import getApi from '../getApi.ts';
 
 async function getAllValidators (endpoint) {
+  console.log('getting validators info from ', endpoint);
+
   try {
     const api = await getApi(endpoint);
 
