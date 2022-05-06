@@ -11,16 +11,14 @@ import Memoize from 'memoize-one';
 import { bnToU8a, stringToU8a, u8aConcat } from '@polkadot/util';
 
 const EMPTY_H256 = new Uint8Array(32);
-const ADDR_PREFIX = stringToU8a('modlpy/npols');
-const ADDR_PREFIX_WST = stringToU8a('modlpy/nopls');
+const MOD_PREFIX = stringToU8a('modl');
 
-export function createAccount(api: ApiPromise, poolId: BN, index: number): string {
+export function createAccount (api: ApiPromise, poolId: BN, index: number): string {
   return api.registry.createType(
     'AccountId32',
     u8aConcat(
-      api.runtimeVersion.specName.eq('westend')
-        ? ADDR_PREFIX_WST
-        : ADDR_PREFIX,
+      MOD_PREFIX,
+      api.consts.nominationPools.palletId.toU8a(),
       new Uint8Array([index]),
       bnToU8a(poolId, { bitLength: 32 }),
       EMPTY_H256
