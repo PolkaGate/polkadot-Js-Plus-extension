@@ -22,25 +22,23 @@ async function getPools (endpoint) {
     ]));
   }
 
-  console.log('queries in worker', queries);
+  const info = await Promise.all(queries);
 
-  const poolsInfo = await Promise.all(queries);
-
-  const info = poolsInfo.map((poolInfo) => {
+  const poolsInfo = info.map((i) => {
     return {
-      bondedPools: poolInfo[1].isSome ? poolInfo[1].unwrap() : null,
-      metadata: poolInfo[0].length
-        ? poolInfo[0].isUtf8
-          ? poolInfo[0].toUtf8()
-          : poolInfo[0].toString()
+      bondedPools: i[1].isSome ? i[1].unwrap() : null,
+      metadata: i[0].length
+        ? i[0].isUtf8
+          ? i[0].toUtf8()
+          : i[0].toString()
         : null,
-      rewardPools: poolInfo[2].isSome ? poolInfo[2].unwrap() : null
+      rewardPools: i[2].isSome ? i[2].unwrap() : null
     };
   });
 
-  console.log('info in worker', info);
+  console.log('info in worker', poolsInfo);
 
-  return JSON.stringify(info);
+  return JSON.stringify(poolsInfo);
 }
 
 onmessage = (e) => {

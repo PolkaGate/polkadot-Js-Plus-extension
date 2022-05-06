@@ -6,8 +6,10 @@
 /**
  * @description here users confirm their staking related orders (e.g., stake, unstake, redeem, etc.)
  * */
+import type { Chain } from '@polkadot/extension-chains/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { AccountsBalanceType, MyPoolInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Avatar, Grid, IconButton, Link, Skeleton, Typography } from '@mui/material';
@@ -17,10 +19,10 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
-import { Chain } from '@polkadot/extension-chains/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
@@ -29,32 +31,32 @@ import broadcast from '../../../util/api/broadcast';
 import { poolJoinOrBondExtra } from '../../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import getLogo from '../../../util/getLogo';
-import { AccountsBalanceType, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
 import ValidatorsList from '../Solo/ValidatorsList';
-import { BN, BN_ZERO } from '@polkadot/util';
+import Pool from './Pool';
 
 interface Props {
-  chain: Chain;
+  amount: BN;
   api: ApiPromise;
+  chain: Chain;
   endpoint: string | undefined;
+  handlePoolStakingModalClose?: () => void;
+  pool: MyPoolInfo;
   state: string;
+  selectedValidators: DeriveStakingQuery[] | null;
   setState: React.Dispatch<React.SetStateAction<string>>;
   staker: AccountsBalanceType;
   showConfirmStakingModal: boolean;
   setConfirmStakingModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectValidatorsModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  handlePoolStakingModalClose?: () => void;
   stakingConsts: StakingConsts | null;
-  amount: BN;
   memberInfo: PalletNominationPoolsPoolMember | undefined;
   nextPoolId: BN;
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
-  selectedValidators: DeriveStakingQuery[] | null;
 }
 
-export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoolStakingModalClose, memberInfo, nextPoolId, nominatedValidators, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoolStakingModalClose, memberInfo, nextPoolId, nominatedValidators, pool, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -70,7 +72,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
 
-  console.log('stakingConsts in confirm staking is:', stakingConsts)
+  console.log('pool in confirm staking is:', pool)
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
@@ -612,16 +614,25 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
             <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
               {t('Pool')}
             </Grid>
-            <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
-              <ValidatorsList
-                api={api}
-                chain={chain}
-                height={180}
-                stakingConsts={stakingConsts}
-                validatorsIdentities={validatorsIdentities}
-                validatorsInfo={validatorsToList}
-              />
-            </Grid>
+            {pool
+              ? <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
+                <Pool
+                  api={api}
+                  chain={chain}
+                  pool={pool}
+                />
+              </Grid>
+              : <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
+                <ValidatorsList
+                  api={api}
+                  chain={chain}
+                  height={180}
+                  stakingConsts={stakingConsts}
+                  validatorsIdentities={validatorsIdentities}
+                  validatorsInfo={validatorsToList}
+                />
+              </Grid>
+            }
           </>
           : <Grid item sx={{ height: '115px', m: '50px 30px 50px', textAlign: 'center' }} xs={12}>
             {writeAppropiateMessage(state, note)}

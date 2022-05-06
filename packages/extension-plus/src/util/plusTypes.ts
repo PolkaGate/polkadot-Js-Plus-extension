@@ -330,8 +330,8 @@ export interface PoolInfo {
   rewardPools: unknown | null
 }
 export interface MyPoolInfo extends PoolInfo {
-  poolId: BN;
-  accounts: PoolAccounts;
+  poolId?: BN;
+  accounts?: PoolAccounts;
 }
 
 export interface PoolAccounts {

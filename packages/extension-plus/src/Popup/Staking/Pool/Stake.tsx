@@ -31,7 +31,7 @@ interface Props {
   poolStakingConsts: PoolStakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
-  myPool: MyPoolInfo | undefined;
+  myPool: MyPoolInfo | undefined | null;
 }
 
 export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, myPool, nextToStakeButtonBusy, poolStakingConsts, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
@@ -246,11 +246,12 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
             }
           </Grid>
           {(myPool === undefined || !myPool?.poolId)
-            ? <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
+            ? myPool === null &&
+            <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
               <PoolSelectionRadionButtons />
             </Grid>
             : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-              {t('You are staking in {{poolName}} pool with index {{poolId}}', { replace: { poolName: myPool.metadata ?? 'no name', poolId: myPool.poolId } })}
+              {t('You are joining "{{poolName}}" pool with index {{poolId}}', { replace: { poolId: myPool.poolId, poolName: myPool.metadata ?? 'no name' } })}
             </Grid>
           }
         </Grid>

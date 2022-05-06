@@ -83,7 +83,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [memberInfo, setMemberInfo] = useState<PalletNominationPoolsPoolMember | undefined>();
   const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
-  const [myPool, setMyPool] = useState<MyPoolInfo | undefined>();
+  const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
 
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
@@ -145,7 +145,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
         setPoolStakingConsts(sConsts);
 
         console.log('poolStakingConst:', sConsts);
-        console.log('poolStakingConst: lastPoolId', String(sConsts.lastPoolId));
         // setgettingStakingConstsFromBlockchain(false);
 
         // if (staker?.address) {
@@ -203,10 +202,9 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
         console.log('poolsInfo:', JSON.parse(poolsInfo));
         const parsedPoolsInfo = JSON.parse(poolsInfo) as PoolInfo[];
 
-        parsedPoolsInfo?.forEach((poolInfo: PoolInfo) => {
-          poolInfo.bondedPools.points = api?.createType('Balance', poolInfo.bondedPools.points);
-        });
-
+        // parsedPoolsInfo?.forEach((poolInfo: PoolInfo) => {
+        //   poolInfo.bondedPools.points = api?.createType('Balance', poolInfo.bondedPools.points);
+        // });
         setPoolsInfo(parsedPoolsInfo);
       }
 
@@ -364,24 +362,24 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   useEffect(() => {
     if (!api || !poolsInfo) return;
 
-    const myPool = poolsInfo.find((p, index) => index + 1 === Number(memberInfo?.poolId));
-    const myPoolIndex = poolsInfo.findIndex((p, index) => index + 1 === Number(memberInfo?.poolId)); // FIXME should do in a better way
+    const pool = poolsInfo.find((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId));
+    const poolIndex = poolsInfo.findIndex((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId)); // FIXME should do in a better way
 
-    const myPoolAccounts = myPoolIndex !== -1 && getPoolAccounts(api, new BN(myPoolIndex + 1));
+    const myPoolAccounts = poolIndex !== -1 && getPoolAccounts(api, new BN(poolIndex + 1));
 
-    console.log('myPoolAccounts', myPoolAccounts)
-
-    if (myPoolIndex === -1 || !myPoolAccounts) {
+    if (poolIndex === -1 || !myPoolAccounts) {
       console.log(' no poolId or pool accounts');
       setNoNominatedValidators(true); // show that nominators not need to be fetched
+      setMyPool(null);
 
       return;
     }
 
+    console.log('myPool before set is', pool)
     setMyPool({
-      poolId: new BN(myPoolIndex + 1),
+      poolId: new BN(poolIndex + 1),
       accounts: myPoolAccounts || undefined,
-      ...myPool
+      ...pool
     });
   }, [memberInfo, poolsInfo, api]);
 
@@ -605,10 +603,12 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [state, unstakeAmount, stakeAmount, redeemable]);
 
   useEffect(() => {
-    const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === staker.address));
+    if (!myPool?.accounts?.stashId) return;
+
+    const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === myPool.accounts.stashId));
 
     setActiveValidator(active);
-  }, [nominatedValidators, staker.address]);
+  }, [myPool?.accounts, nominatedValidators]);
 
   const PoolsIcon = useMemo((): React.ReactElement<any> => (
     !poolsInfo ? <CircularProgress size={12} thickness={2} /> : <WorkspacesOutlinedIcon fontSize='small' />
@@ -705,6 +705,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               handleStopNominating={handleStopNominating}
               ledger={ledger}
+              myPool={myPool}
               noNominatedValidators={noNominatedValidators}
               nominatedValidators={nominatedValidators}
               nominatorInfo={nominatorInfo}
@@ -741,7 +742,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && memberInfo && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api &&
+      {((showConfirmStakingModal && memberInfo && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && myPool &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           api={api}
@@ -751,6 +752,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           memberInfo={memberInfo}
           nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
           nominatedValidators={nominatedValidators}
+          pool={myPool}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setState={setState}
