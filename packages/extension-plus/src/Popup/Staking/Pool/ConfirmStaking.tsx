@@ -72,7 +72,6 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
 
-  console.log('pool in confirm staking is:', pool)
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
@@ -155,10 +154,8 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         if (currentlyStaked) {
           // eslint-disable-next-line no-void
           void bondExtra({ FreeBalance: surAmount }).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-        } else {
-          const poolIdToJoin = 6;// needs to select a poolId based on some parameters to join
-
-          params = [surAmount, poolIdToJoin];
+        } else { // join to a pool
+          params = [surAmount, pool.poolId?.toNumber()];
           // eslint-disable-next-line no-void
           void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
 
@@ -312,8 +309,9 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
       setPasswordStatus(PASS_MAP.CORRECT);
       const hasAlreadyBonded = !!memberInfo?.points || !!memberInfo?.unbondingEras?.length;
 
-      if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) {
-        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, endpoint, staker.address, signer, surAmount, nextPoolId, hasAlreadyBonded);
+      if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
+        const poolId = pool.poolId; //nextPoolId for creation of a new pool
+        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, endpoint, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
 
         history.push({
           action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',

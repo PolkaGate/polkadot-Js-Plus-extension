@@ -107,7 +107,7 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
                     <ShowAddress address={myPool.bondedPools.roles.nominator} chain={chain} role={'Nominator'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPools.roles.stateToggler} chain={chain} role={'State Toggler'} />
+                    <ShowAddress address={myPool.bondedPools.roles.stateToggler} chain={chain} role={'State toggler'} />
                   </Grid>
                   <Grid item xs={12}>
                     <ShowAddress address={myPool.accounts.stashId} chain={chain} role={'Stash id'} />

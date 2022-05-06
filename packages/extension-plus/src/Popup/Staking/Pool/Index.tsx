@@ -33,7 +33,7 @@ import { Hint, PlusHeader, Popup } from '../../../components';
 import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
-import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
+import { MAX_ACCEPTED_COMMISSION, PPREFERED_POOL_ID_ON_WESTEND, PPREFERED_POOL_ID_ON_KUSAMA, PPREFERED_POOL_ID_ON_POLKADOT } from '../../../util/constants';
 import getPoolAccounts from '../../../util/getPoolAccounts';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import Nominations from '../Pool/Nominations';
@@ -84,6 +84,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [memberInfo, setMemberInfo] = useState<PalletNominationPoolsPoolMember | undefined>();
   const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
+  const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>();
 
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
@@ -136,15 +137,16 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
 
     getPoolStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const sConsts: PoolStakingConsts = e.data;
+      const c: PoolStakingConsts = e.data;
 
-      if (sConsts) {
-        sConsts.minCreateBond = new BN(sConsts.minCreateBond);
-        sConsts.minJoinBond = new BN(sConsts.minJoinBond);
-        sConsts.minNominatorBond = new BN(sConsts.minNominatorBond);
-        setPoolStakingConsts(sConsts);
+      console.log('poolStakingConst:', c);
 
-        console.log('poolStakingConst:', sConsts);
+      if (c) {
+        c.minCreateBond = new BN(c.minCreateBond);
+        c.minJoinBond = new BN(c.minJoinBond);
+        c.minNominatorBond = new BN(c.minNominatorBond);
+        setPoolStakingConsts(c);
+
         // setgettingStakingConstsFromBlockchain(false);
 
         // if (staker?.address) {
@@ -202,9 +204,9 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
         console.log('poolsInfo:', JSON.parse(poolsInfo));
         const parsedPoolsInfo = JSON.parse(poolsInfo) as PoolInfo[];
 
-        // parsedPoolsInfo?.forEach((poolInfo: PoolInfo) => {
-        //   poolInfo.bondedPools.points = api?.createType('Balance', poolInfo.bondedPools.points);
-        // });
+        parsedPoolsInfo?.forEach((p: PoolInfo) => {
+          p.bondedPools.points = new BN(p.bondedPools.points);
+        });
         setPoolsInfo(parsedPoolsInfo);
       }
 
@@ -517,12 +519,50 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       setSelectedValidatorsAcounts(selectedVAcc);
     }
   }, [stakingConsts, validatorsInfo]);
+  useEffect(() => {
+    if (!poolsInfo || !chainName) { return; }
+
+    const pool = selectBestPool(chainName, poolsInfo);
+    console.log('selected pool', pool);
+
+    setSelectedPool(pool);
+  }, [chainName, poolsInfo]);
 
   useEffect(() => {
     const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
 
     setOversubscribedsCount(oversubscribeds?.length);
   }, [nominatedValidators, stakingConsts]);
+
+
+  function selectBestPool(chainName: string, pools: PoolInfo[]): MyPoolInfo {
+    let selectedPoolId: BN | undefined;
+
+    switch (chainName) {
+      case ('Westend'):
+        selectedPoolId = PPREFERED_POOL_ID_ON_WESTEND;
+        break;
+      case ('Kusama'):
+        selectedPoolId = PPREFERED_POOL_ID_ON_KUSAMA;
+        break;
+      case ('Polkadot'):
+        selectedPoolId = PPREFERED_POOL_ID_ON_POLKADOT;
+        break;
+      default:
+        selectedPoolId = undefined;
+    }
+
+    const selectedPool = selectedPoolId ? pools[selectedPoolId.subn(1)] : undefined;
+
+    if (selectedPool && selectedPool?.bondedPools?.state === 'Open') { return { poolId: selectedPoolId, ...selectedPool }; }
+
+    const selected = pools.reduce(function (a, b) {
+      return (a.bondedPools.points).gt(b.bondedPools.points) ? a : b;
+    }, pools[0]);
+    const index = pools.indexOf((p) => p.bondedPools.points.eq(selected.bondedPools.points))
+
+    return { poolId: new BN(index + 1), ...selected };
+  }
 
   // TODO: find a better algorithm to select validators automatically
   function selectBestValidators(validatorsInfo: Validators, stakingConsts: StakingConsts): DeriveStakingQuery[] {
@@ -742,7 +782,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && memberInfo && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && myPool &&
+      {((showConfirmStakingModal && memberInfo && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && (myPool || selectedPool) &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           api={api}
@@ -752,7 +792,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           memberInfo={memberInfo}
           nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
           nominatedValidators={nominatedValidators}
-          pool={myPool}
+          pool={myPool || selectedPool}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setState={setState}
