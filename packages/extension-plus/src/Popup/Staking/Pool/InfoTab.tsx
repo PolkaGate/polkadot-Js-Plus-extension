@@ -53,7 +53,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
             {t('Maximum possible pools')}:
           </Grid>
           <Grid item>
-            <ShowValue value={info?.maxPoolMembersPerPool === -1 ? t('unlimited') : info?.maxPools} />
+            <ShowValue value={info?.maxPools === -1 ? t('unlimited') : info?.maxPools} />
           </Grid>
         </Grid>
 

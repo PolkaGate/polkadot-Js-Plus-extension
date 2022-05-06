@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
+import { BN } from '@polkadot/util';
+
 import getApi from '../getApi.ts';
 
 async function getPoolStackingConsts(endpoint) {
@@ -26,9 +28,9 @@ async function getPoolStackingConsts(endpoint) {
       maxPoolMembers: maxPoolMembers.isSome ? maxPoolMembers.unwrap().toNumber() : -1,
       maxPoolMembersPerPool: maxPoolMembersPerPool.isSome ? maxPoolMembersPerPool.unwrap().toNumber() : -1,
       maxPools: maxPools.isSome ? maxPools.unwrap().toNumber() : -1,
-      minCreateBond: minCreateBond,
-      minJoinBond: minJoinBond,
-      minNominatorBond: minNominatorBond
+      minCreateBond: BigInt(minCreateBond),
+      minJoinBond: BigInt(minJoinBond),
+      minNominatorBond: BigInt(minNominatorBond)
     };
   } catch (error) {
     console.log('something went wrong while getStackingConsts. err: ' + error);

@@ -139,13 +139,13 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const c: PoolStakingConsts = e.data;
 
-      console.log('poolStakingConst:', c);
-
       if (c) {
         c.minCreateBond = new BN(c.minCreateBond);
         c.minJoinBond = new BN(c.minJoinBond);
         c.minNominatorBond = new BN(c.minNominatorBond);
         setPoolStakingConsts(c);
+
+        console.log('poolStakingConst:', c);
 
         // setgettingStakingConstsFromBlockchain(false);
 
