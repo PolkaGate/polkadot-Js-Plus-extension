@@ -90,9 +90,10 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     [api.tx.utility, api.tx.nominationPools]
   );
 
-  const joined = api.tx.nominationPools.join;// (amount, poolId)
   /** list of available trasaction types */
   // const chilled = api.tx.staking.chill;
+  const claimPayout = api.txnominationPools.claimPayout; //();  
+  const joined = api.tx.nominationPools.join; // (amount, poolId)
   const unbonded = api.tx.nominationPools.unbond;
   const nominated = api.tx.nominationPools.nominate;
   const bondExtra = api.tx.nominationPools.bondExtra;
