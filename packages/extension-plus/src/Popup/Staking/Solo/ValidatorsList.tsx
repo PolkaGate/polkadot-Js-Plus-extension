@@ -26,7 +26,7 @@ interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   validatorsInfo: DeriveStakingQuery[] | null;
-  stakingConsts: StakingConsts;
+  stakingConsts: StakingConsts | undefined;
   validatorsIdentities: DeriveAccountInfo[] | null;
   height: number;
   staker?: AccountsBalanceType;

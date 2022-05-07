@@ -25,7 +25,7 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
-import { BN, BN_ZERO, BN_ONE } from '@polkadot/util';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
@@ -33,18 +33,18 @@ import { Hint, PlusHeader, Popup } from '../../../components';
 import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
-import { MAX_ACCEPTED_COMMISSION, PPREFERED_POOL_ID_ON_WESTEND, PPREFERED_POOL_ID_ON_KUSAMA, PPREFERED_POOL_ID_ON_POLKADOT } from '../../../util/constants';
+import { MAX_ACCEPTED_COMMISSION, PPREFERED_POOL_ID_ON_KUSAMA, PPREFERED_POOL_ID_ON_POLKADOT, PPREFERED_POOL_ID_ON_WESTEND } from '../../../util/constants';
 import getPoolAccounts from '../../../util/getPoolAccounts';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import Nominations from '../Pool/Nominations';
 import Unstake from '../pool/Unstake';
 import RewardChart from '../Solo/RewardChart';
-import SelectValidators from '../Solo/SelectValidators';
 import TabPanel from '../Solo/TabPanel';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
 import Overview from './Overview';
 import PoolTab from './PoolTab';
+import SelectValidators from './SelectValidators';
 import Stake from './Stake';
 
 interface Props {
@@ -87,7 +87,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>();
 
 
-  const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
+  const [stakingConsts, setStakingConsts] = useState<StakingConsts | undefined>();
   const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
@@ -325,7 +325,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [currentEraIndex, currentEraIndexOfStore]);
 
   useEffect(() => {
-    /** get poolsInfo  */
     endpoint && getPools(endpoint);
 
     endpoint && getPoolStakingConsts(endpoint);
@@ -744,11 +743,12 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               chain={chain}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               handleStopNominating={handleStopNominating}
-              ledger={ledger}
+              memberInfo={memberInfo}
               myPool={myPool}
               noNominatedValidators={noNominatedValidators}
               nominatedValidators={nominatedValidators}
               nominatorInfo={nominatorInfo}
+              poolStakingConsts={poolStakingConsts}
               staker={staker}
               stakingConsts={stakingConsts}
               state={state}
@@ -769,8 +769,9 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
         <SelectValidators
           api={api}
           chain={chain}
-          ledger={ledger}
+          memberInfo={memberInfo}
           nominatedValidators={nominatedValidators}
+          pool={myPool || selectedPool}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
           setState={setState}
           showSelectValidatorsModal={showSelectValidatorsModal}
@@ -787,7 +788,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           amount={getAmountToConfirm()}
           api={api}
           chain={chain}
-          endpoint={endpoint}
           handlePoolStakingModalClose={handlePoolStakingModalClose}
           memberInfo={memberInfo}
           nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}

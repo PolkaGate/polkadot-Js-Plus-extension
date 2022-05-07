@@ -39,7 +39,6 @@ interface Props {
   amount: BN;
   api: ApiPromise;
   chain: Chain;
-  endpoint: string | undefined;
   handlePoolStakingModalClose?: () => void;
   pool: MyPoolInfo;
   state: string;
@@ -51,12 +50,12 @@ interface Props {
   setSelectValidatorsModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   stakingConsts: StakingConsts | null;
   memberInfo: PalletNominationPoolsPoolMember | undefined;
-  nextPoolId: BN;
+  nextPoolId?: BN;
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
 }
 
-export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoolStakingModalClose, memberInfo, nextPoolId, nominatedValidators, pool, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, memberInfo, nextPoolId, nominatedValidators, pool, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -93,7 +92,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
 
   const joined = api.tx.nominationPools.join;// (amount, poolId)
   /** list of available trasaction types */
-  const chilled = api.tx.nominationPools.chill;
+  const chilled = api.tx.nominationPools.destroy;
   const unbonded = api.tx.nominationPools.unbond;
   const nominated = api.tx.nominationPools.nominate;
   const bondExtra = api.tx.nominationPools.bondExtra;
@@ -155,7 +154,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
           // eslint-disable-next-line no-void
           void bondExtra({ FreeBalance: surAmount }).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         } else { // join to a pool
-          params = [surAmount, pool.poolId?.toNumber()];
+          params = [surAmount, pool.poolId];
           // eslint-disable-next-line no-void
           void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
 
@@ -176,7 +175,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
           const bondingFee = i?.partialFee;
 
           if (!isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
-            params = [selectedValidatorsAccountId];
+            params = [pool.poolId, selectedValidatorsAccountId];
 
             // eslint-disable-next-line no-void
             void nominated(...params).paymentInfo(staker.address).then((i) => {
@@ -212,7 +211,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         break;
       case ('changeValidators'):
       case ('setNominees'):
-        params = [selectedValidatorsAccountId];
+        params = [pool.poolId, selectedValidatorsAccountId];
 
         // eslint-disable-next-line no-void
         void nominated(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
@@ -229,7 +228,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
     // return () => {
     //   setEstimatedFee(undefined);
     // };
-  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, memberInfo, decimals]);
+  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, memberInfo, decimals, pool.poolId, joined]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
@@ -311,7 +310,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
 
       if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
         const poolId = pool.poolId; //nextPoolId for creation of a new pool
-        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, endpoint, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
+        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
 
         history.push({
           action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
@@ -363,44 +362,46 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
 
 
       // if (['changeValidators', 'stakeAuto', 'stakeManual', 'setNominees'].includes(localState)) {
-      //   if (localState === 'stakeAuto') {
-      //     if (!selectedValidators) { // TODO: does it realy happen!
-      //       console.log('! there is no selectedValidators to bond at StakeAuto, so might do bondExtera');
+      if (['changeValidators', 'setNominees'].includes(localState) && pool?.poolId) {
 
-      //       if (hasAlreadyBonded) {
-      //         setConfirmingState('success');
-      //       } else {
-      //         setConfirmingState('failed');
-      //       }
+        // if (localState === 'stakeAuto') {
+        //   if (!selectedValidators) { // TODO: does it realy happen!
+        //     console.log('! there is no selectedValidators to bond at StakeAuto, so might do bondExtera');
 
-      //       return;
-      //     }
+        //     if (hasAlreadyBonded) {
+        //       setConfirmingState('success');
+        //     } else {
+        //       setConfirmingState('failed');
+        //     }
 
-      //     if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
-      //       console.log('selected and previously nominated validators are the same, no need to renominate');
+        //     return;
+        //   }
 
-      //       setConfirmingState('success');
+        //   if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
+        //     console.log('selected and previously nominated validators are the same, no need to renominate');
 
-      //       return;
-      //     }
-      //   }
+        //     setConfirmingState('success');
 
-      //   const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, [selectedValidatorsAccountId], signer, staker.address);
+        //     return;
+        //   }
+        // }
 
-      //   history.push({
-      //     action: 'nominate',
-      //     amount: '',
-      //     block: block,
-      //     date: Date.now(),
-      //     fee: fee || '',
-      //     from: staker.address,
-      //     hash: txHash || '',
-      //     status: failureText || status,
-      //     to: ''
-      //   });
+        const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, [pool.poolId, selectedValidatorsAccountId], signer, staker.address);
 
-      //   setConfirmingState(status);
-      // }
+        history.push({
+          action: 'nominate',
+          amount: '',
+          block: block,
+          date: Date.now(),
+          fee: fee || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
 
       if (localState === 'unstake' && surAmount > 0n) {
         if (surAmount === currentlyStaked) {
@@ -609,27 +610,34 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
         </Grid>
         {stakingConsts && !(STATES_NEEDS_MESSAGE.includes(state) || note)
           ? <>
-            <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
-              {t('Pool')}
-            </Grid>
-            {pool
-              ? <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
-                <Pool
-                  api={api}
-                  chain={chain}
-                  pool={pool}
-                />
-              </Grid>
-              : <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
-                <ValidatorsList
-                  api={api}
-                  chain={chain}
-                  height={180}
-                  stakingConsts={stakingConsts}
-                  validatorsIdentities={validatorsIdentities}
-                  validatorsInfo={validatorsToList}
-                />
-              </Grid>
+            {pool && !['changeValidators', 'setNominees'].includes(state)
+              ? <>
+                <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
+                  {t('Pool')}
+                </Grid>
+                <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
+                  <Pool
+                    api={api}
+                    chain={chain}
+                    pool={pool}
+                  />
+                </Grid>
+              </>
+              : <>
+                <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
+                {t('VALIDATORS')}{` (${validatorsToList?.length})`}
+                </Grid>
+                <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
+                  <ValidatorsList
+                    api={api}
+                    chain={chain}
+                    height={180}
+                    stakingConsts={stakingConsts}
+                    validatorsIdentities={validatorsIdentities}
+                    validatorsInfo={validatorsToList}
+                  />
+                </Grid>
+              </>
             }
           </>
           : <Grid item sx={{ height: '115px', m: '50px 30px 50px', textAlign: 'center' }} xs={12}>
@@ -655,7 +663,7 @@ export default function ConfirmStaking({ amount, api, chain, endpoint, handlePoo
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!stakingConsts || !memberInfo || confirmButtonDisabled || !estimatedFee || !availableBalance || !endpoint}
+              isDisabled={!stakingConsts || !memberInfo || confirmButtonDisabled || !estimatedFee || !availableBalance || !api}
               state={confirmingState}
               text={confirmButtonText}
             />

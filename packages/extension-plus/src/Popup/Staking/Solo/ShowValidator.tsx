@@ -24,7 +24,7 @@ import { StakingConsts } from '../../../util/plusTypes';
 interface Props {
   api: ApiPromise;
   chain: Chain;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   validator: DeriveStakingQuery;
   showSwitch?: boolean;
   handleSwitched?: (event: React.ChangeEvent<HTMLInputElement>, validator: DeriveStakingQuery) => void;

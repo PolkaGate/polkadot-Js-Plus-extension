@@ -9,8 +9,9 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MyPoolInfo, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts, Validators, StakingConsts } from '../../../util/plusTypes';
 
 import { Adjust as AdjustIcon, StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
 import { Button as MuiButton, Grid } from '@mui/material';
@@ -18,6 +19,7 @@ import React, { useCallback } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
@@ -26,9 +28,10 @@ import ValidatorsList from '../Solo/ValidatorsList';
 
 interface Props {
   activeValidator: DeriveStakingQuery | undefined;
-  ledger: StakingLedger | null;
+  memberInfo: PalletNominationPoolsPoolMember;
   nominatedValidators: DeriveStakingQuery[] | null;
-  stakingConsts: StakingConsts | null;
+  poolStakingConsts: PoolStakingConsts | undefined;
+  stakingConsts: StakingConsts | undefined;
   noNominatedValidators: boolean;
   chain: Chain;
   api: ApiPromise | undefined;
@@ -42,13 +45,13 @@ interface Props {
   myPool: MyPoolInfo | undefined | null;
 }
 
-export default function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, ledger, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, memberInfo, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const currentlyStaked = BigInt(ledger ? ledger.active.toString() : '0');
+  const currentlyStaked = (memberInfo?.points ?? BN_ZERO) as BN;
 
   return (
     <>
-      {nominatedValidators?.length && stakingConsts && !noNominatedValidators
+      {nominatedValidators?.length && poolStakingConsts && !noNominatedValidators
         ? <Grid container sx={{ p: 0 }}>
           <Grid item sx={{ height: '245px' }} xs={12}>
             <ValidatorsList
@@ -99,7 +102,7 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
               {t('No nominated validators found')}
             </Grid>
             <Grid item>
-              {api && stakingConsts && currentlyStaked >= stakingConsts?.minNominatorBond && [myPool?.bondedPools?.roles?.root, myPool?.bondedPools?.roles?.nominator].includes(staker.address) &&
+              {api && poolStakingConsts && currentlyStaked.gt(poolStakingConsts?.minNominatorBond) && [myPool?.bondedPools?.roles?.root, myPool?.bondedPools?.roles?.nominator].includes(staker.address) &&
                 <NextStepButton
                   data-button-action='Set Nominees'
                   isBusy={validatorsInfo && state === 'setNominees'}

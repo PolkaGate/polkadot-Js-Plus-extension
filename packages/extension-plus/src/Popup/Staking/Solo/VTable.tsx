@@ -23,7 +23,7 @@ interface Props {
   activeValidator?: DeriveStakingQuery;
   chain: Chain;
   validators: DeriveStakingQuery[];
-  stakingConsts: StakingConsts;
+  stakingConsts: StakingConsts | undefined;
   validatorsIdentities: DeriveAccountInfo[] | null;
   setInfo: React.Dispatch<React.SetStateAction<DeriveStakingQuery | null>>;
   setShowValidatorInfoModal: React.Dispatch<React.SetStateAction<boolean>>;

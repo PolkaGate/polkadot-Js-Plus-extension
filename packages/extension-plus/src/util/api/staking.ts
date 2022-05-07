@@ -5,17 +5,19 @@
 // eslint-disable-next-line header/header
 /* eslint-disable camelcase */
 
-import { SubmittableExtrinsic } from '@polkadot/api/types';
-import { Chain } from '@polkadot/extension-chains/types';
+import type { ApiPromise } from '@polkadot/api';
+import type { SubmittableExtrinsic } from '@polkadot/api/types';
+import type { Chain } from '@polkadot/extension-chains/types';
+import type { ISubmittableResult } from '@polkadot/types/types';
+import type { TxInfo, ValidatorsFromSubscan } from '../plusTypes';
+
 import { KeyringPair } from '@polkadot/keyring/types';
-import { ISubmittableResult } from '@polkadot/types/types';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import getApi from '../getApi';
 import getChainInfo from '../getChainInfo';
-import { TxInfo, ValidatorsFromSubscan } from '../plusTypes';
 import { postData } from '../postData';
 import { signAndSend } from './signAndSend';
-import { BN, BN_ZERO } from '@polkadot/util';
 
 export async function getAllValidatorsFromSubscan(_chain: Chain): Promise<{ current: ValidatorsFromSubscan[] | null, waiting: ValidatorsFromSubscan[] | null } | null> {
   if (!_chain) {
@@ -223,13 +225,12 @@ export async function bondOrBondExtra(
 
 export async function poolJoinOrBondExtra(
   _chain: Chain | null | undefined,
-  _endpoint: string,
+  _api: ApiPromise,
   _stashAccountId: string | null,
   _signer: KeyringPair,
   _value: BN,
   _nextPoolId: BN,
-  _alreadyBondedAmount: boolean,
-  payee = 'Staked'): Promise<TxInfo> {
+  _alreadyBondedAmount: boolean): Promise<TxInfo> {
   try {
     console.log('poolJoinOrBondExtra is called! nextPoolId:', _nextPoolId);
 
@@ -246,18 +247,17 @@ export async function poolJoinOrBondExtra(
      * Controller - Pay into the controller account.
      */
 
-    const api = await getApi(_endpoint);
     let tx: SubmittableExtrinsic<'promise', ISubmittableResult>;
 
     if (_alreadyBondedAmount) {
-      tx = api.tx.nominationPools.bondExtra({ FreeBalance: _value });
+      tx = _api.tx.nominationPools.bondExtra({ FreeBalance: _value });
     } else {
       // bonded = api.tx.utility.batch([
-      //   api.tx.nominationPools.create(_value, _stashAccountId, _stashAccountId, _stashAccountId),
-      //   api.tx.nominationPools.setMetadata(_nextPoolId, 'metadata')
+      //   _api.tx.nominationPools.create(_value, _stashAccountId, _stashAccountId, _stashAccountId),
+      //   _api.tx.nominationPools.setMetadata(_nextPoolId, 'metadata')
       // ]);
 
-      tx = api.tx.nominationPools.join(_value, _nextPoolId);
+      tx = _api.tx.nominationPools.join(_value, _nextPoolId);
 
       // (, _value, payee);
     }
