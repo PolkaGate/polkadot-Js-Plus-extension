@@ -20,7 +20,7 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
-import { Balance } from '@polkadot/types/interfaces';
+import type { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 import { BN, BN_ZERO } from '@polkadot/util';
 
@@ -192,7 +192,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
         break;
       case ('unstake'):
-        params = [surAmount];
+        params = [staker?.address, surAmount];
 
         // eslint-disable-next-line no-void
         void unbonded(...params).paymentInfo(staker.address).then((i) => {
@@ -202,7 +202,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           //   // eslint-disable-next-line no-void
           //   void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
           // } else { 
-            setEstimatedFee(fee); 
+          setEstimatedFee(fee);
           // }
         });
         setTotalStakedInHuman(amountToHuman((currentlyStaked.sub(surAmount)).toString(), decimals));
@@ -431,8 +431,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         //     return;
         //   }
         // }
-
-        const { block, failureText, fee, status, txHash } = await broadcast(api, unbonded, [surAmount], signer, staker.address);
+        const params = [staker?.address, surAmount];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, unbonded, params, signer, staker.address);
 
         history.push({
           action: 'unbond',
@@ -627,7 +627,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
               </>
               : <>
                 <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
-                {t('VALIDATORS')}{` (${validatorsToList?.length})`}
+                  {t('VALIDATORS')}{` (${validatorsToList?.length})`}
                 </Grid>
                 <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
                   <ValidatorsList

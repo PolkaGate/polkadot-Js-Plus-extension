@@ -107,7 +107,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [state, setState] = useState<string>('');
   const [tabValue, setTabValue] = useState(4);
   const [unstakeAmount, setUnstakeAmount] = useState<BN>(BN_ZERO);
-  const [unlockingAmount, setUnlockingAmount] = useState<BN>(BN_ZERO);
+  // const [unlockingAmount, setUnlockingAmount] = useState<BN>(BN_ZERO);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
@@ -312,6 +312,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     // eslint-disable-next-line no-void
     api && void api.query.nominationPools.poolMembers(staker.address).then((res) => {
       const members = res.isSome ? res.unwrap() : DEFAULT_MEMBER_INFO;
+      console.log('members', members);
 
       console.log('members', JSON.parse(JSON.stringify(members)));
       setMemberInfo(members);
@@ -361,7 +362,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [endpoint, myPool]);
 
   useEffect(() => {
-    if (!api || !poolsInfo) return;
+    if (!api || !poolsInfo || !memberInfo) return;
 
     const pool = poolsInfo.find((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId));
     const poolIndex = poolsInfo.findIndex((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId)); // FIXME should do in a better way
@@ -431,18 +432,18 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [chain, api, staker.address, decimals]);
 
   useEffect(() => {
-    if (!memberInfo || !api || !decimals) { return; }
+    if (!memberInfo || !decimals) { return; }
 
     setCurrentlyStakedInHuman(amountToHuman(String(memberInfo.points), decimals));
 
-    // set unlocking
-    const unlockingValue = BN_ZERO;
+    // // set unlocking
+    // const value = BN_ZERO;
 
-    //TODO: check when have unlocking ...........................................
-    memberInfo?.unbondingEras?.forEach((u) => { unlockingValue.iadd(new BN(u.value)); });
-
+    // memberInfo?.unbondingEras?.forEach((u) => { value.iadd(new BN(u.value)); });
+    
+    // setUnlockingAmount(value);
     // setUnlockingAmount(redeemable ? unlockingValue.sub(redeemable) : unlockingValue);
-  }, [memberInfo, api, redeemable, decimals]);
+  }, [memberInfo, redeemable, decimals]);
 
   useEffect(() => {
     if (!account) {

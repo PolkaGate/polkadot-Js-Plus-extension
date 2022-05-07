@@ -8,6 +8,7 @@
  * */
 import type { Balance } from '@polkadot/types/interfaces';
 import type { ThemeProps } from '../../../extension-ui/src/types';
+import type { BN } from '@polkadot/util';
 
 import { Skeleton } from '@mui/material';
 import React from 'react';
@@ -16,14 +17,14 @@ import styled from 'styled-components';
 import { ApiPromise } from '@polkadot/api';
 
 export interface Props {
-  balance: Balance | bigint | string | number | null | undefined;
+  balance: Balance | BN | bigint | string | number | null | undefined;
   api: ApiPromise | undefined;
   title?: string;
   direction?: string;
 }
 
 function ShowBalance2({ api, balance, direction = 'row', title }: Props): React.ReactElement<Props> {
-  const amountToHuman = (x: bigint): string | undefined => api && api.createType('Balance', x).toHuman();
+  const amountToHuman = (x: unknown): string | undefined => api && (api.createType('Balance', x)).toHuman();
 
   return (
     <div data-testid='showPlus'>

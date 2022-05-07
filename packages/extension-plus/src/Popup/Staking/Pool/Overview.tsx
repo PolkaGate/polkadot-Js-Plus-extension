@@ -10,13 +10,15 @@
  *  total reward received, etc.
  * */
 
+import type { Balance } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 
 import { BarChart as BarChartIcon, MoreVert as MoreVertIcon, Redeem as RedeemIcon } from '@mui/icons-material';
 import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, ShowBalance2 } from '../../../components';
@@ -36,7 +38,7 @@ interface BalanceProps {
   coin: string;
 }
 
-function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
+function Balance0({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
   return (<>
     <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }} xs={12}>
       {label}
@@ -52,10 +54,12 @@ function Balance({ amount, coin, label }: BalanceProps): React.ReactElement<Bala
 
 export default function Overview({ api, availableBalanceInHuman, memberInfo, handleViewChart, handleWithdrowUnbound }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
+
   const decimals = api && api.registry.chainDecimals[0];
   const token = api?.registry?.chainTokens[0] ?? '';
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const handleAdvanceMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -66,6 +70,18 @@ export default function Overview({ api, availableBalanceInHuman, memberInfo, han
     setAnchorEl(null);
   };
 
+  useEffect(() => {
+    if (!memberInfo || !api) { return; }
+
+    let value = BN_ZERO;
+
+    for (const item of memberInfo?.unbondingEras) {
+      value = value.add(item[1]);
+    }
+
+    setUnlockingAmount(value);
+  }, [memberInfo, api]);
+
   return (
     <>
       <Paper elevation={4} sx={{ borderRadius: '10px', fontSize: 12, height: 95, margin: '25px 30px 10px', p: 2, width: '90%' }}>
@@ -73,20 +89,20 @@ export default function Overview({ api, availableBalanceInHuman, memberInfo, han
           <Grid item sx={{ flexGrow: 1 }}>
             <Grid alignItems='center' container item justifyContent='space-between' sx={{ pb: '20px', textAlign: 'center' }}>
               <Grid item xs={4}>
-                <Balance amount={availableBalanceInHuman} coin={token} label={t('Available')} />
+                <Balance0 amount={availableBalanceInHuman} coin={token} label={t('Available')} />
               </Grid>
               <Grid item xs={4}>
-                <ShowBalance2 api={api} balance={memberInfo?.points} direction='collumn' title={t('Staked')} />
+                <ShowBalance2 api={api} balance={memberInfo?.points} direction='column' title={t('Staked')} />
               </Grid>
             </Grid>
             <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item xs={4}>
-                <ShowBalance2 api={api} balance={memberInfo?.rewardPoolTotalEarnings} direction='collumn' title={t('Rewards')}/>
+                <ShowBalance2 api={api} balance={memberInfo?.rewardPoolTotalEarnings} direction='column' title={t('Rewards')} />
               </Grid>
 
               <Grid container item justifyContent='center' xs={4}>
                 <Grid container item justifyContent='center' xs={12}>
-                  <Balance
+                  <Balance0
                     amount={amountToHuman(String('0'), decimals)}
                     coin={token}
                     label={
@@ -106,7 +122,9 @@ export default function Overview({ api, availableBalanceInHuman, memberInfo, han
               </Grid>
 
               <Grid item xs={4}>
-                <Balance amount={amountToHuman(String('0'), decimals)} coin={token} label={t('Unstaking')} />
+                <ShowBalance2 api={api} balance={unlockingAmount} direction='column' title={t('Unstaking')} />
+
+                {/* <Balance amount={amountToHuman(String('0'), decimals)} coin={token} label={t('Unstaking')} /> */}
               </Grid>
             </Grid>
           </Grid>
