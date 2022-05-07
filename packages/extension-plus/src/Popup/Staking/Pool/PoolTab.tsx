@@ -12,6 +12,8 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import { hexToBn } from '@polkadot/util';
 
 import { StopRounded as StopRoundedIcon } from '@mui/icons-material';
 import { Divider, Grid, Paper } from '@mui/material';
@@ -33,6 +35,10 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
   const { t } = useTranslation();
   const [points, setPoints] = useState<Balance | undefined>();
 
+  const balance = myPool && api ? api.createType('Balance', myPool.rewardPools.balance) : undefined;
+  const totalEarnings = myPool && api ? api.createType('Balance', myPool.rewardPools.totalEarnings) : undefined;
+  const rewardPoolsPoints = myPool && api ? api.createType('Balance', hexToBn(myPool.rewardPools.points)) : undefined;
+
   useEffect(() => {
     if (!(api && poolsInfo && myPool)) return;
 
@@ -48,13 +54,13 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
           ? <>
             <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 10px', width: '100%' }}>
               <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
-                <Grid item sx={{ textAlign: 'left' }} xs={1}>
+                <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('Index')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={4}>
+                <Grid item sx={{ textAlign: 'center' }} xs={4}>
                   {t('Name')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={1}>
+                <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('State')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={3}>
@@ -75,10 +81,10 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
                     {myPool.poolId.toNumber()}
                   </Grid>
-                  <Grid item sx={{ textAlign: 'left' }} xs={4}>
+                  <Grid item sx={{ textAlign: 'center' }} xs={4}>
                     {myPool.metadata ?? t('no name')}
                   </Grid>
-                  <Grid item sx={{ textAlign: 'left' }} xs={1}>
+                  <Grid item sx={{ textAlign: 'center' }} xs={1}>
                     {myPool.bondedPools.state}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={3}>
@@ -96,7 +102,7 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
 
             <Grid item sx={{ pt: 1 }} xs={12}>
               <Paper elevation={3}>
-                <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, p: '10px', textAlign: 'center' }}>
+                <Grid container item justifyContent='flex-start' sx={{ fontSize: 11, p: '10px', textAlign: 'center' }}>
                   <Grid item xs={12}>
                     <ShowAddress address={myPool.bondedPools.roles.root} chain={chain} role={'Root'} />
                   </Grid>
@@ -120,13 +126,13 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
                     <Divider />
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                    {t('Balance')}{': '}{myPool.rewardPools.balance}
+                    {t('Balance')}{': '}{balance ? balance.toHuman() : 0}
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                    {t('Points')}{': '}{myPool.rewardPools.points}
+                    {t('Points')}{': '}{rewardPoolsPoints ? rewardPoolsPoints.toHuman() : 0}
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                    {t('Total earnings')}{': '}{myPool.rewardPools.totalEarnings}
+                    {t('Total earnings')}{': '}{totalEarnings ? totalEarnings.toHuman() : 0}
                   </Grid>
                 </Grid>
               </Paper>
