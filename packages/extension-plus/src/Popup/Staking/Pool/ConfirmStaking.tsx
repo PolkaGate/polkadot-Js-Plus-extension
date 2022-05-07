@@ -92,7 +92,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
   const joined = api.tx.nominationPools.join;// (amount, poolId)
   /** list of available trasaction types */
-  const chilled = api.tx.nominationPools.destroy;
+  // const chilled = api.tx.staking.chill;
   const unbonded = api.tx.nominationPools.unbond;
   const nominated = api.tx.nominationPools.nominate;
   const bondExtra = api.tx.nominationPools.bondExtra;
@@ -198,17 +198,19 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         void unbonded(...params).paymentInfo(staker.address).then((i) => {
           const fee = i?.partialFee;
 
-          if (surAmount === currentlyStaked) {
-            // eslint-disable-next-line no-void
-            void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
-          } else { setEstimatedFee(fee); }
+          // if (surAmount === currentlyStaked) {
+          //   // eslint-disable-next-line no-void
+          //   void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
+          // } else { 
+            setEstimatedFee(fee); 
+          // }
         });
         setTotalStakedInHuman(amountToHuman((currentlyStaked.sub(surAmount)).toString(), decimals));
         break;
-      case ('stopNominating'):
-        // eslint-disable-next-line no-void
-        void chilled().paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-        break;
+      // case ('stopNominating'):
+      //   // eslint-disable-next-line no-void
+      //   void chilled().paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+      //   break;
       case ('changeValidators'):
       case ('setNominees'):
         params = [pool.poolId, selectedValidatorsAccountId];
@@ -228,7 +230,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     // return () => {
     //   setEstimatedFee(undefined);
     // };
-  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, chilled, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, memberInfo, decimals, pool.poolId, joined]);
+  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, memberInfo, decimals, pool.poolId, joined]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
@@ -403,32 +405,32 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      if (localState === 'unstake' && surAmount > 0n) {
-        if (surAmount === currentlyStaked) {
-          /**  if unstaking all, should chill first */
-          const { failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
+      if (localState === 'unstake' && surAmount.gt(BN_ZERO)) {
+        // if (surAmount === currentlyStaked) {
+        //   /**  if unstaking all, should chill first */
+        //   const { failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
 
-          history.push({
-            action: 'chill',
-            amount: '',
-            date: Date.now(),
-            fee: fee || '',
-            from: staker.address,
-            hash: txHash || '',
-            status: failureText || status,
-            to: ''
-          });
+        //   history.push({
+        //     action: 'chill',
+        //     amount: '',
+        //     date: Date.now(),
+        //     fee: fee || '',
+        //     from: staker.address,
+        //     hash: txHash || '',
+        //     status: failureText || status,
+        //     to: ''
+        //   });
 
-          if (state === 'failed') {
-            console.log('chilling failed:', failureText);
-            setConfirmingState(status);
+        //   if (state === 'failed') {
+        //     console.log('chilling failed:', failureText);
+        //     setConfirmingState(status);
 
-            // eslint-disable-next-line no-void
-            void saveHistory(chain, hierarchy, staker.address, history);
+        //     // eslint-disable-next-line no-void
+        //     void saveHistory(chain, hierarchy, staker.address, history);
 
-            return;
-          }
-        }
+        //     return;
+        //   }
+        // }
 
         const { block, failureText, fee, status, txHash } = await broadcast(api, unbonded, [surAmount], signer, staker.address);
 
@@ -470,22 +472,22 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      if (localState === 'stopNominating') {
-        const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
+      // if (localState === 'stopNominating') {
+      //   const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
 
-        history.push({
-          action: 'stop_nominating',
-          block: block,
-          date: Date.now(),
-          fee: fee || '',
-          from: staker.address,
-          hash: txHash || '',
-          status: failureText || status,
-          to: ''
-        });
+      //   history.push({
+      //     action: 'stop_nominating',
+      //     block: block,
+      //     date: Date.now(),
+      //     fee: fee || '',
+      //     from: staker.address,
+      //     hash: txHash || '',
+      //     status: failureText || status,
+      //     to: ''
+      //   });
 
-        setConfirmingState(status);
-      }
+      //   setConfirmingState(status);
+      // }
 
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, staker.address, history);

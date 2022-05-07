@@ -67,9 +67,9 @@ interface RewardInfo {
 
 const workers: Worker[] = [];
 const DEFAULT_MEMBER_INFO = {
-  points: 0,
-  poolId: 0,
-  rewardPoolTotalEarnings: 0,
+  points: BN_ZERO,
+  poolId: BN_ZERO,
+  rewardPoolTotalEarnings: BN_ZERO,
   unbondingEras: []
 };
 

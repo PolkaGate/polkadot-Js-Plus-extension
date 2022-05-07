@@ -31,7 +31,7 @@ interface Props {
   setShowValidatorInfoModal: Dispatch<SetStateAction<boolean>>;
   info: DeriveStakingQuery;
   validatorsIdentities: DeriveAccountInfo[] | null;
-  staker?: AccountsBalanceType;
+  staker?: AccountsBalanceType | string;
 }
 
 export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoModal, showValidatorInfoModal, staker, validatorsIdentities }: Props): React.ReactElement<Props> {
@@ -49,7 +49,8 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
     }, [setShowValidatorInfoModal]);
 
   const sortedNominators = info?.exposure?.others.sort((a, b) => b.value - a.value);
-  const myIndex = staker?.address ? sortedNominators.findIndex((n) => n.who.toString() === staker.address) : -1;
+  const stakerAddress = staker?.address ?? staker;
+  const myIndex = stakerAddress ? sortedNominators.findIndex((n) => n.who.toString() === stakerAddress) : -1;
 
   return (
     <Popup handleClose={handleDetailsModalClose} id='scrollArea' showModal={showValidatorInfoModal}>

@@ -59,7 +59,7 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
               api={api}
               chain={chain}
               height={220}
-              staker={staker}
+              staker={myPool?.accounts?.stashId}
               stakingConsts={stakingConsts}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={nominatedValidators}
@@ -67,8 +67,8 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
           </Grid>
 
           {[myPool?.bondedPools?.roles?.root, myPool?.bondedPools?.roles?.nominator].includes(staker.address) &&
-            <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
-              <Grid item xs={5}>
+            <Grid container item justifyContent='flex-end' sx={{ padding: '5px 10px 0px' }} xs={12}>
+              {/* <Grid item xs={5}>
                 <MuiButton
                   onClick={handleStopNominating}
                   size='medium'
@@ -78,7 +78,7 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
                 >
                   {t('Stop nominating')}
                 </MuiButton>
-              </Grid>
+              </Grid> */}
 
               <Grid item sx={{ textAlign: 'right' }} xs={4}>
                 <MuiButton
