@@ -28,7 +28,6 @@ import ValidatorsList from '../Solo/ValidatorsList';
 
 interface Props {
   activeValidator: DeriveStakingQuery | undefined;
-  memberInfo: PalletNominationPoolsPoolMember;
   nominatedValidators: DeriveStakingQuery[] | null;
   poolStakingConsts: PoolStakingConsts | undefined;
   stakingConsts: StakingConsts | undefined;
@@ -42,12 +41,12 @@ interface Props {
   handleStopNominating: () => void;
   nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
   staker: AccountsBalanceType;
-  myPool: MyPoolInfo | undefined | null;
+  myPool: any | undefined | null;
 }
 
-export default function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, memberInfo, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const currentlyStaked = (memberInfo?.points ?? BN_ZERO) as BN;
+  const currentlyStaked = (myPool?.member?.points ?? BN_ZERO) as BN;
 
   return (
     <>
@@ -59,14 +58,14 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
               api={api}
               chain={chain}
               height={220}
-              staker={myPool?.accounts?.stashId}
+              staker={myPool?.poolAccounts?.stashId}
               stakingConsts={stakingConsts}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={nominatedValidators}
             />
           </Grid>
 
-          {[myPool?.bondedPools?.roles?.root, myPool?.bondedPools?.roles?.nominator].includes(staker.address) &&
+          {[myPool?.bondedPool?.roles?.root, myPool?.bondedPool?.roles?.nominator].includes(staker.address) &&
             <Grid container item justifyContent='flex-end' sx={{ padding: '5px 10px 0px' }} xs={12}>
               {/* <Grid item xs={5}>
                 <MuiButton
@@ -102,7 +101,7 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
               {t('No nominated validators found')}
             </Grid>
             <Grid item>
-              {api && poolStakingConsts && currentlyStaked.gt(poolStakingConsts?.minNominatorBond) && [myPool?.bondedPools?.roles?.root, myPool?.bondedPools?.roles?.nominator].includes(staker.address) &&
+              {api && poolStakingConsts && currentlyStaked.gt(poolStakingConsts?.minNominatorBond) && [myPool?.bondedPool?.roles?.root, myPool?.bondedPool?.roles?.nominator].includes(staker.address) &&
                 <NextStepButton
                   data-button-action='Set Nominees'
                   isBusy={validatorsInfo && state === 'setNominees'}

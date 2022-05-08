@@ -262,7 +262,7 @@ export async function poolJoinOrBondExtra(
       // (, _value, payee);
     }
 
-    return signAndSend(api, tx, _signer, _stashAccountId);
+    return signAndSend(_api, tx, _signer, _stashAccountId);
   } catch (error) {
     console.log('Something went wrong while bond/nominate', error);
 

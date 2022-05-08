@@ -26,7 +26,7 @@ import PoolInfo from './PoolMoreInfo';
 interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
-  pool: MyPoolInfo | undefined;
+  pool: any | undefined;
 }
 
 export default function Pool({ api, chain, pool }: Props): React.ReactElement<Props> {
@@ -34,7 +34,8 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
   const [info, setInfo] = useState(undefined);
   const [showPoolInfo, setShowPoolInfo] = useState(false);
 
-  const points = api.createType('Balance', pool?.bondedPools?.points ?? 0)
+  const points = api ? api.createType('Balance', pool?.bondedPool?.points ?? 0) : undefined;
+  const poolId = pool?.poolId ?? pool?.member?.poolId;
 
   const handleMorePoolInfoOpen = useCallback((i) => {
     setInfo(i);
@@ -84,19 +85,19 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                   <MoreVertIcon fontSize='small' onClick={() => handleMorePoolInfoOpen(p)} sx={{ cursor: 'pointer' }} />
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {pool.poolId.toNumber()}
+                  {poolId}
                 </Grid>
                 <Grid item sx={{ textAlign: 'left' }} xs={4}>
                   {pool.metadata ?? t('no name')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'left' }} xs={1}>
-                  {pool.bondedPools.state}
+                  {pool.bondedPool.state}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {points?.toHuman()}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                  {pool.bondedPools.memberCounter}
+                  {pool.bondedPool.memberCounter}
                 </Grid>
                 <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={1}>
                   <StopRoundedIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />

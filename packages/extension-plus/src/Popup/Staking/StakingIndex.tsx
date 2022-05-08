@@ -62,7 +62,7 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
               <p>{t('SOLO STAKING')}</p>
             </Grid>
             <Grid item>
-              <CircleOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px' }} />
+              <CircleOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px', color: blue[900] }} />
             </Grid>
           </Grid>
 
@@ -77,7 +77,7 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
               <p>{t('POOL STAKING')}</p>
             </Grid>
             <Grid item>
-              <GroupWorkOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px' }} />
+              <GroupWorkOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px', color: green[900] }} />
             </Grid>
           </Grid>
 

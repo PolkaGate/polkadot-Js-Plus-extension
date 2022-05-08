@@ -78,7 +78,7 @@ export default function Pools ({ api, chain, poolsInfo, staker }: Props): React.
             <Box sx={{ bgcolor: 'background.paper', height: 200, overflowY: 'auto', scrollbarWidth: 'none', width: '100%' }}>
               <Grid id='body' item xs={12}>
                 {poolsInfo.map((p, index: number) => {
-                  const points = api.createType('Balance', p.bondedPools.points);
+                  const points = api.createType('Balance', p.bondedPool.points);
 
                   return (
                     <Paper elevation={2} key={index} sx={{ backgroundColor: '', borderRadius: '10px', mt: '4px', p: '1px 15px 2px 15px' }}>
@@ -94,13 +94,13 @@ export default function Pools ({ api, chain, poolsInfo, staker }: Props): React.
                           {p.metadata}
                         </Grid>
                         <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
-                          {p.bondedPools.state}
+                          {p.bondedPool.state}
                         </Grid>
                         <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={3}>
                           {points.toHuman()}
                         </Grid>
                         <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={2}>
-                          {p.bondedPools.memberCounter}
+                          {p.bondedPool.memberCounter}
                         </Grid>
                         <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
                           <AddIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />

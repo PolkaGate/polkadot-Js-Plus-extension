@@ -26,12 +26,11 @@ import { Progress, ShowAddress } from '../../../components';
 interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
-  poolsInfo: PoolInfo[] | undefined;
   staker: AccountsBalanceType;
   myPool: any | undefined | null;
 }
 
-export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props): React.ReactElement<Props> {
+export default function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [points, setPoints] = useState<Balance | undefined>();
 
@@ -40,16 +39,16 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
   const rewardPoolsPoints = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.points) : undefined;
 
   useEffect(() => {
-    if (!(api && poolsInfo && myPool)) return;
+    if (!(api &&  myPool)) return;
 
-    const poolPoints = (poolsInfo[myPool.member.poolId - 1]?.bondedPools?.points ?? 0) as number;
+    const poolPoints = myPool.rewardPool.points ?? 0;
 
     setPoints(api.createType('Balance', poolPoints));
-  }, [api, myPool, poolsInfo]);
+  }, [api, myPool]);
 
   return (
     <Grid container sx={{ px: '25px' }}>
-      {poolsInfo && api && myPool !== undefined
+      { api && myPool !== undefined
         ? myPool
           ? <>
             <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 10px', width: '100%' }}>

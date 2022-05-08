@@ -46,31 +46,31 @@ export default function ShowPool({ api, chain, handleMorePoolInfoClose, info, sh
             <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, p: '20px 10px 20px', textAlign: 'center' }}>
 
               <Grid item sx={{ py: 1, textAlign: 'left' }} xs={12}>
-                <b>{t('Root')}</b>{': '}{info.bondedPools.roles.root}
+                <b>{t('Root')}</b>{': '}{info.bondedPool.roles.root}
               </Grid>
               <Grid item sx={{ p: '10px 0px 20px' }} xs={12}>
                 <Divider />
               </Grid>
               <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={12}>
-                {t('Depositor')}{': '}{info.bondedPools.roles.depositor}
+                {t('Depositor')}{': '}{info.bondedPool.roles.depositor}
               </Grid>
               <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={12}>
-                {t('Nominator')}{': '}{info.bondedPools.roles.nominator}
+                {t('Nominator')}{': '}{info.bondedPool.roles.nominator}
               </Grid>
               <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={12}>
-                {t('State Toggler')}{': '}{info.bondedPools.roles.stateToggler}
+                {t('State Toggler')}{': '}{info.bondedPool.roles.stateToggler}
               </Grid>
               <Grid item sx={{ p: '10px 0px 20px' }} xs={12}>
                 <Divider />
               </Grid>
               <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                {t('Balance')}{': '}{info.rewardPools.balance}
+                {t('Balance')}{': '}{info.rewardPool.balance}
               </Grid>
               <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                {t('Points')}{': '}{info.rewardPools.points}
+                {t('Points')}{': '}{info.rewardPool.points}
               </Grid>
               <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                {t('Total earnings')}{': '}{info.rewardPools.totalEarnings}
+                {t('Total earnings')}{': '}{info.rewardPool.totalEarnings}
               </Grid>
             </Grid>
           </Paper>
@@ -80,7 +80,7 @@ export default function ShowPool({ api, chain, handleMorePoolInfoClose, info, sh
             {t('Pool members')}
           </Grid>
           <Grid item sx={{ fontSize: 12 }}>
-            ({info.bondedPools.memberCounter})
+            ({info.bondedPool.memberCounter})
           </Grid>
         </Grid>
         {/* <Grid item sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: 2 }} xs={12}>

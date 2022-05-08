@@ -36,7 +36,6 @@ interface Props {
   api: ApiPromise | undefined;
   staker: AccountsBalanceType;
   showSelectValidatorsModal: boolean;
-  memberInfo: PalletNominationPoolsPoolMember | undefined;
   nominatedValidators: DeriveStakingQuery[] | null;
   setSelectValidatorsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   stakingConsts: StakingConsts;
@@ -45,7 +44,7 @@ interface Props {
   setState: React.Dispatch<React.SetStateAction<string>>;
   state: string;
   validatorsIdentities: DeriveAccountInfo[] | null;
-  pool: MyPoolInfo | undefined;
+  pool: any | undefined;
 }
 
 interface Data {
@@ -306,7 +305,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, nominatedValidators,memberInfo, pool, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function SelectValidators({ api, chain, nominatedValidators, pool, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
@@ -477,7 +476,6 @@ export default function SelectValidators({ api, chain, nominatedValidators,membe
           amount={['changeValidators', 'setNominees'].includes(state) ? BN_ZERO : stakeAmount}
           api={api}
           chain={chain}
-          memberInfo={memberInfo}
           nominatedValidators={nominatedValidators}
           pool={pool}
           selectedValidators={selected}

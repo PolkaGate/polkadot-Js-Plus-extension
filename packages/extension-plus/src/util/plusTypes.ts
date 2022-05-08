@@ -325,9 +325,9 @@ export interface PoolStakingConsts {
 }
 
 export interface PoolInfo {
-  bondedPools: PalletNominationPoolsBondedPoolInner | null;
+  bondedPool: PalletNominationPoolsBondedPoolInner | null;
   metadata: string | null;
-  rewardPools: unknown | null
+  rewardPool: unknown | null
 }
 export interface MyPoolInfo extends PoolInfo {
   poolId?: BN;

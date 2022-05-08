@@ -32,7 +32,7 @@ interface Props {
 
 export default function PoolMoreInfo({ api, chain, myPool, poolsInfo, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const points = useMemo(() => api && myPool && api.createType('Balance', myPool.bondedPools.points), [api, myPool]);
+  const points = useMemo(() => api && myPool && api.createType('Balance', myPool.bondedPool.points), [api, myPool]);
 
   return (
     <Grid container sx={{ p: 0 }}>
@@ -73,13 +73,13 @@ export default function PoolMoreInfo({ api, chain, myPool, poolsInfo, staker }: 
                         {myPool.metadata ?? t('no name')}
                       </Grid>
                       <Grid item sx={{ textAlign: 'left' }} xs={1}>
-                        {myPool.bondedPools.state}
+                        {myPool.bondedPool.state}
                       </Grid>
                       <Grid item sx={{ textAlign: 'center' }} xs={3}>
                         {points?.toHuman()}
                       </Grid>
                       <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                        {myPool.bondedPools.memberCounter}
+                        {myPool.bondedPool.memberCounter}
                       </Grid>
                       <Grid item sx={{ textAlign: 'center' }} xs={1}>
                         <AddIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />
@@ -95,31 +95,31 @@ export default function PoolMoreInfo({ api, chain, myPool, poolsInfo, staker }: 
                 <Grid container item justifyContent='flex-start' sx={{ fontSize: 12, p: '10px', textAlign: 'center' }}>
 
                   <Grid item sx={{ textAlign: 'left' }} xs={12}>
-                    <b>{t('Root')}</b>{': '}{myPool.bondedPools.roles.root}
+                    <b>{t('Root')}</b>{': '}{myPool.bondedPool.roles.root}
                   </Grid>
                   <Grid item sx={{ pt: '15px' }} xs={12}>
                     <Divider />
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={12}>
-                    {t('Depositor')}{': '}{myPool.bondedPools.roles.depositor}
+                    {t('Depositor')}{': '}{myPool.bondedPool.roles.depositor}
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={12}>
-                    {t('Nominator')}{': '}{myPool.bondedPools.roles.nominator}
+                    {t('Nominator')}{': '}{myPool.bondedPool.roles.nominator}
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={12}>
-                    {t('State Toggler')}{': '}{myPool.bondedPools.roles.stateToggler}
+                    {t('State Toggler')}{': '}{myPool.bondedPool.roles.stateToggler}
                   </Grid>
                   <Grid item sx={{ p: '0px 0px 10px' }} xs={12}>
                     <Divider />
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                    {t('Balance')}{': '}{myPool.rewardPools.balance}
+                    {t('Balance')}{': '}{myPool.rewardPool.balance}
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                    {t('Points')}{': '}{myPool.rewardPools.points}
+                    {t('Points')}{': '}{myPool.rewardPool.points}
                   </Grid>
                   <Grid item sx={{ pb: 1, textAlign: 'left' }} xs={4}>
-                    {t('Total earnings')}{': '}{myPool.rewardPools.totalEarnings}
+                    {t('Total earnings')}{': '}{myPool.rewardPool.totalEarnings}
                   </Grid>
                 </Grid>
               </Paper>

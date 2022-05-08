@@ -15,9 +15,7 @@ import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 import type { AccountsBalanceType, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
-import { faCoins } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { AddCircleOutlineOutlined as AddCircleOutlineOutlinedIcon, CheckOutlined, GroupWorkOutlined as GroupWorkOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined as RemoveCircleOutlineOutlinedIcon, ReportOutlined as ReportOutlinedIcon, WorkspacesOutlined as WorkspacesOutlinedIcon } from '@mui/icons-material';
+import { AddCircleOutlineOutlined as AddCircleOutlineOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, PanToolOutlined as PanToolOutlinedIcon, RemoveCircleOutlineOutlined as RemoveCircleOutlineOutlinedIcon, ReportOutlined as ReportOutlinedIcon, WorkspacesOutlined as WorkspacesOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -34,7 +32,6 @@ import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION, PPREFERED_POOL_ID_ON_KUSAMA, PPREFERED_POOL_ID_ON_POLKADOT, PPREFERED_POOL_ID_ON_WESTEND } from '../../../util/constants';
-import getPoolAccounts from '../../../util/getPoolAccounts';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import Nominations from '../Pool/Nominations';
 import Unstake from '../pool/Unstake';
@@ -83,7 +80,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [memberInfo, setMemberInfo] = useState<PalletNominationPoolsPoolMember | undefined>();
   const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
-  const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
   const [myPoolInfo, setMyPoolInfo] = useState<any | undefined | null>();
 
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>();
@@ -140,7 +136,13 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const info = e.data;
 
+      if (!info) {
+        setNoNominatedValidators(true);// show that nominators are fetched and is empty or not
+      }
+
       setMyPoolInfo(JSON.parse(info));
+
+      setNominatedValidatorsId(info.nominators);
 
       console.log('my pool infor returned from worker is:', JSON.parse(info));
 
@@ -187,27 +189,27 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     };
   };
 
-  const getPoolNominations = (endpoint: string, stakerAddress: string) => {
-    const getNominatorsWorker: Worker = new Worker(new URL('../../../util/workers/getNominations.js', import.meta.url));
+  // const getPoolNominations = (endpoint: string, stakerAddress: string) => {
+  //   const getNominatorsWorker: Worker = new Worker(new URL('../../../util/workers/getNominations.js', import.meta.url));
 
-    workers.push(getNominatorsWorker);
+  //   workers.push(getNominatorsWorker);
 
-    getNominatorsWorker.postMessage({ endpoint, stakerAddress });
+  //   getNominatorsWorker.postMessage({ endpoint, stakerAddress });
 
-    getNominatorsWorker.onerror = (err) => {
-      console.log(err);
-    };
+  //   getNominatorsWorker.onerror = (err) => {
+  //     console.log(err);
+  //   };
 
-    getNominatorsWorker.onmessage = (e) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const targets: string[] = e.data;
+  //   getNominatorsWorker.onmessage = (e) => {
+  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  //     const targets: string[] = e.data;
 
-      setNoNominatedValidators(!targets); // show that nominators are fetched and is empty or not
+  //     setNoNominatedValidators(!targets); // show that nominators are fetched and is empty or not
 
-      setNominatedValidatorsId(targets);
-      getNominatorsWorker.terminate();
-    };
-  };
+  //     setNominatedValidatorsId(targets);
+  //     getNominatorsWorker.terminate();
+  //   };
+  // };
 
   const getPools = (endpoint: string) => {
     const getPoolsWorker: Worker = new Worker(new URL('../../../util/workers/getPools.js', import.meta.url));
@@ -229,7 +231,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
         const parsedPoolsInfo = JSON.parse(poolsInfo) as PoolInfo[];
 
         parsedPoolsInfo?.forEach((p: PoolInfo) => {
-          p.bondedPools.points = new BN(p.bondedPools.points);
+          p.bondedPool.points = new BN(p.bondedPool.points);
         });
         setPoolsInfo(parsedPoolsInfo);
       }
@@ -381,35 +383,29 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
 
   useEffect(() => {
     /* get nominated validators list */
-    endpoint && myPool && getPoolNominations(endpoint, myPool.accounts.stashId);
+    // endpoint && myPoolInfo && getPoolNominations(endpoint, myPoolInfo.poolAccounts.stashId);
 
     /**  get nominator staking info to consider rebag ,... */
-    endpoint && myPool && getNominatorInfo(endpoint, myPool.accounts.stashId);
-  }, [endpoint, myPool]);
+    endpoint && myPoolInfo && getNominatorInfo(endpoint, myPoolInfo.poolAccounts.stashId);
+  }, [endpoint, myPoolInfo]);
 
-  useEffect(() => {
-    if (!api || !poolsInfo || !memberInfo) return;
+  // useEffect(() => {
+  //   if (!api || !poolsInfo || !memberInfo) return;
 
-    const pool = poolsInfo.find((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId));
-    const poolIndex = poolsInfo.findIndex((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId)); // FIXME should do in a better way
+  //   const pool = poolsInfo.find((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId));
+  //   const poolIndex = poolsInfo.findIndex((p, index) => (new BN(index + 1)).eq(memberInfo?.poolId)); // FIXME should do in a better way
 
-    const myPoolAccounts = poolIndex !== -1 && getPoolAccounts(api, new BN(poolIndex + 1));
+  //   const myPoolAccounts = poolIndex !== -1 && getPoolAccounts(api, new BN(poolIndex + 1));
 
-    if (poolIndex === -1 || !myPoolAccounts) {
-      console.log(' no poolId or pool accounts');
-      setNoNominatedValidators(true); // show that nominators not need to be fetched
-      setMyPool(null);
 
-      return;
-    }
 
-    console.log('myPool before set is', pool)
-    setMyPool({
-      poolId: new BN(poolIndex + 1),
-      accounts: myPoolAccounts || undefined,
-      ...pool
-    });
-  }, [memberInfo, poolsInfo, api]);
+  //   console.log('myPool before set is', pool)
+  //   setMyPool({
+  //     poolId: new BN(poolIndex + 1),
+  //     accounts: myPoolAccounts || undefined,
+  //     ...pool
+  //   });
+  // }, [memberInfo, poolsInfo, api]);
 
   useEffect(() => {
     if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
@@ -580,12 +576,12 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
 
     const selectedPool = selectedPoolId ? pools[selectedPoolId.subn(1)] : undefined;
 
-    if (selectedPool && selectedPool?.bondedPools?.state === 'Open') { return { poolId: selectedPoolId, ...selectedPool }; }
+    if (selectedPool && selectedPool?.bondedPool?.state === 'Open') { return { poolId: selectedPoolId, ...selectedPool }; }
 
     const selected = pools.reduce(function (a, b) {
-      return (a.bondedPools.points).gt(b.bondedPools.points) ? a : b;
+      return (a.bondedPool.points).gt(b.bondedPool.points) ? a : b;
     }, pools[0]);
-    const index = pools.indexOf((p) => p.bondedPools.points.eq(selected.bondedPools.points))
+    const index = pools.indexOf((p) => p.bondedPool.points.eq(selected.bondedPool.points))
 
     return { poolId: new BN(index + 1), ...selected };
   }
@@ -669,12 +665,12 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [state, unstakeAmount, stakeAmount, redeemable]);
 
   useEffect(() => {
-    if (!myPool?.accounts?.stashId) return;
+    if (!myPoolInfo?.poolAccounts?.stashId) return;
 
-    const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === myPool.accounts.stashId));
+    const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === myPoolInfo.poolAccounts.stashId));
 
     setActiveValidator(active);
-  }, [myPool?.accounts, nominatedValidators]);
+  }, [myPoolInfo?.poolAccounts, nominatedValidators]);
 
   const PoolsIcon = useMemo((): React.ReactElement<any> => (
     !poolsInfo ? <CircularProgress size={12} thickness={2} /> : <WorkspacesOutlinedIcon fontSize='small' />
@@ -697,7 +693,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
                 <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
               </Badge>
             </Hint>
-            : <CheckOutlined fontSize='small' />
+            : <PanToolOutlinedIcon sx={{ fontSize: '16px' }} />
   ), [gettingNominatedValidatorsInfoFromChain, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
 
@@ -733,7 +729,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               api={api}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
-              myPool={myPool}
+              myPool={myPoolInfo}
               nextToStakeButtonBusy={!!stakeAmount && (!(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
               poolStakingConsts={poolStakingConsts}
               setStakeAmount={setStakeAmount}
@@ -748,7 +744,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               availableBalance={staker?.balanceInfo?.available ? new BN(staker?.balanceInfo?.available) : BN_ZERO}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
-              memberInfo={memberInfo}
+              member={myPoolInfo?.member}
               nextToUnStakeButtonBusy={state === 'unstake'}
               setUnstakeAmount={setUnstakeAmount}
               stakingConsts={stakingConsts}
@@ -759,7 +755,6 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               api={api}
               chain={chain}
               myPool={myPoolInfo}
-              poolsInfo={poolsInfo}
               staker={staker}
             />
           </TabPanel>
@@ -770,8 +765,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
               chain={chain}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               handleStopNominating={handleStopNominating}
-              memberInfo={memberInfo}
-              myPool={myPool}
+              myPool={myPoolInfo}
               noNominatedValidators={noNominatedValidators}
               nominatedValidators={nominatedValidators}
               nominatorInfo={nominatorInfo}
@@ -796,9 +790,8 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
         <SelectValidators
           api={api}
           chain={chain}
-          memberInfo={memberInfo}
           nominatedValidators={nominatedValidators}
-          pool={myPool || selectedPool}
+          pool={myPoolInfo || selectedPool}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
           setState={setState}
           showSelectValidatorsModal={showSelectValidatorsModal}
@@ -810,16 +803,15 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && memberInfo && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && (myPool || selectedPool) &&
+      {((showConfirmStakingModal && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && (myPoolInfo || selectedPool) &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           api={api}
           chain={chain}
           handlePoolStakingModalClose={handlePoolStakingModalClose}
-          memberInfo={memberInfo}
           nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
           nominatedValidators={nominatedValidators}
-          pool={myPool || selectedPool}
+          pool={myPoolInfo || selectedPool}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setState={setState}
