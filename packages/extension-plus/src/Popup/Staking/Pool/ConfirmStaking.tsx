@@ -92,7 +92,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
   /** list of available trasaction types */
   // const chilled = api.tx.staking.chill;
-  const claimPayout = api.txnominationPools.claimPayout; //();  
+  const claimPayout = api.tx.nominationPools.claimPayout; //();  
   const joined = api.tx.nominationPools.join; // (amount, poolId)
   const unbonded = api.tx.nominationPools.unbond;
   const nominated = api.tx.nominationPools.nominate;
@@ -392,7 +392,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, [pool.poolId, selectedValidatorsAccountId], signer, staker.address);
 
         history.push({
-          action: 'nominate',
+          action: 'pool_nominate',
           amount: '',
           block: block,
           date: Date.now(),
@@ -436,7 +436,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         const { block, failureText, fee, status, txHash } = await broadcast(api, unbonded, params, signer, staker.address);
 
         history.push({
-          action: 'unbond',
+          action: 'pool_unbond',
           amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),
@@ -458,7 +458,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, [spanCount || 0], signer, staker.address);
 
         history.push({
-          action: 'redeem',
+          action: 'pool_redeem',
           amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),

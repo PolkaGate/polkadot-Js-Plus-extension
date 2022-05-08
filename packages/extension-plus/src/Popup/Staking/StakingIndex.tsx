@@ -55,7 +55,7 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
 
       <PlusHeader action={handleStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
-      <Grid alignItems='center' container justifyContent='space-around' sx={{ p:'50px 20px' }}>
+      <Grid alignItems='center' container justifyContent='space-around' sx={{ p:'60px 20px' }}>
         <Paper elevation={stakingType === 'solo' ? 8 : 4} onClick={() => setSoloStakingOpen(true)} onMouseOver={() => setStakingType('solo')} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '45%', cursor: 'pointer' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
             <Grid color={blue[600]} item>
@@ -82,7 +82,7 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
           </Grid>
 
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-            {t('Stakers with a small amount of tokens can join/create a pool, stake together, and receive rewards. Each pool has roles such as root, creator, nominator, and toggler')}
+            {t('Stakers (delegators) with a small amount of tokens can pool their funds together and act as a single nominator. The earning of the pool are split pro rata to a delegator\'s stake in the bonded pool.')}
           </Grid>
         </Paper>
       </Grid>

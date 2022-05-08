@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description This component shows my selected pool's information 
+ * @description This component shows my selected pool's information
  *
  * */
 
@@ -28,28 +28,28 @@ interface Props {
   api: ApiPromise | undefined;
   poolsInfo: PoolInfo[] | undefined;
   staker: AccountsBalanceType;
-  myPool: MyPoolInfo | undefined | null;
+  myPool: any | undefined | null;
 }
 
 export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [points, setPoints] = useState<Balance | undefined>();
 
-  const balance = myPool && api ? api.createType('Balance', myPool.rewardPools.balance) : undefined;
-  const totalEarnings = myPool && api ? api.createType('Balance', myPool.rewardPools.totalEarnings) : undefined;
-  const rewardPoolsPoints = myPool && api ? api.createType('Balance', hexToBn(myPool.rewardPools.points)) : undefined;
+  const balance = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.balance) : undefined;
+  const totalEarnings = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.totalEarnings) : undefined;
+  const rewardPoolsPoints = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.points) : undefined;
 
   useEffect(() => {
     if (!(api && poolsInfo && myPool)) return;
 
-    const poolPoints = (poolsInfo[myPool.poolId.subn(1)]?.bondedPools?.points ?? 0) as number;
+    const poolPoints = (poolsInfo[myPool.member.poolId - 1]?.bondedPools?.points ?? 0) as number;
 
     setPoints(api.createType('Balance', poolPoints));
   }, [api, myPool, poolsInfo]);
 
   return (
     <Grid container sx={{ px: '25px' }}>
-      {poolsInfo && api
+      {poolsInfo && api && myPool !== undefined
         ? myPool
           ? <>
             <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 10px', width: '100%' }}>
@@ -79,19 +79,19 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
               <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 10px', width: '100%' }}>
                 <Grid alignItems='center' container sx={{ fontSize: 12 }}>
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                    {myPool.poolId.toNumber()}
+                    {myPool.member.poolId}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={4}>
                     {myPool.metadata ?? t('no name')}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                    {myPool.bondedPools.state}
+                    {myPool.bondedPool.state}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={3}>
                     {points?.toHuman()}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                    {myPool.bondedPools.memberCounter}
+                    {myPool.bondedPool.memberCounter}
                   </Grid>
                   <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={1}>
                     <StopRoundedIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />
@@ -104,22 +104,22 @@ export default function PoolTab({ api, chain, myPool, poolsInfo, staker }: Props
               <Paper elevation={3}>
                 <Grid container item justifyContent='flex-start' sx={{ fontSize: 11, p: '10px', textAlign: 'center' }}>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPools.roles.root} chain={chain} role={'Root'} />
+                    <ShowAddress address={myPool.bondedPool.roles.root} chain={chain} role={'Root'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPools.roles.depositor} chain={chain} role={'Depositor'} />
+                    <ShowAddress address={myPool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPools.roles.nominator} chain={chain} role={'Nominator'} />
+                    <ShowAddress address={myPool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPools.roles.stateToggler} chain={chain} role={'State toggler'} />
+                    <ShowAddress address={myPool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.accounts.stashId} chain={chain} role={'Stash id'} />
+                    <ShowAddress address={myPool.poolAccounts.stashId} chain={chain} role={'Stash id'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.accounts.rewardId} chain={chain} role={'Reward id'} />
+                    <ShowAddress address={myPool.poolAccounts.rewardId} chain={chain} role={'Reward id'} />
                   </Grid>
 
                   <Grid item sx={{ p: '0px 0px 10px' }} xs={12}>

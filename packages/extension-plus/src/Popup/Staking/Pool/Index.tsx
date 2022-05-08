@@ -84,6 +84,8 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   const [memberInfo, setMemberInfo] = useState<PalletNominationPoolsPoolMember | undefined>();
   const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
+  const [myPoolInfo, setMyPoolInfo] = useState<any | undefined | null>();
+
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>();
 
 
@@ -123,8 +125,30 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     setTabValue(newValue);
   }, []);
 
+  const getMyPool = (endpoint: string, stakerAddress: string) => {
+    const getPoolWorker: Worker = new Worker(new URL('../../../util/workers/getPool.js', import.meta.url));
+
+    workers.push(getPoolWorker);
+
+    getPoolWorker.postMessage({ endpoint, stakerAddress });
+
+    getPoolWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getPoolWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const info = e.data;
+
+      setMyPoolInfo(JSON.parse(info));
+
+      console.log('my pool infor returned from worker is:', JSON.parse(info));
+
+      getPoolWorker.terminate();
+    };
+  };
+
   const getPoolStakingConsts = (endpoint: string) => {
-    /** 1- get some staking constant like min Nominator Bond ,... */
     const getPoolStakingConstsWorker: Worker = new Worker(new URL('../../../util/workers/getPoolStakingConsts.js', import.meta.url));
 
     workers.push(getPoolStakingConstsWorker);
@@ -326,6 +350,8 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [currentEraIndex, currentEraIndexOfStore]);
 
   useEffect(() => {
+    endpoint && getMyPool(endpoint, staker.address);
+
     endpoint && getPools(endpoint);
 
     endpoint && getPoolStakingConsts(endpoint);
@@ -440,7 +466,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
     // const value = BN_ZERO;
 
     // memberInfo?.unbondingEras?.forEach((u) => { value.iadd(new BN(u.value)); });
-    
+
     // setUnlockingAmount(value);
     // setUnlockingAmount(redeemable ? unlockingValue.sub(redeemable) : unlockingValue);
   }, [memberInfo, redeemable, decimals]);
@@ -687,7 +713,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
             availableBalanceInHuman={availableBalanceInHuman}
             handleViewChart={handleViewChart}
             handleWithdrowUnbound={handleWithdrowUnbound}
-            memberInfo={memberInfo}
+            myPool={myPoolInfo}
           />
         </Grid>
         <Grid item xs={12}>
@@ -732,7 +758,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
             <PoolTab
               api={api}
               chain={chain}
-              myPool={myPool}
+              myPool={myPoolInfo}
               poolsInfo={poolsInfo}
               staker={staker}
             />

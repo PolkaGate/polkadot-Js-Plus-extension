@@ -29,7 +29,7 @@ interface Props {
   api: ApiPromise | undefined;
   handleWithdrowUnbound: () => void;
   handleViewChart: () => void;
-  memberInfo: PalletNominationPoolsPoolMember | undefined;
+  myPool: any | undefined | null;
 }
 
 interface BalanceProps {
@@ -52,7 +52,7 @@ function Balance0({ amount, coin, label }: BalanceProps): React.ReactElement<Bal
   </>);
 }
 
-export default function Overview({ api, availableBalanceInHuman, memberInfo, handleViewChart, handleWithdrowUnbound }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalanceInHuman, myPool, handleViewChart, handleWithdrowUnbound }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
 
@@ -71,16 +71,16 @@ export default function Overview({ api, availableBalanceInHuman, memberInfo, han
   };
 
   useEffect(() => {
-    if (!memberInfo || !api) { return; }
+    if (!myPool || !api) { return; }
 
     let value = BN_ZERO;
 
-    for (const item of memberInfo?.unbondingEras) {
-      value = value.add(item[1]);
+    for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
+      value = value.add(new BN(unbondingPoint));
     }
 
     setUnlockingAmount(value);
-  }, [memberInfo, api]);
+  }, [myPool, api]);
 
   return (
     <>
@@ -92,12 +92,12 @@ export default function Overview({ api, availableBalanceInHuman, memberInfo, han
                 <Balance0 amount={availableBalanceInHuman} coin={token} label={t('Available')} />
               </Grid>
               <Grid item xs={4}>
-                <ShowBalance2 api={api} balance={memberInfo?.points} direction='column' title={t('Staked')} />
+                <ShowBalance2 api={api} balance={myPool?.member?.points} direction='column' title={t('Staked')} />
               </Grid>
             </Grid>
             <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item xs={4}>
-                <ShowBalance2 api={api} balance={memberInfo?.rewardPoolTotalEarnings} direction='column' title={t('Rewards')} />
+                <ShowBalance2 api={api} balance={myPool?.myClaimable} direction='column' title={t('Claimable')} />
               </Grid>
 
               <Grid container item justifyContent='center' xs={4}>

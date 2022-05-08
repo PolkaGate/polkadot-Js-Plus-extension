@@ -14,11 +14,11 @@ async function getPools (endpoint) {
 
   const queries = [];
 
-  for (let pooldId = 1; pooldId <= lastPoolId.toNumber(); pooldId++) {
+  for (let poolId = 1; poolId <= lastPoolId.toNumber(); poolId++) {
     queries.push(Promise.all([
-      api.query.nominationPools.metadata(pooldId),
-      api.query.nominationPools.bondedPools(pooldId),
-      api.query.nominationPools.rewardPools(pooldId)
+      api.query.nominationPools.metadata(poolId),
+      api.query.nominationPools.bondedPools(poolId),
+      api.query.nominationPools.rewardPools(poolId)
     ]));
   }
 
@@ -36,7 +36,7 @@ async function getPools (endpoint) {
     };
   });
 
-  console.log('info in worker', poolsInfo);
+  console.log('poolsInfo in worker', poolsInfo);
 
   return JSON.stringify(poolsInfo);
 }
