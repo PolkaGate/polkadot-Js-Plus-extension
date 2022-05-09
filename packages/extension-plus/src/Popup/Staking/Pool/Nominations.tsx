@@ -58,7 +58,7 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
               api={api}
               chain={chain}
               height={220}
-              staker={myPool?.poolAccounts?.stashId}
+              staker={myPool?.accounts?.stashId}
               stakingConsts={stakingConsts}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={nominatedValidators}

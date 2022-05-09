@@ -26,14 +26,14 @@ async function getPool(endpoint, stakerAddress) {
 
   const poolId = member.poolId;
 
-  const poolAccounts = getPoolAccounts(api, poolId);
+  const accounts = getPoolAccounts(api, poolId);
 
   const [metadata, bondedPools, rewardPools, nominators, rewards] = await Promise.all([
     api.query.nominationPools.metadata(poolId),
     api.query.nominationPools.bondedPools(poolId),
     api.query.nominationPools.rewardPools(poolId),
-    api.query.staking.nominators(poolAccounts.stashId),
-    api.query.system.account(poolAccounts.rewardId)
+    api.query.staking.nominators(accounts.stashId),
+    api.query.system.account(accounts.rewardId)
   ]);
 
   const unwrappedRewardPools = rewardPools.isSome ? rewardPools.unwrap() : null;
@@ -73,7 +73,7 @@ async function getPool(endpoint, stakerAddress) {
       : null,
     myClaimable: String(myClaimable),
     nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
-    poolAccounts: poolAccounts,
+    accounts: accounts,
     poolRewardClaimable: String(poolRewardClaimable),
     rewardPool: rewardPool
   };

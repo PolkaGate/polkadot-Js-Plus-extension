@@ -12,13 +12,14 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
-import { hexToBn } from '@polkadot/util';
 
 import { StopRounded as StopRoundedIcon } from '@mui/icons-material';
 import { Divider, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useEffect, useState } from 'react';
+
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import { hexToBn } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress, ShowAddress } from '../../../components';
@@ -27,7 +28,7 @@ interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   staker: AccountsBalanceType;
-  myPool: any | undefined | null;
+  myPool: MyPoolInfo | undefined | null;
 }
 
 export default function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Props> {
@@ -39,7 +40,7 @@ export default function PoolTab({ api, chain, myPool, staker }: Props): React.Re
   const rewardPoolsPoints = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.points) : undefined;
 
   useEffect(() => {
-    if (!(api &&  myPool)) return;
+    if (!(api && myPool)) return;
 
     const poolPoints = myPool.rewardPool.points ?? 0;
 
@@ -48,7 +49,7 @@ export default function PoolTab({ api, chain, myPool, staker }: Props): React.Re
 
   return (
     <Grid container sx={{ px: '25px' }}>
-      { api && myPool !== undefined
+      {api && myPool !== undefined
         ? myPool
           ? <>
             <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 10px', width: '100%' }}>
@@ -115,10 +116,10 @@ export default function PoolTab({ api, chain, myPool, staker }: Props): React.Re
                     <ShowAddress address={myPool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.poolAccounts.stashId} chain={chain} role={'Stash id'} />
+                    <ShowAddress address={myPool.accounts.stashId} chain={chain} role={'Stash id'} />
                   </Grid>
                   <Grid item xs={12}>
-                    <ShowAddress address={myPool.poolAccounts.rewardId} chain={chain} role={'Reward id'} />
+                    <ShowAddress address={myPool.accounts.rewardId} chain={chain} role={'Reward id'} />
                   </Grid>
 
                   <Grid item sx={{ p: '0px 0px 10px' }} xs={12}>

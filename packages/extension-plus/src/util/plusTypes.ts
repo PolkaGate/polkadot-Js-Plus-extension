@@ -3,13 +3,14 @@
 /* eslint-disable header/header */
 /* eslint-disable camelcase */
 
+// eslint-disable-next-line simple-import-sort/imports
 import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveReferendumExt, DeriveStakingQuery } from '@polkadot/api-derive/types';
-import type { Bytes, Option } from '@polkadot/types';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
-import { ApiPromise } from '@polkadot/api';
-import { AccountId, Balance } from '@polkadot/types/interfaces';
-import { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import type { Option } from '@polkadot/types';
 import type { BN } from '@polkadot/util';
+import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+
+import { ApiPromise } from '@polkadot/api';
+import { Balance } from '@polkadot/types/interfaces';
 
 export interface TransactionStatus {
   blockNumber: string | null;
@@ -327,11 +328,13 @@ export interface PoolStakingConsts {
 export interface PoolInfo {
   bondedPool: PalletNominationPoolsBondedPoolInner | null;
   metadata: string | null;
-  rewardPool: unknown | null
+  rewardPool: PalletNominationPoolsRewardPool | null
 }
 export interface MyPoolInfo extends PoolInfo {
-  poolId?: BN;
+  member?: PalletNominationPoolsPoolMember;
   accounts?: PoolAccounts;
+  poolId?: BN;
+  nominators?: string[];
 }
 
 export interface PoolAccounts {
