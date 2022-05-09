@@ -13,7 +13,7 @@
 import type { Balance } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 
-import { BarChart as BarChartIcon, MoreVert as MoreVertIcon, Redeem as RedeemIcon } from '@mui/icons-material';
+import { BarChart as BarChartIcon, MoreVert as MoreVertIcon, Redeem as RedeemIcon, SwipeDownAltRounded as SwipeDownAltRoundedIcon } from '@mui/icons-material';
 import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
@@ -30,6 +30,7 @@ interface Props {
   handleWithdrowUnbound: () => void;
   handleViewChart: () => void;
   myPool: any | undefined | null;
+
 }
 
 interface BalanceProps {
@@ -61,6 +62,7 @@ export default function Overview({ api, availableBalanceInHuman, myPool, handleV
 
   const staked = myPool === null ? 0 : myPool?.member?.points;
   const claimable = myPool === null ? 0 : myPool?.myClaimable;
+  const redeemable = myPool === null ? 0 : myPool?.redeemable;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -102,28 +104,38 @@ export default function Overview({ api, availableBalanceInHuman, myPool, handleV
             </Grid>
             <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item xs={4}>
-                <ShowBalance2 api={api} balance={claimable} direction='column' title={t('Claimable')} />
+                {/* <ShowBalance2 api={api} balance={claimable} direction='column' title={t('Claimable')} /> */}
+                <ShowBalance2 api={api} balance={claimable} direction='column'
+                  title={
+                    <Grid container item justifyContent='center'>
+                      <Grid item>
+                        {t('Claimable')}
+                      </Grid>
+                      <Grid item>
+                        <Hint id='claim' place='top' tip={t('Claim reward')}>
+                          <SwipeDownAltRoundedIcon color={claimable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                        </Hint>
+                      </Grid>
+                    </Grid>
+                  }
+                />
               </Grid>
 
               <Grid container item justifyContent='center' xs={4}>
-                <Grid container item justifyContent='center' xs={12}>
-                  <Balance0
-                    amount={amountToHuman(String('0'), decimals)}
-                    coin={token}
-                    label={
-                      <Grid container item justifyContent='center'>
-                        <Grid item>
-                          {t('Redeemable')}
-                        </Grid>
-                        {/* <Grid item>
-                          <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
-                            <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
-                          </Hint>
-                        </Grid> */}
+                <ShowBalance2 api={api} balance={redeemable} direction='column'
+                  title={
+                    <Grid container item justifyContent='center'>
+                      <Grid item>
+                        {t('Redeemable')}
                       </Grid>
-                    }
-                  />
-                </Grid>
+                      <Grid item>
+                        <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
+                          <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                        </Hint>
+                      </Grid>
+                    </Grid>
+                  }
+                />
               </Grid>
 
               <Grid item xs={4}>

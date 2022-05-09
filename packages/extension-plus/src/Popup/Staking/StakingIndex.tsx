@@ -106,7 +106,6 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
           chain={chain}
           ledger={ledger}
           name={name}
-          redeemable={redeemable}
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
           staker={staker}

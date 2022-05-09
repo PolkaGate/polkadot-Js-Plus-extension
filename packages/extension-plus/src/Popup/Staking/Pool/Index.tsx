@@ -48,8 +48,6 @@ interface Props {
   account: AccountJson,
   chain: Chain;
   api: ApiPromise | undefined;
-  ledger: StakingLedger | null;
-  redeemable: BN | null;
   showStakingModal: boolean;
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
@@ -72,14 +70,13 @@ const DEFAULT_MEMBER_INFO = {
 
 BigInt.prototype.toJSON = function () { return this.toString(); };
 
-export default function Index({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function Index({ account, api, chain, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const endpoint = useEndPoint(account, undefined, chain);
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
-
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>();
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | undefined>();
@@ -404,7 +401,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   useEffect(() => {
     if (!myPool || !decimals) { return; }
 
-    const staked = new BN(myPool.member.points).mul(new BN(myPool.ledger.active)).div(new BN(myPool.bondedPool.points));
+    const staked = new BN(myPool.member.points).mul(new BN(myPool.stashIdAccount.stakingLedger.active)).div(new BN(myPool.bondedPool.points));
 
     setCurrentlyStakedInHuman(amountToHuman(String(staked), decimals));
   }, [myPool, decimals]);
@@ -582,10 +579,10 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   }, [handleConfirmStakingModaOpen, state]);
 
   const handleWithdrowUnbound = useCallback(() => {
-    if (!redeemable) return;
+    if (!myPool?.redeemable) return;
     if (!state) setState('withdrawUnbound');
     handleConfirmStakingModaOpen();
-  }, [handleConfirmStakingModaOpen, redeemable, state]);
+  }, [handleConfirmStakingModaOpen, myPool, state]);
 
   const handleViewChart = useCallback(() => {
     if (!rewardSlashes) return;
@@ -600,11 +597,11 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       case ('stakeManual'):
         return stakeAmount;
       case ('withdrawUnbound'):
-        return redeemable || BN_ZERO;
+        return myPool?.redeemable ? new BN(myPool?.redeemable) : BN_ZERO;
       default:
         return BN_ZERO;
     }
-  }, [state, unstakeAmount, stakeAmount, redeemable]);
+  }, [state, unstakeAmount, stakeAmount, myPool]);
 
   useEffect(() => {
     if (!myPool?.accounts?.stashId) return;
