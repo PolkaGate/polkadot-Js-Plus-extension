@@ -17,7 +17,7 @@ import type { AccountsBalanceType, MyPoolInfo } from '../../../util/plusTypes';
 import { AddCircleOutline as AddCircleOutlineIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
 import { Box, Button, Checkbox, FormControlLabel, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
@@ -33,8 +33,9 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
   const { t } = useTranslation();
   const [info, setInfo] = useState(undefined);
   const [showPoolInfo, setShowPoolInfo] = useState(false);
+  const [points, setPoints] = useState<string | undefined>();
 
-  const points = api ? api.createType('Balance', pool?.bondedPool?.points ?? 0) : undefined;
+  // const points = api ? api.createType('Balance', pool?.bondedPool?.points ?? 0) : undefined;
   const poolId = pool?.poolId ?? pool?.member?.poolId;
 
   const handleMorePoolInfoOpen = useCallback((i) => {
@@ -46,6 +47,21 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
     setInfo(undefined);
     setShowPoolInfo(false);
   }, []);
+
+  useEffect(() => {
+    if (!(api && pool)) return;
+
+    let poolPoints = pool.rewardPool.points ?? 0;
+
+    if (poolPoints) {
+      const temp = api.createType('Balance', poolPoints).toHuman();
+      const token = api.registry.chainTokens[0];
+
+      poolPoints = temp.replace(token, '');
+    }
+
+    setPoints(poolPoints);
+  }, [api, pool]);
 
   return (
     <Grid container sx={{ p: 0 }}>
@@ -67,7 +83,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                   {t('State')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                  {t('Balance')}
+                  {t('Points')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {t('Members')}
@@ -82,10 +98,10 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
               <Grid alignItems='center' container sx={{ fontSize: 12 }}>
 
                 <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
-                  <MoreVertIcon fontSize='small' onClick={() => handleMorePoolInfoOpen(p)} sx={{ cursor: 'pointer' }} />
+                  <MoreVertIcon fontSize='small' onClick={() => handleMorePoolInfoOpen(pool)} sx={{ cursor: 'pointer' }} />
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {poolId}
+                  {String(poolId)}
                 </Grid>
                 <Grid item sx={{ textAlign: 'left' }} xs={4}>
                   {pool.metadata ?? t('no name')}
@@ -94,7 +110,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                   {pool.bondedPool.state}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                  {points?.toHuman()}
+                  {points}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {pool.bondedPool.memberCounter}

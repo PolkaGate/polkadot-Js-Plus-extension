@@ -59,6 +59,9 @@ export default function Overview({ api, availableBalanceInHuman, myPool, handleV
   const decimals = api && api.registry.chainDecimals[0];
   const token = api?.registry?.chainTokens[0] ?? '';
 
+  const staked = myPool === null ? 0 : myPool?.member?.points;
+  const claimable = myPool === null ? 0 : myPool?.myClaimable;
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -71,12 +74,14 @@ export default function Overview({ api, availableBalanceInHuman, myPool, handleV
   };
 
   useEffect(() => {
-    if (!myPool || !api) { return; }
+    if (myPool === undefined || !api) { return; }
 
     let value = BN_ZERO;
 
+    if (myPool === null) { return setUnlockingAmount(value); }
+
     for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
-      value = value.add(new BN(unbondingPoint));
+      value = value.add(new BN(unbondingPoint as string));
     }
 
     setUnlockingAmount(value);
@@ -92,12 +97,12 @@ export default function Overview({ api, availableBalanceInHuman, myPool, handleV
                 <Balance0 amount={availableBalanceInHuman} coin={token} label={t('Available')} />
               </Grid>
               <Grid item xs={4}>
-                <ShowBalance2 api={api} balance={myPool?.member?.points} direction='column' title={t('Staked')} />
+                <ShowBalance2 api={api} balance={staked} direction='column' title={t('Staked')} />
               </Grid>
             </Grid>
             <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item xs={4}>
-                <ShowBalance2 api={api} balance={myPool?.myClaimable} direction='column' title={t('Claimable')} />
+                <ShowBalance2 api={api} balance={claimable} direction='column' title={t('Claimable')} />
               </Grid>
 
               <Grid container item justifyContent='center' xs={4}>

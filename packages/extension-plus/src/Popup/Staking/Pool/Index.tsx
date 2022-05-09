@@ -136,18 +136,16 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
 
       if (!info) {
         setNoNominatedValidators(true);// show that nominators are fetched and is empty or not
+        setMyPool(null);
 
         return;
       }
 
       const parsedInfo = JSON.parse(info) as MyPoolInfo;
-
-      setMyPool(parsedInfo);
-
-      setNominatedValidatorsId(parsedInfo.nominators);
-
       console.log('my pool infor returned from worker is:', JSON.parse(info));
 
+      setMyPool(parsedInfo);
+      setNominatedValidatorsId(parsedInfo.nominators);
       getPoolWorker.terminate();
     };
   };

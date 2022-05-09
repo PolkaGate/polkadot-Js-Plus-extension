@@ -75,6 +75,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
   const poolId = pool?.poolId ?? pool?.member?.poolId; // it is a new selectedPool ( pool?.poolId) or an already joined pool (pool?.member?.poolId)
 
+  console.log('selected pool', pool);
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
   const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
