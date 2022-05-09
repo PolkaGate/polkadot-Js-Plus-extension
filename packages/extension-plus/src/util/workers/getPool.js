@@ -2,6 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
+/**
+ * @description
+ * get all information regarding a pool
+ * 
+ * rewardPool.balance: The pool balance at the time of the last payout
+ * rewardPpool.totalEarnings: The total earnings ever at the time of the last payout
+ */
 import { BN_ZERO, bnMax } from '@polkadot/util';
 
 import getApi from '../getApi.ts';
@@ -28,18 +35,20 @@ async function getPool(endpoint, stakerAddress) {
 
   const accounts = getPoolAccounts(api, poolId);
 
-  const [metadata, bondedPools, rewardPools, nominators, rewards] = await Promise.all([
+  const [metadata, bondedPools, rewardPools, nominators, rewardIdBalance, stashIdBalance, ledger] = await Promise.all([
     api.query.nominationPools.metadata(poolId),
     api.query.nominationPools.bondedPools(poolId),
     api.query.nominationPools.rewardPools(poolId),
     api.query.staking.nominators(accounts.stashId),
-    api.query.system.account(accounts.rewardId)
+    api.query.system.account(accounts.rewardId),
+    api.query.system.account(accounts.stashId),
+    api.query.staking.ledger(accounts.stashId)
   ]);
 
   const unwrappedRewardPools = rewardPools.isSome ? rewardPools.unwrap() : null;
   const unwrappedBondedPool = bondedPools.isSome ? bondedPools.unwrap() : null;
 
-  const poolRewardClaimable = bnMax(BN_ZERO, rewards.data.free.sub(api.consts.balances.existentialDeposit));
+  const poolRewardClaimable = bnMax(BN_ZERO, rewardIdBalance.data.free.sub(api.consts.balances.existentialDeposit));
 
   console.log(` poolRewardClaimable.sub(unwrappedRewardPools.balance):${poolRewardClaimable.sub(unwrappedRewardPools.balance)}  `);
 
@@ -74,9 +83,13 @@ async function getPool(endpoint, stakerAddress) {
     myClaimable: String(myClaimable),
     nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
     accounts: accounts,
-    poolRewardClaimable: String(poolRewardClaimable),
-    rewardPool: rewardPool
+    rewardClaimable: String(poolRewardClaimable),
+    rewardPool: rewardPool,
+    rewardIdBalance:rewardIdBalance.data,
+    stashIdBalance:stashIdBalance.data,
+    ledger:ledger
   };
+
 
   return JSON.stringify(poolInfo);
 }

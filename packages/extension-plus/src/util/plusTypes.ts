@@ -335,6 +335,7 @@ export interface MyPoolInfo extends PoolInfo {
   accounts?: PoolAccounts;
   poolId?: BN;
   nominators?: string[];
+  rewardClaimable?: BN;
 }
 
 export interface PoolAccounts {

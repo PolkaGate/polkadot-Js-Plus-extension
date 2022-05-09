@@ -142,7 +142,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
       }
 
       const parsedInfo = JSON.parse(info) as MyPoolInfo;
-      console.log('my pool infor returned from worker is:', JSON.parse(info));
+      console.log('*** My pool info returned from worker is:', JSON.parse(info));
 
       setMyPool(parsedInfo);
       setNominatedValidatorsId(parsedInfo.nominators);
@@ -404,7 +404,9 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
   useEffect(() => {
     if (!myPool || !decimals) { return; }
 
-    setCurrentlyStakedInHuman(amountToHuman(String(myPool.member.points), decimals));
+    const staked = new BN(myPool.member.points).mul(new BN(myPool.ledger.active)).div(new BN(myPool.bondedPool.points));
+
+    setCurrentlyStakedInHuman(amountToHuman(String(staked), decimals));
   }, [myPool, decimals]);
 
   useEffect(() => {
@@ -633,7 +635,7 @@ export default function Index({ account, api, chain, ledger, redeemable, setStak
                 <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
               </Badge>
             </Hint>
-            : <PanToolOutlinedIcon sx={{ fontSize: '16px' }} />
+            : <PanToolOutlinedIcon sx={{ fontSize: '17px' }} />
   ), [gettingNominatedValidatorsInfoFromChain, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
   return (

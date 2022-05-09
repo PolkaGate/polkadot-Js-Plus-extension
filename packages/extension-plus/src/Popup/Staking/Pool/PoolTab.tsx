@@ -31,14 +31,14 @@ interface Props {
   myPool: MyPoolInfo | undefined | null;
 }
 
-export default function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Props> {
+function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [points, setPoints] = useState<string | undefined>();
 
   const balance = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.balance) : undefined;
   const totalEarnings = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.totalEarnings) : undefined;
-  // const rewardPoolsPoints = myPool?.rewardPool?.points;
-  // const rewardPoolsPoints = myPool?.rewardPool && api ? api.createType('Balance', myPool.rewardPool.points) : undefined;
+  const staked = myPool?.ledger && api ? api.createType('Balance', myPool.ledger.active) : undefined;
+  const rewardClaimable = myPool?.rewardClaimable && api ? api.createType('Balance', myPool.rewardClaimable) : undefined;
 
   useEffect(() => {
     if (!(api && myPool)) return;
@@ -72,7 +72,7 @@ export default function PoolTab({ api, chain, myPool, staker }: Props): React.Re
                   {t('State')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={3}>
-                  {t('Points')}
+                  {t('Staked')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {t('Members')}
@@ -96,7 +96,7 @@ export default function PoolTab({ api, chain, myPool, staker }: Props): React.Re
                     {myPool.bondedPool.state}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={3}>
-                    {points}
+                    {staked?.toHuman() ?? 0}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={2}>
                     {myPool.bondedPool.memberCounter}
@@ -136,11 +136,11 @@ export default function PoolTab({ api, chain, myPool, staker }: Props): React.Re
 
                   <Grid container item justifyContent='space-between' sx={{ pb: 1 }} xs={12}>
                     <Grid item>
-                      {t('Balance')}{': '}{balance ? balance.toHuman() : 0}
+                      {t('Claimable')}{': '}{rewardClaimable?.toHuman() ?? 0}
                     </Grid>
 
                     <Grid item>
-                      {t('Total earnings')}{': '}{totalEarnings ? totalEarnings.toHuman() : 0}
+                      {t('Total earnings')}{': '}{totalEarnings?.toHuman() ?? 0}
                     </Grid>
                   </Grid>
 
@@ -157,3 +157,5 @@ export default function PoolTab({ api, chain, myPool, staker }: Props): React.Re
 
   );
 }
+
+export default React.memo(PoolTab);

@@ -8,22 +8,20 @@
  *  oversubscribds, noActive in this era, Tune up to do rebag or putInFrontOf if needed, and also stop/change nominations are provided.
  * */
 
-import type { StakingLedger } from '@polkadot/types/interfaces';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts, Validators, StakingConsts } from '../../../util/plusTypes';
+import type { AccountsBalanceType, PoolStakingConsts, StakingConsts,Validators } from '../../../util/plusTypes';
 
-import { Adjust as AdjustIcon, StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
+import { TrackChanges as TrackChangesIcon } from '@mui/icons-material';
 import { Button as MuiButton, Grid } from '@mui/material';
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, Progress } from '../../../components';
+import { Progress } from '../../../components';
 import ValidatorsList from '../Solo/ValidatorsList';
 
 interface Props {
@@ -44,7 +42,7 @@ interface Props {
   myPool: any | undefined | null;
 }
 
-export default function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const currentlyStaked = (myPool?.member?.points ?? BN_ZERO) as BN;
 
@@ -116,3 +114,5 @@ export default function Nominations({ activeValidator, api, chain, handleSelectV
     </>
   );
 }
+
+export default React.memo(Nominations);
