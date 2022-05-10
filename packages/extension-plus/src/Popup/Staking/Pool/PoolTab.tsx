@@ -23,6 +23,7 @@ import { hexToBn } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress, ShowAddress } from '../../../components';
+import Pool from './Pool';
 
 interface Props {
   chain: Chain;
@@ -60,55 +61,13 @@ function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Prop
       {api && myPool !== undefined
         ? myPool
           ? <>
-            <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 10px', width: '100%' }}>
-              <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('Index')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={4}>
-                  {t('Name')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('State')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={3}>
-                  {t('Staked')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                  {t('Members')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('Action')}
-                </Grid>
-              </Grid>
-            </Paper>
+            <Pool api={api} chain={chain} pool={myPool}/>
 
-            {myPool &&
-              <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 10px', width: '100%' }}>
-                <Grid alignItems='center' container sx={{ fontSize: 12 }}>
-                  <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                    {myPool.member.poolId}
-                  </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={4}>
-                    {myPool.metadata ?? t('no name')}
-                  </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                    {myPool.bondedPool.state}
-                  </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={3}>
-                    {staked?.toHuman() ?? 0}
-                  </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                    {myPool.bondedPool.memberCounter}
-                  </Grid>
-                  <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={1}>
-                    <StopRoundedIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />
-                  </Grid>
-                </Grid>
-              </Paper>
-            }
+            <Grid item xs={12} sx={{ fontSize: 12, p: '25px 10px 10px' }}>
+              {t('Roles')}
+            </Grid>
 
-            <Grid item sx={{ pt: 1 }} xs={12}>
+            <Grid item xs={12}>
               <Paper elevation={3}>
                 <Grid container item justifyContent='flex-start' sx={{ fontSize: 11, p: '10px', textAlign: 'center' }}>
                   <Grid item xs={12}>
@@ -130,7 +89,7 @@ function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Prop
                     <ShowAddress address={myPool.accounts.rewardId} chain={chain} role={'Reward id'} />
                   </Grid>
 
-                  <Grid item sx={{ p: '0px 0px 10px' }} xs={12}>
+                  {/* <Grid item sx={{ p: '0px 0px 10px' }} xs={12}>
                     <Divider />
                   </Grid>
 
@@ -142,7 +101,7 @@ function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Prop
                     <Grid item>
                       {t('Total earnings')}{': '}{totalEarnings?.toHuman() ?? 0}
                     </Grid>
-                  </Grid>
+                  </Grid> */}
 
                 </Grid>
               </Paper>

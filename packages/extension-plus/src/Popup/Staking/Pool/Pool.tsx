@@ -35,6 +35,10 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [points, setPoints] = useState<string | undefined>();
 
+  const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
+  const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
+  const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
+  const rewardClaimable = pool?.rewardClaimable && api ? api.createType('Balance', pool.rewardClaimable) : undefined;
   // const points = api ? api.createType('Balance', pool?.bondedPool?.points ?? 0) : undefined;
   const poolId = pool?.poolId ?? pool?.member?.poolId;
 
@@ -68,7 +72,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
       {pool !== undefined && api
         ? pool
           ? <>
-            <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 10px', width: '100%' }}>
+            <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 5px', width: '100%' }}>
               <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('More')}
@@ -83,7 +87,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                   {t('State')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                  {t('Points')}
+                  {t('Staked')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {t('Members')}
@@ -94,7 +98,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
               </Grid>
             </Paper>
 
-            <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 10px', width: '100%' }}>
+            <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
               <Grid alignItems='center' container sx={{ fontSize: 12 }}>
 
                 <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
@@ -110,7 +114,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                   {pool.bondedPool.state}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                  {points}
+                  {staked?.toHuman() ?? 0}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {pool.bondedPool.memberCounter}
