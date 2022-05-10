@@ -142,7 +142,7 @@ export default function Index({ account, api, chain, setStakingModalOpen, showSt
       console.log('*** My pool info returned from worker is:', JSON.parse(info));
 
       setMyPool(parsedInfo);
-      setNominatedValidatorsId(parsedInfo.nominators);
+      setNominatedValidatorsId(parsedInfo.stashIdAccount.nominators);
       getPoolWorker.terminate();
     };
   };
@@ -578,9 +578,15 @@ export default function Index({ account, api, chain, setStakingModalOpen, showSt
     if (!state) setState('tuneUp');
   }, [handleConfirmStakingModaOpen, state]);
 
-  const handleWithdrowUnbound = useCallback(() => {
+  const handleWithdrawUnbounded = useCallback(() => {
     if (!myPool?.redeemable) return;
     if (!state) setState('withdrawUnbound');
+    handleConfirmStakingModaOpen();
+  }, [handleConfirmStakingModaOpen, myPool, state]);
+
+  const handleWithdrawClaimable = useCallback(() => {
+    if (!myPool?.myClaimable) return;
+    if (!state) setState('withdrawClaimable');
     handleConfirmStakingModaOpen();
   }, [handleConfirmStakingModaOpen, myPool, state]);
 
@@ -598,6 +604,8 @@ export default function Index({ account, api, chain, setStakingModalOpen, showSt
         return stakeAmount;
       case ('withdrawUnbound'):
         return myPool?.redeemable ? new BN(myPool?.redeemable) : BN_ZERO;
+      case ('withdrawClaimable'):
+        return myPool?.myClaimable ? new BN(myPool?.myClaimable) : BN_ZERO;
       default:
         return BN_ZERO;
     }
@@ -646,7 +654,8 @@ export default function Index({ account, api, chain, setStakingModalOpen, showSt
             api={api}
             availableBalanceInHuman={availableBalanceInHuman}
             handleViewChart={handleViewChart}
-            handleWithdrowUnbound={handleWithdrowUnbound}
+            handleWithdrawUnbounded={handleWithdrawUnbounded}
+            handleWithdrawClaimable={handleWithdrawClaimable}
             myPool={myPool}
           />
         </Grid>

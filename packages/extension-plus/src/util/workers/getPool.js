@@ -35,11 +35,10 @@ async function getPool(endpoint, stakerAddress) {
 
   const accounts = getPoolAccounts(api, poolId);
 
-  const [metadata, bondedPools, rewardPools, nominators, rewardIdBalance, stashIdAccount ] = await Promise.all([
+  const [metadata, bondedPools, rewardPools, rewardIdBalance, stashIdAccount ] = await Promise.all([
     api.query.nominationPools.metadata(poolId),
     api.query.nominationPools.bondedPools(poolId),
     api.query.nominationPools.rewardPools(poolId),
-    api.query.staking.nominators(accounts.stashId),
     api.query.system.account(accounts.rewardId),
     api.derive.staking.account(accounts.stashId)
   ]);
@@ -81,7 +80,7 @@ async function getPool(endpoint, stakerAddress) {
         : metadata.toString()
       : null,
     myClaimable: Number(myClaimable),
-    nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
+    // nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
     rewardClaimable: Number(poolRewardClaimable),
     rewardIdBalance:rewardIdBalance.data,
     rewardPool: rewardPool,
