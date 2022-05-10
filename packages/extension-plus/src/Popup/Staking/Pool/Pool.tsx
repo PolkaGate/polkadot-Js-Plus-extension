@@ -77,24 +77,24 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('More')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={1}>
+                <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('Index')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={4}>
+                <Grid item sx={{ textAlign: 'center' }} xs={4}>
                   {t('Name')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={1}>
+                <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('State')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={2}>
+                <Grid item sx={{ textAlign: 'center' }} xs={3}>
                   {t('Staked')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {t('Members')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                {/* <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('Action')}
-                </Grid>
+                </Grid> */}
               </Grid>
             </Paper>
 
@@ -107,21 +107,21 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {String(poolId)}
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={4}>
+                <Grid item sx={{ textAlign: 'center' }} xs={4}>
                   {pool.metadata ?? t('no name')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'left' }} xs={1}>
+                <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {pool.bondedPool.state}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={2}>
+                <Grid item sx={{ textAlign: 'center' }} xs={3}>
                   {staked?.toHuman() ?? 0}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {pool.bondedPool.memberCounter}
                 </Grid>
-                <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={1}>
+                {/* <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={1}>
                   <StopRoundedIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />
-                </Grid>
+                </Grid> */}
               </Grid>
             </Paper>
           </>
