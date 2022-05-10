@@ -27,7 +27,8 @@ import { amountToHuman } from '../../../util/plusUtils';
 interface Props {
   availableBalanceInHuman: string,
   api: ApiPromise | undefined;
-  handleWithdrowUnbound: () => void;
+  handleWithdrawUnbounded: () => void;
+  handleWithdrawClaimable: () => void;
   handleViewChart: () => void;
   myPool: any | undefined | null;
 
@@ -53,7 +54,7 @@ function Balance0({ amount, coin, label }: BalanceProps): React.ReactElement<Bal
   </>);
 }
 
-export default function Overview({ api, availableBalanceInHuman, myPool, handleViewChart, handleWithdrowUnbound }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalanceInHuman,handleWithdrawClaimable, myPool, handleViewChart, handleWithdrawUnbounded }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
 
@@ -113,7 +114,7 @@ export default function Overview({ api, availableBalanceInHuman, myPool, handleV
                       </Grid>
                       <Grid item>
                         <Hint id='claim' place='top' tip={t('Claim reward')}>
-                          <SwipeDownAltRoundedIcon color={claimable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          <SwipeDownAltRoundedIcon color={claimable ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>
                     </Grid>
@@ -130,7 +131,7 @@ export default function Overview({ api, availableBalanceInHuman, myPool, handleV
                       </Grid>
                       <Grid item>
                         <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
-                          <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrawUnbounded} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>
                     </Grid>

@@ -66,7 +66,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean>(false);
   const [confirmButtonText, setConfirmButtonText] = useState<string>(t('Confirm'));
   const [amountNeedsAdjust, setAmountNeedsAdjust] = useState<boolean>(false);
-  const [surAmount, setSurAmount] = useState<BN>(amount); /** SUR: Staking Unstaking Redeem amount */
+  const [surAmount, setSurAmount] = useState<BN>(amount); /** SUR: Staking Unstaking Redeem (and Claim) amount  */
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
 
@@ -75,7 +75,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
   const poolId = pool?.poolId ?? pool?.member?.poolId; // it is a new selectedPool ( pool?.poolId) or an already joined pool (pool?.member?.poolId)
 
-  console.log('selected pool', pool);
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
   const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
@@ -93,13 +92,13 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
   /** list of available trasaction types */
   // const chilled = api.tx.staking.chill;
-  const claimPayout = api.tx.nominationPools.claimPayout; //();  
   const joined = api.tx.nominationPools.join; // (amount, poolId)
   const unbonded = api.tx.nominationPools.unbond;
   const nominated = api.tx.nominationPools.nominate;
   const bondExtra = api.tx.nominationPools.bondExtra;
   const bond = api.tx.nominationPools.bond;
   const redeem = api.tx.nominationPools.withdrawUnbonded;
+  const claim = api.tx.nominationPools.claimPayout;
   const bonding = currentlyStaked ? bondExtra : bond;
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
@@ -226,13 +225,17 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         // eslint-disable-next-line no-void
         void redeem(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         break;
+      case ('withdrawClaimable'):
+        // eslint-disable-next-line no-void
+        void claim().paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+        break;
       default:
     }
 
     // return () => {
     //   setEstimatedFee(undefined);
     // };
-  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, decimals, pool, joined]);
+  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, decimals, pool, joined, poolId, claim]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
@@ -244,7 +247,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
     let partialSubtrahend = surAmount;
 
-    if (['withdrawUnbound', 'unstake'].includes(state)) { partialSubtrahend = BN_ZERO; }
+    if (['withdrawUnbound', 'unstake', 'withdrawClaimable'].includes(state)) { partialSubtrahend = BN_ZERO; }
 
     const fee = new BN(estimatedFee.toString());
 
@@ -290,6 +293,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         return 'UNSTAKING';
       case ('withdrawUnbound'):
         return 'REDEEM';
+      case ('withdrawClaimable'):
+        return 'CLAIM';
       case ('stopNominating'):
         return 'STOP NOMINATING';
       default:
@@ -468,10 +473,26 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           to: ''
         });
 
-        console.log('withdrawUnbound:', status);
         setConfirmingState(status);
       }
 
+      if (localState === 'withdrawClaimable' && surAmount.gt(BN_ZERO)) {
+        const { block, failureText, fee, status, txHash } = await broadcast(api, claim, [], signer, staker.address);
+
+        history.push({
+          action: 'pool_claim',
+          amount: amountToHuman(String(surAmount), decimals),
+          block: block,
+          date: Date.now(),
+          fee: fee || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
       // if (localState === 'stopNominating') {
       //   const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
 

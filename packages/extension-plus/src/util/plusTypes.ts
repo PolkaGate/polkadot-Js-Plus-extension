@@ -8,6 +8,7 @@ import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, 
 import type { Option } from '@polkadot/types';
 import type { BN } from '@polkadot/util';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { ApiPromise } from '@polkadot/api';
 import { Balance } from '@polkadot/types/interfaces';
@@ -335,7 +336,13 @@ export interface MyPoolInfo extends PoolInfo {
   accounts?: PoolAccounts;
   poolId?: BN;
   nominators?: string[];
+  myClaimable?: BN;
+  redeemable: BN;
   rewardClaimable?: BN;
+  ledger?: StakingLedger | null;
+  rewardIdBalance: any;
+  stashIdAccount: any;
+
 }
 
 export interface PoolAccounts {
