@@ -9,22 +9,26 @@
  *  unstake, redeem, change validators, staking generak info,etc.
  * */
 
+import type { Chain } from '@polkadot/extension-chains/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { AccountsBalanceType, NominatorInfo, PoolStakingConsts, SavedMetaData, StakingConsts } from '../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CircleOutlined as CircleOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon } from '@mui/icons-material';
-import { Grid, Paper } from '@mui/material';
+import { Divider, Grid, Paper } from '@mui/material';
 import { blue, green, grey } from '@mui/material/colors';
-import React, { Dispatch, SetStateAction, useCallback, useState } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { AccountJson } from '@polkadot/extension-base/background/types';
-import { Chain } from '@polkadot/extension-chains/types';
+import { updateMeta } from '@polkadot/extension-ui/messaging';
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup } from '../../components';
-import { AccountsBalanceType } from '../../util/plusTypes';
+import { PlusHeader, Popup, ShowBalance2 } from '../../components';
+import useEndPoint from '../../hooks/useEndPoint';
+import { prepareMetaData } from '../../util/plusUtils';
 import PoolStaking from './Pool/Index';
 import SoloStaking from './Solo/Index';
 
@@ -39,14 +43,145 @@ interface Props {
   staker: AccountsBalanceType;
 }
 
-export default function StakingIndex ({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+const workers: Worker[] = [];
+
+export default function StakingIndex({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const endpoint = useEndPoint(account, undefined, chain);
+  const chainName = chain?.name.replace(' Relay Chain', '');
+
+  const [stakingConsts, setStakingConsts] = useState<StakingConsts | undefined>();
+  const [nominatorInfo, setNominatorInfo] = useState<NominatorInfo | undefined>();
+
   const [poolStakingOpen, setPoolStakingOpen] = useState<boolean>(false);
   const [soloStakingOpen, setSoloStakingOpen] = useState<boolean>(false);
+  const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
 
   const [stakingType, setStakingType] = useState<string | undefined>(undefined);
 
+  const getStakingConsts = (chain: Chain, endpoint: string) => {
+    /** 1- get some staking constant like min Nominator Bond ,... */
+    const getStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getStakingConsts.js', import.meta.url));
+
+    workers.push(getStakingConstsWorker);
+
+    getStakingConstsWorker.postMessage({ endpoint });
+
+    getStakingConstsWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const sConsts: StakingConsts = e.data;
+
+      if (sConsts) {
+        setStakingConsts(sConsts);
+
+        // setgettingStakingConstsFromBlockchain(false);
+
+        if (staker?.address) {
+
+          // eslint-disable-next-line no-void
+          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
+        }
+      }
+
+      getStakingConstsWorker.terminate();
+    };
+  };
+
+  const getPoolStakingConsts = (endpoint: string) => {
+    const getPoolStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getPoolStakingConsts.js', import.meta.url));
+
+    workers.push(getPoolStakingConstsWorker);
+
+    getPoolStakingConstsWorker.postMessage({ endpoint });
+
+    getPoolStakingConstsWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getPoolStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const c: PoolStakingConsts = e.data;
+
+      if (c) {
+        c.minCreateBond = new BN(c.minCreateBond);
+        c.minJoinBond = new BN(c.minJoinBond);
+        c.minNominatorBond = new BN(c.minNominatorBond);
+        setPoolStakingConsts(c);
+
+        console.log('poolStakingConst:', c);
+
+        // setgettingStakingConstsFromBlockchain(false);
+
+        // if (staker?.address) {
+        //   //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        //   //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
+
+        //   // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
+        //   // eslint-disable-next-line no-void
+        //   //void updateMeta(account.address, prepareMetaData(chain, 'poolStakingConsts', JSON.stringify(sConsts)));
+        // }
+      }
+
+      getPoolStakingConstsWorker.terminate();
+    };
+  };
+
+  const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
+    const getNominatorInfoWorker: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
+
+    workers.push(getNominatorInfoWorker);
+
+    getNominatorInfoWorker.postMessage({ endpoint, stakerAddress });
+
+    getNominatorInfoWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getNominatorInfoWorker.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const nominatorInfo: NominatorInfo = e.data;
+
+      console.log('nominatorInfo:', nominatorInfo);
+
+      setNominatorInfo(nominatorInfo);
+      getNominatorInfoWorker.terminate();
+    };
+  };
+
+  useEffect(() => {
+    if (!account) {
+      console.log(' no account, wait for it...!..');
+
+      return;
+    }
+
+    // * retrive staking consts from local sorage
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const stakingConstsFromLocalStrorage: SavedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
+
+    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
+      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
+      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
+    }
+  }, []);
+
+  useEffect(() => {
+    /** get some staking constant like min Nominator Bond ,... */
+    endpoint && getStakingConsts(chain, endpoint);
+    endpoint && getPoolStakingConsts(endpoint);
+
+    /**  get nominator staking info to consider rebag ,... */
+    endpoint && getNominatorInfo(endpoint, staker.address);
+  }, [chain, endpoint, staker.address]);
+
   const handleStakingModalClose = useCallback((): void => {
+    // should terminate workers
+    workers.forEach((w) => w.terminate());
+
     setStakingModalOpen(false);
   }, [setStakingModalOpen]);
 
@@ -55,8 +190,8 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
 
       <PlusHeader action={handleStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
-      <Grid alignItems='center' container justifyContent='space-around' sx={{ p:'60px 20px' }}>
-        <Paper elevation={stakingType === 'solo' ? 8 : 4} onClick={() => setSoloStakingOpen(true)} onMouseOver={() => setStakingType('solo')} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '45%', cursor: 'pointer' }}>
+      <Grid alignItems='center' container justifyContent='space-around' sx={{ p: '60px 10px' }}>
+        <Paper elevation={stakingType === 'solo' ? 8 : 4} onClick={() => setSoloStakingOpen(true)} onMouseOver={() => setStakingType('solo')} sx={{ borderRadius: '10px', height: 380, pt: 1, width: '45%', cursor: 'pointer' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
             <Grid color={blue[600]} item>
               <p>{t('SOLO STAKING')}</p>
@@ -67,11 +202,25 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
           </Grid>
 
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-            {t('If one has enough tokens to stake, solo staking can be chosen. The staker will be responsible to choose validators and keep eyes on them to re-moninate when needed.')}
+            {t('Stakers (nominators) with enough amount of tokens can choose solo staking. Each solo staker will be responsible to nominate validators and keep eyes on them to re-nominate if needed.')}
           </Grid>
+
+          <Grid item sx={{ fontSize: 12, p: '20px 10px' }} xs={12}>
+            <Divider light />
+          </Grid>
+
+          <Grid color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 12, p: '10px 10px' }} xs={12}>
+            <Grid item>
+              {t('Min to receive reward')}:
+            </Grid>
+            <Grid item>
+              <ShowBalance2 api={api} balance={nominatorInfo?.minNominated} />
+            </Grid>
+          </Grid>
+
         </Paper>
 
-        <Paper elevation={stakingType === 'pool' ? 8 : 4} onClick={() => setPoolStakingOpen(true)} onMouseOver={() => setStakingType('pool')} sx={{ borderRadius: '10px', height: 300, pt: 1, width: '45%', cursor: 'pointer' }}>
+        <Paper elevation={stakingType === 'pool' ? 8 : 4} onClick={() => setPoolStakingOpen(true)} onMouseOver={() => setStakingType('pool')} sx={{ borderRadius: '10px', height: 380, pt: 1, width: '45%', cursor: 'pointer' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
             <Grid color={green[600]} item>
               <p>{t('POOL STAKING')}</p>
@@ -84,33 +233,51 @@ export default function StakingIndex ({ account, api, chain, ledger, redeemable,
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
             {t('Stakers (delegators) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a delegator\'s stake in the bonded pool.')}
           </Grid>
+
+          <Grid item sx={{ fontSize: 12, p: '20px 10px' }} xs={12}>
+            <Divider light />
+          </Grid>
+
+          <Grid color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 12, p: '10px 10px' }} xs={12}>
+            <Grid item>
+              {t('Min to join a pool')}:
+            </Grid>
+            <Grid item>
+              <ShowBalance2 api={api} balance={poolStakingConsts?.minJoinBond} />
+            </Grid>
+          </Grid>
+
         </Paper>
       </Grid>
-
-      {poolStakingOpen &&
-        <PoolStaking
-          account={account}
-          api={api}
-          chain={chain}
-          ledger={ledger}
-          redeemable={redeemable}
-          setStakingModalOpen={setStakingModalOpen}
-          showStakingModal={showStakingModal}
-          staker={staker}
-        />}
 
       {soloStakingOpen &&
         <SoloStaking
           account={account}
           api={api}
           chain={chain}
+          endpoint={endpoint}
           ledger={ledger}
-          name={name}
+          nominatorInfo={nominatorInfo}
+          redeemable={redeemable}
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
           staker={staker}
+          stakingConsts={stakingConsts}
         />
       }
+
+      {poolStakingOpen &&
+        <PoolStaking
+          account={account}
+          api={api}
+          chain={chain}
+          endpoint={endpoint}
+          poolStakingConsts={poolStakingConsts}
+          setStakingModalOpen={setStakingModalOpen}
+          showStakingModal={showStakingModal}
+          staker={staker}
+        />}
+
     </Popup>
   );
 }

@@ -28,7 +28,7 @@ import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { NominatorInfo, AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
@@ -46,10 +46,12 @@ interface Props {
   api: ApiPromise | undefined;
   ledger: StakingLedger | null;
   redeemable: bigint | null;
-  name: string;
   showStakingModal: boolean;
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
+  stakingConsts: StakingConsts | undefined;
+  endpoint: string | undefined;
+  nominatorInfo: NominatorInfo | undefined;
 }
 
 interface RewardInfo {
@@ -63,12 +65,11 @@ const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
-export default function SoloStaking({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function SoloStaking({ account, api, chain, endpoint, ledger, nominatorInfo, redeemable, setStakingModalOpen, showStakingModal, staker, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const endpoint = useEndPoint(account, undefined, chain);
+  // const endpoint = useEndPoint(account, undefined, chain);
 
-  const [stakingConsts, setStakingConsts] = useState<StakingConsts | null>(null);
-  const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
+  // const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
@@ -94,7 +95,6 @@ export default function SoloStaking({ account, api, chain, ledger, redeemable, s
   const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
   const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
   const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
-  const [nominatorInfo, setNominatorInfo] = useState<{ minNominated: bigint, isInList: boolean } | undefined>();
   const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
   const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
 
@@ -199,63 +199,6 @@ export default function SoloStaking({ account, api, chain, ledger, redeemable, s
     };
   };
 
-  const getStakingConsts = (chain: Chain, endpoint: string) => {
-    /** 1- get some staking constant like min Nominator Bond ,... */
-    const getStakingConstsWorker: Worker = new Worker(new URL('../../../util/workers/getStakingConsts.js', import.meta.url));
-
-    workers.push(getStakingConstsWorker);
-
-    getStakingConstsWorker.postMessage({ endpoint });
-
-    getStakingConstsWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const sConsts: StakingConsts = e.data;
-
-      if (sConsts) {
-        setStakingConsts(sConsts);
-
-        setgettingStakingConstsFromBlockchain(false);
-
-        if (staker?.address) {
-          //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
-
-          // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
-          // eslint-disable-next-line no-void
-          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
-        }
-      }
-
-      getStakingConstsWorker.terminate();
-    };
-  };
-
-  const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
-    const getNominatorInfoWorker: Worker = new Worker(new URL('../../../util/workers/getNominatorInfo.js', import.meta.url));
-
-    workers.push(getNominatorInfoWorker);
-
-    getNominatorInfoWorker.postMessage({ endpoint, stakerAddress });
-
-    getNominatorInfoWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getNominatorInfoWorker.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const nominatorInfo = e.data;
-
-      console.log('nominatorInfo:', nominatorInfo);
-
-      setNominatorInfo(nominatorInfo);
-      getNominatorInfoWorker.terminate();
-    };
-  };
-
   const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
     const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
 
@@ -321,11 +264,6 @@ export default function SoloStaking({ account, api, chain, ledger, redeemable, s
   }, [currentEraIndex, currentEraIndexOfStore]);
 
   useEffect(() => {
-    /** get some staking constant like min Nominator Bond ,... */
-    endpoint && getStakingConsts(chain, endpoint);
-
-    /**  get nominator staking info to consider rebag ,... */
-    endpoint && getNominatorInfo(endpoint, staker.address);
 
     // *** get nominated validators list
     endpoint && getNominations(endpoint, staker.address);
@@ -429,14 +367,14 @@ export default function SoloStaking({ account, api, chain, ledger, redeemable, s
 
     console.log('account in staking stake:', account);
 
-    // * retrive staking consts from local sorage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const stakingConstsFromLocalStrorage: SavedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
+    // // * retrive staking consts from local sorage
+    // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // const stakingConstsFromLocalStrorage: SavedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
 
-    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
-      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
-    }
+    // if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
+    //   console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
+    //   setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
+    // }
 
     // *** retrive nominated validators from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -629,7 +567,7 @@ export default function SoloStaking({ account, api, chain, ledger, redeemable, s
               <Tab icon={<AddCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Stake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={<RemoveCircleOutlineOutlined fontSize='small' />} iconPosition='start' label='Unstake' sx={{ fontSize: 11, px: '15px' }} />
               <Tab icon={NominationsIcon} iconPosition='start' label='Nominations' sx={{ fontSize: 11, px: '15px' }} />
-              <Tab icon={gettingStakingConstsFromBlockchain ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
+              <Tab icon={stakingConsts === undefined ? <CircularProgress size={12} thickness={2} /> : <InfoOutlinedIcon fontSize='small' />}
                 iconPosition='start' label='Info' sx={{ fontSize: 11, px: '15px' }}
               />
             </Tabs>

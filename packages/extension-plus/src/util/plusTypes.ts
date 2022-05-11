@@ -47,6 +47,11 @@ export interface StakingConsts {
   unbondingDuration: number
 }
 
+export interface NominatorInfo {
+  minNominated: bigint; 
+  isInList: boolean; // is Nominator in top 22500 elected
+}
+
 export interface ValidatorInfo extends DeriveStakingQuery {
   accountInfo?: DeriveAccountInfo;
 }

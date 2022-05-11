@@ -51,6 +51,8 @@ interface Props {
   showStakingModal: boolean;
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
+  poolStakingConsts: PoolStakingConsts | undefined;
+  endpoint: string | undefined;
 }
 
 interface RewardInfo {
@@ -70,12 +72,9 @@ const DEFAULT_MEMBER_INFO = {
 
 BigInt.prototype.toJSON = function () { return this.toString(); };
 
-export default function Index({ account, api, chain, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function Index({ account, api, chain, endpoint, setStakingModalOpen, poolStakingConsts, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-
-  const endpoint = useEndPoint(account, undefined, chain);
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
-  const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>();
 
@@ -147,44 +146,7 @@ export default function Index({ account, api, chain, setStakingModalOpen, showSt
     };
   };
 
-  const getPoolStakingConsts = (endpoint: string) => {
-    const getPoolStakingConstsWorker: Worker = new Worker(new URL('../../../util/workers/getPoolStakingConsts.js', import.meta.url));
 
-    workers.push(getPoolStakingConstsWorker);
-
-    getPoolStakingConstsWorker.postMessage({ endpoint });
-
-    getPoolStakingConstsWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getPoolStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const c: PoolStakingConsts = e.data;
-
-      if (c) {
-        c.minCreateBond = new BN(c.minCreateBond);
-        c.minJoinBond = new BN(c.minJoinBond);
-        c.minNominatorBond = new BN(c.minNominatorBond);
-        setPoolStakingConsts(c);
-
-        console.log('poolStakingConst:', c);
-
-        // setgettingStakingConstsFromBlockchain(false);
-
-        // if (staker?.address) {
-        //   //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        //   //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
-
-        //   // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
-        //   // eslint-disable-next-line no-void
-        //   //void updateMeta(account.address, prepareMetaData(chain, 'poolStakingConsts', JSON.stringify(sConsts)));
-        // }
-      }
-
-      getPoolStakingConstsWorker.terminate();
-    };
-  };
 
   const getPools = (endpoint: string) => {
     const getPoolsWorker: Worker = new Worker(new URL('../../../util/workers/getPools.js', import.meta.url));
@@ -322,7 +284,6 @@ export default function Index({ account, api, chain, setStakingModalOpen, showSt
 
     endpoint && getPools(endpoint);
 
-    endpoint && getPoolStakingConsts(endpoint);
 
     endpoint && getStakingConsts(chain, endpoint);
 

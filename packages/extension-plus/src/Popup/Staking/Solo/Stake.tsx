@@ -31,7 +31,7 @@ interface Props {
   staker?: AccountsBalanceType;
   state: string;
   ledger: StakingLedger | null;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
 }

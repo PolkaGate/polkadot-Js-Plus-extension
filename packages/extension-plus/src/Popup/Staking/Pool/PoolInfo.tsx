@@ -30,7 +30,7 @@ interface Props {
   memberInfo: PalletNominationPoolsPoolMember | undefined;
 }
 
-export default function Pools ({ api, chain, poolsInfo, staker }: Props): React.ReactElement<Props> {
+export default function PoolInfo ({ api, chain, poolsInfo, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [info, setInfo] = useState(undefined);
   const [showPoolInfo, setShowPoolInfo] = useState(false);

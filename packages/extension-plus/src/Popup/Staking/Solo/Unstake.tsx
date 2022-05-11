@@ -22,7 +22,7 @@ import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../../util/
 
 interface Props {
   api: ApiPromise | undefined;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   setUnstakeAmount: React.Dispatch<React.SetStateAction<bigint>>
   currentlyStakedInHuman: string | null;
   ledger: StakingLedger | null;

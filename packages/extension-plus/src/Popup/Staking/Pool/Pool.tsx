@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description
+ * @description showing a pool general info in a row
  *
  * */
 
@@ -14,7 +14,7 @@ import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, Pall
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AddCircleOutline as AddCircleOutlineIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
+import { AddCircleOutline as AddCircleOutlineIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon, BlockRounded as BlockRoundedIcon } from '@mui/icons-material';
 import { Box, Button, Checkbox, FormControlLabel, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useState, useEffect } from 'react';
@@ -26,12 +26,11 @@ import PoolInfo from './PoolMoreInfo';
 interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
-  pool: any | undefined;
+  pool: MyPoolInfo | undefined;
 }
 
 export default function Pool({ api, chain, pool }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [info, setInfo] = useState(undefined);
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [points, setPoints] = useState<string | undefined>();
 
@@ -43,12 +42,10 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
   const poolId = pool?.poolId ?? pool?.member?.poolId;
 
   const handleMorePoolInfoOpen = useCallback((i) => {
-    setInfo(i);
     setShowPoolInfo(true);
   }, []);
 
   const handleMorePoolInfoClose = useCallback((i) => {
-    setInfo(undefined);
     setShowPoolInfo(false);
   }, []);
 
@@ -80,7 +77,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('Index')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={4}>
+                <Grid item sx={{ textAlign: 'center' }} xs={3}>
                   {t('Name')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
@@ -92,9 +89,9 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {t('Members')}
                 </Grid>
-                {/* <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('Action')}
-                </Grid> */}
+                <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                  {t('Actions')}
+                </Grid>
               </Grid>
             </Paper>
 
@@ -107,7 +104,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {String(poolId)}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={4}>
+                <Grid item sx={{ textAlign: 'center' }} xs={3}>
                   {pool.metadata ?? t('no name')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
@@ -119,13 +116,18 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {pool.bondedPool.memberCounter}
                 </Grid>
-                {/* <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={1}>
-                  <StopRoundedIcon color='warning' fontSize='small' sx={{ cursor: 'pointer' }} />
-                </Grid> */}
+                <Grid alignItems='center' container direction='row' item justifyContent='space-around' sx={{ textAlign: 'center' }} xs={1}>
+                  <Grid item>
+                    <StopRoundedIcon color='secondary' fontSize='small' sx={{ cursor: 'pointer' }} />
+                  </Grid>
+                  <Grid item>
+                    <BlockRoundedIcon color='warning' sx={{ cursor: 'pointer', fontSize: 13, pb: '0.8px' }} />
+                  </Grid>
+                </Grid>
               </Grid>
             </Paper>
           </>
-          : <Grid item sx={{ fontSize: 12, textAlign: 'center', pt: 7 }} xs={12}>
+          : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
             {t('No active pool found')}
           </Grid>
         : <Progress title={t('Loading pool ....')} />

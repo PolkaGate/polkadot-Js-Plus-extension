@@ -42,7 +42,7 @@ interface Props {
   setConfirmStakingModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectValidatorsModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   handleEasyStakingModalClose?: () => void;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   amount: bigint;
   ledger: StakingLedger | null;
   nominatedValidators: DeriveStakingQuery[] | null;
