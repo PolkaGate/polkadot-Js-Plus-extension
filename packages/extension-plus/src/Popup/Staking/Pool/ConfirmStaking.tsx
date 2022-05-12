@@ -9,7 +9,7 @@
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
-import type { AccountsBalanceType, MyPoolInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
+import type { MembersMapEntry, AccountsBalanceType, MyPoolInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Avatar, Grid, IconButton, Link, Skeleton, Typography } from '@mui/material';
@@ -52,9 +52,10 @@ interface Props {
   nextPoolId?: BN;
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
+  poolsMembers: MembersMapEntry[][] | undefined;
 }
 
-export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, nextPoolId, nominatedValidators, pool, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, poolsMembers, nextPoolId, nominatedValidators, pool, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -643,6 +644,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
                     api={api}
                     chain={chain}
                     pool={pool}
+                    poolsMembers={poolsMembers}
                   />
                 </Grid>
               </>

@@ -9,17 +9,11 @@
  * */
 
 import type { ApiPromise } from '@polkadot/api';
-import type { Balance } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { StopRounded as StopRoundedIcon } from '@mui/icons-material';
-import { Divider, Grid, Paper } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { Grid, Paper } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
-import { hexToBn } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress, ShowAddress } from '../../../components';
@@ -30,9 +24,10 @@ interface Props {
   api: ApiPromise | undefined;
   staker: AccountsBalanceType;
   myPool: MyPoolInfo | undefined | null;
+  poolsMembers: MembersMapEntry[][] | undefined
 }
 
-function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Props> {
+function PoolTab({ api, chain, myPool, poolsMembers }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [points, setPoints] = useState<string | undefined>();
 
@@ -61,7 +56,7 @@ function PoolTab({ api, chain, myPool, staker }: Props): React.ReactElement<Prop
       {api && myPool !== undefined
         ? myPool
           ? <>
-            <Pool api={api} chain={chain} pool={myPool}/>
+            <Pool api={api} chain={chain} pool={myPool} poolsMembers={poolsMembers} />
 
             <Grid item xs={12} sx={{ fontSize: 12, p: '25px 10px 10px' }}>
               {t('Roles')}

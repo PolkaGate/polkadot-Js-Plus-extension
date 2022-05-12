@@ -276,6 +276,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
           staker={staker}
+          stakingConsts={stakingConsts}
         />}
 
     </Popup>

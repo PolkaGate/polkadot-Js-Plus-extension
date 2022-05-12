@@ -8,10 +8,8 @@
  *  in this component manual selection of validators is provided, with some filtering features to facilitate selection process
  **/
 import type { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
-import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, StakingConsts, Validators, MyPoolInfo } from '../../../util/plusTypes';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { AccountsBalanceType, MembersMapEntry, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded as DeleteSweepRoundedIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
@@ -21,7 +19,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FixedSizeList as List } from "react-window";
 
 import { ApiPromise } from '@polkadot/api';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
@@ -45,6 +43,7 @@ interface Props {
   state: string;
   validatorsIdentities: DeriveAccountInfo[] | null;
   pool: any | undefined;
+  poolsMembers: MembersMapEntry[][] | undefined;
 }
 
 interface Data {
@@ -305,7 +304,9 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, nominatedValidators, pool, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+
+
+export default function SelectValidators({ api, chain, poolsMembers, nominatedValidators, pool, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
@@ -487,6 +488,7 @@ export default function SelectValidators({ api, chain, nominatedValidators, pool
           stakingConsts={stakingConsts}
           state={state}
           validatorsIdentities={validatorsIdentities}
+          poolsMembers={poolsMembers}
         />
       }
     </Popup>

@@ -27,7 +27,7 @@ import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
 import { AccountsBalanceType, StakingConsts, Validators } from '../../../util/plusTypes';
 import ConfirmStaking from './ConfirmStaking';
 import ShowValidator from './ShowValidator';
-import ValidatorInfo from './ValidatorInfo';
+import ValidatorInfo from './PoolInfo';
 
 interface Props {
   chain: Chain;

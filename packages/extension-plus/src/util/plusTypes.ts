@@ -20,12 +20,12 @@ export interface TransactionStatus {
 }
 
 export interface BalanceType {
-  coin: string,
-  available: bigint,
-  total: bigint,
-  reserved?: bigint,
-  miscFrozen?: bigint,
-  feeFrozen?: bigint,
+  coin: string;
+  available: bigint;
+  total: bigint;
+  reserved?: bigint;
+  miscFrozen?: bigint;
+  feeFrozen?: bigint;
   decimals: number
 }
 
@@ -40,16 +40,16 @@ export interface AccountsBalanceType {
 }
 
 export interface StakingConsts {
-  existentialDeposit: bigint,
-  maxNominations: number,
-  maxNominatorRewardedPerValidator: number,
-  minNominatorBond: bigint,
+  existentialDeposit: bigint;
+  maxNominations: number;
+  maxNominatorRewardedPerValidator: number;
+  minNominatorBond: bigint;
   unbondingDuration: number
 }
 
 export interface NominatorInfo {
-  minNominated: bigint; 
-  isInList: boolean; // is Nominator in top 22500 elected
+  minNominated: bigint;
+  isInList: boolean // is Nominator in top 22500 elected
 }
 
 export interface ValidatorInfo extends DeriveStakingQuery {
@@ -57,19 +57,19 @@ export interface ValidatorInfo extends DeriveStakingQuery {
 }
 
 export interface AllValidators {
-  current: ValidatorInfo[],
-  waiting: ValidatorInfo[],
+  current: ValidatorInfo[];
+  waiting: ValidatorInfo[];
   currentEraIndex?: number
 }
 
 export interface Validators {
-  current: DeriveStakingQuery[],
-  waiting: DeriveStakingQuery[],
+  current: DeriveStakingQuery[];
+  waiting: DeriveStakingQuery[];
   currentEraIndex?: number
 }
 
 export interface AllValidatorsFromSubscan {
-  current: ValidatorsFromSubscan[],
+  current: ValidatorsFromSubscan[];
   waiting: ValidatorsFromSubscan[]
 }
 
@@ -123,10 +123,10 @@ export interface TransactionDetail {
 }
 
 export interface TxInfo {
-  block?: number,
-  fee?: string,
-  status: string,
-  txHash?: string,
+  block?: number;
+  fee?: string;
+  status: string;
+  txHash?: string;
   failureText?: string
 }
 
@@ -227,8 +227,8 @@ export interface CouncilInfo extends DeriveElectionsInfo {
 }
 
 export interface PersonsInfo {
-  desiredSeats?: number,
-  backed?: string[],
+  desiredSeats?: number;
+  backed?: string[];
   infos: DeriveAccountInfo[]
 }
 
@@ -322,12 +322,12 @@ export interface Option {
 }
 
 export interface PoolStakingConsts {
-  lastPoolId: BN,
-  maxPoolMembers: number,
-  maxPoolMembersPerPool: number,
-  maxPools: number,
-  minCreateBond: BN,
-  minJoinBond: BN,
+  lastPoolId: BN;
+  maxPoolMembers: number;
+  maxPoolMembersPerPool: number;
+  maxPools: number;
+  minCreateBond: BN;
+  minJoinBond: BN;
   minNominatorBond: BN
 }
 
@@ -353,4 +353,9 @@ export interface MyPoolInfo extends PoolInfo {
 export interface PoolAccounts {
   rewardId: string;
   stashId: string;
+}
+
+export interface MembersMapEntry {
+  accountId: string;
+  member: PalletNominationPoolsPoolMember;
 }

@@ -12,7 +12,7 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MyPoolInfo } from '../../../util/plusTypes';
+import type { MembersMapEntry, AccountsBalanceType, MyPoolInfo } from '../../../util/plusTypes';
 
 import { AddCircleOutline as AddCircleOutlineIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon, BlockRounded as BlockRoundedIcon } from '@mui/icons-material';
 import { Box, Button, Checkbox, FormControlLabel, Grid, Paper } from '@mui/material';
@@ -21,27 +21,29 @@ import React, { useCallback, useState, useEffect } from 'react';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
-import PoolInfo from './PoolMoreInfo';
+import PoolInfo from './PoolInfo';
 
 interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   pool: MyPoolInfo | undefined;
+  poolsMembers: MembersMapEntry[][] | undefined
+
 }
 
-export default function Pool({ api, chain, pool }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, pool, poolsMembers }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [points, setPoints] = useState<string | undefined>();
 
-  const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
-  const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
+  // const rewardClaimable = pool?.rewardClaimable && api ? api.createType('Balance', pool.rewardClaimable) : undefined;
+  // const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
+  // const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
+
   const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
-  const rewardClaimable = pool?.rewardClaimable && api ? api.createType('Balance', pool.rewardClaimable) : undefined;
-  // const points = api ? api.createType('Balance', pool?.bondedPool?.points ?? 0) : undefined;
   const poolId = pool?.poolId ?? pool?.member?.poolId;
 
-  const handleMorePoolInfoOpen = useCallback((i) => {
+  const handleMorePoolInfoOpen = useCallback(() => {
     setShowPoolInfo(true);
   }, []);
 
@@ -99,7 +101,7 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
               <Grid alignItems='center' container sx={{ fontSize: 12 }}>
 
                 <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
-                  <MoreVertIcon fontSize='small' onClick={() => handleMorePoolInfoOpen(pool)} sx={{ cursor: 'pointer' }} />
+                  <MoreVertIcon fontSize='small' onClick={handleMorePoolInfoOpen} sx={{ cursor: 'pointer' }} />
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {String(poolId)}
@@ -132,15 +134,17 @@ export default function Pool({ api, chain, pool }: Props): React.ReactElement<Pr
           </Grid>
         : <Progress title={t('Loading pool ....')} />
       }
-      {/* {showPoolInfo && info &&
-         <PoolInfo
-           api={api}
-           chain={chain}
-           handleMorePoolInfoClose={handleMorePoolInfoClose}
-           info={info}
-           showPoolInfo={showPoolInfo}
-         />
-       } */}
+      {showPoolInfo &&
+        <PoolInfo
+          api={api}
+          chain={chain}
+          handleMorePoolInfoClose={handleMorePoolInfoClose}
+          pool={pool}
+          poolsMembers={poolsMembers}
+          setShowPoolInfo={setShowPoolInfo}
+          showPoolInfo={showPoolInfo}
+        />
+      }
     </Grid>
   );
 }

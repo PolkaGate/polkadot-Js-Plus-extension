@@ -10,10 +10,10 @@
  *  unstake, redeem, change validators, staking generak info,etc.
  * */
 
-import type { Bytes, Option } from '@polkadot/types';
-import type { StakingLedger } from '@polkadot/types/interfaces';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
-import type { AccountsBalanceType, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { Option, StorageKey } from '@polkadot/types';
+import type { AccountId32 } from '@polkadot/types/interfaces';
+import type { PalletNominationPoolsPoolMember } from '@polkadot/types/lookup';
+import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { AddCircleOutlineOutlined as AddCircleOutlineOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, PanToolOutlined as PanToolOutlinedIcon, RemoveCircleOutlineOutlined as RemoveCircleOutlineOutlinedIcon, ReportOutlined as ReportOutlinedIcon, WorkspacesOutlined as WorkspacesOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
@@ -28,8 +28,7 @@ import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
 import { Hint, PlusHeader, Popup } from '../../../components';
-import useEndPoint from '../../../hooks/useEndPoint';
-import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
+import { useMapEntries } from '../../../hooks';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION, PPREFERED_POOL_ID_ON_KUSAMA, PPREFERED_POOL_ID_ON_POLKADOT, PPREFERED_POOL_ID_ON_WESTEND } from '../../../util/constants';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
@@ -44,6 +43,7 @@ import PoolTab from './PoolTab';
 import SelectValidators from './SelectValidators';
 import Stake from './Stake';
 
+
 interface Props {
   account: AccountJson,
   chain: Chain;
@@ -51,6 +51,8 @@ interface Props {
   showStakingModal: boolean;
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
+  stakingConsts: StakingConsts | undefined;
+
   poolStakingConsts: PoolStakingConsts | undefined;
   endpoint: string | undefined;
 }
@@ -72,14 +74,35 @@ const DEFAULT_MEMBER_INFO = {
 
 BigInt.prototype.toJSON = function () { return this.toString(); };
 
-export default function Index({ account, api, chain, endpoint, setStakingModalOpen, poolStakingConsts, showStakingModal, staker }: Props): React.ReactElement<Props> {
+const OPT_ENTRIES = {
+  transform: (entries: [StorageKey<[AccountId32]>, Option<PalletNominationPoolsPoolMember>][]): MembersMapEntry[] =>
+    entries.reduce((all: MembersMapEntry[], [{ args: [accountId] }, optMember]) => {
+      if (optMember.isSome) {
+        const member = optMember.unwrap();
+        const poolId = member.poolId.toString();
+
+        if (!all[poolId]) {
+          all[poolId] = [];
+        }
+
+        all[poolId].push({
+          accountId: accountId.toString(),
+          member
+        });
+      }
+
+      return all;
+    }, {})
+};
+
+export default function Index({ account, api, chain, endpoint, poolStakingConsts, setStakingModalOpen, showStakingModal, staker, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const poolsMembers: MembersMapEntry[][] | undefined = useMapEntries(api.query.nominationPools.poolMembers, OPT_ENTRIES);
+
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>();
 
-  const [stakingConsts, setStakingConsts] = useState<StakingConsts | undefined>();
-  const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
@@ -146,8 +169,6 @@ export default function Index({ account, api, chain, endpoint, setStakingModalOp
     };
   };
 
-
-
   const getPools = (endpoint: string) => {
     const getPoolsWorker: Worker = new Worker(new URL('../../../util/workers/getPools.js', import.meta.url));
 
@@ -174,41 +195,6 @@ export default function Index({ account, api, chain, endpoint, setStakingModalOp
       }
 
       getPoolsWorker.terminate();
-    };
-  };
-
-  const getStakingConsts = (chain: Chain, endpoint: string) => {
-    /** 1- get some staking constant like minNominatorBond ,... */
-    const getStakingConstsWorker: Worker = new Worker(new URL('../../../util/workers/getStakingConsts.js', import.meta.url));
-
-    workers.push(getStakingConstsWorker);
-
-    getStakingConstsWorker.postMessage({ endpoint });
-
-    getStakingConstsWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const sConsts: StakingConsts = e.data;
-
-      if (sConsts) {
-        setStakingConsts(sConsts);
-
-        setgettingStakingConstsFromBlockchain(false);
-
-        if (staker?.address) {
-          //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
-
-          // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
-          // eslint-disable-next-line no-void
-          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
-        }
-      }
-
-      getStakingConstsWorker.terminate();
     };
   };
 
@@ -283,9 +269,6 @@ export default function Index({ account, api, chain, endpoint, setStakingModalOp
     endpoint && getMyPool(endpoint, staker.address);
 
     endpoint && getPools(endpoint);
-
-
-    endpoint && getStakingConsts(chain, endpoint);
 
     /** retrive validatorInfo from local sorage */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -372,17 +355,6 @@ export default function Index({ account, api, chain, endpoint, setStakingModalOp
       console.log(' no account, wait for it...!..');
 
       return;
-    }
-
-    console.log('account in staking stake:', account);
-
-    // * retrive staking consts from local sorage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const stakingConstsFromLocalStrorage: SavedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
-
-    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
-      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
     }
 
     // *** retrive nominated validators from local sorage
@@ -663,6 +635,7 @@ export default function Index({ account, api, chain, endpoint, setStakingModalOp
               api={api}
               chain={chain}
               myPool={myPool}
+              poolsMembers={poolsMembers}
               staker={staker}
             />
           </TabPanel>
@@ -700,6 +673,7 @@ export default function Index({ account, api, chain, endpoint, setStakingModalOp
           chain={chain}
           nominatedValidators={nominatedValidators}
           pool={myPool || selectedPool}
+          poolsMembers={poolsMembers}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
           setState={setState}
           showSelectValidatorsModal={showSelectValidatorsModal}
@@ -720,6 +694,7 @@ export default function Index({ account, api, chain, endpoint, setStakingModalOp
           nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
           nominatedValidators={nominatedValidators}
           pool={myPool || selectedPool}
+          poolsMembers={poolsMembers}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setState={setState}
