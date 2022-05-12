@@ -13,7 +13,7 @@ import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../
 import { BubbleChart as BubbleChartIcon } from '@mui/icons-material';
 import { Container, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { Dispatch, SetStateAction, useCallback } from 'react';
+import React, { Dispatch, SetStateAction, useMemo } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -39,13 +39,13 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
   const chainName = chain?.name.replace(' Relay Chain', '');
   const poolId = pool?.poolId ?? pool?.member?.poolId;
   const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
-
   const myPoolMembers = poolsMembers && pool ? poolsMembers[pool.member.poolId] : undefined;
-  console.log('myPoolMembers:', myPoolMembers);
+
+  const roleIds = useMemo(() => Object.values(pool?.bondedPool?.roles), [pool]);
 
   return (
     <Popup handleClose={handleMorePoolInfoClose} id='scrollArea' showModal={showPoolInfo}>
-      <PlusHeader action={handleMorePoolInfoClose} chain={chain} closeText={'Close'} icon={<BubbleChartIcon fontSize='small' />} title={'Validator Info'} />
+      <PlusHeader action={handleMorePoolInfoClose} chain={chain} closeText={'Close'} icon={<BubbleChartIcon fontSize='small' />} title={'Pool Info'} />
       <Container sx={{ p: '0px 20px' }}>
         <Grid item sx={{ p: 1 }} xs={12}>
 
@@ -128,12 +128,12 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
             ({myPoolMembers?.length ?? 0})
           </Grid>
         </Grid>
-        <Grid item sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: 2 }} xs={12}>
-          {myPoolMembers.map(({ accountId, member }, index) => {
+        <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: 2 }} xs={12}>
+          {myPoolMembers?.map(({ accountId, member }, index) => {
             const points = api.createType('Balance', member.points); // TFIXME: it is pointsnot balance!!
 
             return (
-              <Paper elevation={2} key={index} sx={{ bgcolor: String(pool?.bondedPool?.roles).includes[String(accountId)] ? SELECTED_COLOR : '', my: 1, p: '5px' }}>
+              <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(String(accountId)) ? SELECTED_COLOR : '', my: 1, p: '5px' }}>
                 <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
                   <Grid item xs={1}>
                     <Identicon

@@ -97,7 +97,7 @@ const OPT_ENTRIES = {
 
 export default function Index({ account, api, chain, endpoint, poolStakingConsts, setStakingModalOpen, showStakingModal, staker, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const poolsMembers: MembersMapEntry[][] | undefined = useMapEntries(api.query.nominationPools.poolMembers, OPT_ENTRIES);
+  const poolsMembers: MembersMapEntry[][] | undefined = useMapEntries(api?.query?.nominationPools?.poolMembers, OPT_ENTRIES);
 
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
