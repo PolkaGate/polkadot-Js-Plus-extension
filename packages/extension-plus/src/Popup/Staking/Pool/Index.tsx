@@ -486,6 +486,8 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     setConfirmStakingModalOpen(true);
   }, []);
 
+
+
   const handleSelectValidatorsModalOpen = useCallback((isSetNominees = false): void => {
     setSelectValidatorsModalOpen(true);
 
@@ -607,8 +609,8 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           <TabPanel index={0} value={tabValue}>
             <Stake
               api={api}
+              chain={chain}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
-              handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               myPool={myPool}
               nextToStakeButtonBusy={!!stakeAmount && (!(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
               poolStakingConsts={poolStakingConsts}
@@ -616,6 +618,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
               setState={setState}
               staker={staker}
               state={state}
+              nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
             />
           </TabPanel>
           <TabPanel index={1} value={tabValue}>
@@ -667,7 +670,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
         </Grid>
       </Grid>
 
-      {stakingConsts && validatorsInfo &&
+      {stakingConsts && validatorsInfo && showSelectValidatorsModal &&
         <SelectValidators
           api={api}
           chain={chain}
@@ -705,6 +708,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           validatorsIdentities={validatorsIdentities}
         />
       }
+
 
       {rewardSlashes && showChartModal && api &&
         <RewardChart

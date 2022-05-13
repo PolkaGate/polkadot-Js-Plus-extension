@@ -631,7 +631,7 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
         </Grid>
       </Grid>
 
-      {stakingConsts && validatorsInfo &&
+      {stakingConsts && validatorsInfo && showSelectValidatorsModal &&
         <SelectValidators
           api={api}
           chain={chain}

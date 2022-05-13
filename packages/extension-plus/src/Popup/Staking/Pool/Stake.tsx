@@ -15,14 +15,17 @@ import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
+import { Chain } from '@polkadot/extension-chains/types';
 import { BN, BN_ZERO, bnMax } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
+import ManualStaking from './ManualStaking';
 
 interface Props {
   api: ApiPromise | undefined;
+  chain: Chain;
   nextToStakeButtonBusy: boolean;
   setStakeAmount: React.Dispatch<React.SetStateAction<BN>>
   setState: React.Dispatch<React.SetStateAction<string>>;
@@ -30,11 +33,11 @@ interface Props {
   state: string;
   poolStakingConsts: PoolStakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
-  handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
   myPool: any | undefined | null;
+  nextPoolId: BN;
 }
 
-export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, myPool, nextToStakeButtonBusy, poolStakingConsts, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -45,6 +48,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
   const [minStakeable, setMinStakeable] = useState<number>(0);
   const [maxStake, setMaxStake] = useState<number>(0);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
+  const [showManualPoolStakingModal, setManualPoolStakingModalOpen] = useState<boolean>(false);
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api && api.registry.chainTokens[0];
@@ -89,6 +93,10 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
     // setConfirmStakingModalOpen(false);
   }, [setValidatorSelectionType]);
 
+  const handleManualPoolStakingOpen = useCallback((): void => {
+    setManualPoolStakingModalOpen(true);
+  }, []);
+
   const handleNextToStake = useCallback((): void => {
     if (Number(stakeAmountInHuman) >= minStakeable) {
       switch (validatorSelectionType) {
@@ -97,14 +105,14 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
           if (!state) setState('stakeAuto');
           break;
         case ('Manual'):
-          handleSelectValidatorsModalOpen();
-          if (!state) setState('stakeManual');
+          handleManualPoolStakingOpen();
+          if (!state) setState('stakeManual'); // will be different from solo staking
           break;
         default:
           console.log('unknown!!');
       }
     }
-  }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleSelectValidatorsModalOpen]);
+  }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleManualPoolStakingOpen]);
 
   useEffect(() => {
     if (!poolStakingConsts || !decimals || existentialDeposit === undefined) return;
@@ -258,17 +266,28 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
       </Grid>
 
       <Grid item sx={{ p: '0px 10px 0px' }} xs={12}>
-        <Grid item xs={12}>
-          <NextStepButton
-            data-button-action='next to stake'
-            isBusy={nextToStakeButtonBusy}
-            isDisabled={nextToStakeButtonDisabled}
-            onClick={handleNextToStake}
-          >
-            {nextButtonCaption}
-          </NextStepButton>
-        </Grid>
+        <NextStepButton
+          data-button-action='next to stake'
+          isBusy={nextToStakeButtonBusy}
+          isDisabled={nextToStakeButtonDisabled}
+          onClick={handleNextToStake}
+        >
+          {nextButtonCaption}
+        </NextStepButton>
       </Grid>
+
+      {showManualPoolStakingModal && stakeAmountInHuman &&
+        <ManualStaking
+          api={api}
+          chain={chain}
+          handleStakeAmount={handleStakeAmount}
+          nextPoolId={nextPoolId}
+          setManualPoolStakingModalOpen={setManualPoolStakingModalOpen}
+          showManualPoolStakingModal={showManualPoolStakingModal}
+          stakeAmountInHuman={stakeAmountInHuman}
+          staker={staker}
+        />}
+
     </>
   );
 }
