@@ -3,6 +3,7 @@
 /* eslint-disable header/header */
 
 export { default as AllAddresses } from './AllAddresses';
+export { default as AllAddresses2 } from './AllAddresses2';
 export { default as Balance } from './Balance';
 export { default as ConfirmButton } from './ConfirmButton';
 export { default as Hint } from './Hint';

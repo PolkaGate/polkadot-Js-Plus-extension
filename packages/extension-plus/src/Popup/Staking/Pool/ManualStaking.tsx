@@ -8,23 +8,23 @@
  * 
  * */
 
+import type { ApiPromise } from '@polkadot/api';
 import type { DeriveOwnContributions } from '@polkadot/api-derive/types';
+import type { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import type { Chain } from '@polkadot/extension-chains/types';
+import type { Balance } from '@polkadot/types/interfaces';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
-import { AddCircleRounded as AddCircleRoundedIcon, GroupWorkOutlined,PersonAddAlt1Rounded as PersonAddAlt1RoundedIcon } from '@mui/icons-material';
+import { AddCircleRounded as AddCircleRoundedIcon, GroupWorkOutlined, PersonAddAlt1Rounded as PersonAddAlt1RoundedIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, Tab, Tabs, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
 
-import { ApiPromise } from '@polkadot/api';
 import { createWsEndpoints } from '@polkadot/apps-config';
-import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import { AccountsStore } from '@polkadot/extension-base/stores';
-import { Chain } from '@polkadot/extension-chains/types';
-import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
@@ -32,11 +32,10 @@ import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-cr
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, ShowAddress } from '../../../components';
+import { AllAddresses2, PlusHeader, Popup, ShowAddress } from '../../../components';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
-
   className?: string;
   showManualPoolStakingModal: boolean;
   chain: Chain;
@@ -51,6 +50,9 @@ function ManualStaking({ api, chain, nextPoolId, className, handleStakeAmount, s
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('create');
   const [poolName, setPoolName] = useState<string | undefined>();
+  const [rootId, setRootId] = useState<string>(staker.address);
+  const [nominatorId, setNominatorId] = useState<string>(staker.address);
+  const [stateTogglerId, setStateTogglerId] = useState<string>(staker.address);
 
   const token = api && api.registry.chainTokens[0];
 
@@ -96,75 +98,87 @@ function ManualStaking({ api, chain, nextPoolId, className, handleStakeAmount, s
             </Tabs>
           </Grid>
         </Grid>
-        <Grid container sx={{ pt: 2 }}>
+        {tabValue === 'create' &&
+          <Grid container sx={{ pt: 2 }}>
 
-          <Grid item sx={{ p: '20px 40px' }} xs={12}>
-            <TextField
-              InputLabelProps={{ shrink: true }}
-              disabled
-              fullWidth
-              label={t('Pool Id')}
-              name='nextPoolId'
-              sx={{ height: '20px' }}
-              type='text'
-              value={String(nextPoolId)}
-              variant='outlined'
-            />
+            <Grid container item justifyContent='space-between' sx={{ p: '5px 40px' }}>
+              <Grid item xs={2}>
+                <TextField
+                  InputLabelProps={{ shrink: true }}
+                  disabled
+                  fullWidth
+                  label={t('Pool Id')}
+                  name='nextPoolId'
+                  sx={{ height: '20px' }}
+                  type='text'
+                  value={String(nextPoolId)}
+                  variant='outlined'
+                />
+              </Grid>
+
+              <Grid item xs={9}>
+                <TextField
+                  InputLabelProps={{ shrink: true }}
+                  autoFocus
+                  color='warning'
+                  fullWidth
+                  helperText={''}
+                  label={t('Pool name')}
+                  name='poolName'
+                  onChange={(e) => setPoolName(e.target.value)}
+                  placeholder='enter a pool name'
+                  sx={{ height: '20px' }}
+                  type='text'
+                  value={poolName}
+                  variant='outlined'
+                />
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12} sx={{ p: '35px 40px 10px' }}>
+              <TextField
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
+                color='warning'
+                fullWidth
+                // inputProps={{ step: '.01' }}
+                label={t('Amount')}
+                name='stakeAmount'
+                onChange={handleStakeAmount}
+                type='number'
+                value={stakeAmountInHuman}
+                variant='outlined'
+              />
+            </Grid>
+
+            <Grid container item justifyContent='space-between' sx={{ p: '10px 40px 5px' }}>
+              <Grid item sx={{ pt: 1 }} xs={12}>
+                <AllAddresses2 api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
+              </Grid>
+              <Grid item sx={{ pt: 1 }} xs={12}>
+                <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={rootId} setSelectedAddress={setRootId} title={t('Root')} />
+              </Grid>
+              <Grid item sx={{ pt: 1 }} xs={12}>
+                <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={nominatorId} setSelectedAddress={setNominatorId} title={t('Nominator')} />
+              </Grid>
+              <Grid item sx={{ pt: 1 }} xs={12}>
+                <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={stateTogglerId} setSelectedAddress={setStateTogglerId} title={t('State toggler')} />
+              </Grid>
+            </Grid>
+
+            <Grid item sx={{ p: '10px 40px' }} xs={12}>
+              <NextStepButton
+                data-button-action='next to stake'
+              // isBusy={nextToStakeButtonBusy}
+              // isDisabled={nextToStakeButtonDisabled}
+              // onClick={handleNextToStake}
+              >
+                {t('Next')}
+              </NextStepButton>
+            </Grid>
+
           </Grid>
-
-          <Grid item sx={{ p: '20px 40px' }} xs={12}>
-            <TextField
-              InputLabelProps={{ shrink: true }}
-              InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
-              autoFocus
-              color='warning'
-              fullWidth
-              inputProps={{ step: '.01' }}
-              label={t('Amount')}
-              name='stakeAmount'
-              onChange={handleStakeAmount}
-              placeholder='0.0'
-              sx={{ height: '20px' }}
-              type='number'
-              value={stakeAmountInHuman}
-              variant='outlined'
-            />
-          </Grid>
-
-          <Grid item sx={{ p: '40px' }} xs={12}>
-            <TextField
-              InputLabelProps={{ shrink: true }}
-              autoFocus
-              color='warning'
-              fullWidth
-              helperText={''}
-              label={t('Pool name')}
-              name='poolName'
-              onChange={(e) => setPoolName(e.target.value)}
-              placeholder='enter a pool name'
-              sx={{ height: '20px' }}
-              type='text'
-              value={poolName}
-              variant='outlined'
-            />
-          </Grid>
-        </Grid>
-
-        <Grid item sx={{ p: '20px 40px' }} xs={12}>
-          <ShowAddress address={staker?.address} chain={chain} role={t('depositor')} />
-        </Grid>
-
-        <Grid item sx={{ p: '30px 30px' }} xs={12}>
-          <NextStepButton
-            data-button-action='next to stake'
-          // isBusy={nextToStakeButtonBusy}
-          // isDisabled={nextToStakeButtonDisabled}
-          // onClick={handleNextToStake}
-          >
-            {t('Next')}
-          </NextStepButton>
-        </Grid>
-
+        }
       </Popup>
     </>
   );

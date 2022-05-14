@@ -17,7 +17,7 @@ import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CircleOutlined as CircleOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon } from '@mui/icons-material';
 import { Divider, Grid, Paper } from '@mui/material';
-import { blue, green, grey } from '@mui/material/colors';
+import { blue, green, grey, red } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -185,6 +185,10 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
     setStakingModalOpen(false);
   }, [setStakingModalOpen]);
 
+  const handlePoolStakingModalOpen = useCallback(() => {
+    api?.tx?.nominationPools && setPoolStakingOpen(true);
+  }, [api])
+
   return (
     <Popup handleClose={handleStakingModalClose} showModal={showStakingModal}>
 
@@ -220,7 +224,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
         </Paper>
 
-        <Paper elevation={stakingType === 'pool' ? 8 : 4} onClick={() => setPoolStakingOpen(true)} onMouseOver={() => setStakingType('pool')} sx={{ borderRadius: '10px', height: 380, pt: 1, width: '45%', cursor: 'pointer' }}>
+        <Paper elevation={stakingType === 'pool' ? 8 : 4} onClick={handlePoolStakingModalOpen} onMouseOver={() => setStakingType('pool')} sx={{ borderRadius: '10px', cursor: !(api && !api?.tx?.nominationPools) ? 'pointer' : '', height: 380, pt: 1, width: '45%' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
             <Grid color={green[600]} item>
               <p>{t('POOL STAKING')}</p>
@@ -238,19 +242,25 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
             <Divider light />
           </Grid>
 
-          <Grid color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 12, p: '10px 10px' }} xs={12}>
-            <Grid item>
-              {t('Min to join a pool')}:
+          {api && !api?.tx?.nominationPools
+            ? <Grid color={red[600]} item sx={{ fontSize: 11, pt: '10px', textAlign: 'center' }}>
+              {t('Pool staking is not available on {{chainName}} yet', { replace: { chainName: chainName } })}
             </Grid>
-            <Grid item>
-              <ShowBalance2 api={api} balance={poolStakingConsts?.minJoinBond} />
+            : <Grid color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 12, p: '10px 10px' }} xs={12}>
+              <Grid item>
+                {t('Min to join a pool')}:
+              </Grid>
+              <Grid item>
+                <ShowBalance2 api={api} balance={poolStakingConsts?.minJoinBond} />
+              </Grid>
             </Grid>
-          </Grid>
+          }
 
         </Paper>
       </Grid>
 
-      {soloStakingOpen &&
+      {
+        soloStakingOpen &&
         <SoloStaking
           account={account}
           api={api}
@@ -266,7 +276,8 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
         />
       }
 
-      {poolStakingOpen &&
+      {
+        poolStakingOpen &&
         <PoolStaking
           account={account}
           api={api}
@@ -277,8 +288,9 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
           showStakingModal={showStakingModal}
           staker={staker}
           stakingConsts={stakingConsts}
-        />}
+        />
+      }
 
-    </Popup>
+    </Popup >
   );
 }
