@@ -39,7 +39,7 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
   const chainName = chain?.name.replace(' Relay Chain', '');
   const poolId = pool?.poolId ?? pool?.member?.poolId;
   const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
-  const myPoolMembers = poolsMembers && pool ? poolsMembers[pool.member.poolId] : undefined;
+  const myPoolMembers = poolsMembers && pool ? poolsMembers[poolId] : undefined;
 
   const roleIds = useMemo(() => Object.values(pool?.bondedPool?.roles), [pool]);
 

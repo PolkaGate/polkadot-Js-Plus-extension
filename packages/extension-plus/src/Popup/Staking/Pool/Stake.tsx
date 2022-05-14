@@ -283,6 +283,7 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
           chain={chain}
           handleStakeAmount={handleStakeAmount}
           nextPoolId={nextPoolId}
+          setState={setState}
           setManualPoolStakingModalOpen={setManualPoolStakingModalOpen}
           showManualPoolStakingModal={showManualPoolStakingModal}
           stakeAmountInHuman={stakeAmountInHuman}

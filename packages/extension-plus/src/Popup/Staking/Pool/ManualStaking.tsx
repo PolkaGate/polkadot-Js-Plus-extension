@@ -14,7 +14,7 @@ import type { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
-import type { ThemeProps } from '../../../../extension-ui/src/types';
+import type { ThemeProps } from '../../../../../extension-ui/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { AddCircleRounded as AddCircleRoundedIcon, GroupWorkOutlined, PersonAddAlt1Rounded as PersonAddAlt1RoundedIcon } from '@mui/icons-material';
@@ -36,9 +36,10 @@ import { AllAddresses2, PlusHeader, Popup, ShowAddress } from '../../../componen
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
-  className?: string;
-  showManualPoolStakingModal: boolean;
   chain: Chain;
+  className?: string;
+  setState: React.Dispatch<React.SetStateAction<string>>;
+  showManualPoolStakingModal: boolean;
   staker: AccountsBalanceType | undefined;
   handleStakeAmount: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   stakeAmountInHuman: string;
@@ -46,7 +47,7 @@ interface Props extends ThemeProps {
   nextPoolId: BN
 }
 
-function ManualStaking({ api, chain, nextPoolId, className, handleStakeAmount, setManualPoolStakingModalOpen, showManualPoolStakingModal, stakeAmountInHuman, staker }: Props): React.ReactElement<Props> {
+function ManualStaking({ api, chain, nextPoolId, className, setState, handleStakeAmount, setManualPoolStakingModalOpen, showManualPoolStakingModal, stakeAmountInHuman, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('create');
   const [poolName, setPoolName] = useState<string | undefined>();
@@ -56,17 +57,14 @@ function ManualStaking({ api, chain, nextPoolId, className, handleStakeAmount, s
 
   const token = api && api.registry.chainTokens[0];
 
-  useEffect(() => {
-
-  }, []);
-
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   }, []);
 
   const handlePoolStakingModalClose = useCallback(() => {
     setManualPoolStakingModalOpen(false);
-  }, []);
+    setState('');
+  }, [setManualPoolStakingModalOpen, setState]);
 
   return (
     <>

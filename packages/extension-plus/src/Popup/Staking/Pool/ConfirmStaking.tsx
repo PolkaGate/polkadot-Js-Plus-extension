@@ -40,7 +40,7 @@ interface Props {
   api: ApiPromise;
   chain: Chain;
   handlePoolStakingModalClose?: () => void;
-  pool: any;
+  pool: any;  // FIXME check the type
   state: string;
   selectedValidators: DeriveStakingQuery[] | null;
   setState: React.Dispatch<React.SetStateAction<string>>;

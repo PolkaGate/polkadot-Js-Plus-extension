@@ -34,13 +34,12 @@ interface Props {
 export default function Pool({ api, chain, pool, poolsMembers }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
-  const [points, setPoints] = useState<string | undefined>();
+  const [staked, setStaked] = useState<Balance | undefined>();
 
   // const rewardClaimable = pool?.rewardClaimable && api ? api.createType('Balance', pool.rewardClaimable) : undefined;
   // const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
   // const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
 
-  const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
   const poolId = pool?.poolId ?? pool?.member?.poolId;
 
   const handleMorePoolInfoOpen = useCallback(() => {
@@ -54,16 +53,10 @@ export default function Pool({ api, chain, pool, poolsMembers }: Props): React.R
   useEffect(() => {
     if (!(api && pool)) return;
 
-    let poolPoints = pool.rewardPool.points ?? 0;
+    const mayPoolBalance = pool?.ledger?.active ?? pool?.bondedPool?.points
+    const staked = mayPoolBalance ? api.createType('Balance', mayPoolBalance) : undefined;
 
-    if (poolPoints) {
-      const temp = api.createType('Balance', poolPoints).toHuman();
-      const token = api.registry.chainTokens[0];
-
-      poolPoints = temp.replace(token, '');
-    }
-
-    setPoints(poolPoints);
+    setStaked(staked);
   }, [api, pool]);
 
   return (
