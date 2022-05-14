@@ -180,6 +180,7 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
           <RadioGroup defaultValue='Auto' onChange={handleValidatorSelectionType} row value={validatorSelectionType}>
             <FormControlLabel
               control={<Radio sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
+              disabled={myPool === undefined}
               label={
                 <Box fontSize={12}> {t('Auto')}
                   <Box component='span' sx={{ color: 'gray' }}>
@@ -191,6 +192,7 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
             />
             <FormControlLabel
               control={<Radio sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
+              disabled={myPool === undefined}
               label={<Box fontSize={12}> {t('Manual')} </Box>}
               sx={{ fontSize: 12 }}
               value='Manual'
@@ -253,13 +255,12 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
               : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
             }
           </Grid>
-          {(myPool === undefined || !myPool?.member?.poolId)
-            ? myPool === null &&
-            <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
-              <PoolSelectionRadionButtons />
-            </Grid>
-            : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+          {myPool?.member?.poolId
+            ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
               {t('You are joining "{{poolName}}" pool with index {{poolId}}', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
+            </Grid>
+            : <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
+              <PoolSelectionRadionButtons />
             </Grid>
           }
         </Grid>
