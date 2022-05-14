@@ -11,13 +11,13 @@
 import type { DeriveOwnContributions } from '@polkadot/api-derive/types';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
+import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
-import { AddCircleRounded as AddCircleRoundedIcon, PersonAddAlt1Rounded as PersonAddAlt1RoundedIcon, GroupWorkOutlined } from '@mui/icons-material';
+import { AddCircleRounded as AddCircleRoundedIcon, GroupWorkOutlined,PersonAddAlt1Rounded as PersonAddAlt1RoundedIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, Tab, Tabs, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import { ApiPromise } from '@polkadot/api';
 import { createWsEndpoints } from '@polkadot/apps-config';
@@ -26,14 +26,13 @@ import { AccountsStore } from '@polkadot/extension-base/stores';
 import { Chain } from '@polkadot/extension-chains/types';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
+import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup } from '../../../components';
-import { NextStepButton } from '../../../../../extension-ui/src/components';
-
+import { PlusHeader, Popup, ShowAddress } from '../../../components';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -62,6 +61,7 @@ function ManualStaking({ api, chain, nextPoolId, className, handleStakeAmount, s
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   }, []);
+
   const handlePoolStakingModalClose = useCallback(() => {
     setManualPoolStakingModalOpen(false);
   }, []);
@@ -98,7 +98,7 @@ function ManualStaking({ api, chain, nextPoolId, className, handleStakeAmount, s
         </Grid>
         <Grid container sx={{ pt: 2 }}>
 
-          <Grid item sx={{ p: '40px' }} xs={12}>
+          <Grid item sx={{ p: '20px 40px' }} xs={12}>
             <TextField
               InputLabelProps={{ shrink: true }}
               disabled
@@ -148,6 +148,10 @@ function ManualStaking({ api, chain, nextPoolId, className, handleStakeAmount, s
               variant='outlined'
             />
           </Grid>
+        </Grid>
+
+        <Grid item sx={{ p: '20px 40px' }} xs={12}>
+          <ShowAddress address={staker?.address} chain={chain} role={t('depositor')} />
         </Grid>
 
         <Grid item sx={{ p: '30px 30px' }} xs={12}>

@@ -486,8 +486,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     setConfirmStakingModalOpen(true);
   }, []);
 
-
-
   const handleSelectValidatorsModalOpen = useCallback((isSetNominees = false): void => {
     setSelectValidatorsModalOpen(true);
 
