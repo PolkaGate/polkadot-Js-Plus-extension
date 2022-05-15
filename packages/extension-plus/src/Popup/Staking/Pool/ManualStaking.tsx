@@ -69,7 +69,7 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
         points: amountToMachine(stakeAmountInHuman, decimals),
         roles: {
           depositor: staker.address,
-          nominaor: nominatorId,
+          nominator: nominatorId,
           root: rootId,
           stateToggler: stateTogglerId
         },
