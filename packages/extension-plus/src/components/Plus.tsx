@@ -32,7 +32,6 @@ import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
 import EasyStaking from '../Popup/Staking';
 import StakingIndex from '../Popup/Staking/StakingIndex';
-
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
 import { SUPPORTED_CHAINS } from '../util/constants';

@@ -80,17 +80,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
   const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
-  const CreatPoolExtrinsic = useCallback(
-    (amount, root, nominator, stateToggler, nextPoolId, metadata) =>
-      amount && root && nominator && stateToggler && nextPoolId
-        ? api.tx.utility.batch([
-          api.tx.nominationPools.create(amount, root, nominator, stateToggler),
-          api.tx.nominationPools.setMetadata(nextPoolId, metadata)
-        ])
-        : null,
-    [api.tx.utility, api.tx.nominationPools]
-  );
-
   /** list of available trasaction types */
   // const chilled = api.tx.staking.chill;
   const joined = api.tx.nominationPools.join; // (amount, poolId)
@@ -304,7 +293,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
       if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
         // || nextPoolId for creation of a new pool
-        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra( api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
+        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
 
         history.push({
           action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
@@ -330,7 +319,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
       if (['stakeManual'].includes(localState) && surAmount !== BN_ZERO) {
 
-        const { block, failureText, fee, status, txHash } = await createPool( api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool.metadata);
+        const { block, failureText, fee, status, txHash } = await createPool(api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool.metadata);
 
         history.push({
           action: 'pool_create',
@@ -344,14 +333,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           to: ''
         });
 
-        if (status === 'failed') {
-          setConfirmingState(status);
 
-          // eslint-disable-next-line no-void
-          void saveHistory(chain, hierarchy, staker.address, history);
-
-          return;
-        }
+        setConfirmingState(status);
       }
 
       // if (['changeValidators', 'stakeAuto', 'stakeManual', 'setNominees'].includes(localState)) {
@@ -566,10 +549,10 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           </Grid>
           <Grid container data-testid='amount' item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 20, height: '25px', textAlign: 'center' }} xs={12}>
             <Grid item>
-              {!!surAmount && amountToHuman(surAmount.toString(), decimals)}
+              {!surAmount?.isZero() && amountToHuman(surAmount.toString(), decimals)}
             </Grid>
             <Grid item>
-              {!!surAmount && token}
+              {!surAmount?.isZero() && token}
             </Grid>
           </Grid>
 

@@ -122,13 +122,13 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
         {tabValue === 'create' &&
           <Grid container sx={{ pt: 2 }}>
 
-            <Grid container item justifyContent='space-between' sx={{ p: '5px 40px' }}>
+            <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px' }}>
               <Grid item xs={2}>
                 <TextField
                   InputLabelProps={{ shrink: true }}
-                  InputProps={{ style: { textAlign: 'center' } }}
                   disabled
                   fullWidth
+                  inputProps={{ style: { textAlign: 'center', padding: '12px' } }}
                   label={t('Pool Id')}
                   name='nextPoolId'
                   sx={{ height: '20px' }}
@@ -145,6 +145,7 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
                   color='warning'
                   fullWidth
                   helperText={''}
+                  inputProps={{ style: { padding: '12px' } }}
                   label={t('Pool name')}
                   name='poolName'
                   onChange={(e) => setPoolName(e.target.value)}
@@ -157,13 +158,13 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
               </Grid>
             </Grid>
 
-            <Grid item xs={12} sx={{ p: '35px 40px 10px' }}>
+            <Grid item sx={{ p: '35px 40px 10px' }} xs={12}>
               <TextField
                 InputLabelProps={{ shrink: true }}
                 InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
                 color='warning'
                 fullWidth
-                // inputProps={{ step: '.01' }}
+                inputProps={{ style: { padding: '12px' } }}
                 label={t('Amount')}
                 name='stakeAmount'
                 onChange={handleStakeAmount}
@@ -173,12 +174,12 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
               />
             </Grid>
 
-            <Grid container item justifyContent='space-between' sx={{ p: '10px 40px 5px' }}>
+            <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '15px 40px 5px' }}>
               <Grid item sx={{ pt: 1 }} xs={12}>
                 <AllAddresses2 api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
               </Grid>
               <Grid item sx={{ pt: 1 }} xs={12}>
-                <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={rootId} setSelectedAddress={setRootId} title={t('Root')} />
+                <AllAddresses2 api={api} chain={chain} disabled freeSolo selectedAddress={rootId} setSelectedAddress={setRootId} title={t('Root')} />
               </Grid>
               <Grid item sx={{ pt: 1 }} xs={12}>
                 <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={nominatorId} setSelectedAddress={setNominatorId} title={t('Nominator')} />
