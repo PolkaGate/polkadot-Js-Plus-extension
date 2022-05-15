@@ -8,7 +8,7 @@
  * render stake tab in pool staking
  * */
 
-import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MyPoolInfo, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Alert, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
@@ -29,15 +29,16 @@ interface Props {
   nextToStakeButtonBusy: boolean;
   setStakeAmount: React.Dispatch<React.SetStateAction<BN>>
   setState: React.Dispatch<React.SetStateAction<string>>;
-  staker?: AccountsBalanceType;
+  staker: AccountsBalanceType;
   state: string;
   poolStakingConsts: PoolStakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
   myPool: any | undefined | null;
   nextPoolId: BN;
+  setNewPool: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
 }
 
-export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -281,13 +282,15 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
         <ManualStaking
           api={api}
           chain={chain}
+          handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
           handleStakeAmount={handleStakeAmount}
           nextPoolId={nextPoolId}
-          setState={setState}
           setManualPoolStakingModalOpen={setManualPoolStakingModalOpen}
+          setState={setState}
           showManualPoolStakingModal={showManualPoolStakingModal}
           stakeAmountInHuman={stakeAmountInHuman}
           staker={staker}
+          setNewPool={setNewPool}
         />}
 
     </>

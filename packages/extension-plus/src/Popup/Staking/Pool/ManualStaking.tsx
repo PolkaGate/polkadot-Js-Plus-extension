@@ -33,6 +33,7 @@ import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { AllAddresses2, PlusHeader, Popup, ShowAddress } from '../../../components';
+import { amountToMachine } from '../../../util/plusUtils';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -40,14 +41,16 @@ interface Props extends ThemeProps {
   className?: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
   showManualPoolStakingModal: boolean;
-  staker: AccountsBalanceType | undefined;
+  staker: AccountsBalanceType;
   handleStakeAmount: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   stakeAmountInHuman: string;
   setManualPoolStakingModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  nextPoolId: BN
+  nextPoolId: BN;
+  handleConfirmStakingModaOpen: () => void;
+  setNewPool: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
 }
 
-function ManualStaking({ api, chain, nextPoolId, className, setState, handleStakeAmount, setManualPoolStakingModalOpen, showManualPoolStakingModal, stakeAmountInHuman, staker }: Props): React.ReactElement<Props> {
+function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleConfirmStakingModaOpen, setState, handleStakeAmount, setManualPoolStakingModalOpen, showManualPoolStakingModal, stakeAmountInHuman, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [tabValue, setTabValue] = useState('create');
   const [poolName, setPoolName] = useState<string | undefined>();
@@ -56,6 +59,26 @@ function ManualStaking({ api, chain, nextPoolId, className, setState, handleStak
   const [stateTogglerId, setStateTogglerId] = useState<string>(staker.address);
 
   const token = api && api.registry.chainTokens[0];
+  const decimals = api && api.registry.chainDecimals[0];
+
+  useEffect(() => {
+    setNewPool({
+      poolId: nextPoolId,
+      bondedPool: {
+        memberCounter: 0,
+        points: amountToMachine(stakeAmountInHuman, decimals),
+        roles: {
+          depositor: staker.address,
+          nominaor: nominatorId,
+          root: rootId,
+          stateToggler: stateTogglerId
+        },
+        state: 'Creating'
+      },
+      metadata: poolName ?? null,
+      rewardPool: null
+    });
+  }, [decimals, nominatorId, poolName, rootId, setNewPool, stakeAmountInHuman, staker.address, stateTogglerId]);
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -103,6 +126,7 @@ function ManualStaking({ api, chain, nextPoolId, className, setState, handleStak
               <Grid item xs={2}>
                 <TextField
                   InputLabelProps={{ shrink: true }}
+                  InputProps={{ style: { textAlign: 'center' } }}
                   disabled
                   fullWidth
                   label={t('Pool Id')}
@@ -167,9 +191,9 @@ function ManualStaking({ api, chain, nextPoolId, className, setState, handleStak
             <Grid item sx={{ p: '10px 40px' }} xs={12}>
               <NextStepButton
                 data-button-action='next to stake'
-              // isBusy={nextToStakeButtonBusy}
-              // isDisabled={nextToStakeButtonDisabled}
-              // onClick={handleNextToStake}
+                // isBusy={nextToStakeButtonBusy}
+                isDisabled={!rootId || !nominatorId || !stateTogglerId || !stakeAmountInHuman || !poolName}
+                onClick={handleConfirmStakingModaOpen}
               >
                 {t('Next')}
               </NextStepButton>

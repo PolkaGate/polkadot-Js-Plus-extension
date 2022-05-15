@@ -336,18 +336,18 @@ export interface PoolInfo {
   metadata: string | null;
   rewardPool: PalletNominationPoolsRewardPool | null
 }
+
 export interface MyPoolInfo extends PoolInfo {
   member?: PalletNominationPoolsPoolMember;
   accounts?: PoolAccounts;
   poolId?: BN;
   nominators?: string[];
   myClaimable?: BN;
-  redeemable: BN;
+  redeemable?: BN;
   rewardClaimable?: BN;
   ledger?: StakingLedger | null;
-  rewardIdBalance: any;
-  stashIdAccount: any;
-
+  rewardIdBalance?: any;
+  stashIdAccount?: any;
 }
 
 export interface PoolAccounts {

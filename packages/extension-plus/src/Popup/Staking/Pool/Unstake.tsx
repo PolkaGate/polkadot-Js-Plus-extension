@@ -29,10 +29,11 @@ interface Props {
   member: PalletNominationPoolsPoolMember | undefined;
   nextToUnStakeButtonBusy: boolean;
   availableBalance: BN;
-  handleNextToUnstake: () => void;
+  setState: React.Dispatch<React.SetStateAction<string>>;
+  handleConfirmStakingModaOpen: () => void
 }
 
-export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleNextToUnstake, member, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
+export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleConfirmStakingModaOpen, member, nextToUnStakeButtonBusy, setState, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
@@ -42,6 +43,12 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
 
   const decimals = api?.registry?.chainDecimals[0];
   const token = api?.registry?.chainTokens[0];
+
+  const handleNextToUnstake = useCallback((): void => {
+    // if (!state) 
+    setState('unstake');
+    handleConfirmStakingModaOpen();
+  }, [handleConfirmStakingModaOpen, setState]);
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
     if (!decimals) return;

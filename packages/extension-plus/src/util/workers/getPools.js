@@ -36,8 +36,6 @@ async function getPools (endpoint) {
     };
   });
 
-  console.log('poolsInfo in worker', poolsInfo);
-
   return JSON.stringify(poolsInfo);
 }
 

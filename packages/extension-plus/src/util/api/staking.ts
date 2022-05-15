@@ -223,8 +223,10 @@ export async function bondOrBondExtra(
   }
 }
 
+
+//* *******************************POOL STAKING********************************************/
+
 export async function poolJoinOrBondExtra(
-  _chain: Chain | null | undefined,
   _api: ApiPromise,
   _stashAccountId: string | null,
   _signer: KeyringPair,
@@ -240,29 +242,46 @@ export async function poolJoinOrBondExtra(
       return { status: 'failed' };
     }
 
-    /** payee:
-     * Staked - Pay into the stash account, increasing the amount at stake accordingly.
-     * Stash - Pay into the stash account, not increasing the amount at stake.
-     * Account - Pay into a custom account.
-     * Controller - Pay into the controller account.
-     */
-
     let tx: SubmittableExtrinsic<'promise', ISubmittableResult>;
 
     if (_alreadyBondedAmount) {
       tx = _api.tx.nominationPools.bondExtra({ FreeBalance: _value });
     } else {
-      // bonded = api.tx.utility.batch([
-      //   _api.tx.nominationPools.create(_value, _stashAccountId, _stashAccountId, _stashAccountId),
-      //   _api.tx.nominationPools.setMetadata(_nextPoolId, 'metadata')
-      // ]);
-
       tx = _api.tx.nominationPools.join(_value, _nextPoolId);
-
-      // (, _value, payee);
     }
 
     return signAndSend(_api, tx, _signer, _stashAccountId);
+  } catch (error) {
+    console.log('Something went wrong while bond/nominate', error);
+
+    return { status: 'failed' };
+  }
+}
+
+export async function createPool(
+  _api: ApiPromise,
+  _depositor: string | null,
+  _signer: KeyringPair,
+  _value: BN,
+  _poolId: BN,
+  _roles: any,
+  _poolName: string
+): Promise<TxInfo> {
+  try {
+    console.log('createPool is called!');
+
+    if (!_depositor) {
+      console.log('createPool:  _depositor is empty!');
+
+      return { status: 'failed' };
+    }
+
+    const created = _api.tx.utility.batch([
+      _api.tx.nominationPools.create(_value, _roles.root, _roles.nominator, _roles.stateToggler),
+      _api.tx.nominationPools.setMetadata(_poolId, _poolName)
+    ]);
+
+    return signAndSend(_api, created, _signer, _depositor);
   } catch (error) {
     console.log('Something went wrong while bond/nominate', error);
 

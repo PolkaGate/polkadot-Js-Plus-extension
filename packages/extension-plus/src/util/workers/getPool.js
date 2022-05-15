@@ -9,7 +9,7 @@
  * rewardPool.balance: The pool balance at the time of the last payout
  * rewardPpool.totalEarnings: The total earnings ever at the time of the last payout
  */
-import { BN_ZERO, bnMax } from '@polkadot/util';
+import { BN, BN_ZERO, bnMax } from '@polkadot/util';
 
 import getApi from '../getApi.ts';
 import getPoolAccounts from '../getPoolAccounts';
@@ -21,21 +21,29 @@ const DEFAULT_MEMBER_INFO = {
   unbondingEras: []
 };
 
-async function getPool(endpoint, stakerAddress) {
+async function getPool(endpoint, stakerAddress, id = undefined) {
+  console.log(`getPool is called for ${stakerAddress} id:${id}`);
   const api = await getApi(endpoint);
 
-  const membersUnwrapped = await api.query.nominationPools.poolMembers(stakerAddress);
-  const member = membersUnwrapped.isSome ? membersUnwrapped.unwrap() : DEFAULT_MEMBER_INFO;
+  const membersUnwrapped = !id && await api.query.nominationPools.poolMembers(stakerAddress);
+  const member = membersUnwrapped?.isSome ? membersUnwrapped.unwrap() : undefined;
 
-  if (member.poolId.isZero()) {
-    return null; // user does not joined a pool yet
+  if (!member && !id) {
+    console.log(`can not find member for ${stakerAddress} or id is :${id}`);
+
+    return null; // user does not joined a pool yet. or pool id does not exist
   }
 
-  const poolId = member.poolId;
-
+  const poolId = member?.poolId ?? id;
   const accounts = getPoolAccounts(api, poolId);
 
-  const [metadata, bondedPools, rewardPools, rewardIdBalance, stashIdAccount ] = await Promise.all([
+  if (!accounts) {
+    console.log(`can not find a pool with id:${id}`);
+
+    return null;
+  }
+
+  const [metadata, bondedPools, rewardPools, rewardIdBalance, stashIdAccount] = await Promise.all([
     api.query.nominationPools.metadata(poolId),
     api.query.nominationPools.bondedPools(poolId),
     api.query.nominationPools.rewardPools(poolId),
@@ -47,16 +55,15 @@ async function getPool(endpoint, stakerAddress) {
   const unwrappedBondedPool = bondedPools.isSome ? bondedPools.unwrap() : null;
 
   const poolRewardClaimable = bnMax(BN_ZERO, rewardIdBalance.data.free.sub(api.consts.balances.existentialDeposit));
-
-  console.log(` poolRewardClaimable.sub(unwrappedRewardPools.balance):${poolRewardClaimable.sub(unwrappedRewardPools.balance)}  `);
-
-  const lastTotalEarnings = unwrappedRewardPools.totalEarnings;
+  const lastTotalEarnings = unwrappedRewardPools?.totalEarnings;
   const currTotalEarnings = bnMax(BN_ZERO, poolRewardClaimable.sub(unwrappedRewardPools.balance)).add(unwrappedRewardPools.totalEarnings);
   const newEarnings = bnMax(BN_ZERO, currTotalEarnings.sub(lastTotalEarnings));
   const newPoints = unwrappedBondedPool.points.mul(newEarnings);
   const currentPoints = unwrappedRewardPools.points.add(newPoints);
-  const newEarningsSinceLastClaim = bnMax(BN_ZERO, currTotalEarnings.sub(member.rewardPoolTotalEarnings));
-  const delegatorVirtualPoints = member.points.mul(newEarningsSinceLastClaim);
+
+
+  const newEarningsSinceLastClaim = member ? bnMax(BN_ZERO, currTotalEarnings.sub(member.rewardPoolTotalEarnings)) : BN_ZERO;
+  const delegatorVirtualPoints = member ? member.points.mul(newEarningsSinceLastClaim) : BN_ZERO;
 
   const myClaimable = delegatorVirtualPoints.isZero() || currentPoints.isZero() || poolRewardClaimable.isZero()
     ? BN_ZERO
@@ -71,6 +78,7 @@ async function getPool(endpoint, stakerAddress) {
   }
 
   const poolInfo = {
+    poolId: id,
     accounts: accounts,
     bondedPool: unwrappedBondedPool,
     member: member,
@@ -82,7 +90,7 @@ async function getPool(endpoint, stakerAddress) {
     myClaimable: Number(myClaimable),
     // nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
     rewardClaimable: Number(poolRewardClaimable),
-    rewardIdBalance:rewardIdBalance.data,
+    rewardIdBalance: rewardIdBalance.data,
     rewardPool: rewardPool,
     redeemable: Number(stashIdAccount?.redeemable),
     ledger: stashIdAccount?.stakingLedger,
@@ -93,10 +101,10 @@ async function getPool(endpoint, stakerAddress) {
 }
 
 onmessage = (e) => {
-  const { endpoint, stakerAddress } = e.data;
+  const { endpoint, stakerAddress, id } = e.data;
 
   // eslint-disable-next-line no-void
-  void getPool(endpoint, stakerAddress).then((poolInfo) => {
+  void getPool(endpoint, stakerAddress, id).then((poolInfo) => {
     postMessage(poolInfo);
   });
 };

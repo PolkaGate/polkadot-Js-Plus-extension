@@ -28,7 +28,7 @@ import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Hint, Password, PlusHeader, Popup, ShortAddress } from '../../../components';
 import broadcast from '../../../util/api/broadcast';
-import { poolJoinOrBondExtra } from '../../../util/api/staking';
+import { createPool, poolJoinOrBondExtra } from '../../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import getLogo from '../../../util/getLogo';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
@@ -40,7 +40,7 @@ interface Props {
   api: ApiPromise;
   chain: Chain;
   handlePoolStakingModalClose?: () => void;
-  pool: any;  // FIXME check the type
+  pool: MyPoolInfo; // FIXME check the type
   state: string;
   selectedValidators: DeriveStakingQuery[] | null;
   setState: React.Dispatch<React.SetStateAction<string>>;
@@ -161,35 +161,21 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
 
           // if there is no pool to join then needs to create one
-
-          //params =  [surAmount, poolIdToJoin] : [surAmount, staker.address, staker.address, staker.address, nextPoolId, 'metadata'];
-          // call CreatPoolExtrinsic(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         }
 
         setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
 
         break;
       case ('stakeManual'):
-        params = currentlyStaked ? [surAmount] : [staker.address, surAmount, 'Staked'];
 
         // eslint-disable-next-line no-void
-        void bonding(...params).paymentInfo(staker.address).then((i) => {
-          const bondingFee = i?.partialFee;
+        api && api.tx.nominationPools.create(surAmount, ...Object.values(pool.bondedPool.roles).slice(1)).paymentInfo(staker.address).then((i) => {
+          const createFee = i?.partialFee;
 
-          if (!isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
-            params = [poolId, selectedValidatorsAccountId];
-
-            // eslint-disable-next-line no-void
-            void nominated(...params).paymentInfo(staker.address).then((i) => {
-              const nominatingFee = i?.partialFee;
-
-              setEstimatedFee(api.createType('Balance', bondingFee.add(nominatingFee)));
-            });
-          } else {
-            setEstimatedFee(bondingFee);
-          }
-        }
-        );
+          api.tx.nominationPools.setMetadata(pool.poolId, pool.metadata).paymentInfo(staker.address)
+            .then((i) => setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))))
+            .catch(console.error);
+        });
 
         setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
         break;
@@ -318,7 +304,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
       if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
         // || nextPoolId for creation of a new pool
-        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
+        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra( api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
 
         history.push({
           action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
@@ -342,32 +328,31 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         }
       }
 
+      if (['stakeManual'].includes(localState) && surAmount !== BN_ZERO) {
 
-      // if (['stakeManual'].includes(localState) && surAmount !== BN_ZERO) {
-      //   const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(chain, endpoint, staker.address, signer, surAmount, nextPoolId, hasAlreadyBonded);
+        const { block, failureText, fee, status, txHash } = await createPool( api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool.metadata);
 
-      //   history.push({
-      //     action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
-      //     amount: amountToHuman(String(surAmount), decimals),
-      //     block: block,
-      //     date: Date.now(),
-      //     fee: fee || '',
-      //     from: staker.address,
-      //     hash: txHash || '',
-      //     status: failureText || status,
-      //     to: ''
-      //   });
+        history.push({
+          action: 'pool_create',
+          amount: amountToHuman(String(surAmount), decimals),
+          block: block,
+          date: Date.now(),
+          fee: fee || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
 
-      //   if (status === 'failed') {
-      //     setConfirmingState(status);
+        if (status === 'failed') {
+          setConfirmingState(status);
 
-      //     // eslint-disable-next-line no-void
-      //     void saveHistory(chain, hierarchy, staker.address, history);
+          // eslint-disable-next-line no-void
+          void saveHistory(chain, hierarchy, staker.address, history);
 
-      //     return;
-      //   }
-      // }
-
+          return;
+        }
+      }
 
       // if (['changeValidators', 'stakeAuto', 'stakeManual', 'setNominees'].includes(localState)) {
       if (['changeValidators', 'setNominees'].includes(localState) && poolId) {

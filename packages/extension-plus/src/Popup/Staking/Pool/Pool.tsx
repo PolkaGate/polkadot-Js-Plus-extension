@@ -8,6 +8,7 @@
  *
  * */
 
+// eslint-disable-next-line simple-import-sort/imports
 import type { ApiPromise } from '@polkadot/api';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
@@ -27,11 +28,11 @@ interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   pool: MyPoolInfo | undefined;
-  poolsMembers: MembersMapEntry[][] | undefined
-
+  poolsMembers: MembersMapEntry[][] | undefined;
+  showAction: boolean;
 }
 
-export default function Pool({ api, chain, pool, poolsMembers }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, pool, poolsMembers, showAction = false }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [staked, setStaked] = useState<Balance | undefined>();
@@ -72,7 +73,7 @@ export default function Pool({ api, chain, pool, poolsMembers }: Props): React.R
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('Index')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={3}>
+                <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 3 : 4}>
                   {t('Name')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
@@ -84,9 +85,11 @@ export default function Pool({ api, chain, pool, poolsMembers }: Props): React.R
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {t('Members')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('Actions')}
-                </Grid>
+                {showAction &&
+                  <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                    {t('Actions')}
+                  </Grid>
+                }
               </Grid>
             </Paper>
 
@@ -99,7 +102,7 @@ export default function Pool({ api, chain, pool, poolsMembers }: Props): React.R
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {String(poolId)}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={3}>
+                <Grid item sx={{ textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={showAction ? 3 : 4}>
                   {pool.metadata ?? t('no name')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
@@ -111,14 +114,16 @@ export default function Pool({ api, chain, pool, poolsMembers }: Props): React.R
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {pool.bondedPool.memberCounter}
                 </Grid>
-                <Grid alignItems='center' container direction='row' item justifyContent='space-around' sx={{ textAlign: 'center' }} xs={1}>
-                  <Grid item>
-                    <StopRoundedIcon color='secondary' fontSize='small' sx={{ cursor: 'pointer' }} />
+                {showAction &&
+                  <Grid alignItems='center' container direction='row' item justifyContent='space-around' sx={{ textAlign: 'center' }} xs={1}>
+                    <Grid item>
+                      <StopRoundedIcon color='secondary' fontSize='small' sx={{ cursor: 'pointer' }} />
+                    </Grid>
+                    <Grid item>
+                      <BlockRoundedIcon color='warning' sx={{ cursor: 'pointer', fontSize: 13, pb: '0.8px' }} />
+                    </Grid>
                   </Grid>
-                  <Grid item>
-                    <BlockRoundedIcon color='warning' sx={{ cursor: 'pointer', fontSize: 13, pb: '0.8px' }} />
-                  </Grid>
-                </Grid>
+                }
               </Grid>
             </Paper>
           </>
@@ -127,7 +132,7 @@ export default function Pool({ api, chain, pool, poolsMembers }: Props): React.R
           </Grid>
         : <Progress title={t('Loading pool ....')} />
       }
-      {showPoolInfo &&
+      {showPoolInfo && api && pool?.rewardPool &&
         <PoolInfo
           api={api}
           chain={chain}

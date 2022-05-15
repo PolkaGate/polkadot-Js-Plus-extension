@@ -9,7 +9,7 @@
  * */
 
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, PoolStakingConsts, StakingConsts,Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { TrackChanges as TrackChangesIcon } from '@mui/icons-material';
 import { Button as MuiButton, Grid } from '@mui/material';
@@ -39,12 +39,14 @@ interface Props {
   handleStopNominating: () => void;
   nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
   staker: AccountsBalanceType;
-  myPool: any | undefined | null;
+  myPool: MyPoolInfo | undefined | null;
 }
 
 function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const currentlyStaked = (myPool?.member?.points ?? BN_ZERO) as BN;
+  const points = myPool?.member?.points;
+  const currentlyStaked = points ? new BN(points) : BN_ZERO;
+  console.log('currentlyStaked', currentlyStaked)
 
   return (
     <>
@@ -99,7 +101,7 @@ function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalO
               {t('No nominated validators found')}
             </Grid>
             <Grid item>
-              {api && poolStakingConsts && currentlyStaked.gt(poolStakingConsts?.minNominatorBond) && [myPool?.bondedPool?.roles?.root, myPool?.bondedPool?.roles?.nominator].includes(staker.address) &&
+              {api && poolStakingConsts && currentlyStaked.gte(poolStakingConsts?.minNominatorBond) && [myPool?.bondedPool?.roles?.root, myPool?.bondedPool?.roles?.nominator].includes(staker.address) &&
                 <NextStepButton
                   data-button-action='Set Nominees'
                   isBusy={validatorsInfo && state === 'setNominees'}
