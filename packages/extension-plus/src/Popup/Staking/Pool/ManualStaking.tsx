@@ -29,10 +29,11 @@ import keyring from '@polkadot/ui-keyring';
 import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
-import { NextStepButton } from '../../../../../extension-ui/src/components';
+import { BackButton, NextStepButton } from '../../../../../extension-ui/src/components';
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { AllAddresses2, PlusHeader, Popup, ShowAddress } from '../../../components';
+import { EXTENSION_NAME } from '../../../util/constants';
 import { amountToMachine } from '../../../util/plusUtils';
 
 interface Props extends ThemeProps {
@@ -42,28 +43,26 @@ interface Props extends ThemeProps {
   setState: React.Dispatch<React.SetStateAction<string>>;
   showManualPoolStakingModal: boolean;
   staker: AccountsBalanceType;
-  handleStakeAmount: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   stakeAmountInHuman: string;
   setManualPoolStakingModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   nextPoolId: BN;
   handleConfirmStakingModaOpen: () => void;
-  setNewPool: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
+  setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
 }
 
-function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleConfirmStakingModaOpen, setState, handleStakeAmount, setManualPoolStakingModalOpen, showManualPoolStakingModal, stakeAmountInHuman, staker }: Props): React.ReactElement<Props> {
+function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleConfirmStakingModaOpen, setState, setManualPoolStakingModalOpen, showManualPoolStakingModal, stakeAmountInHuman, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+
   const [tabValue, setTabValue] = useState('create');
-  const [poolName, setPoolName] = useState<string | undefined>();
+  const [poolName, setPoolName] = useState<string>(`${EXTENSION_NAME}-${nextPoolId}`);
   const [rootId, setRootId] = useState<string>(staker.address);
   const [nominatorId, setNominatorId] = useState<string>(staker.address);
   const [stateTogglerId, setStateTogglerId] = useState<string>(staker.address);
 
-  const token = api && api.registry.chainTokens[0];
   const decimals = api && api.registry.chainDecimals[0];
 
   useEffect(() => {
     setNewPool({
-      poolId: nextPoolId,
       bondedPool: {
         memberCounter: 0,
         points: amountToMachine(stakeAmountInHuman, decimals),
@@ -76,6 +75,7 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
         state: 'Creating'
       },
       metadata: poolName ?? null,
+      poolId: nextPoolId,
       rewardPool: null
     });
   }, [decimals, nominatorId, poolName, rootId, setNewPool, stakeAmountInHuman, staker.address, stateTogglerId]);
@@ -93,7 +93,7 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
     <>
       <Popup handleClose={handlePoolStakingModalClose} showModal={showManualPoolStakingModal}>
         <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<GroupWorkOutlined fontSize='small' />} title={'Manual Staking'} />
-        <Grid alignItems='center' container sx={{ p: '0px 24px' }}>
+        <Grid alignItems='center' container sx={{ p: '10px 24px' }}>
           <Grid item xs={12}>
             <Tabs
               indicatorColor='secondary'
@@ -128,10 +128,9 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
                   InputLabelProps={{ shrink: true }}
                   disabled
                   fullWidth
-                  inputProps={{ style: { textAlign: 'center', padding: '12px' } }}
+                  inputProps={{ style: { padding: '12px', textAlign: 'center' } }}
                   label={t('Pool Id')}
                   name='nextPoolId'
-                  sx={{ height: '20px' }}
                   type='text'
                   value={String(nextPoolId)}
                   variant='outlined'
@@ -158,46 +157,35 @@ function ManualStaking({ api, chain, nextPoolId, className, setNewPool, handleCo
               </Grid>
             </Grid>
 
-            <Grid item sx={{ p: '35px 40px 10px' }} xs={12}>
-              <TextField
-                InputLabelProps={{ shrink: true }}
-                InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
-                color='warning'
-                fullWidth
-                inputProps={{ style: { padding: '12px' } }}
-                label={t('Amount')}
-                name='stakeAmount'
-                onChange={handleStakeAmount}
-                type='number'
-                value={stakeAmountInHuman}
-                variant='outlined'
-              />
-            </Grid>
-
-            <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '15px 40px 5px' }}>
-              <Grid item sx={{ pt: 1 }} xs={12}>
+            <Grid container spacing={'15px'} item sx={{ fontSize: 12, p: '45px 40px 5px' }}>
+              <Grid item xs={12}>
                 <AllAddresses2 api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
               </Grid>
-              <Grid item sx={{ pt: 1 }} xs={12}>
+              <Grid item xs={12}>
                 <AllAddresses2 api={api} chain={chain} disabled freeSolo selectedAddress={rootId} setSelectedAddress={setRootId} title={t('Root')} />
               </Grid>
-              <Grid item sx={{ pt: 1 }} xs={12}>
+              <Grid item xs={12}>
                 <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={nominatorId} setSelectedAddress={setNominatorId} title={t('Nominator')} />
               </Grid>
-              <Grid item sx={{ pt: 1 }} xs={12}>
+              <Grid item xs={12}>
                 <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={stateTogglerId} setSelectedAddress={setStateTogglerId} title={t('State toggler')} />
               </Grid>
             </Grid>
 
-            <Grid item sx={{ p: '10px 40px' }} xs={12}>
-              <NextStepButton
-                data-button-action='next to stake'
-                // isBusy={nextToStakeButtonBusy}
-                isDisabled={!rootId || !nominatorId || !stateTogglerId || !stakeAmountInHuman || !poolName}
-                onClick={handleConfirmStakingModaOpen}
-              >
-                {t('Next')}
-              </NextStepButton>
+            <Grid container item sx={{ p: '15px 34px' }} xs={12}>
+              <Grid item xs={1} >
+                <BackButton onClick={handlePoolStakingModalClose} />
+              </Grid>
+              <Grid item xs sx={{ pl: 1 }}>
+                <NextStepButton
+                  data-button-action='next to stake'
+                  // isBusy={nextToStakeButtonBusy}
+                  isDisabled={!rootId || !nominatorId || !stateTogglerId || !poolName}
+                  onClick={handleConfirmStakingModaOpen}
+                >
+                  {t('Next')}
+                </NextStepButton>
+              </Grid>
             </Grid>
 
           </Grid>

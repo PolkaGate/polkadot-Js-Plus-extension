@@ -24,7 +24,7 @@ interface Props {
   api: ApiPromise | undefined;
   staker: AccountsBalanceType;
   myPool: MyPoolInfo | undefined | null;
-  poolsMembers: MembersMapEntry[][] | undefined
+  poolsMembers: MembersMapEntry[] | undefined
 }
 
 function PoolTab({ api, chain, myPool, poolsMembers }: Props): React.ReactElement<Props> {

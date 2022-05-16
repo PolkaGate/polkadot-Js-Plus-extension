@@ -8,17 +8,15 @@
  *
  * */
 
-// eslint-disable-next-line simple-import-sort/imports
 import type { ApiPromise } from '@polkadot/api';
 import type { Balance } from '@polkadot/types/interfaces';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { MembersMapEntry, AccountsBalanceType, MyPoolInfo } from '../../../util/plusTypes';
+import type { MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AddCircleOutline as AddCircleOutlineIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon, BlockRounded as BlockRoundedIcon } from '@mui/icons-material';
-import { Box, Button, Checkbox, FormControlLabel, Grid, Paper } from '@mui/material';
+import { BlockRounded as BlockRoundedIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
+import { Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
@@ -28,8 +26,8 @@ interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   pool: MyPoolInfo | undefined;
-  poolsMembers: MembersMapEntry[][] | undefined;
-  showAction: boolean;
+  poolsMembers: MembersMapEntry[] | undefined;
+  showAction?: boolean;
 }
 
 export default function Pool({ api, chain, pool, poolsMembers, showAction = false }: Props): React.ReactElement<Props> {
@@ -47,7 +45,7 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
     setShowPoolInfo(true);
   }, []);
 
-  const handleMorePoolInfoClose = useCallback((i) => {
+  const handleMorePoolInfoClose = useCallback(() => {
     setShowPoolInfo(false);
   }, []);
 
@@ -58,7 +56,7 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
     const staked = mayPoolBalance ? api.createType('Balance', mayPoolBalance) : undefined;
 
     setStaked(staked);
-  }, [api, pool]);
+  }, [api, pool, pool?.bondedPool?.points]);
 
   return (
     <Grid container sx={{ p: 0 }}>
@@ -67,9 +65,11 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
           ? <>
             <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 5px', width: '100%' }}>
               <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('More')}
-                </Grid>
+                {pool.bondedPool.state !== 'Creating' &&
+                  <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                    {t('More')}
+                  </Grid>
+                }
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('Index')}
                 </Grid>
@@ -79,7 +79,7 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {t('State')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={3}>
+                <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
                   {t('Staked')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
@@ -96,19 +96,21 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
             <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
               <Grid alignItems='center' container sx={{ fontSize: 12 }}>
 
-                <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
-                  <MoreVertIcon fontSize='small' onClick={handleMorePoolInfoOpen} sx={{ cursor: 'pointer' }} />
-                </Grid>
+                {pool.bondedPool.state !== 'Creating' &&
+                  <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
+                    <MoreVertIcon fontSize='small' onClick={handleMorePoolInfoOpen} sx={{ cursor: 'pointer' }} />
+                  </Grid>
+                }
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {String(poolId)}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={showAction ? 3 : 4}>
+                <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={showAction ? 3 : 4}>
                   {pool.metadata ?? t('no name')}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {pool.bondedPool.state}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={3}>
+                <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
                   {staked?.toHuman() ?? 0}
                 </Grid>
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
@@ -132,6 +134,7 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
           </Grid>
         : <Progress title={t('Loading pool ....')} />
       }
+
       {showPoolInfo && api && pool?.rewardPool &&
         <PoolInfo
           api={api}

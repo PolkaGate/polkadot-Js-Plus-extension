@@ -52,10 +52,11 @@ interface Props {
   nextPoolId?: BN;
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
-  poolsMembers: MembersMapEntry[][] | undefined;
+  poolsMembers: MembersMapEntry[] | undefined;
+  setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
 }
 
-export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, poolsMembers, nextPoolId, nominatedValidators, pool, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, setNewPool, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string>('');
@@ -535,6 +536,13 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     setSurAmount(adjustedAmount);
     setAmountNeedsAdjust(false);
     setConfirmButtonDisabled(false);
+
+    if (pool.bondedPool.state === 'Creating') {
+      const modifiedPool = pool;
+
+      modifiedPool.bondedPool.points = adjustedAmount;
+      setNewPool(modifiedPool);
+    }
   }, [existentialDeposit, estimatedFee, availableBalance]);
 
   return (

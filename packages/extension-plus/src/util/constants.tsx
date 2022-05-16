@@ -4,6 +4,7 @@
 
 import { BN } from '@polkadot/util';
 
+export const EXTENSION_NAME = 'Polkadot js plus';
 export const PLUS_VERSION = '0.42.8.13';
 export const ENVIREONMENT = 'production'; //developement or production
 export const PPREFERED_POOL_ID_ON_WESTEND = new BN(6)

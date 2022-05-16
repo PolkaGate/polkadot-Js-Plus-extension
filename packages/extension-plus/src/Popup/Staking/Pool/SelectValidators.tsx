@@ -43,7 +43,7 @@ interface Props {
   state: string;
   validatorsIdentities: DeriveAccountInfo[] | null;
   pool: any | undefined;
-  poolsMembers: MembersMapEntry[][] | undefined;
+  poolsMembers: MembersMapEntry[] | undefined;
 }
 
 interface Data {

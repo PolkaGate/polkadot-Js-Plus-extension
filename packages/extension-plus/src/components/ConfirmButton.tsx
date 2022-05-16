@@ -41,7 +41,8 @@ export default function ConfirmButton({ handleBack, handleConfirm, handleReject,
               {t(text)}
             </Button>
           </Grid>
-        </>}
+        </>
+      }
     </Grid>
   );
 }

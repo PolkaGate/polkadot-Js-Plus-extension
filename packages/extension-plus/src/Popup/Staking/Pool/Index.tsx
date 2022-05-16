@@ -97,13 +97,13 @@ const OPT_ENTRIES = {
 
 export default function Index({ account, api, chain, endpoint, poolStakingConsts, setStakingModalOpen, showStakingModal, staker, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const poolsMembers: MembersMapEntry[][] | undefined = useMapEntries(api?.query?.nominationPools?.poolMembers, OPT_ENTRIES);
+  const poolsMembers: MembersMapEntry[] | undefined = useMapEntries(api?.query?.nominationPools?.poolMembers, OPT_ENTRIES);
 
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
   const [selectedPool, setSelectedPool] = useState<MyPoolInfo | undefined>();
   const [selectedPoolId, setSelectedPoolId] = useState<BN | undefined>();
-  const [newPool, setNewPool] = useState<PoolInfo | undefined>();
+  const [newPool, setNewPool] = useState<MyPoolInfo | undefined>();
 
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
@@ -123,7 +123,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [state, setState] = useState<string>('');
   const [tabValue, setTabValue] = useState(4);
   const [unstakeAmount, setUnstakeAmount] = useState<BN>(BN_ZERO);
-  // const [unlockingAmount, setUnlockingAmount] = useState<BN>(BN_ZERO);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
@@ -713,6 +712,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           poolsMembers={poolsMembers}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
+          setNewPool={setNewPool}
           setState={setState}
           showConfirmStakingModal={showConfirmStakingModal}
           staker={staker}
@@ -721,7 +721,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           validatorsIdentities={validatorsIdentities}
         />
       }
-
 
       {rewardSlashes && showChartModal && api &&
         <RewardChart

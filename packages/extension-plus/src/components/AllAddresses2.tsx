@@ -15,6 +15,7 @@ import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { AccountContext, SettingsContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
+import isValidAddress from '../util/validateAddress';
 
 interface Props {
   chain: Chain;
@@ -34,7 +35,7 @@ interface nameAddress {
   address: string;
 }
 
-export default function AllAddresses({ api, availableBalance, chain, disabled = false, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
+export default function AllAddresses2({ api, availableBalance, chain, disabled = false, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
@@ -75,17 +76,26 @@ export default function AllAddresses({ api, availableBalance, chain, disabled = 
 
   const handleAddressChange = useCallback((event: SelectChangeEvent) => setSelectedAddress && setSelectedAddress(event.target.value), [setSelectedAddress]);
 
-  const handleChange = useCallback((_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
+  const handleAddress = useCallback((value: string | null) => {
     const indexOfDots = value?.indexOf(':');
+    let mayBeAddress = value?.slice(indexOfDots + 1)?.trim();
+    mayBeAddress = isValidAddress(mayBeAddress) ? mayBeAddress : undefined;
 
-    setSelectedAddress && setSelectedAddress(value?.slice(indexOfDots + 1).trim());
+    setSelectedAddress && setSelectedAddress(mayBeAddress);
   }, [setSelectedAddress]);
+
+  const handleAutoComplateChange = useCallback((_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
+    setSelectedAddress && handleAddress(value);
+  }, [handleAddress, setSelectedAddress]);
+
+  const handleChange = useCallback((_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = _event.target.value;
+    setSelectedAddress && handleAddress(value);
+  }, [handleAddress, setSelectedAddress]);
 
   const handleBlur = useCallback((event: React.FocusEvent<HTMLDivElement> | undefined) => {
-    const value = event.target.value;
-    const indexOfDots = value?.indexOf(':');
-    setSelectedAddress && setSelectedAddress(value?.slice(indexOfDots + 1).trim());
-  }, [setSelectedAddress]);
+    setSelectedAddress && handleAddress(event.target.value);
+  }, [handleAddress, setSelectedAddress]);
 
   return (
     <Grid alignItems='center' container>
@@ -102,17 +112,17 @@ export default function AllAddresses({ api, availableBalance, chain, disabled = 
         {freeSolo
           ? <Autocomplete
             ListboxProps={{ sx: { fontSize: 12 } }}
-            freeSolo
+            defaultValue={selectedAddress}
             disabled={disabled}
+            freeSolo
             id='Select-account'
             onBlur={handleBlur}
-            onChange={handleChange}
-            defaultValue={selectedAddress}
+            onChange={handleAutoComplateChange}
             options={allAddresesOnThisChain?.map((option) => `${option?.name} :    ${option.address}`)}
-            renderInput={(params) => <TextField {...params} label={title} />}
+            // eslint-disable-next-line react/jsx-no-bind
+            renderInput={(params) => <TextField {...params} error={!selectedAddress} label={title} onChange={handleChange} />}
             sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}
           />
-
           : <FormControl fullWidth>
             <InputLabel id='selec-address'>{title}</InputLabel>
             <Select
@@ -121,7 +131,6 @@ export default function AllAddresses({ api, availableBalance, chain, disabled = 
               onChange={handleAddressChange}
               sx={{ fontSize: 12, height: 50, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               value={selectedAddress}
-
             >
               {allAddresesOnThisChain?.map((a) => (
                 // <MenuItem key={address} value={address}>
