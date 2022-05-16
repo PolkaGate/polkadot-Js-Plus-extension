@@ -100,7 +100,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const poolsMembers: MembersMapEntry[] | undefined = useMapEntries(api?.query?.nominationPools?.poolMembers, OPT_ENTRIES);
 
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
-  const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>();
+  const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>(undefined);
   const [selectedPool, setSelectedPool] = useState<MyPoolInfo | undefined>();
   const [selectedPoolId, setSelectedPoolId] = useState<BN | undefined>();
   const [newPool, setNewPool] = useState<MyPoolInfo | undefined>();
@@ -112,7 +112,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
   const [stakeAmount, setStakeAmount] = useState<BN>(BN_ZERO);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
-  const [currentlyStakedInHuman, setCurrentlyStakedInHuman] = useState<string | null>(null);
+  const [currentlyStakedInHuman, setCurrentlyStakedInHuman] = useState<string | undefined | null>(undefined);
   const [validatorsInfo, setValidatorsInfo] = useState<Validators | null>(null); // validatorsInfo is all validators (current and waiting) information
   const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | null>(null);
   const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
@@ -350,11 +350,13 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   }, [chain, api, staker.address, decimals]);
 
   useEffect(() => {
-    if (!myPool || !decimals) { return; }
+    if (myPool === undefined || !decimals) { return; }
+
+    if (myPool === null) {return setCurrentlyStakedInHuman('0');}
 
     const staked = new BN(myPool.member.points).mul(new BN(myPool.stashIdAccount.stakingLedger.active)).div(new BN(myPool.bondedPool.points));
 
-    setCurrentlyStakedInHuman(amountToHuman(String(staked), decimals));
+    setCurrentlyStakedInHuman(amountToHuman(String(staked), decimals) ?? '0');
   }, [myPool, decimals]);
 
   useEffect(() => {

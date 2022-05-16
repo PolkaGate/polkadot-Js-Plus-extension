@@ -25,7 +25,7 @@ interface Props {
   api: ApiPromise | undefined;
   stakingConsts: StakingConsts | undefined;
   setUnstakeAmount: React.Dispatch<React.SetStateAction<BN>>
-  currentlyStakedInHuman: string | null;
+  currentlyStakedInHuman: string | undefined | null;
   member: PalletNominationPoolsPoolMember | undefined;
   nextToUnStakeButtonBusy: boolean;
   availableBalance: BN;
@@ -116,7 +116,7 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
             fullWidth
             helperText={
               <>
-                {currentlyStakedInHuman === null &&
+                {currentlyStakedInHuman === undefined &&
                   <Grid xs={12}>
                     {t('Fetching data from blockchain ...')}
                   </Grid>}
@@ -126,7 +126,7 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
                     {t('Nothing to unstake')}
                   </Grid>
                 }
-                {currentlyStakedInHuman !== '0' && UnableToPayFee &&
+                {currentlyStakedInHuman && currentlyStakedInHuman !== '0' && UnableToPayFee &&
                   <Grid xs={12}>
                     {t('Unable to pay fee')}
                   </Grid>
