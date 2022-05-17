@@ -3,15 +3,15 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description this component shows a detailed information of an individual transaction including sender/reciver addresses if applicable,
- *  amount, type of transaction, hashes and etc. 
+ *  amount, type of transaction, hashes and etc.
  * */
 
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BubbleChart as BubbleChartIcon, LaunchRounded } from '@mui/icons-material';
-import { Box, Chip, Container, Divider, Grid, Link, Paper } from '@mui/material';
+import { Avatar, Box, Chip, Container, Divider, Grid, Link, Paper } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -20,6 +20,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup } from '../../components';
 import { SHORT_ADDRESS_CHARACTERS } from '../../util/constants';
+import getLogo from '../../util/getLogo';
 import { TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman } from '../../util/plusUtils';
 import { getTxIcon } from './getTxIcon';
@@ -117,9 +118,28 @@ export default function Details({
                 {!['success'].includes(transaction.status.toLowerCase()) ? transaction.status : ''}
               </Grid>
 
-              <Grid item sx={{ paddingTop: '10px' }} xs={12}>
-                {new Date(transaction.date).toDateString()}{' '}{new Date(transaction.date).toLocaleTimeString()}
+              <Grid container item justifyContent='flex-end' sx={{ paddingTop: '10px' }} xs={12}>
+                <Grid item xs={10}>
+                  {new Date(transaction.date).toDateString()}{' '}{new Date(transaction.date).toLocaleTimeString()}
+                </Grid>
+
+                <Grid item xs={1}>
+                  <Link
+                    href={`${subscanLink(transaction.hash)}`}
+                    rel='noreferrer'
+                    target='_blank'
+                    underline='none'
+                  >
+                    <Avatar
+                      alt={'subscan'}
+                      src={getLogo('subscan')}
+                      sx={{ height: 15, width: 15 }}
+                    />
+                  </Link>
+                </Grid>
+
               </Grid>
+
 
             </Grid>
           </Paper>
@@ -196,7 +216,7 @@ export default function Details({
           <Divider light />
         </Grid>
 
-        <Grid item sx={{ textAlign: 'center' }} xs={12}>
+        {/* <Grid item sx={{ textAlign: 'center' }} xs={12}>
           <Link
             href={`${subscanLink(transaction.hash)}`}
             rel='noreferrer'
@@ -205,7 +225,7 @@ export default function Details({
             {'Subscan   '}
             <LaunchRounded color='primary' sx={{ fontSize: 12 }} />
           </Link>
-        </Grid>
+        </Grid> */}
       </Container>
     </Popup>
   );
