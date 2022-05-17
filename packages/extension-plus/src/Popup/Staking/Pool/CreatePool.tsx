@@ -76,33 +76,36 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
     decimals && setStakeAmount(realStakingAmount);
   }, [decimals, existentialDeposit, setStakeAmount, stakeAmountInHuman]);
 
-  // useEffect(() => {
-  //   let stakeAmount = new BN(amountToMachine(stakeAmountInHuman, decimals));
-
-  //   api && api.tx.nominationPools.create(stakeAmount, ...Object.values(pool.bondedPool.roles).slice(1)).paymentInfo(staker.address).then((i) => {
-  //     const createFee = i?.partialFee;
-
-  //     api.tx.nominationPools.setMetadata(pool.poolId, pool.metadata).paymentInfo(staker.address)
-  //       .then((i) => setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))))
-  //       .catch(console.error);
-  //   });
-  // }, []);
-
   useEffect(() => {
-    if (!poolStakingConsts || !decimals || existentialDeposit === undefined) return;
-    const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
-    let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 3 * ED)); // FIXME: ED is lower than fee in some chains like KUSAMA
-    const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
-    const m = minCreateBond.add(existentialDeposit);
-    let min = Number(amountToHuman(m.toString(), decimals));
+    const stakeAmount = new BN(String(amountToMachine(stakeAmountInHuman, decimals)));
 
-    if (min > max) {
-      min = max = 0;
-    }
+    api && api.tx.nominationPools.create(stakeAmount, rootId, nominatorId, stateTogglerId).paymentInfo(staker.address).then((i) => {
+      const createFee = i?.partialFee;
 
-    setMaxStakeable(max);
-    setMinStakeable(min);
-  }, [availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit]);
+      api.tx.nominationPools.setMetadata(nextPoolId, poolName).paymentInfo(staker.address)
+        .then((i) => setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))))
+        .catch(console.error);
+    });
+  }, [api, decimals, nextPoolId, nominatorId, poolName, rootId, stakeAmountInHuman, staker.address, stateTogglerId]);
+
+  // useEffect(() => {
+  //   if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedFee || !staker?.balanceInfo?.available) return;
+  //   const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
+  //   // let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 2 * ED)); // FIXME: ED is lower than fee in some chains like KUSAMA
+  //   let maxTemp= new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedFee));
+  //   let max = Number(amountToHuman(maxTemp.toString(), decimals));
+
+  //   const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
+  //   const minTemp = minCreateBond.add(existentialDeposit);
+  //   let min = Number(amountToHuman(minTemp.toString(), decimals));
+
+  //   if (min > max) {
+  //     min = max = 0;
+  //   }
+
+  //   setMaxStakeable(max);
+  //   setMinStakeable(min);
+  // }, [availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit]);
 
   useEffect(() => {
     setNewPool({
