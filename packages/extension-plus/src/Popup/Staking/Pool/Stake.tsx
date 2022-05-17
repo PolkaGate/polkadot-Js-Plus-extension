@@ -10,22 +10,25 @@
 
 import type { AccountsBalanceType, MyPoolInfo, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
-import { Alert, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, TextField } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { Alert, Avatar, Badge, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, Stack, TextField } from '@mui/material';
+import { blue, deepOrange, green, grey } from '@mui/material/colors';
+import { styled } from '@mui/material/styles';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
-import { BN, BN_ZERO, bnMax } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Progress } from '../../../components';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
-import ManualStaking from './ManualStaking';
+import CreatePool from './CreatePool';
 
 interface Props {
   api: ApiPromise | undefined;
   chain: Chain;
+  currentlyStakedInHuman: string | undefined | null;
   nextToStakeButtonBusy: boolean;
   setStakeAmount: React.Dispatch<React.SetStateAction<BN>>
   setState: React.Dispatch<React.SetStateAction<string>>;
@@ -33,12 +36,12 @@ interface Props {
   state: string;
   poolStakingConsts: PoolStakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
-  myPool: any | undefined | null;
+  myPool: MyPoolInfo | undefined | null;
   nextPoolId: BN;
   setNewPool: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
 }
 
-export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, chain, currentlyStakedInHuman, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -47,12 +50,12 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
   const [validatorSelectionType, setValidatorSelectionType] = useState<string>('Auto');
   const [minStakeable, setMinStakeable] = useState<number>(0);
-  const [maxStake, setMaxStake] = useState<number>(0);
+  const [maxStakeable, setMaxStakeable] = useState<number>(0);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
-  const [showManualPoolStakingModal, setManualPoolStakingModalOpen] = useState<boolean>(false);
+  const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
 
   const decimals = api && api.registry.chainDecimals[0];
-  const token = api && api.registry.chainTokens[0];
+  const token = api ? api.registry.chainTokens[0] : '';
   const existentialDeposit = useMemo(() => api ? new BN(api.consts.balances.existentialDeposit.toString()) : BN_ZERO, [api]);
 
   useEffect(() => {
@@ -72,12 +75,12 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
       setAlert(t(`Staking amount is too low, it must be at least ${minStakeable} ${token}`));
     }
 
-    if (Number(value) > maxStake && Number(value) < Number(availableBalanceInHuman)) {
+    if (Number(value) > maxStakeable && Number(value) < Number(availableBalanceInHuman)) {
       setAlert(t('Your account might be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [availableBalanceInHuman, maxStake, minStakeable, t, token]);
+  }, [availableBalanceInHuman, maxStakeable, minStakeable, t, token]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -95,8 +98,16 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
   }, [setValidatorSelectionType]);
 
   const handleManualPoolStakingOpen = useCallback((): void => {
-    setManualPoolStakingModalOpen(true);
+    setCreatePoolModalOpen(true);
   }, []);
+
+  const handleCreatePool = useCallback((): void => {
+    if (staker?.balanceInfo?.available) {
+      handleManualPoolStakingOpen();
+      if (!state) setState('stakeManual');
+    }
+  }, [staker?.balanceInfo?.available, handleManualPoolStakingOpen, state, setState]);
+
 
   const handleNextToStake = useCallback((): void => {
     if (Number(stakeAmountInHuman) >= minStakeable) {
@@ -118,24 +129,24 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
   useEffect(() => {
     if (!poolStakingConsts || !decimals || existentialDeposit === undefined) return;
     const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
-    let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 2 * ED));
+    let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 3 * ED)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
     const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
-    const m = bnMax(minNominatorBond, minCreateBond, minJoinBond, existentialDeposit);
-    let min = Number(amountToHuman(m.toString(), decimals));
+    // const m = bnMax(minNominatorBond, minCreateBond, minJoinBond, existentialDeposit);
+    let min = Number(amountToHuman(minJoinBond.toString(), decimals));
 
     if (min > max) {
       min = max = 0;
     }
 
-    setMaxStake(max);
+    setMaxStakeable(max);
     setMinStakeable(min);
   }, [availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit]);
 
   useEffect(() => {
-    if (stakeAmountInHuman && minStakeable <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStake) {
+    if (stakeAmountInHuman && minStakeable <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStakeable) {
       setNextToStakeButtonDisabled(false);
     }
-  }, [minStakeable, maxStake, stakeAmountInHuman]);
+  }, [minStakeable, maxStakeable, stakeAmountInHuman]);
 
   useEffect(() => {
     if (!decimals) { return; }
@@ -168,14 +179,57 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
   }, [handleStakeAmountInput, minStakeable]);
 
   const handleMaxStakeClicked = useCallback(() => {
-    handleStakeAmountInput(String(maxStake));
-  }, [handleStakeAmountInput, maxStake]);
+    handleStakeAmountInput(String(maxStakeable));
+  }, [handleStakeAmountInput, maxStakeable]);
+
+  const StyledBadge = styled(Badge)(({ theme }) => ({
+    '& .MuiBadge-badge': {
+      backgroundColor: '#44b700',
+      color: '#44b700',
+      boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
+      '&::after': {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        borderRadius: '50%',
+        animation: 'ripple 1.2s infinite ease-in-out',
+        border: '1px solid currentColor',
+        content: '""',
+      },
+    },
+    '@keyframes ripple': {
+      '0%': {
+        transform: 'scale(.8)',
+        opacity: 1,
+      },
+      '100%': {
+        transform: 'scale(2.4)',
+        opacity: 0,
+      },
+    },
+  }));
+
+  const StakeInitialChoice = () => (
+    <Stack direction='row' justifyContent='center' spacing={8} sx={{ pt: 5 }}>
+      <StyledBadge
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        overlap='circular'
+        variant='dot'
+      >
+        <Avatar sx={{ bgcolor: '#1c4a5a', width: 110, height: 110, cursor: 'pointer' }}>{t('Join pool')}</Avatar>
+      </StyledBadge>
+      <Avatar onClick={handleCreatePool} sx={{ bgcolor: '#ffb057', width: 110, height: 110, cursor: 'pointer' }}>{t('Create pool')}</Avatar>
+    </Stack>
+
+  );
 
   const PoolSelectionRadionButtons = () => (
     <FormControl fullWidth>
       <Grid alignItems='center' container justifyContent='center'>
         <Grid item sx={{ fontSize: 12 }} xs={3}>
-          <FormLabel sx={{ fontSize: 12, fontWeight: '500', color: 'black' }}>{t('Pool selection')}:</FormLabel>
+          <FormLabel sx={{ color: 'black', fontSize: 12, fontWeight: '500' }}>{t('Pool selection')}:</FormLabel>
         </Grid>
         <Grid item sx={{ textAlign: 'right' }} xs={9}>
           <RadioGroup defaultValue='Auto' onChange={handleValidatorSelectionType} row value={validatorSelectionType}>
@@ -206,91 +260,99 @@ export default function Stake({ api, chain, handleConfirmStakingModaOpen, myPool
 
   return (
     <>
-      <Grid container sx={{ height: '222px' }}>
-        <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
-          <TextField
-            InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
-            autoFocus
-            color='warning'
-            error={zeroBalanceAlert}
-            fullWidth
-            helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
-            inputProps={{ step: '.01' }}
-            label={t('Amount')}
-            name='stakeAmount'
-            onChange={handleStakeAmount}
-            placeholder='0.0'
-            sx={{ height: '20px' }}
-            type='number'
-            value={stakeAmountInHuman}
-            variant='outlined'
-          />
-        </Grid>
-
-        <Grid container item xs={12}>
-          {!zeroBalanceAlert && token
-            ? <Grid container item justifyContent='space-between' sx={{ p: '0px 30px 10px' }} xs={12}>
-              <Grid item sx={{ fontSize: 12 }}>
-                {t('Min')}:
-                <MuiButton onClick={handleMinStakeClicked} variant='text'>
-                  {`${minStakeable} ${token}`}
-                </MuiButton>
+      {currentlyStakedInHuman === undefined
+        ? <Progress title={'Loading ...'} />
+        : currentlyStakedInHuman === null || currentlyStakedInHuman === '0'
+          ? <StakeInitialChoice />
+          : <>
+            <Grid container sx={{ height: '222px' }}>
+              <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
+                <TextField
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
+                  autoFocus
+                  color='warning'
+                  error={zeroBalanceAlert}
+                  fullWidth
+                  helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
+                  inputProps={{ step: '.01' }}
+                  label={t('Amount')}
+                  name='stakeAmount'
+                  onChange={handleStakeAmount}
+                  placeholder='0.0'
+                  sx={{ height: '20px' }}
+                  type='number'
+                  value={stakeAmountInHuman}
+                  variant='outlined'
+                />
               </Grid>
-              <Grid item sx={{ fontSize: 12 }}>
-                {t('Max')}{': ~ '}
-                <MuiButton onClick={handleMaxStakeClicked} variant='text'>
-                  {`${maxStake} ${token}`}
-                </MuiButton>
+
+              <Grid container item xs={12}>
+                {!zeroBalanceAlert && token
+                  ? <Grid container item justifyContent='space-between' sx={{ p: '0px 30px 10px' }} xs={12}>
+                    <Grid item sx={{ fontSize: 12 }}>
+                      {t('Min')}:
+                      <MuiButton onClick={handleMinStakeClicked} variant='text'>
+                        {`${minStakeable} ${token}`}
+                      </MuiButton>
+                    </Grid>
+                    <Grid item sx={{ fontSize: 12 }}>
+                      {t('Max')}{': ~ '}
+                      <MuiButton onClick={handleMaxStakeClicked} variant='text'>
+                        {`${maxStakeable} ${token}`}
+                      </MuiButton>
+                    </Grid>
+                  </Grid>
+                  : <Grid container item sx={{ p: '23px' }} xs={12}></Grid>
+                }
+                <Grid container item sx={{ fontSize: 13, fontWeight: '600', textAlign: 'center', p: '5px 30px 5px' }} xs={12}>
+                  {alert
+                    ? <Grid item xs={12}>
+                      <Alert severity='error' sx={{ fontSize: 12 }}>
+                        {alert}
+                      </Alert>
+                    </Grid>
+                    : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
+                  }
+                </Grid>
+                {myPool?.member?.poolId
+                  ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+                    {t('You are joining "{{poolName}}" pool with index {{poolId}}', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
+                  </Grid>
+                  : <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
+                    <PoolSelectionRadionButtons />
+                  </Grid>
+                }
               </Grid>
             </Grid>
-            : <Grid container item sx={{ p: '23px' }} xs={12}></Grid>
-          }
-          <Grid container item sx={{ fontSize: 13, fontWeight: '600', textAlign: 'center', p: '5px 30px 5px' }} xs={12}>
-            {alert
-              ? <Grid item xs={12}>
-                <Alert severity='error' sx={{ fontSize: 12 }}>
-                  {alert}
-                </Alert>
-              </Grid>
-              : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
-            }
-          </Grid>
-          {myPool?.member?.poolId
-            ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-              {t('You are joining "{{poolName}}" pool with index {{poolId}}', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
-            </Grid>
-            : <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
-              <PoolSelectionRadionButtons />
-            </Grid>
-          }
-        </Grid>
-      </Grid>
 
-      <Grid item sx={{ p: '0px 10px 0px' }} xs={12}>
-        <NextStepButton
-          data-button-action='next to stake'
-          isBusy={nextToStakeButtonBusy}
-          isDisabled={nextToStakeButtonDisabled}
-          onClick={handleNextToStake}
-        >
-          {nextButtonCaption}
-        </NextStepButton>
-      </Grid>
-
-      {showManualPoolStakingModal && stakeAmountInHuman &&
-        <ManualStaking
+            <Grid item sx={{ p: '0px 10px 0px' }} xs={12}>
+              <NextStepButton
+                data-button-action='next to stake'
+                isBusy={nextToStakeButtonBusy}
+                isDisabled={nextToStakeButtonDisabled}
+                onClick={handleNextToStake}
+              >
+                {nextButtonCaption}
+              </NextStepButton>
+            </Grid>
+          </>
+      }
+      {showCreatePoolModal &&
+        <CreatePool
+          poolStakingConsts={poolStakingConsts}
+          setStakeAmount={setStakeAmount}
           api={api}
           chain={chain}
           handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
           nextPoolId={nextPoolId}
-          setManualPoolStakingModalOpen={setManualPoolStakingModalOpen}
+          setCreatePoolModalOpen={setCreatePoolModalOpen}
           setNewPool={setNewPool}
           setState={setState}
-          showManualPoolStakingModal={showManualPoolStakingModal}
-          stakeAmountInHuman={stakeAmountInHuman}
+          showCreatePoolModal={showCreatePoolModal}
           staker={staker}
-        />}
+        />
+      }
 
     </>
   );

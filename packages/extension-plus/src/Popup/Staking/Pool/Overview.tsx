@@ -7,22 +7,20 @@
 /**
  * @description
  *  render an overview of current staking state of an account like currently staked/redemmable amount,
- *  total reward received, etc.
+ *  claimable reward, etc.
  * */
 
-import type { Balance } from '@polkadot/types/interfaces';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { MyPoolInfo } from '../../../util/plusTypes';
 
-import { BarChart as BarChartIcon, MoreVert as MoreVertIcon, Redeem as RedeemIcon, SwipeDownAltRounded as SwipeDownAltRoundedIcon } from '@mui/icons-material';
+import { Redeem as RedeemIcon, SwipeDownAltRounded as SwipeDownAltRoundedIcon } from '@mui/icons-material';
 import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, ShowBalance2 } from '../../../components';
-import { amountToHuman } from '../../../util/plusUtils';
 
 interface Props {
   availableBalanceInHuman: string,
@@ -30,7 +28,7 @@ interface Props {
   handleWithdrawUnbounded: () => void;
   handleWithdrawClaimable: () => void;
   handleViewChart: () => void;
-  myPool: any | undefined | null;
+  myPool: MyPoolInfo | undefined | null;
 
 }
 

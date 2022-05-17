@@ -622,6 +622,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
             <Stake
               api={api}
               chain={chain}
+              currentlyStakedInHuman={currentlyStakedInHuman}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               myPool={myPool}
               nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}

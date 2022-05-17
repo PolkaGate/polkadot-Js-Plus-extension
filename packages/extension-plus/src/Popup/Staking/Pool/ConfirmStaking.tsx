@@ -293,7 +293,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       const hasAlreadyBonded = !!pool?.member?.points || !!pool?.member?.unbondingEras?.length;
 
       if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
-        // || nextPoolId for creation of a new pool
         const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
 
         history.push({
@@ -308,18 +307,10 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           to: ''
         });
 
-        if (status === 'failed') {
-          setConfirmingState(status);
-
-          // eslint-disable-next-line no-void
-          void saveHistory(chain, hierarchy, staker.address, history);
-
-          return;
-        }
+        setConfirmingState(status);
       }
 
       if (['stakeManual'].includes(localState) && surAmount !== BN_ZERO) {
-
         const { block, failureText, fee, status, txHash } = await createPool(api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool.metadata);
 
         history.push({
@@ -334,13 +325,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           to: ''
         });
 
-
         setConfirmingState(status);
       }
 
       // if (['changeValidators', 'stakeAuto', 'stakeManual', 'setNominees'].includes(localState)) {
       if (['changeValidators', 'setNominees'].includes(localState) && poolId) {
-
         // if (localState === 'stakeAuto') {
         //   if (!selectedValidators) { // TODO: does it realy happen!
         //     console.log('! there is no selectedValidators to bond at StakeAuto, so might do bondExtera');
@@ -463,6 +452,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
         setConfirmingState(status);
       }
+
       // if (localState === 'stopNominating') {
       //   const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
 
@@ -480,6 +470,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       //   setConfirmingState(status);
       // }
 
+      
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, staker.address, history);
     } catch (e) {
