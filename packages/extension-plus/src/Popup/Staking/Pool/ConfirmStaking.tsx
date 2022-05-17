@@ -79,7 +79,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
-  const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
+  const validatorsToList = ['stakeAuto', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
   /** list of available trasaction types */
   // const chilled = api.tx.staking.chill;
@@ -114,7 +114,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     }
 
     /** check if re-nomination is needed */
-    if (['stakeManual', 'changeValidators'].includes(state)) {
+    if (['changeValidators'].includes(state)) {
       if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
         if (state === 'changeValidators') {
           setConfirmButtonDisabled(true);
@@ -156,7 +156,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
 
         break;
-      case ('stakeManual'):
+      case ('createPool'):
 
         // eslint-disable-next-line no-void
         api && api.tx.nominationPools.create(surAmount, ...Object.values(pool.bondedPool.roles).slice(1)).paymentInfo(staker.address).then((i) => {
@@ -232,7 +232,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       setConfirmButtonDisabled(true);
       setConfirmButtonText(t('Account reap issue, consider fee!'));
 
-      if (['stakeAuto', 'stakeManual'].includes(state)) {
+      if (['stakeAuto', 'createPool'].includes(state)) {
         setAmountNeedsAdjust(true);
       }
     } else {
@@ -250,7 +250,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   }, [setConfirmStakingModalOpen]);
 
   const handleBack = useCallback((): void => {
-    if (!['stakeManual', 'changeValidators', 'setNominees'].includes(state)) {
+    if (!['createPool', 'changeValidators', 'setNominees'].includes(state)) {
       setState('');
       setConfirmingState('');
     }
@@ -261,8 +261,9 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const stateInHuman = (state: string): string => {
     switch (state) {
       case ('stakeAuto'):
-      case ('stakeManual'):
         return 'STAKING OF';
+      case ('createPool'):
+        return 'CREATE POOL';
       case ('changeValidators'):
       case ('setNominees'):
         return 'NOMINATING';
@@ -310,7 +311,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      if (['stakeManual'].includes(localState) && surAmount !== BN_ZERO) {
+      if (['createPool'].includes(localState) && surAmount !== BN_ZERO) {
         const { block, failureText, fee, status, txHash } = await createPool(api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool.metadata);
 
         history.push({
@@ -328,7 +329,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      // if (['changeValidators', 'stakeAuto', 'stakeManual', 'setNominees'].includes(localState)) {
+      // if (['changeValidators', 'stakeAuto', 'createPool', 'setNominees'].includes(localState)) {
       if (['changeValidators', 'setNominees'].includes(localState) && poolId) {
         // if (localState === 'stakeAuto') {
         //   if (!selectedValidators) { // TODO: does it realy happen!
@@ -470,7 +471,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       //   setConfirmingState(status);
       // }
 
-      
+
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, staker.address, history);
     } catch (e) {
@@ -613,6 +614,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
                     pool={pool}
                     poolsMembers={poolsMembers}
                   />
+                  {state === 'createPool' &&
+                    <Grid item sx={{ m: '40px 30px', textAlign: 'center' }} xs={12}>
+                      {t('{{ED}} will be bonded in Reward Id, and will be return back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
+                    </Grid>
+                  }
                 </Grid>
               </>
               : <>

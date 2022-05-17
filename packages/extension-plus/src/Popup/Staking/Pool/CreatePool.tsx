@@ -55,7 +55,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   const { t } = useTranslation();
 
   const [alert, setAlert] = useState<string>('');
-  const [tabValue, setTabValue] = useState('create');
   const [poolName, setPoolName] = useState<string>(`${EXTENSION_NAME}-${nextPoolId}`);
   const [rootId, setRootId] = useState<string>(staker.address);
   const [nominatorId, setNominatorId] = useState<string>(staker.address);
@@ -69,49 +68,45 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   const decimals = api ? api.registry.chainDecimals[0] : 1;
   const token = api ? api.registry.chainTokens[0] : '';
   const existentialDeposit = useMemo(() => api ? new BN(api.consts.balances.existentialDeposit.toString()) : BN_ZERO, [api]);
+  const realStakingAmount = useMemo(() => new BN(String(amountToMachine(stakeAmountInHuman, decimals))).sub(existentialDeposit), [decimals, existentialDeposit, stakeAmountInHuman]);// an ED goes to rewardId
 
   useEffect(() => {
-    const realStakingAmount = new BN(String(amountToMachine(stakeAmountInHuman, decimals))).sub(existentialDeposit);// an ED goes to rewardId
-
     decimals && setStakeAmount(realStakingAmount);
-  }, [decimals, existentialDeposit, setStakeAmount, stakeAmountInHuman]);
+  }, [decimals, realStakingAmount, setStakeAmount]);
 
   useEffect(() => {
-    const stakeAmount = new BN(String(amountToMachine(stakeAmountInHuman, decimals)));
+    if (!staker?.balanceInfo?.available) return;
 
-    api && api.tx.nominationPools.create(stakeAmount, rootId, nominatorId, stateTogglerId).paymentInfo(staker.address).then((i) => {
+    api && api.tx.nominationPools.create(staker.balanceInfo.available, rootId, nominatorId, stateTogglerId).paymentInfo(staker.address).then((i) => {
       const createFee = i?.partialFee;
 
       api.tx.nominationPools.setMetadata(nextPoolId, poolName).paymentInfo(staker.address)
         .then((i) => setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))))
         .catch(console.error);
     });
-  }, [api, decimals, nextPoolId, nominatorId, poolName, rootId, stakeAmountInHuman, staker.address, stateTogglerId]);
+  }, [api, nextPoolId, nominatorId, poolName, rootId, staker.address, staker?.balanceInfo?.available, stateTogglerId]);
 
-  // useEffect(() => {
-  //   if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedFee || !staker?.balanceInfo?.available) return;
-  //   const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
-  //   // let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 2 * ED)); // FIXME: ED is lower than fee in some chains like KUSAMA
-  //   let maxTemp= new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedFee));
-  //   let max = Number(amountToHuman(maxTemp.toString(), decimals));
+  useEffect(() => {
+    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedFee || !staker?.balanceInfo?.available) return;
+    const maxTemp = new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedFee));
 
-  //   const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
-  //   const minTemp = minCreateBond.add(existentialDeposit);
-  //   let min = Number(amountToHuman(minTemp.toString(), decimals));
+    let max = Number(amountToHuman(maxTemp.toString(), decimals));
+    const minTemp = poolStakingConsts.minCreateBond.add(existentialDeposit);
+    let min = Number(amountToHuman(minTemp.toString(), decimals));
 
-  //   if (min > max) {
-  //     min = max = 0;
-  //   }
+    if (min > max) {
+      min = max = 0;
+    }
 
-  //   setMaxStakeable(max);
-  //   setMinStakeable(min);
-  // }, [availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit]);
+    setMaxStakeable(max);
+    setMinStakeable(min);
+  }, [availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit, estimatedFee, staker?.balanceInfo?.available]);
 
   useEffect(() => {
     setNewPool({
       bondedPool: {
         memberCounter: 0,
-        points: amountToMachine(stakeAmountInHuman, decimals),
+        points: realStakingAmount,
         roles: {
           depositor: staker.address,
           nominator: nominatorId,
@@ -124,11 +119,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
       poolId: nextPoolId,
       rewardPool: null
     });
-  }, [decimals, nominatorId, poolName, rootId, setNewPool, stakeAmountInHuman, staker.address, stateTogglerId]);
-
-  const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
-    setTabValue(newValue);
-  }, []);
+  }, [nominatorId, poolName, rootId, setNewPool, staker.address, stateTogglerId, realStakingAmount]);
 
   useEffect(() => {
     if (!staker?.balanceInfo?.available) { return; }

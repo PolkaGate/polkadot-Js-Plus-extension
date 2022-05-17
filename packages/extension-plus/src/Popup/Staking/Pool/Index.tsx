@@ -547,7 +547,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
       case ('unstake'):
         return unstakeAmount;
       case ('stakeAuto'):
-      case ('stakeManual'):
+      case ('createPool'):
         return stakeAmount;
       case ('withdrawUnbound'):
         return myPool?.redeemable ? new BN(myPool?.redeemable) : BN_ZERO;
@@ -711,7 +711,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           handlePoolStakingModalClose={handlePoolStakingModalClose}
           nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
           nominatedValidators={nominatedValidators}
-          pool={state === 'stakeManual' ? newPool : myPool || selectedPool}
+          pool={state === 'createPool' ? newPool : myPool || selectedPool}
           poolsMembers={poolsMembers}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}

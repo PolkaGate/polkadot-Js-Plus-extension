@@ -104,7 +104,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
   const handleCreatePool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
       handleManualPoolStakingOpen();
-      if (!state) setState('stakeManual');
+      if (!state) setState('createPool');
     }
   }, [staker?.balanceInfo?.available, handleManualPoolStakingOpen, state, setState]);
 
@@ -118,7 +118,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
           break;
         case ('Manual'):
           handleManualPoolStakingOpen();
-          if (!state) setState('stakeManual'); // will be different from solo staking
+          if (!state) setState('createPool'); // will be different from solo staking
           break;
         default:
           console.log('unknown!!');
