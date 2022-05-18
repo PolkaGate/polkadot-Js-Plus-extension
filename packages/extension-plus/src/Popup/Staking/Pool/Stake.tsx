@@ -218,9 +218,9 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
         overlap='circular'
         variant='dot'
       >
-        <Avatar sx={{ bgcolor: '#1c4a5a', width: 110, height: 110, cursor: 'pointer' }}>{t('Join pool')}</Avatar>
+        <Avatar sx={{ bgcolor: '#1c4a5a', color: '#ffb057', cursor: 'pointer', height: 110, width: 110 }}>{t('Join pool')}</Avatar>
       </StyledBadge>
-      <Avatar onClick={handleCreatePool} sx={{ bgcolor: '#ffb057', width: 110, height: 110, cursor: 'pointer' }}>{t('Create pool')}</Avatar>
+      <Avatar onClick={handleCreatePool} sx={{ bgcolor: '#ffb057', color: '#1c4a5a', cursor: 'pointer', height: 110, width: 110 }}>{t('Create pool')}</Avatar>
     </Stack>
 
   );

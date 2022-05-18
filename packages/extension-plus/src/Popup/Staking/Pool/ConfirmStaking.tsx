@@ -616,7 +616,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
                   />
                   {state === 'createPool' &&
                     <Grid item sx={{ m: '40px 30px', textAlign: 'center' }} xs={12}>
-                      {t('{{ED}} will be bonded in Reward Id, and will be return back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
+                      {t('{{ED}} will be bonded in Reward Id, and returned back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
                     </Grid>
                   }
                 </Grid>
