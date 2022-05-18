@@ -317,7 +317,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
                 </Grid>
                 {myPool?.member?.poolId
                   ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-                    {t('You are joining "{{poolName}}" pool with index {{poolId}}', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
+                    {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
                   </Grid>
                   : <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
                     <PoolSelectionRadionButtons />
