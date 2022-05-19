@@ -56,9 +56,9 @@ function PoolTab({ api, chain, myPool, poolsMembers }: Props): React.ReactElemen
       {api && myPool !== undefined
         ? myPool
           ? <>
-            <Pool api={api} chain={chain} pool={myPool} poolsMembers={poolsMembers} />
+            <Pool api={api} chain={chain} pool={myPool} poolsMembers={poolsMembers} showAction />
 
-            <Grid item xs={12} sx={{ fontSize: 12, p: '25px 10px 10px' }}>
+            <Grid item sx={{ fontSize: 12, p: '25px 10px 10px' }} xs={12}>
               {t('Roles')}
             </Grid>
 

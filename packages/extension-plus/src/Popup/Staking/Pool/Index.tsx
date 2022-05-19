@@ -101,8 +101,8 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
 
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>(undefined);
-  const [selectedPool, setSelectedPool] = useState<MyPoolInfo | undefined>();
-  const [selectedPoolId, setSelectedPoolId] = useState<BN | undefined>();
+  // const [selectedPool, setSelectedPool] = useState<MyPoolInfo | undefined>();
+  // const [selectedPoolId, setSelectedPoolId] = useState<BN | undefined>();
   const [newPool, setNewPool] = useState<MyPoolInfo | undefined>();
 
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
@@ -170,7 +170,8 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
 
       console.log('*** My pool info returned from worker is:', parsedInfo);
 
-      id ? setSelectedPool(parsedInfo) : setMyPool(parsedInfo);
+      // id ? setSelectedPool(parsedInfo) : 
+      setMyPool(parsedInfo);
       !id && setNominatedValidatorsId(parsedInfo.stashIdAccount.nominators);
       getPoolWorker.terminate();
     };
@@ -352,7 +353,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   useEffect(() => {
     if (myPool === undefined || !decimals) { return; }
 
-    if (myPool === null) {return setCurrentlyStakedInHuman('0');}
+    if (myPool === null) { return setCurrentlyStakedInHuman('0'); }
 
     const staked = new BN(myPool.member.points).mul(new BN(myPool.stashIdAccount.stakingLedger.active)).div(new BN(myPool.bondedPool.points));
 
@@ -423,20 +424,20 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     }
   }, [stakingConsts, validatorsInfo]);
 
-  useEffect(() => {
-    if (!poolsInfo || !chainName) { return; }
+  // useEffect(() => {
+  //   if (!poolsInfo || !chainName) { return; }
 
-    const selectedPoolId = selectBestPool(chainName, poolsInfo);
-    console.log('selected pool id', selectedPoolId);
+  //   const selected = selectBestPool(chainName, poolsInfo);
+  //   console.log('selected pool id', selected);
 
-    setSelectedPoolId(selectedPoolId);
-  }, [chainName, poolsInfo]);
+  //   setSelectedPoolId(selected);
+  // }, [chainName, poolsInfo]);
 
-  useEffect(() => {
-    if (!selectedPoolId) { return; }
+  // useEffect(() => {
+  //   if (!selectedPoolId) { return; }
 
-    endpoint && getPoolInfo(endpoint, '', selectedPoolId.toNumber());
-  }, [endpoint, selectedPoolId]);
+  //   endpoint && getPoolInfo(endpoint, '', selectedPoolId.toNumber());
+  // }, [endpoint, selectedPoolId]);
 
   useEffect(() => {
     const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
@@ -444,40 +445,41 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     setOversubscribedsCount(oversubscribeds?.length);
   }, [nominatedValidators, stakingConsts]);
 
-  function selectBestPool(chainName: string, pools: PoolInfo[]): BN {
-    let selectedPoolId: BN | undefined;
+  // function selectBestPool(chainName: string, pools: PoolInfo[]): BN {
+  //   let selectedPoolId: BN | undefined;
 
-    switch (chainName) {
-      case ('Westend'):
-        selectedPoolId = PPREFERED_POOL_ID_ON_WESTEND;
-        break;
-      case ('Kusama'):
-        selectedPoolId = PPREFERED_POOL_ID_ON_KUSAMA;
-        break;
-      case ('Polkadot'):
-        selectedPoolId = PPREFERED_POOL_ID_ON_POLKADOT;
-        break;
-      default:
-        selectedPoolId = undefined;
-    }
+  //   switch (chainName) {
+  //     case ('Westend'):
+  //       selectedPoolId = PPREFERED_POOL_ID_ON_WESTEND;
+  //       break;
+  //     case ('Kusama'):
+  //       selectedPoolId = PPREFERED_POOL_ID_ON_KUSAMA;
+  //       break;
+  //     case ('Polkadot'):
+  //       selectedPoolId = PPREFERED_POOL_ID_ON_POLKADOT;
+  //       break;
+  //     default:
+  //       selectedPoolId = undefined;
+  //   }
 
-    const selectedPool = selectedPoolId ? pools[selectedPoolId.subn(1)] : undefined;
+  //   const selectedPool = selectedPoolId ? pools[selectedPoolId.subn(1)] : undefined;
 
-    if (selectedPool && selectedPool?.bondedPool?.state === 'Open') {
-      return selectedPoolId;
-      // return { poolId: selectedPoolId, ...selectedPool };
-    }
+  //   if (selectedPool && selectedPool?.bondedPool?.state === 'Open') {
+  //     return selectedPoolId;
+  //     // return { poolId: selectedPoolId, ...selectedPool };
+  //   }
 
-    const selected = pools.reduce(function (a, b) {
-      return (a.bondedPool.points).gt(b.bondedPool.points) ? a : b;
-    }, pools[0]);
-    const index = pools.indexOf((p) => p.bondedPool.points.eq(selected.bondedPool.points))
+  //   const selected = pools.reduce(function (a, b) {
+  //     return (a.bondedPool.points).gt(b.bondedPool.points) ? a : b;
+  //   }, pools[0]);
+  //   const index = pools.indexOf((p) => p.bondedPool.points.eq(selected.bondedPool.points))
 
-    return new BN(index + 1);
-    // return { poolId: new BN(index + 1), ...selected };
-  }
+  //   return new BN(index + 1);
+  //   // return { poolId: new BN(index + 1), ...selected };
+  // }
 
   // TODO: find a better algorithm to select validators automatically
+
   function selectBestValidators(validatorsInfo: Validators, stakingConsts: StakingConsts): DeriveStakingQuery[] {
     const allValidators = validatorsInfo.current.concat(validatorsInfo.waiting);
     const nonBlockedValidatorsAccountId = allValidators.filter((v) =>
@@ -508,9 +510,9 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const handleSelectValidatorsModalOpen = useCallback((isSetNominees = false): void => {
     setSelectValidatorsModalOpen(true);
 
-    if (!state) {
+    // if (!state) {
       isSetNominees ? setState('setNominees') : setState('changeValidators');
-    }
+    // }
   }, [state]);
 
   const handleStopNominating = useCallback((): void => {
@@ -546,8 +548,9 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     switch (state) {
       case ('unstake'):
         return unstakeAmount;
-      case ('stakeAuto'):
+      case ('joinPool'):
       case ('createPool'):
+      case ('bondExtra'):
         return stakeAmount;
       case ('withdrawUnbound'):
         return myPool?.redeemable ? new BN(myPool?.redeemable) : BN_ZERO;
@@ -628,6 +631,8 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
               nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
               nextToStakeButtonBusy={!!stakeAmount && (!(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
               poolStakingConsts={poolStakingConsts}
+              poolsInfo={poolsInfo}
+              poolsMembers={poolsMembers}
               setNewPool={setNewPool}
               setStakeAmount={setStakeAmount}
               setState={setState}
@@ -690,7 +695,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           api={api}
           chain={chain}
           nominatedValidators={nominatedValidators}
-          pool={myPool || selectedPool}
+          pool={myPool}
           poolsMembers={poolsMembers}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
           setState={setState}
@@ -703,7 +708,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && (myPool || selectedPool) &&
+      {((showConfirmStakingModal && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && (myPool || newPool) &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           api={api}
@@ -711,7 +716,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           handlePoolStakingModalClose={handlePoolStakingModalClose}
           nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
           nominatedValidators={nominatedValidators}
-          pool={state === 'createPool' ? newPool : myPool || selectedPool}
+          pool={['createPool', 'joinPool'].includes(state) ? newPool : myPool}
           poolsMembers={poolsMembers}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}

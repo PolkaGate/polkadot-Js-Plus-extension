@@ -12,9 +12,10 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import { BlockRounded as BlockRoundedIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
-import { Grid, Paper } from '@mui/material';
+import { Grid, Paper, Switch } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -25,12 +26,18 @@ import PoolInfo from './PoolInfo';
 interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
+  index?: number;
   pool: MyPoolInfo | undefined;
-  poolsMembers: MembersMapEntry[] | undefined;
+  poolsMembers?: MembersMapEntry[] | undefined;
   showAction?: boolean;
+  showCheck?: boolean;
+  showHeader?: boolean;
+  selectedPoolId?: BN;
+  setSelectedPoolId?: React.Dispatch<React.SetStateAction<BN | undefined>>
+
 }
 
-export default function Pool({ api, chain, pool, poolsMembers, showAction = false }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, index, pool, poolsMembers, selectedPoolId, setSelectedPoolId, showAction = false, showCheck = false, showHeader = true }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [staked, setStaked] = useState<Balance | undefined>();
@@ -39,7 +46,7 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
   // const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
   // const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
 
-  const poolId = pool?.poolId ?? pool?.member?.poolId;
+  const poolId = pool?.poolId || pool?.member?.poolId || new BN(index);
 
   const handleMorePoolInfoOpen = useCallback(() => {
     setShowPoolInfo(true);
@@ -63,38 +70,39 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
       {pool !== undefined && api
         ? pool
           ? <>
-            <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 5px', width: '100%' }}>
-              <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
-                {pool.bondedPool.state !== 'Creating' &&
+            {showHeader &&
+              <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 5px', width: '100%' }}>
+                <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
+                  {pool.bondedPool.state !== 'Creating' &&
+                    <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                      {t('More')}
+                    </Grid>
+                  }
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                    {t('More')}
+                    {t('Index')}
                   </Grid>
-                }
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('Index')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 3 : 4}>
-                  {t('Name')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('State')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
-                  {t('Staked')}
-                </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                  {t('Members')}
-                </Grid>
-                {showAction &&
+                  <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 3 : 4}>
+                    {t('Name')}
+                  </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                    {t('Actions')}
+                    {t('State')}
                   </Grid>
-                }
-              </Grid>
-            </Paper>
-
+                  <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
+                    {t('Staked')}
+                  </Grid>
+                  <Grid item sx={{ textAlign: 'center' }} xs={2}>
+                    {t('Members')}
+                  </Grid>
+                  {showAction &&
+                    <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                      {t('Actions')}
+                    </Grid>
+                  }
+                </Grid>
+              </Paper>
+            }
             <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
-              <Grid alignItems='center' container sx={{ fontSize: 12 }}>
+              <Grid alignItems='center' container sx={{fontSize: 11}}>
 
                 {pool.bondedPool.state !== 'Creating' &&
                   <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
@@ -102,14 +110,16 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
                   </Grid>
                 }
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {String(poolId)}
+                  {poolId ? String(poolId) : index}
                 </Grid>
                 <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={showAction ? 3 : 4}>
                   {pool.metadata ?? t('no name')}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {pool.bondedPool.state}
-                </Grid>
+                {!showCheck &&
+                  <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                    {pool.bondedPool.state}
+                  </Grid>
+                }
                 <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
                   {staked?.toHuman() ?? 0}
                 </Grid>
@@ -126,6 +136,11 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
                     </Grid>
                   </Grid>
                 }
+                {showCheck &&
+                  <Grid item xs={1}>
+                    <Switch checked={selectedPoolId?.eqn(index)} color='warning' onChange={() => setSelectedPoolId(new BN(index))} size='small' />
+                  </Grid>
+                }
               </Grid>
             </Paper>
           </>
@@ -135,12 +150,14 @@ export default function Pool({ api, chain, pool, poolsMembers, showAction = fals
         : <Progress title={t('Loading pool ....')} />
       }
 
-      {showPoolInfo && api && pool?.rewardPool &&
+      {
+        showPoolInfo && api && pool?.rewardPool &&
         <PoolInfo
           api={api}
           chain={chain}
           handleMorePoolInfoClose={handleMorePoolInfoClose}
           pool={pool}
+          poolId={poolId}
           poolsMembers={poolsMembers}
           setShowPoolInfo={setShowPoolInfo}
           showPoolInfo={showPoolInfo}

@@ -24,6 +24,7 @@ import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation
 import { Progress } from '../../../components';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
 import CreatePool from './CreatePool';
+import JoinPool from './JoinPool';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -38,10 +39,12 @@ interface Props {
   handleConfirmStakingModaOpen: () => void;
   myPool: MyPoolInfo | undefined | null;
   nextPoolId: BN;
+  poolsInfo: PoolInfo[] | undefined;
   setNewPool: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
+  poolsMembers: MembersMapEntry[] | undefined
 }
 
-export default function Stake({ api, chain, currentlyStakedInHuman, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, chain, currentlyStakedInHuman, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, poolsInfo, poolsMembers, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -53,6 +56,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
   const [maxStakeable, setMaxStakeable] = useState<number>(0);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
+  const [showJoinPoolModal, setJoinPoolModalOpen] = useState<boolean>(false);
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api ? api.registry.chainTokens[0] : '';
@@ -97,34 +101,26 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
     // setConfirmStakingModalOpen(false);
   }, [setValidatorSelectionType]);
 
-  const handleManualPoolStakingOpen = useCallback((): void => {
-    setCreatePoolModalOpen(true);
-  }, []);
-
   const handleCreatePool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
-      handleManualPoolStakingOpen();
+      setCreatePoolModalOpen(true);
       if (!state) setState('createPool');
     }
-  }, [staker?.balanceInfo?.available, handleManualPoolStakingOpen, state, setState]);
+  }, [staker?.balanceInfo?.available, state, setState]);
 
+  const handleJoinPool = useCallback((): void => {
+    if (staker?.balanceInfo?.available) {
+      setJoinPoolModalOpen(true);
+      if (!state) setState('joinPool');
+    }
+  }, [staker?.balanceInfo?.available, state, setState]);
 
   const handleNextToStake = useCallback((): void => {
     if (Number(stakeAmountInHuman) >= minStakeable) {
-      switch (validatorSelectionType) {
-        case ('Auto'):
-          handleConfirmStakingModaOpen();
-          if (!state) setState('stakeAuto');
-          break;
-        case ('Manual'):
-          handleManualPoolStakingOpen();
-          if (!state) setState('createPool'); // will be different from solo staking
-          break;
-        default:
-          console.log('unknown!!');
-      }
+      handleConfirmStakingModaOpen();
+      if (!state) setState('bondExtra');
     }
-  }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleManualPoolStakingOpen]);
+  }, [stakeAmountInHuman, minStakeable, handleConfirmStakingModaOpen, state, setState]);
 
   useEffect(() => {
     if (!poolStakingConsts || !decimals || existentialDeposit === undefined) return;
@@ -218,7 +214,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
         overlap='circular'
         variant='dot'
       >
-        <Avatar sx={{ bgcolor: '#1c4a5a', color: '#ffb057', cursor: 'pointer', height: 110, width: 110 }}>{t('Join pool')}</Avatar>
+        <Avatar onClick={handleJoinPool} sx={{ bgcolor: '#1c4a5a', color: '#ffb057', cursor: 'pointer', height: 110, width: 110 }}>{t('Join pool')}</Avatar>
       </StyledBadge>
       <Avatar onClick={handleCreatePool} sx={{ bgcolor: '#ffb057', color: '#1c4a5a', cursor: 'pointer', height: 110, width: 110 }}>{t('Create pool')}</Avatar>
     </Stack>
@@ -340,16 +336,32 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
       }
       {showCreatePoolModal &&
         <CreatePool
-          poolStakingConsts={poolStakingConsts}
-          setStakeAmount={setStakeAmount}
           api={api}
           chain={chain}
           handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
           nextPoolId={nextPoolId}
+          poolStakingConsts={poolStakingConsts}
           setCreatePoolModalOpen={setCreatePoolModalOpen}
           setNewPool={setNewPool}
+          setStakeAmount={setStakeAmount}
           setState={setState}
           showCreatePoolModal={showCreatePoolModal}
+          staker={staker}
+        />
+      }
+      {showJoinPoolModal &&
+        <JoinPool
+          api={api}
+          chain={chain}
+          handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+          poolStakingConsts={poolStakingConsts}
+          poolsInfo={poolsInfo}
+          poolsMembers={poolsMembers}
+          setJoinPoolModalOpen={setJoinPoolModalOpen}
+          setPool={setNewPool}
+          setStakeAmount={setStakeAmount}
+          setState={setState}
+          showJoinPoolModal={showJoinPoolModal}
           staker={staker}
         />
       }

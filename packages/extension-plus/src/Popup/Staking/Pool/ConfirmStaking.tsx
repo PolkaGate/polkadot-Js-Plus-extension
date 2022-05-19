@@ -53,7 +53,7 @@ interface Props {
   nominatedValidators: DeriveStakingQuery[] | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
   poolsMembers: MembersMapEntry[] | undefined;
-  setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
+  setNewPool?: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
 }
 
 export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, setNewPool, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
@@ -79,7 +79,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
-  const validatorsToList = ['stakeAuto', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
+  const validatorsToList = ['changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
   /** list of available trasaction types */
   // const chilled = api.tx.staking.chill;
@@ -141,17 +141,17 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     let params;
 
     switch (state) {
-      case ('stakeAuto'):// can be createPool or joinPool
-        if (currentlyStaked) {
-          // eslint-disable-next-line no-void
-          void bondExtra({ FreeBalance: surAmount }).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-        } else { // join to a pool
-          params = [surAmount, poolId];
-          // eslint-disable-next-line no-void
-          void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+      case ('bondExtra'): // TODO: reBond
+        // eslint-disable-next-line no-void
+        void bondExtra({ FreeBalance: surAmount }).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
 
-          // if there is no pool to join then needs to create one
-        }
+        setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
+
+        break;
+      case ('joinPool'):
+        params = [surAmount, poolId];
+        // eslint-disable-next-line no-void
+        void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
 
         setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
 
@@ -197,7 +197,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         void nominated(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         break;
       case ('withdrawUnbound'):
-        params = [100]; /** a dummy number */
+        params = [staker.address, 100]; /** 100 is a dummy number */
 
         // eslint-disable-next-line no-void
         void redeem(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
@@ -232,7 +232,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       setConfirmButtonDisabled(true);
       setConfirmButtonText(t('Account reap issue, consider fee!'));
 
-      if (['stakeAuto', 'createPool'].includes(state)) {
+      if (['joinPool', 'createPool', 'bondExtra'].includes(state)) {
         setAmountNeedsAdjust(true);
       }
     } else {
@@ -250,7 +250,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   }, [setConfirmStakingModalOpen]);
 
   const handleBack = useCallback((): void => {
-    if (!['createPool', 'changeValidators', 'setNominees'].includes(state)) {
+    if (!['createPool', 'joinPool', 'bondExtra', 'changeValidators', 'setNominees'].includes(state)) {
       setState('');
       setConfirmingState('');
     }
@@ -260,7 +260,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
   const stateInHuman = (state: string): string => {
     switch (state) {
-      case ('stakeAuto'):
+      case ('joinPool'):
+      case ('bondExtra'):
         return 'STAKING OF';
       case ('createPool'):
         return 'CREATE POOL';
@@ -293,11 +294,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       setPasswordStatus(PASS_MAP.CORRECT);
       const hasAlreadyBonded = !!pool?.member?.points || !!pool?.member?.unbondingEras?.length;
 
-      if (['stakeAuto'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
+      if (['joinPool', 'bondExtra'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
         const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
 
         history.push({
-          action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_bond',
+          action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_join',
           amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),
@@ -329,9 +330,9 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      // if (['changeValidators', 'stakeAuto', 'createPool', 'setNominees'].includes(localState)) {
+      // if (['changeValidators', 'joinPool', 'createPool', 'setNominees'].includes(localState)) {
       if (['changeValidators', 'setNominees'].includes(localState) && poolId) {
-        // if (localState === 'stakeAuto') {
+        // if (localState === 'joinPool') {
         //   if (!selectedValidators) { // TODO: does it realy happen!
         //     console.log('! there is no selectedValidators to bond at StakeAuto, so might do bondExtera');
 
@@ -418,8 +419,9 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       if (localState === 'withdrawUnbound' && surAmount.gt(BN_ZERO)) {
         const optSpans = await api.query.staking.slashingSpans(staker.address);
         const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
+        const params = [staker.address, spanCount];
 
-        const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, [spanCount || 0], signer, staker.address);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, params, signer, staker.address);
 
         history.push({
           action: 'pool_redeem',

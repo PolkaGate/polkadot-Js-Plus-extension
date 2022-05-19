@@ -61,7 +61,6 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
   const newPoints = unwrappedBondedPool.points.mul(newEarnings);
   const currentPoints = unwrappedRewardPools.points.add(newPoints);
 
-
   const newEarningsSinceLastClaim = member ? bnMax(BN_ZERO, currTotalEarnings.sub(member.rewardPoolTotalEarnings)) : BN_ZERO;
   const delegatorVirtualPoints = member ? member.points.mul(newEarningsSinceLastClaim) : BN_ZERO;
 

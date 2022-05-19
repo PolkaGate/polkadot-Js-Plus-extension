@@ -5,10 +5,10 @@
 
 /**
  * @description
- *  this component shows a validator's info in a page including its nominators listand a link to subscan
+ *  this component shows a pool's info in a page including its members/roles list and links to subscan
  * */
 
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
+import type { MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
 import { BubbleChart as BubbleChartIcon } from '@mui/icons-material';
 import { Container, Grid, Paper } from '@mui/material';
@@ -18,11 +18,11 @@ import React, { Dispatch, SetStateAction, useMemo } from 'react';
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
 import Identicon from '@polkadot/react-identicon';
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShortAddress, ShowAddress } from '../../../components';
 import { SELECTED_COLOR } from '../../../util/constants';
-import Pool from './Pool';
 
 interface Props {
   chain: Chain;
@@ -31,14 +31,14 @@ interface Props {
   handleMorePoolInfoClose: () => void;
   setShowPoolInfo: Dispatch<SetStateAction<boolean>>;
   pool: MyPoolInfo | undefined;
-  poolsMembers: MembersMapEntry[][] | undefined
+  poolId: BN;
+  poolsMembers: MembersMapEntry[] | undefined
 }
 
-export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, poolsMembers, setShowPoolInfo, showPoolInfo }: Props): React.ReactElement<Props> {
+export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, poolId, poolsMembers, setShowPoolInfo, showPoolInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const chainName = chain?.name.replace(' Relay Chain', '');
-  const poolId = pool?.poolId ?? pool?.member?.poolId;
-  const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
+
+  const staked = (pool?.ledger || pool?.bondedPool?.points) && api ? api.createType('Balance', pool?.ledger?.active || pool?.bondedPool?.points) : undefined;
   const myPoolMembers = poolsMembers && pool ? poolsMembers[poolId] : undefined;
 
   const roleIds = useMemo(() => Object.values(pool?.bondedPool?.roles), [pool]);
@@ -109,10 +109,10 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
                   <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
                 </Grid>
                 <Grid item xs={12}>
-                  <ShowAddress address={pool.accounts.stashId} chain={chain} role={'Stash id'} />
+                  <ShowAddress address={pool?.accounts?.stashId} chain={chain} role={'Stash id'} />
                 </Grid>
                 <Grid item xs={12}>
-                  <ShowAddress address={pool.accounts.rewardId} chain={chain} role={'Reward id'} />
+                  <ShowAddress address={pool?.accounts?.rewardId} chain={chain} role={'Reward id'} />
                 </Grid>
               </Grid>
             </Paper>
