@@ -27,12 +27,12 @@ async function getPools (endpoint) {
   const poolsInfo = info.map((i) => {
     return {
       bondedPool: i[1].isSome ? i[1].unwrap() : null,
-      metadata: i[0].length
-        ? i[0].isUtf8
-          ? i[0].toUtf8()
-          : i[0].toString()
+      metadata: i[0]?.length
+        ? i[0]?.isUtf8
+          ? i[0]?.toUtf8()
+          : i[0]?.toString()
         : null,
-      rewardPool: i[2].isSome ? i[2].unwrap() : null
+      rewardPool: i[2]?.isSome ? i[2].unwrap() : null
     };
   });
 

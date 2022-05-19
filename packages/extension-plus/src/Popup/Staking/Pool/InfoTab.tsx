@@ -12,7 +12,8 @@ import type { PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Divider, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { ApiPromise } from '@polkadot/api';
 
@@ -27,6 +28,7 @@ interface Props {
 function InfoTab({ api, info }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const token = api && api.registry.chainTokens[0];
+  const existentialDeposit = useMemo(() => api ? new BN(String(api.consts.balances.existentialDeposit)) : BN_ZERO, [api]);
 
   return (
     <Grid container data-testid='info' sx={{ paddingTop: '15px', textAlign: 'center' }}>
@@ -77,10 +79,10 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
 
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Minimum pool creation bond')}:
+            {t('Minimum to create a pool')}:
           </Grid>
           <Grid item>
-            <ShowBalance2 api={api} balance={info?.minCreateBond} />
+            <ShowBalance2 api={api} balance={info?.minCreateBond?.add(existentialDeposit)} />
           </Grid>
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>

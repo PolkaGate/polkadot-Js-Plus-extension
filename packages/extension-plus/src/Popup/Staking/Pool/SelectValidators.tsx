@@ -479,6 +479,7 @@ export default function SelectValidators({ api, chain, poolsMembers, nominatedVa
           chain={chain}
           nominatedValidators={nominatedValidators}
           pool={pool}
+          poolsMembers={poolsMembers}
           selectedValidators={selected}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
@@ -488,7 +489,6 @@ export default function SelectValidators({ api, chain, poolsMembers, nominatedVa
           stakingConsts={stakingConsts}
           state={state}
           validatorsIdentities={validatorsIdentities}
-          poolsMembers={poolsMembers}
         />
       }
     </Popup>
