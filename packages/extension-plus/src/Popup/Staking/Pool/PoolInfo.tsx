@@ -94,27 +94,13 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
             {t('Roles')}
           </Grid>
           <Grid item xs={12}>
-            <Paper elevation={3}>
-              <Grid container item justifyContent='flex-start' sx={{ fontSize: 11, p: '10px', textAlign: 'center' }}>
-                <Grid item xs={12}>
-                  <ShowAddress address={pool.bondedPool.roles.root} chain={chain} role={'Root'} />
-                </Grid>
-                <Grid item xs={12}>
-                  <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
-                </Grid>
-                <Grid item xs={12}>
-                  <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
-                </Grid>
-                <Grid item xs={12}>
-                  <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
-                </Grid>
-                <Grid item xs={12}>
-                  <ShowAddress address={pool?.accounts?.stashId} chain={chain} role={'Stash id'} />
-                </Grid>
-                <Grid item xs={12}>
-                  <ShowAddress address={pool?.accounts?.rewardId} chain={chain} role={'Reward id'} />
-                </Grid>
-              </Grid>
+            <Paper elevation={3} sx={{ p: '10px' }}>
+              <ShowAddress address={pool.bondedPool.roles.root} chain={chain} role={'Root'} />
+              <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
+              <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
+              <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
+              <ShowAddress address={pool?.accounts?.stashId} chain={chain} role={'Stash id'} />
+              <ShowAddress address={pool?.accounts?.rewardId} chain={chain} role={'Reward id'} />
             </Paper>
           </Grid>
 

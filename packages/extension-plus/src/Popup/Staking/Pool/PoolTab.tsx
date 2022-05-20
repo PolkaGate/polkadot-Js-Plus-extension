@@ -63,46 +63,17 @@ function PoolTab({ api, chain, myPool, poolsMembers }: Props): React.ReactElemen
             </Grid>
 
             <Grid item xs={12}>
-              <Paper elevation={3}>
-                <Grid container item justifyContent='flex-start' sx={{ fontSize: 11, p: '10px', textAlign: 'center' }}>
-                  <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPool.roles.root} chain={chain} role={'Root'} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <ShowAddress address={myPool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <ShowAddress address={myPool.accounts.stashId} chain={chain} role={'Stash id'} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <ShowAddress address={myPool.accounts.rewardId} chain={chain} role={'Reward id'} />
-                  </Grid>
-
-                  {/* <Grid item sx={{ p: '0px 0px 10px' }} xs={12}>
-                    <Divider />
-                  </Grid>
-
-                  <Grid container item justifyContent='space-between' sx={{ pb: 1 }} xs={12}>
-                    <Grid item>
-                      {t('Claimable')}{': '}{rewardClaimable?.toHuman() ?? 0}
-                    </Grid>
-
-                    <Grid item>
-                      {t('Total earnings')}{': '}{totalEarnings?.toHuman() ?? 0}
-                    </Grid>
-                  </Grid> */}
-
-                </Grid>
+              <Paper elevation={3} sx={{ p: '10px' }}>
+                <ShowAddress address={myPool.bondedPool.roles.root} chain={chain} role={'Root'} />
+                <ShowAddress address={myPool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
+                <ShowAddress address={myPool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
+                <ShowAddress address={myPool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
+                <ShowAddress address={myPool.accounts.stashId} chain={chain} role={'Stash id'} />
+                <ShowAddress address={myPool.accounts.rewardId} chain={chain} role={'Reward id'} />
               </Paper>
             </Grid>
           </>
-          : <Grid item sx={{ fontSize: 12, textAlign: 'center', pt: 7 }} xs={12}>
+          : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
             {t('No active pool found')}
           </Grid>
         : <Progress title={t('Loading ...')} />

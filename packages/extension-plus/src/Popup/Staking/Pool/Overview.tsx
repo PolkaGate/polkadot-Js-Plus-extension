@@ -59,8 +59,8 @@ export default function Overview({ api, availableBalanceInHuman, handleWithdrawC
   const decimals = api && api.registry.chainDecimals[0];
   const token = api?.registry?.chainTokens[0] ?? '';
 
-  const staked = !myPool?.member?.points ? BN_ZERO : myPool.member.points;
-  const claimable = !myPool?.myClaimable ? BN_ZERO : myPool.myClaimable;
+  const staked = !myPool?.member?.points ? BN_ZERO : new BN(myPool.member.points);
+  const claimable = !myPool?.myClaimable ? BN_ZERO : new BN(myPool.myClaimable);
   const redeemable = useMemo(() => !myPool?.redeemable ? BN_ZERO : new BN(myPool.redeemable), [myPool]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -103,7 +103,6 @@ export default function Overview({ api, availableBalanceInHuman, handleWithdrawC
             </Grid>
             <Grid container item justifyContent='space-between' sx={{ textAlign: 'center' }}>
               <Grid item xs={4}>
-                {/* <ShowBalance2 api={api} balance={claimable} direction='column' title={t('Claimable')} /> */}
                 <ShowBalance2 api={api} balance={claimable} direction='column'
                   title={
                     <Grid container item justifyContent='center'>
@@ -112,7 +111,7 @@ export default function Overview({ api, availableBalanceInHuman, handleWithdrawC
                       </Grid>
                       <Grid item>
                         <Hint id='claim' place='top' tip={t('Claim reward')}>
-                          <SystemUpdateAltOutlinedIcon color={claimable ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          <SystemUpdateAltOutlinedIcon color={claimable.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>
                     </Grid>
@@ -129,7 +128,7 @@ export default function Overview({ api, availableBalanceInHuman, handleWithdrawC
                       </Grid>
                       <Grid item>
                         <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
-                          <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrawUnbounded} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          <RedeemIcon color={redeemable.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawUnbounded} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>
                     </Grid>
