@@ -81,9 +81,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
   const validatorsToList = ['changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
-  console.log('state in confirm page', state)
-  console.log('pool in confirm page', pool)
-
   /** list of available trasaction types */
   // const chilled = api.tx.staking.chill;
   const joined = api.tx.nominationPools.join; // (amount, poolId)
@@ -200,7 +197,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         void nominated(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         break;
       case ('withdrawUnbound'):
-        params = [100]; /** a dummy number */
+        params = [staker.address, 100]; /** 100 is a dummy number */
 
         // eslint-disable-next-line no-void
         void redeem(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
@@ -422,8 +419,9 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       if (localState === 'withdrawUnbound' && surAmount.gt(BN_ZERO)) {
         const optSpans = await api.query.staking.slashingSpans(staker.address);
         const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
+        const params = [staker.address, spanCount];
 
-        const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, [spanCount || 0], signer, staker.address);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, params, signer, staker.address);
 
         history.push({
           action: 'pool_redeem',

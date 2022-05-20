@@ -12,9 +12,9 @@
 
 import type { MyPoolInfo } from '../../../util/plusTypes';
 
-import { Redeem as RedeemIcon, SwipeDownAltRounded as SwipeDownAltRoundedIcon } from '@mui/icons-material';
+import { Redeem as RedeemIcon, SystemUpdateAltOutlined as SystemUpdateAltOutlinedIcon } from '@mui/icons-material';
 import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { BN, BN_ZERO } from '@polkadot/util';
@@ -52,16 +52,16 @@ function Balance0({ amount, coin, label }: BalanceProps): React.ReactElement<Bal
   </>);
 }
 
-export default function Overview({ api, availableBalanceInHuman,handleWithdrawClaimable, myPool, handleViewChart, handleWithdrawUnbounded }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalanceInHuman, handleWithdrawClaimable, myPool, handleViewChart, handleWithdrawUnbounded }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api?.registry?.chainTokens[0] ?? '';
 
-  const staked = myPool === null ? 0 : myPool?.member?.points;
-  const claimable = myPool === null ? 0 : myPool?.myClaimable;
-  const redeemable = myPool === null ? 0 : myPool?.redeemable;
+  const staked = !myPool?.member?.points ? BN_ZERO : myPool.member.points;
+  const claimable = !myPool?.myClaimable ? BN_ZERO : myPool.myClaimable;
+  const redeemable = useMemo(() => !myPool?.redeemable ? BN_ZERO : new BN(myPool.redeemable), [myPool]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -77,16 +77,16 @@ export default function Overview({ api, availableBalanceInHuman,handleWithdrawCl
   useEffect(() => {
     if (myPool === undefined || !api) { return; }
 
-    let value = BN_ZERO;
+    let unlockingValue = BN_ZERO;
 
-    if (myPool === null) { return setUnlockingAmount(value); }
+    if (myPool === null) { return setUnlockingAmount(unlockingValue); }
 
     for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
-      value = value.add(new BN(unbondingPoint as string));
+      unlockingValue = unlockingValue.add(new BN(unbondingPoint as string));
     }
 
-    setUnlockingAmount(value);
-  }, [myPool, api]);
+    setUnlockingAmount(redeemable ? unlockingValue.sub(redeemable) : unlockingValue);
+  }, [myPool, api, redeemable]);
 
   return (
     <>
@@ -112,7 +112,7 @@ export default function Overview({ api, availableBalanceInHuman,handleWithdrawCl
                       </Grid>
                       <Grid item>
                         <Hint id='claim' place='top' tip={t('Claim reward')}>
-                          <SwipeDownAltRoundedIcon color={claimable ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          <SystemUpdateAltOutlinedIcon color={claimable ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>
                     </Grid>
