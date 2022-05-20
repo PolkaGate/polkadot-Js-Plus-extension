@@ -206,7 +206,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
           </Grid>
 
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-            {t('Stakers (nominators) with enough amount of tokens can choose solo staking. Each solo staker will be responsible to nominate validators and keep eyes on them to re-nominate if needed.')}
+            {t('Stakers (nominators) with sufficient amount of tokens can choose solo staking. Each solo staker will be responsible to nominate validators and keep eyes on them to re-nominate if needed.')}
           </Grid>
 
           <Grid item sx={{ fontSize: 12, p: '20px 10px' }} xs={12}>
@@ -235,7 +235,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
           </Grid>
 
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-            {t('Stakers (delegators) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a delegator\'s stake in the bonded pool.')}
+            {t('Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member\'s stake in the bonded pool.')}
           </Grid>
 
           <Grid item sx={{ fontSize: 12, p: '20px 10px' }} xs={12}>
