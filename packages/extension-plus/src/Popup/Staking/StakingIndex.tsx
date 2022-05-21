@@ -5,8 +5,7 @@
 
 /**
  * @description
- *  this component provides access to allstaking stuff,including stake,
- *  unstake, redeem, change validators, staking generak info,etc.
+ *  this component provides access to all easy staking where one can choose between Solo and Pool staking.
  * */
 
 import type { Chain } from '@polkadot/extension-chains/types';
@@ -17,7 +16,7 @@ import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CircleOutlined as CircleOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon } from '@mui/icons-material';
 import { Divider, Grid, Paper } from '@mui/material';
-import { blue, green, grey, red } from '@mui/material/colors';
+import { blue, green, grey, orange, red } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -81,7 +80,6 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
         // setgettingStakingConstsFromBlockchain(false);
 
         if (staker?.address) {
-
           // eslint-disable-next-line no-void
           void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
         }
