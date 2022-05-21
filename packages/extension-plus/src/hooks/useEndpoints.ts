@@ -26,7 +26,7 @@ export default function (genesisHash: string | null | undefined): Option[] {
 
   const endpoints: Option[] = useMemo(() => {
     const option = genesisOptions?.find((o) => o.value === genesisHash);
-    const chainName = option?.text?.replace(' Relay Chain', '');
+    const chainName = option?.text?.replace(' Relay Chain', '')?.replace(' Network', '');
 
     const endpoints = allEndpoints?.filter((e) => String(e.text)?.toLowerCase() === chainName?.toLowerCase());
 

@@ -58,7 +58,7 @@ function PoolTab({ api, chain, myPool, poolsMembers }: Props): React.ReactElemen
           ? <>
             <Pool api={api} chain={chain} pool={myPool} poolsMembers={poolsMembers} showAction />
 
-            <Grid item sx={{ fontSize: 12, p: '25px 10px 10px' }} xs={12}>
+            <Grid item sx={{ fontSize: 12, p: '25px 10px 5px' }} xs={12}>
               {t('Roles')}
             </Grid>
 
@@ -68,6 +68,10 @@ function PoolTab({ api, chain, myPool, poolsMembers }: Props): React.ReactElemen
                 <ShowAddress address={myPool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
                 <ShowAddress address={myPool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
                 <ShowAddress address={myPool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <Paper elevation={3} sx={{ px: '10px' }}>
                 <ShowAddress address={myPool.accounts.stashId} chain={chain} role={'Stash id'} />
                 <ShowAddress address={myPool.accounts.rewardId} chain={chain} role={'Reward id'} />
               </Paper>

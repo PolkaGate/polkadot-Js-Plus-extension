@@ -20,7 +20,7 @@ export default function useEndpoint(
       return DEVELOPEMENT_ENDPOINT;
     }
 
-    const chainName = chain?.name?.replace(' Relay Chain', '');
+    const chainName = chain?.name?.replace(' Relay Chain', '')?.replace(' Network', '');
 
     const account = Array.isArray(accounts) ? accounts.find((account) => account.address === address) : accounts;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

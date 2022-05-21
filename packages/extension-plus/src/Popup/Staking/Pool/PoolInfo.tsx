@@ -92,7 +92,7 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
             </Grid>
           </Paper>
 
-          <Grid item xs={12} sx={{ fontSize: 12, p: '25px 10px 10px' }}>
+          <Grid item xs={12} sx={{ fontSize: 12, p: '25px 10px 5px' }}>
             {t('Roles')}
           </Grid>
           <Grid item xs={12}>
@@ -101,6 +101,10 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
               <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
               <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
               <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper elevation={3} sx={{ px: '10px' }}>
               <ShowAddress address={stashId} chain={chain} role={'Stash id'} />
               <ShowAddress address={rewardId} chain={chain} role={'Reward id'} />
             </Paper>
@@ -108,15 +112,10 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
 
         </Grid>
 
-        <Grid container item justifyContent='center' spacing={1} xs={12}>
-          <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, textAlign: 'center', p: '10px 0px 5px' }}>
-            {t('Members')}
-          </Grid>
-          <Grid item sx={{ fontSize: 12 }}>
-            ({myPoolMembers?.length ?? 0})
-          </Grid>
+        <Grid item xs={12} sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, textAlign: 'center', p: '10px 0px 1px' }}>
+          {t('Members')} ({myPoolMembers?.length ?? 0})
         </Grid>
-        <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: 2 }} xs={12}>
+        <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '10px 15px' }} xs={12}>
           {myPoolMembers?.map(({ accountId, member }, index) => {
             const points = api.createType('Balance', member.points); // TFIXME: it is pointsnot balance!!
 

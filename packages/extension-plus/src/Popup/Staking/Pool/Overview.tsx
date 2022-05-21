@@ -13,8 +13,8 @@
 import type { MyPoolInfo } from '../../../util/plusTypes';
 
 import { Redeem as RedeemIcon, SystemUpdateAltOutlined as SystemUpdateAltOutlinedIcon } from '@mui/icons-material';
-import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
-import React, { useEffect, useState, useMemo } from 'react';
+import { Grid, Menu, MenuItem, Paper } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { BN, BN_ZERO } from '@polkadot/util';
@@ -29,39 +29,18 @@ interface Props {
   handleWithdrawClaimable: () => void;
   handleViewChart: () => void;
   myPool: MyPoolInfo | undefined | null;
-
+  redeemable: BN | undefined;
+  unlockingAmount: BN | undefined;
 }
 
-interface BalanceProps {
-  label: string | Element;
-  amount: string | null;
-  coin: string;
-}
-
-function Balance0({ amount, coin, label }: BalanceProps): React.ReactElement<BalanceProps> {
-  return (<>
-    <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }} xs={12}>
-      {label}
-    </Grid>
-    {amount === null || amount === 'NaN' || amount === undefined
-      ? <Skeleton sx={{ display: 'inline-block', fontWeight: '400', lineHeight: '16px', width: '70px' }} />
-      : <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.6px', lineHeight: '16px' }}>
-        {amount === '0' ? '0.00' : Number(amount).toLocaleString()}{' '}  {coin}
-      </div>
-    }
-  </>);
-}
-
-export default function Overview({ api, availableBalance, handleWithdrawClaimable, myPool, handleViewChart, handleWithdrawUnbounded }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalance, handleViewChart, handleWithdrawClaimable, handleWithdrawUnbounded, myPool, redeemable, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api?.registry?.chainTokens[0] ?? '';
 
   const staked = !myPool?.member?.points ? BN_ZERO : new BN(myPool.member.points);
   const claimable = !myPool?.myClaimable ? BN_ZERO : new BN(myPool.myClaimable);
-  const redeemable = useMemo(() => !myPool?.redeemable ? BN_ZERO : new BN(myPool.redeemable), [myPool]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -73,20 +52,6 @@ export default function Overview({ api, availableBalance, handleWithdrawClaimabl
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  useEffect(() => {
-    if (myPool === undefined || !api) { return; }
-
-    let unlockingValue = BN_ZERO;
-
-    if (myPool === null) { return setUnlockingAmount(unlockingValue); }
-
-    for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
-      unlockingValue = unlockingValue.add(new BN(unbondingPoint as string));
-    }
-
-    setUnlockingAmount(unlockingValue.gt(redeemable) ? unlockingValue.sub(redeemable) : unlockingValue);
-  }, [myPool, api, redeemable]);
 
   return (
     <>
@@ -111,7 +76,7 @@ export default function Overview({ api, availableBalance, handleWithdrawClaimabl
                       </Grid>
                       <Grid item>
                         <Hint id='claim' place='top' tip={t('Claim reward')}>
-                          <SystemUpdateAltOutlinedIcon color={claimable.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          <SystemUpdateAltOutlinedIcon color={claimable?.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>
                     </Grid>
@@ -128,7 +93,7 @@ export default function Overview({ api, availableBalance, handleWithdrawClaimabl
                       </Grid>
                       <Grid item>
                         <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
-                          <RedeemIcon color={redeemable.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawUnbounded} sx={{ cursor: 'pointer', fontSize: 15 }} />
+                          <RedeemIcon color={redeemable?.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawUnbounded} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>
                     </Grid>
@@ -138,8 +103,6 @@ export default function Overview({ api, availableBalance, handleWithdrawClaimabl
 
               <Grid item xs={4}>
                 <ShowBalance2 api={api} balance={unlockingAmount} direction='column' title={t('Unstaking')} />
-
-                {/* <Balance amount={amountToHuman(String('0'), decimals)} coin={token} label={t('Unstaking')} /> */}
               </Grid>
             </Grid>
           </Grid>

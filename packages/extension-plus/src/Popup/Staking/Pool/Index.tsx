@@ -101,9 +101,9 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
 
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>(undefined);
-  // const [selectedPool, setSelectedPool] = useState<MyPoolInfo | undefined>();
-  // const [selectedPoolId, setSelectedPoolId] = useState<BN | undefined>();
   const [newPool, setNewPool] = useState<MyPoolInfo | undefined>();
+  const [redeemable, setRedeemable] = useState<BN | undefined>();
+  const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
 
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
@@ -259,6 +259,23 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
       getValidatorsInfoWorker.terminate();
     };
   };
+
+  useEffect(() => {
+    if (myPool === undefined || !api || !currentEraIndex) { return; }
+
+    let unlockingValue = BN_ZERO;
+    let redeemValue = BN_ZERO;
+
+    if (myPool === null) { return setUnlockingAmount(unlockingValue); }
+
+    for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
+      if (currentEraIndex > Number(era)) { redeemValue = redeemValue.add(new BN(unbondingPoint as string)); }
+      else { unlockingValue = unlockingValue.add(new BN(unbondingPoint as string)); }
+    }
+
+    setRedeemable(redeemValue);
+    setUnlockingAmount(unlockingValue);
+  }, [myPool, api, currentEraIndex]);
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
@@ -528,7 +545,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   }, [handleConfirmStakingModaOpen, state]);
 
   const handleWithdrawUnbounded = useCallback(() => {
-    if (!myPool?.redeemable) return; // TODO: Needs to be fixed, it is not member redeemable but pool redeemable
+    if (!redeemable) return; 
     if (!state) setState('withdrawUnbound');
     handleConfirmStakingModaOpen();
   }, [handleConfirmStakingModaOpen, myPool, state]);
@@ -553,7 +570,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
       case ('bondExtra'):
         return stakeAmount;
       case ('withdrawUnbound'):
-        return myPool?.redeemable ? new BN(myPool?.redeemable) : BN_ZERO;
+        return redeemable ?? BN_ZERO;
       case ('withdrawClaimable'):
         return myPool?.myClaimable ? new BN(myPool?.myClaimable) : BN_ZERO;
       default:
@@ -607,6 +624,8 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
             handleWithdrawClaimable={handleWithdrawClaimable}
             handleWithdrawUnbounded={handleWithdrawUnbounded}
             myPool={myPool}
+            redeemable={redeemable}
+            unlockingAmount={unlockingAmount}
           />
         </Grid>
         <Grid item xs={12}>

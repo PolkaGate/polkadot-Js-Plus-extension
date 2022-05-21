@@ -38,7 +38,7 @@ import { SUPPORTED_CHAINS } from '../util/constants';
 import { AccountsBalanceType, BalanceType, SavedMetaData } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
- 
+
 interface Props {
   address?: string | null;
   formattedAddress?: string | null;
@@ -367,7 +367,7 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           {chain && <>
             {balance
               ? <Grid id='coinPrice' item sx={{ color: grey[600], fontSize: 10, textAlign: 'center' }} xs={12}>
-                {chain && <> {'1 '}{getCoin(balance)}{' = $'}{price}</>}
+                {chain && <> {'1 '}{getCoin(balance)}{' = $'}{price.toFixed(2)}</>}
               </Grid>
               : <Grid id='emptyCoinPrice' item sx={{ color: grey[400], fontSize: 10, textAlign: 'center' }} xs={12}>
                 {'1 ---  =  $ --- '}
