@@ -23,6 +23,7 @@ import { BN } from '@polkadot/util';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShortAddress, ShowAddress } from '../../../components';
 import { SELECTED_COLOR } from '../../../util/constants';
+import getPoolAccounts from '../../../util/getPoolAccounts';
 
 interface Props {
   chain: Chain;
@@ -40,8 +41,10 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
 
   const staked = (pool?.ledger || pool?.bondedPool?.points) && api ? api.createType('Balance', pool?.ledger?.active || pool?.bondedPool?.points) : undefined;
   const myPoolMembers = poolsMembers && pool ? poolsMembers[poolId] : undefined;
-
   const roleIds = useMemo(() => Object.values(pool?.bondedPool?.roles), [pool]);
+
+  const stashId = pool?.accounts?.stashId ?? getPoolAccounts(api, poolId).stashId;
+  const rewardId = pool?.accounts?.rewardId ?? getPoolAccounts(api, poolId).rewardId;
 
   return (
     <Popup handleClose={handleMorePoolInfoClose} id='scrollArea' showModal={showPoolInfo}>
@@ -89,7 +92,6 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
             </Grid>
           </Paper>
 
-
           <Grid item xs={12} sx={{ fontSize: 12, p: '25px 10px 10px' }}>
             {t('Roles')}
           </Grid>
@@ -99,8 +101,8 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
               <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
               <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
               <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
-              <ShowAddress address={pool?.accounts?.stashId} chain={chain} role={'Stash id'} />
-              <ShowAddress address={pool?.accounts?.rewardId} chain={chain} role={'Reward id'} />
+              <ShowAddress address={stashId} chain={chain} role={'Stash id'} />
+              <ShowAddress address={rewardId} chain={chain} role={'Reward id'} />
             </Paper>
           </Grid>
 

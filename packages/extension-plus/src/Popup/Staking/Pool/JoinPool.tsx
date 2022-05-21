@@ -93,32 +93,6 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   }, [minStakeable, maxStakeable, stakeAmountInHuman, decimals, staker?.balanceInfo?.available, t]);
 
   useEffect(() => {
-    // if (!decimals) { return; }
-
-    // // if (!staker?.balanceInfo?.available) {
-    // //   return setZeroBalanceAlert(true);
-    // // } else {
-    // //   setZeroBalanceAlert(false);
-    // // }
-
-    // // setNextButtonCaption(t('Next'));
-
-    // const balanceIsInsufficient = staker?.balanceInfo?.available <= amountToMachine(stakeAmountInHuman, decimals);
-
-    // if (balanceIsInsufficient || !Number(stakeAmountInHuman)) {
-    //   setNextToStakeButtonDisabled(true);
-    // }
-
-    // if (Number(stakeAmountInHuman) && balanceIsInsufficient) {
-    //   setAlert(t('Insufficient Balance'));
-    // }
-
-    // if (Number(stakeAmountInHuman) && Number(stakeAmountInHuman) < minStakeable) {
-    //   setNextToStakeButtonDisabled(true);
-    // }
-  }, [stakeAmountInHuman, t, minStakeable, staker?.balanceInfo?.available, decimals]);
-
-  useEffect(() => {
     decimals && setStakeAmount(realStakingAmount);
   }, [decimals, realStakingAmount, setStakeAmount]);
 
@@ -268,9 +242,6 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
                 <Grid item sx={{ textAlign: 'center' }} xs={4}>
                   {t('Name')}
                 </Grid>
-                {/* <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {t('State')}
-                </Grid> */}
                 <Grid item sx={{ textAlign: 'center' }} xs={3}>
                   {t('Staked')}
                 </Grid>
@@ -285,8 +256,14 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
           </Grid>
 
           <Grid container item spacing={'10px'} sx={{ height: '270px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '5px 20px 5px' }}>
+            {selectedPoolId &&
+              <Grid container item sx={{ fontSize: 11, pt: '5px' }}>
+                <Pool api={api} chain={chain} index={selectedPoolId?.toNumber()} pool={poolsInfo[selectedPoolId.subn(1)]} poolsMembers={poolsMembers} selectedPoolId={selectedPoolId} setSelectedPoolId={setSelectedPoolId} showCheck={true} showHeader={false} />
+              </Grid>
+            }
+
             {poolsInfo?.length
-              ? poolsInfo.map((pool, index) => pool.bondedPool.state === 'Open' &&
+              ? poolsInfo.map((pool, index) => pool.bondedPool.state === 'Open' && !selectedPoolId?.eqn(index + 1) &&
                 <Grid container item key={index} sx={{ fontSize: 11, pt: '5px' }}>
                   <Pool api={api} chain={chain} index={index + 1} pool={pool} poolsMembers={poolsMembers} selectedPoolId={selectedPoolId} setSelectedPoolId={setSelectedPoolId} showCheck={true} showHeader={false} />
                 </Grid>)

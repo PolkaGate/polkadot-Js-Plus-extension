@@ -77,9 +77,9 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
   }
 
   const poolInfo = {
-    poolId: id,
     accounts: accounts,
     bondedPool: unwrappedBondedPool,
+    ledger: stashIdAccount?.stakingLedger,
     member: member,
     metadata: metadata.length
       ? metadata.isUtf8
@@ -88,11 +88,11 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
       : null,
     myClaimable: Number(myClaimable),
     // nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
+    poolId: id,
+    redeemable: Number(stashIdAccount?.redeemable),
     rewardClaimable: Number(poolRewardClaimable),
     rewardIdBalance: rewardIdBalance.data,
     rewardPool: rewardPool,
-    redeemable: Number(stashIdAccount?.redeemable),
-    ledger: stashIdAccount?.stakingLedger,
     stashIdAccount: stashIdAccount
   };
 

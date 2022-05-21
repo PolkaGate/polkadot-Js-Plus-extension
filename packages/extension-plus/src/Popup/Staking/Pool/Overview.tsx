@@ -23,7 +23,7 @@ import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation
 import { Hint, ShowBalance2 } from '../../../components';
 
 interface Props {
-  availableBalanceInHuman: string,
+  availableBalance: BN,
   api: ApiPromise | undefined;
   handleWithdrawUnbounded: () => void;
   handleWithdrawClaimable: () => void;
@@ -52,7 +52,7 @@ function Balance0({ amount, coin, label }: BalanceProps): React.ReactElement<Bal
   </>);
 }
 
-export default function Overview({ api, availableBalanceInHuman, handleWithdrawClaimable, myPool, handleViewChart, handleWithdrawUnbounded }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalance, handleWithdrawClaimable, myPool, handleViewChart, handleWithdrawUnbounded }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
 
@@ -85,7 +85,7 @@ export default function Overview({ api, availableBalanceInHuman, handleWithdrawC
       unlockingValue = unlockingValue.add(new BN(unbondingPoint as string));
     }
 
-    setUnlockingAmount(redeemable ? unlockingValue.sub(redeemable) : unlockingValue);
+    setUnlockingAmount(unlockingValue.gt(redeemable) ? unlockingValue.sub(redeemable) : unlockingValue);
   }, [myPool, api, redeemable]);
 
   return (
@@ -95,7 +95,7 @@ export default function Overview({ api, availableBalanceInHuman, handleWithdrawC
           <Grid item sx={{ flexGrow: 1 }}>
             <Grid alignItems='center' container item justifyContent='space-between' sx={{ pb: '20px', textAlign: 'center' }}>
               <Grid item xs={4}>
-                <Balance0 amount={availableBalanceInHuman} coin={token} label={t('Available')} />
+                <ShowBalance2 api={api} balance={availableBalance} direction='column' title={t('Available')} />
               </Grid>
               <Grid item xs={4}>
                 <ShowBalance2 api={api} balance={staked} direction='column' title={t('Staked')} />

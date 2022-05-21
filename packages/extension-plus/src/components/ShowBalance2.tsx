@@ -27,17 +27,15 @@ function ShowBalance2({ api, balance, direction = 'row', title }: Props): React.
   const amountToHuman = (x: unknown): string | undefined => api && (api.createType('Balance', x)).toHuman();
 
   return (
-    <div data-testid='showPlus'>
+    <div data-testid='ShowBalance2'>
       {title && <>
         <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }}>
-          {title} 
+          {title}
         </Grid>
       </>}
 
       {balance !== undefined && api
-        ? <>
-          {amountToHuman(balance)}
-        </>
+        ? <b>{amountToHuman(balance)}</b>
         : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
       }
     </div>
@@ -51,4 +49,4 @@ export default styled(ShowBalance2)(({ theme }: ThemeProps) => `
       border-radius: 4px;
       margin-bottom: 8px;
       position: relative;
-`);
+      `);

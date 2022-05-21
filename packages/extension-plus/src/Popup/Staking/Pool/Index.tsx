@@ -511,9 +511,9 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     setSelectValidatorsModalOpen(true);
 
     // if (!state) {
-      isSetNominees ? setState('setNominees') : setState('changeValidators');
+    isSetNominees ? setState('setNominees') : setState('changeValidators');
     // }
-  }, [state]);
+  }, []);
 
   const handleStopNominating = useCallback((): void => {
     handleConfirmStakingModaOpen();
@@ -528,7 +528,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   }, [handleConfirmStakingModaOpen, state]);
 
   const handleWithdrawUnbounded = useCallback(() => {
-    if (!myPool?.redeemable) return;
+    if (!myPool?.redeemable) return; // TODO: Needs to be fixed, it is not member redeemable but pool redeemable
     if (!state) setState('withdrawUnbound');
     handleConfirmStakingModaOpen();
   }, [handleConfirmStakingModaOpen, myPool, state]);
@@ -602,7 +602,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
         <Grid container item xs={12}>
           <Overview
             api={api}
-            availableBalanceInHuman={availableBalanceInHuman}
+            availableBalance={staker?.balanceInfo?.available ? new BN(staker.balanceInfo.available) : BN_ZERO}
             handleViewChart={handleViewChart}
             handleWithdrawClaimable={handleWithdrawClaimable}
             handleWithdrawUnbounded={handleWithdrawUnbounded}
