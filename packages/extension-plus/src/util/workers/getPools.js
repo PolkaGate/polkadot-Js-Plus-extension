@@ -3,8 +3,9 @@
 /* eslint-disable header/header */
 
 import getApi from '../getApi.ts';
+import { BN } from '@polkadot/util';
 
-async function getPools (endpoint) {
+async function getPools(endpoint) {
   const api = await getApi(endpoint);
 
   const lastPoolId = await api.query.nominationPools.lastPoolId();
@@ -24,19 +25,22 @@ async function getPools (endpoint) {
 
   const info = await Promise.all(queries);
 
-  const poolsInfo = info.map((i) => {
-    return {
-      bondedPool: i[1].isSome ? i[1].unwrap() : null,
-      metadata: i[0]?.length
-        ? i[0]?.isUtf8
-          ? i[0]?.toUtf8()
-          : i[0]?.toString()
-        : null,
-      rewardPool: i[2]?.isSome ? i[2].unwrap() : null
-    };
-  });
+  const poolsInfo = info.map((i, index) => {
+    if (i[1].isSome) {
+      return {
+        bondedPool: i[1].isSome ? i[1].unwrap() : null,
+        metadata: i[0]?.length
+          ? i[0]?.isUtf8
+            ? i[0]?.toUtf8()
+            : i[0]?.toString()
+          : null,
+        poolId: index + 1,
+        rewardPool: i[2]?.isSome ? i[2].unwrap() : null
+      };
+    } else return undefined;
+  })?.filter((f) => f !== undefined);
 
-  return JSON.stringify(poolsInfo);
+  return JSON.stringify({ info: poolsInfo, nextPoolId: lastPoolId.addn(1).toString() });
 }
 
 onmessage = (e) => {

@@ -99,11 +99,12 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const { t } = useTranslation();
   const poolsMembers: MembersMapEntry[] | undefined = useMapEntries(api?.query?.nominationPools?.poolMembers, OPT_ENTRIES);
 
-  const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined>();
+  const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined | null>(undefined);
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>(undefined);
   const [newPool, setNewPool] = useState<MyPoolInfo | undefined>();
   const [redeemable, setRedeemable] = useState<BN | undefined>();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
+  const [nextPoolId, setNextPoolId] = useState<BN | undefined>();
 
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
@@ -192,15 +193,21 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const poolsInfo: string = e.data;
 
-      if (poolsInfo) {
-        console.log('poolsInfo:', JSON.parse(poolsInfo));
-        const parsedPoolsInfo = JSON.parse(poolsInfo) as PoolInfo[];
-
-        parsedPoolsInfo?.forEach((p: PoolInfo) => {
-          p.bondedPool.points = new BN(p.bondedPool.points);
-        });
-        setPoolsInfo(parsedPoolsInfo);
+      if (!poolsInfo) {
+        return setPoolsInfo(null);// noo pools found, probably never happens
       }
+
+      const parsedPoolsInfo = JSON.parse(poolsInfo);
+      const info = parsedPoolsInfo.info as PoolInfo[];
+
+      setNextPoolId(new BN(parsedPoolsInfo.nextPoolId));
+
+      info?.forEach((p: PoolInfo) => {
+        p.bondedPool.points = p?.bondedPool?.points ? new BN(p.bondedPool.points as string) : BN_ZERO;
+        p.poolId = new BN(p.poolId);
+      });
+
+      setPoolsInfo(info);
 
       getPoolsWorker.terminate();
     };
@@ -441,61 +448,11 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     }
   }, [stakingConsts, validatorsInfo]);
 
-  // useEffect(() => {
-  //   if (!poolsInfo || !chainName) { return; }
-
-  //   const selected = selectBestPool(chainName, poolsInfo);
-  //   console.log('selected pool id', selected);
-
-  //   setSelectedPoolId(selected);
-  // }, [chainName, poolsInfo]);
-
-  // useEffect(() => {
-  //   if (!selectedPoolId) { return; }
-
-  //   endpoint && getPoolInfo(endpoint, '', selectedPoolId.toNumber());
-  // }, [endpoint, selectedPoolId]);
-
   useEffect(() => {
     const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
 
     setOversubscribedsCount(oversubscribeds?.length);
   }, [nominatedValidators, stakingConsts]);
-
-  // function selectBestPool(chainName: string, pools: PoolInfo[]): BN {
-  //   let selectedPoolId: BN | undefined;
-
-  //   switch (chainName) {
-  //     case ('Westend'):
-  //       selectedPoolId = PPREFERED_POOL_ID_ON_WESTEND;
-  //       break;
-  //     case ('Kusama'):
-  //       selectedPoolId = PPREFERED_POOL_ID_ON_KUSAMA;
-  //       break;
-  //     case ('Polkadot'):
-  //       selectedPoolId = PPREFERED_POOL_ID_ON_POLKADOT;
-  //       break;
-  //     default:
-  //       selectedPoolId = undefined;
-  //   }
-
-  //   const selectedPool = selectedPoolId ? pools[selectedPoolId.subn(1)] : undefined;
-
-  //   if (selectedPool && selectedPool?.bondedPool?.state === 'Open') {
-  //     return selectedPoolId;
-  //     // return { poolId: selectedPoolId, ...selectedPool };
-  //   }
-
-  //   const selected = pools.reduce(function (a, b) {
-  //     return (a.bondedPool.points).gt(b.bondedPool.points) ? a : b;
-  //   }, pools[0]);
-  //   const index = pools.indexOf((p) => p.bondedPool.points.eq(selected.bondedPool.points))
-
-  //   return new BN(index + 1);
-  //   // return { poolId: new BN(index + 1), ...selected };
-  // }
-
-  // TODO: find a better algorithm to select validators automatically
 
   function selectBestValidators(validatorsInfo: Validators, stakingConsts: StakingConsts): DeriveStakingQuery[] {
     const allValidators = validatorsInfo.current.concat(validatorsInfo.waiting);
@@ -527,9 +484,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const handleSelectValidatorsModalOpen = useCallback((isSetNominees = false): void => {
     setSelectValidatorsModalOpen(true);
 
-    // if (!state) {
     isSetNominees ? setState('setNominees') : setState('changeValidators');
-    // }
   }, []);
 
   const handleStopNominating = useCallback((): void => {
@@ -545,10 +500,10 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   }, [handleConfirmStakingModaOpen, state]);
 
   const handleWithdrawUnbounded = useCallback(() => {
-    if (!redeemable) return; 
+    if (!redeemable) return;
     if (!state) setState('withdrawUnbound');
     handleConfirmStakingModaOpen();
-  }, [handleConfirmStakingModaOpen, myPool, state]);
+  }, [handleConfirmStakingModaOpen, redeemable, state]);
 
   const handleWithdrawClaimable = useCallback(() => {
     if (!myPool?.myClaimable) return;
@@ -576,7 +531,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
       default:
         return BN_ZERO;
     }
-  }, [state, unstakeAmount, stakeAmount, myPool]);
+  }, [state, unstakeAmount, stakeAmount, redeemable, myPool?.myClaimable]);
 
   useEffect(() => {
     if (!myPool?.accounts?.stashId) return;
@@ -587,7 +542,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   }, [myPool?.accounts, nominatedValidators]);
 
   const PoolsIcon = useMemo((): React.ReactElement<any> => (
-    !poolsInfo ? <CircularProgress size={12} thickness={2} /> : <WorkspacesOutlinedIcon fontSize='small' />
+    poolsInfo === undefined ? <CircularProgress size={12} thickness={2} /> : <WorkspacesOutlinedIcon fontSize='small' />
   ), [poolsInfo]);
 
   const NominationsIcon = useMemo((): React.ReactElement<any> => (
@@ -647,7 +602,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               myPool={myPool}
-              nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
+              nextPoolId={nextPoolId}
               nextToStakeButtonBusy={!!stakeAmount && (!(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
               poolStakingConsts={poolStakingConsts}
               poolsInfo={poolsInfo}
@@ -733,7 +688,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           api={api}
           chain={chain}
           handlePoolStakingModalClose={handlePoolStakingModalClose}
-          nextPoolId={poolsInfo?.length ? new BN(poolsInfo?.length + 1) : BN_ONE}
+          nextPoolId={nextPoolId}
           nominatedValidators={nominatedValidators}
           pool={['createPool', 'joinPool'].includes(state) ? newPool : myPool}
           poolsMembers={poolsMembers}

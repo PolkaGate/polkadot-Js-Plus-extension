@@ -11,33 +11,33 @@
 import type { ApiPromise } from '@polkadot/api';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import type { MembersMapEntry, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
 
 import { BlockRounded as BlockRoundedIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
 import { Grid, Paper, Switch } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
-import PoolInfo from './PoolInfo';
+import PoolMoreInfo from './PoolInfo';
 
 interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
-  index?: number;
   pool: MyPoolInfo | undefined;
   poolsMembers?: MembersMapEntry[] | undefined;
   showAction?: boolean;
   showCheck?: boolean;
   showHeader?: boolean;
-  selectedPoolId?: BN;
-  setSelectedPoolId?: React.Dispatch<React.SetStateAction<BN | undefined>>
+  selectedPool?: PoolInfo;
+  setSelectedPool?: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
 
 }
 
-export default function Pool({ api, chain, index, pool, poolsMembers, selectedPoolId, setSelectedPoolId, showAction = false, showCheck = false, showHeader = true }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, pool, poolsMembers, selectedPool, setSelectedPool, showAction = false, showCheck = false, showHeader = true }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [staked, setStaked] = useState<Balance | undefined>();
@@ -46,7 +46,7 @@ export default function Pool({ api, chain, index, pool, poolsMembers, selectedPo
   // const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
   // const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
 
-  const poolId = pool?.poolId || pool?.member?.poolId || new BN(index);
+  const poolId = pool?.poolId || pool?.member?.poolId as BN;//|| new BN(index);
 
   const handleMorePoolInfoOpen = useCallback(() => {
     setShowPoolInfo(true);
@@ -102,7 +102,7 @@ export default function Pool({ api, chain, index, pool, poolsMembers, selectedPo
               </Paper>
             }
             <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
-              <Grid alignItems='center' container sx={{fontSize: 11}}>
+              <Grid alignItems='center' container sx={{ fontSize: 11 }}>
 
                 {pool.bondedPool.state !== 'Creating' &&
                   <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
@@ -110,7 +110,7 @@ export default function Pool({ api, chain, index, pool, poolsMembers, selectedPo
                   </Grid>
                 }
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {poolId ? String(poolId) : index}
+                  {String(poolId)}
                 </Grid>
                 <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={showAction ? 3 : 4}>
                   {pool.metadata ?? t('no name')}
@@ -138,7 +138,7 @@ export default function Pool({ api, chain, index, pool, poolsMembers, selectedPo
                 }
                 {showCheck &&
                   <Grid item xs={1}>
-                    <Switch checked={selectedPoolId?.eqn(index)} color='warning' onChange={() => setSelectedPoolId(new BN(index))} size='small' />
+                    <Switch checked={selectedPool && selectedPool.poolId.eq(pool.poolId)} color='warning' onChange={() => setSelectedPool(pool)} size='small' />
                   </Grid>
                 }
               </Grid>
@@ -152,7 +152,7 @@ export default function Pool({ api, chain, index, pool, poolsMembers, selectedPo
 
       {
         showPoolInfo && api && pool?.rewardPool &&
-        <PoolInfo
+        <PoolMoreInfo
           api={api}
           chain={chain}
           handleMorePoolInfoClose={handleMorePoolInfoClose}

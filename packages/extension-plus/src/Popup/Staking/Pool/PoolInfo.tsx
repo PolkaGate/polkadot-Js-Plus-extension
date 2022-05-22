@@ -117,7 +117,7 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
         </Grid>
         <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '10px 15px' }} xs={12}>
           {myPoolMembers?.map(({ accountId, member }, index) => {
-            const points = api.createType('Balance', member.points); // TFIXME: it is pointsnot balance!!
+            const points = api.createType('Balance', member.points); // FIXME: it is pointsnot balance!!
 
             return (
               <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(String(accountId)) ? SELECTED_COLOR : '', my: 1, p: '5px' }}>

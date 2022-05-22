@@ -8,7 +8,7 @@
  * render stake tab in pool staking
  * */
 
-import type { AccountsBalanceType, MyPoolInfo, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Alert, Avatar, Badge, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, Stack, TextField } from '@mui/material';
 import { blue, deepOrange, green, grey } from '@mui/material/colors';
@@ -38,8 +38,8 @@ interface Props {
   poolStakingConsts: PoolStakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
   myPool: MyPoolInfo | undefined | null;
-  nextPoolId: BN;
-  poolsInfo: PoolInfo[] | undefined;
+  nextPoolId: BN | undefined;
+  poolsInfo: PoolInfo[] | undefined | null;
   setNewPool: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
   poolsMembers: MembersMapEntry[] | undefined
 }
@@ -258,7 +258,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
     <>
       {currentlyStakedInHuman === undefined
         ? <Progress title={'Loading ...'} />
-        : currentlyStakedInHuman === null || currentlyStakedInHuman === '0'
+        : (currentlyStakedInHuman === null || currentlyStakedInHuman === '0') && !myPool 
           ? <StakeInitialChoice />
           : <>
             <Grid container sx={{ height: '222px' }}>
@@ -334,7 +334,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
             </Grid>
           </>
       }
-      {showCreatePoolModal &&
+      {showCreatePoolModal && nextPoolId &&
         <CreatePool
           api={api}
           chain={chain}
@@ -349,7 +349,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
           staker={staker}
         />
       }
-      {showJoinPoolModal &&
+      {showJoinPoolModal && poolsInfo &&
         <JoinPool
           api={api}
           chain={chain}
