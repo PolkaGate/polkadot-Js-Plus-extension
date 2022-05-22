@@ -111,7 +111,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
 
   return (
     <Popup handleClose={handleVoteProposalModalClose} showModal={showVoteProposalModal}>
-      <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Second'} />
+      <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Endorse'} />
       <Participator
         address={address}
         availableBalance={availableBalance}
