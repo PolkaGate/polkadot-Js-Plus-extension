@@ -261,6 +261,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const stateInHuman = (state: string): string => {
     switch (state) {
       case ('joinPool'):
+        return 'JOIN POOL';
       case ('bondExtra'):
         return 'STAKING OF';
       case ('createPool'):
@@ -292,13 +293,32 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
-      const hasAlreadyBonded = !!pool?.member?.points || !!pool?.member?.unbondingEras?.length;
 
-      if (['joinPool', 'bondExtra'].includes(localState) && surAmount !== BN_ZERO) { // TODO: should consider creation of a pool as auto staking?
-        const { block, failureText, fee, status, txHash } = await poolJoinOrBondExtra(api, staker.address, signer, surAmount, poolId, hasAlreadyBonded);
+      if (['joinPool'].includes(localState) && surAmount !== BN_ZERO) {
+        const params = [surAmount, poolId];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, joined, params, signer, staker.address);
 
         history.push({
-          action: hasAlreadyBonded ? 'pool_bond_extra' : 'pool_join',
+          action: 'pool_join',
+          amount: amountToHuman(String(surAmount), decimals),
+          block: block,
+          date: Date.now(),
+          fee: fee || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
+
+      if (['bondExtra'].includes(localState) && surAmount !== BN_ZERO) {
+        const params = [{ FreeBalance: surAmount }];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, bondExtra, params, signer, staker.address);
+
+        history.push({
+          action: 'pool_bond_extra',
           amount: amountToHuman(String(surAmount), decimals),
           block: block,
           date: Date.now(),

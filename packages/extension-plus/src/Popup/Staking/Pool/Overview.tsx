@@ -36,11 +36,8 @@ interface Props {
 export default function Overview({ api, availableBalance, handleViewChart, handleWithdrawClaimable, handleWithdrawUnbounded, myPool, redeemable, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
-  const decimals = api && api.registry.chainDecimals[0];
-  const token = api?.registry?.chainTokens[0] ?? '';
-
-  const staked = !myPool?.member?.points ? BN_ZERO : new BN(myPool.member.points);
-  const claimable = !myPool?.myClaimable ? BN_ZERO : new BN(myPool.myClaimable);
+  const staked = myPool === undefined ? undefined : new BN(myPool?.member?.points ?? 0);
+  const claimable = myPool === undefined ? undefined : new BN(myPool?.myClaimable ?? 0);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -128,6 +125,7 @@ export default function Overview({ api, availableBalance, handleViewChart, handl
       >
         <MenuItem onClick={handleClose} sx={{ fontSize: 12 }}>Set payee</MenuItem>
         <MenuItem onClick={handleClose} sx={{ fontSize: 12 }}>Set controller</MenuItem>
-      </Menu></>
+      </Menu>
+    </>
   );
 }

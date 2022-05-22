@@ -119,7 +119,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
   const [selectedValidators, setSelectedValidatorsAcounts] = useState<DeriveStakingQuery[] | null>(null);
   const [nominatedValidatorsId, setNominatedValidatorsId] = useState<string[] | undefined>();
-  const [noNominatedValidators, setNoNominatedValidators] = useState<boolean>(false);// if TRUE, shows that nominators are fetched but is empty 
+  const [noNominatedValidators, setNoNominatedValidators] = useState<boolean>(false);// if TRUE, shows that nominators are fetched but is empty
   const [nominatedValidators, setNominatedValidatorsInfo] = useState<DeriveStakingQuery[] | null>(null);
   const [state, setState] = useState<string>('');
   const [tabValue, setTabValue] = useState(4);
@@ -171,7 +171,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
 
       console.log('*** My pool info returned from worker is:', parsedInfo);
 
-      // id ? setSelectedPool(parsedInfo) : 
+      // id ? setSelectedPool(parsedInfo) :
       setMyPool(parsedInfo);
       !id && setNominatedValidatorsId(parsedInfo.stashIdAccount.nominators);
       getPoolWorker.terminate();
@@ -273,11 +273,11 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     let unlockingValue = BN_ZERO;
     let redeemValue = BN_ZERO;
 
-    if (myPool === null) { return setUnlockingAmount(unlockingValue); }
-
-    for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
-      if (currentEraIndex > Number(era)) { redeemValue = redeemValue.add(new BN(unbondingPoint as string)); }
-      else { unlockingValue = unlockingValue.add(new BN(unbondingPoint as string)); }
+    if (myPool !== null) { // if pool is fetched but account belongs to no pool then pool===null
+      for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
+        if (currentEraIndex > Number(era)) { redeemValue = redeemValue.add(new BN(unbondingPoint as string)); }
+        else { unlockingValue = unlockingValue.add(new BN(unbondingPoint as string)); }
+      }
     }
 
     setRedeemable(redeemValue);
