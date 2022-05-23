@@ -69,10 +69,10 @@ export default function Overview({ api, availableBalance, handleViewChart, handl
                   title={
                     <Grid container item justifyContent='center'>
                       <Grid item>
-                        {t('Claimable')}
+                        {t('Rewards')}
                       </Grid>
                       <Grid item>
-                        <Hint id='claim' place='top' tip={t('Claim reward')}>
+                        <Hint id='claim' place='top' tip={t('Claim rewards')}>
                           <SystemUpdateAltOutlinedIcon color={claimable?.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>

@@ -13,15 +13,15 @@ import type { Balance } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { MembersMapEntry, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
 
-import { BlockRounded as BlockRoundedIcon, MoreVert as MoreVertIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
+import { BlockRounded as BlockRoundedIcon, MoreVert as MoreVertIcon, PlayArrowRounded as PlayArrowRoundedIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
 import { Grid, Paper, Switch } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Progress } from '../../../components';
+import { Hint, Progress } from '../../../components';
 import PoolMoreInfo from './PoolInfo';
 
 interface Props {
@@ -34,7 +34,6 @@ interface Props {
   showHeader?: boolean;
   selectedPool?: PoolInfo;
   setSelectedPool?: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
-
 }
 
 export default function Pool({ api, chain, pool, poolsMembers, selectedPool, setSelectedPool, showAction = false, showCheck = false, showHeader = true }: Props): React.ReactElement<Props> {
@@ -48,14 +47,6 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
 
   const poolId = pool?.poolId || pool?.member?.poolId as BN;//|| new BN(index);
 
-  const handleMorePoolInfoOpen = useCallback(() => {
-    setShowPoolInfo(true);
-  }, []);
-
-  const handleMorePoolInfoClose = useCallback(() => {
-    setShowPoolInfo(false);
-  }, []);
-
   useEffect(() => {
     if (!(api && pool)) return;
 
@@ -65,6 +56,14 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
     setStaked(staked);
   }, [api, pool, pool?.bondedPool?.points]);
 
+  const handleMorePoolInfoOpen = useCallback(() => {
+    setShowPoolInfo(true);
+  }, []);
+
+  const handleMorePoolInfoClose = useCallback(() => {
+    setShowPoolInfo(false);
+  }, []);
+  
   return (
     <Grid container sx={{ p: 0 }}>
       {pool !== undefined && api
@@ -90,11 +89,11 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                   <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
                     {t('Staked')}
                   </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={2}>
+                  <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 1 : 2}>
                     {t('Members')}
                   </Grid>
                   {showAction &&
-                    <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                    <Grid item sx={{ textAlign: 'center' }} xs={2}>
                       {t('Actions')}
                     </Grid>
                   }
@@ -123,16 +122,25 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                 <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
                   {staked?.toHuman() ?? 0}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={2}>
+                <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 1 : 2}>
                   {pool.bondedPool.memberCounter}
                 </Grid>
                 {showAction &&
-                  <Grid alignItems='center' container direction='row' item justifyContent='space-around' sx={{ textAlign: 'center' }} xs={1}>
+                  <Grid alignItems='center' container direction='row' item justifyContent='space-around' sx={{ textAlign: 'center' }} xs={2}>
                     <Grid item>
-                      <StopRoundedIcon color='secondary' fontSize='small' sx={{ cursor: 'pointer' }} />
+                      <Hint id='destroying' place='bottom' tip={t('destroy')}>
+                        <StopRoundedIcon color='secondary' fontSize='small' sx={{ cursor: 'pointer' }} />
+                      </Hint>
                     </Grid>
                     <Grid item>
-                      <BlockRoundedIcon color='warning' sx={{ cursor: 'pointer', fontSize: 13, pb: '0.8px' }} />
+                      <Hint id='block' place='bottom' tip={t('block')}>
+                        <BlockRoundedIcon color='warning' sx={{ cursor: 'pointer', fontSize: 13, pb: '0.8px' }} />
+                      </Hint>
+                    </Grid>
+                    <Grid item>
+                      <Hint id='open' place='bottom' tip={t('open')}>
+                        <PlayArrowRoundedIcon color='primary' fontSize='small' sx={{ cursor: 'pointer' }} />
+                      </Hint>
                     </Grid>
                   </Grid>
                 }

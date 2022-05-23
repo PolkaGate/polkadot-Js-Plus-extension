@@ -158,7 +158,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
       if (!info) {
         setNoNominatedValidators(true);
         setMyPool(null);
-        //setSelectedPool(null);
 
         return;
       }
@@ -500,7 +499,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   }, [handleConfirmStakingModaOpen, state]);
 
   const handleWithdrawUnbounded = useCallback(() => {
-    if (!redeemable) return;
+    if (!redeemable?.gtn(0)) return;
     if (!state) setState('withdrawUnbound');
     handleConfirmStakingModaOpen();
   }, [handleConfirmStakingModaOpen, redeemable, state]);
@@ -631,9 +630,11 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
             <PoolTab
               api={api}
               chain={chain}
-              myPool={myPool}
+              pool={myPool}
               poolsMembers={poolsMembers}
               staker={staker}
+              setState={setState}
+              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
             />
           </TabPanel>
           <TabPanel index={3} padding={1} value={tabValue}>
