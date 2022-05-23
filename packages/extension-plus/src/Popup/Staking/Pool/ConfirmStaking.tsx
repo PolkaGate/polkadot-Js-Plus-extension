@@ -6,14 +6,13 @@
 /**
  * @description here users confirm their staking related orders (e.g., stake, unstake, redeem, etc.)
  * */
+
 import type { Chain } from '@polkadot/extension-chains/types';
-import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { Balance } from '@polkadot/types/interfaces';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
-import { Avatar, Grid, IconButton, Link, Skeleton, Typography } from '@mui/material';
+import { Grid, IconButton, Skeleton, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -26,11 +25,10 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Hint, Password, PlusHeader, Popup, ShortAddress } from '../../../components';
+import { ConfirmButton, Hint, Password, PlusHeader, Popup } from '../../../components';
 import broadcast from '../../../util/api/broadcast';
-import { createPool, poolJoinOrBondExtra } from '../../../util/api/staking';
+import { createPool } from '../../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
-import getLogo from '../../../util/getLogo';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
 import ValidatorsList from '../Solo/ValidatorsList';
 import Pool from './Pool';
@@ -82,7 +80,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const validatorsToList = ['changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
   /** list of available trasaction types */
-  // const chilled = api.tx.staking.chill;
+  const chilled = api.tx.staking.chill;
   const poolSetState = api.tx.nominationPools.setState; // (poolId, state)
   const joined = api.tx.nominationPools.join; // (amount, poolId)
   const unbonded = api.tx.nominationPools.unbond;
@@ -90,6 +88,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const bondExtra = api.tx.nominationPools.bondExtra;
   const bond = api.tx.nominationPools.bond;
   const redeem = api.tx.nominationPools.withdrawUnbonded;
+  const poolWithdrawUnbonded = api.tx.nominationPools.poolWithdrawUnbonded;
   const claim = api.tx.nominationPools.claimPayout;
   const bonding = currentlyStaked ? bondExtra : bond;
 
@@ -199,6 +198,14 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         break;
       case ('withdrawUnbound'):
         params = [staker.address, 100]; /** 100 is a dummy number */
+
+        // api && pool && api.query.staking.ledger(pool.accounts.stashId).then((r) => {
+        //   const unlockingLen = r.unwrap().unlocking.length;
+        //   console.log('api.consts.staking.maxUnlockChunks', api.consts.staking.maxUnlockChunks);
+        // if (unlockingLen > api.consts.staking.maxUnlockChunks) {
+        //  call poolWithdrawUnbonded before redeem
+        // }
+        // })
 
         // eslint-disable-next-line no-void
         void redeem(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
@@ -540,7 +547,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     if (handlePoolStakingModalClose) handlePoolStakingModalClose();
   }, [handleCloseModal, handlePoolStakingModalClose, setSelectValidatorsModalOpen, setState]);
 
-  const writeAppropiateMessage = useCallback((state: string, note: string): React.ReactNode => {
+  const writeAppropiateMessage = useCallback((state: string, note?: string): React.ReactNode => {
     switch (state) {
       case ('unstake'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
@@ -558,6 +565,22 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       case ('stopNominating'):
         return <Typography sx={{ mt: '30px' }} variant='h6'>
           {t('Declaring no desire to nominate validators')}
+        </Typography>;
+      case ('createPool'):
+        return <Typography sx={{ mt: '30px' }} variant='h6'>
+          {t('{{ED}} will be bonded in Reward Id, and returned back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
+        </Typography>;
+      case ('blocked'):
+        return <Typography sx={{ mt: '30px' }} variant='body1'>
+          {t('The pool state will be changed to blocked, where no members can join and some admin roles can kick members')}
+        </Typography>;
+      case ('destroying'):
+        return <Typography sx={{ mt: '30px' }} variant='body1'>
+          {t('The pool state will be changed to destroying, where no members can join and all members can be permissionlessly removed. Once a pool is in destroying state, it cannot be reverted to another state')}
+        </Typography>;
+      case ('open'):
+        return <Typography sx={{ mt: '30px' }} variant='body1'>
+          {t('The pool state will be changed to open, where anyone can join the pool and no members can be permissionlessly removed')}
         </Typography>;
       default:
         return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>
@@ -663,11 +686,13 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
                     pool={pool}
                     poolsMembers={poolsMembers}
                   />
-                  {state === 'createPool' &&
+                  {/* {state === 'createPool' &&
                     <Grid item sx={{ m: '40px 30px', textAlign: 'center' }} xs={12}>
                       {t('{{ED}} will be bonded in Reward Id, and returned back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
                     </Grid>
-                  }
+                  } */}
+                  {writeAppropiateMessage(state)}
+
                 </Grid>
               </>
               : <>

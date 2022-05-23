@@ -40,10 +40,28 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
         <Divider light />
       </Grid>
 
-      <Grid container item sx={{ px: '5px' }} xs={12}>
+      <Grid container item sx={{ p: '15px 5px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('Minimum {{token}} needed to join a pool', { replace: { token: token } })}:
+          </Grid>
+          <Grid item>
+            <ShowBalance2 api={api} balance={info?.minJoinBond} />
+          </Grid>
+        </Grid>
+
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('The number of current pools')}:
+            {t('Minimum {{token}} needed to create a pool', { replace: { token: token } })}:
+          </Grid>
+          <Grid item>
+            <ShowBalance2 api={api} balance={info?.minCreateBond?.add(existentialDeposit)} />
+          </Grid>
+        </Grid>
+
+        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('The number of currenttly existing pools')}:
           </Grid>
           <Grid item>
             <ShowValue value={info?.lastPoolId} />
@@ -61,7 +79,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
 
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Maximum pool members')}:
+            {t('Maximum possible pool members')}:
           </Grid>
           <Grid item>
             <ShowValue value={info?.maxPoolMembers === -1 ? t('unlimited') : info?.maxPoolMembers} />
@@ -77,30 +95,14 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
           </Grid>
         </Grid>
 
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <Grid item>
-            {t('Minimum to create a pool')}:
-          </Grid>
-          <Grid item>
-            <ShowBalance2 api={api} balance={info?.minCreateBond?.add(existentialDeposit)} />
-          </Grid>
-        </Grid>
-        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <Grid item>
-            {t('Minimum to join a pool')}:
-          </Grid>
-          <Grid item>
-            <ShowBalance2 api={api} balance={info?.minJoinBond} />
-          </Grid>
-        </Grid>
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        {/* <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('Minimum nominator bond')}:
           </Grid>
           <Grid item>
             <ShowBalance2 api={api} balance={info?.minNominatorBond} />
           </Grid>
-        </Grid>
+        </Grid> */}
       </Grid>
     </Grid>
   );

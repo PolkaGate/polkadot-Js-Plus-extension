@@ -57,6 +57,8 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   const [minStakeable, setMinStakeable] = useState<number>(0);
   const [maxStakeable, setMaxStakeable] = useState<number>(0);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
+  const [estimatedMaxFee, setEstimatedMaxFee] = useState<Balance | undefined>();
+
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>(defaultPool);
 
@@ -98,11 +100,15 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
     api && api.tx.nominationPools.join(String(realStakingAmount), selectedPool?.poolId ?? BN_ONE).paymentInfo(staker.address).then((i) => {
       setEstimatedFee(api.createType('Balance', i?.partialFee));
     });
-  }, [api, staker.address, realStakingAmount, selectedPool]);
+
+    api && api.tx.nominationPools.join(String(staker?.balanceInfo?.available ?? realStakingAmount), selectedPool?.poolId ?? BN_ONE).paymentInfo(staker.address).then((i) => {
+      setEstimatedMaxFee(api.createType('Balance', i?.partialFee));
+    });
+  }, [api, staker.address, realStakingAmount, selectedPool, staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedFee || !staker?.balanceInfo?.available) return;
-    const max = new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedFee));
+    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) return;
+    const max = new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedMaxFee));
     const min = poolStakingConsts.minJoinBond;
 
     let maxInHuman = Number(amountToHuman(max.toString(), decimals));
@@ -117,7 +123,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
 
     setMaxStakeable(maxInHuman);
     setMinStakeable(minInHuman);
-  }, [api, availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit, estimatedFee, staker?.balanceInfo?.available, t]);
+  }, [api, availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit, staker?.balanceInfo?.available, t, estimatedMaxFee]);
 
   useEffect(() => {
     poolsInfo?.length && selectedPool && setPool(selectedPool);

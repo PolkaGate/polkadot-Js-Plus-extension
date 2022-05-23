@@ -11,16 +11,15 @@
 import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
-import { BlockRounded as BlockRoundedIcon, MoreVert as MoreVertIcon, PlayArrowRounded as PlayArrowRoundedIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
 
+import { BlockRounded as BlockRoundedIcon, ExpandMore, PlayArrowRounded as PlayArrowRoundedIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Button, Grid, Paper } from '@mui/material';
-import React, { useEffect, useState, useCallback } from 'react';
+import { grey } from '@mui/material/colors';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress, ShowAddress } from '../../../components';
 import Pool from './Pool';
-import { ExpandMore } from '@mui/icons-material';
-import { grey } from '@mui/material/colors';
 
 interface Props {
   chain: Chain;
@@ -35,13 +34,7 @@ interface Props {
 function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showAction, setShowAction] = useState<boolean | undefined>();
-  const [points, setPoints] = useState<string | undefined>();
   const [expanded, setExpanded] = useState<string>('roles');
-
-  const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
-  const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
-  const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
-  const rewardClaimable = pool?.rewardClaimable && api ? api.createType('Balance', pool.rewardClaimable) : undefined;
 
   const handleAccordionChange = useCallback((panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : '');
@@ -54,21 +47,6 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
     setState(state);
     handleConfirmStakingModaOpen();
   }, [api, handleConfirmStakingModaOpen, setState]);
-
-  useEffect(() => {
-    if (!(api && pool)) return;
-
-    let poolPoints = pool.rewardPool.points ?? 0;
-
-    if (poolPoints) {
-      const temp = api.createType('Balance', poolPoints).toHuman();
-      const token = api.registry.chainTokens[0];
-
-      poolPoints = temp.replace(token, '');
-    }
-
-    setPoints(poolPoints);
-  }, [api, pool]);
 
   useEffect(() => {
     if (!pool) return;
@@ -122,8 +100,9 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
 
             {showAction &&
               <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px' }} xs={12}>
-                <Grid item xs={3}>
+                <Grid item>
                   <Button
+                    disabled={pool?.bondedPool?.state?.toLowerCase() === 'destroying'}
                     onClick={() => handleStateChange('destroying')}
                     size='medium'
                     startIcon={<StopRoundedIcon />}
@@ -133,8 +112,9 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
                     {t('Destroy')}
                   </Button>
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item>
                   <Button
+                    disabled={['blocked', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
                     onClick={() => handleStateChange('blocked')}
                     size='medium'
                     startIcon={<BlockRoundedIcon />}
@@ -145,9 +125,10 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
                   </Button>
                 </Grid>
 
-                <Grid item sx={{ textAlign: 'right' }} xs={3}>
+                <Grid item>
                   <Button
                     color='warning'
+                    disabled={['open', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
                     onClick={() => handleStateChange('open')}
                     size='medium'
                     startIcon={<PlayArrowRoundedIcon />}
@@ -166,7 +147,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
           </Grid>
         : <Progress title={t('Loading ...')} />
       }
-    </Grid >
+    </Grid>
 
   );
 }

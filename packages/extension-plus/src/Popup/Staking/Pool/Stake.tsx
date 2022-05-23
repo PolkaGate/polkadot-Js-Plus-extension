@@ -171,10 +171,12 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
   }, [stakeAmountInHuman, t, minStakeable, staker?.balanceInfo?.available, decimals]);
 
   const handleMinStakeClicked = useCallback(() => {
+    if (myPool?.bondedPool?.state?.toLowerCase() !== 'open') { return; }
     handleStakeAmountInput(String(minStakeable));
   }, [handleStakeAmountInput, minStakeable]);
 
   const handleMaxStakeClicked = useCallback(() => {
+    if (myPool?.bondedPool?.state?.toLowerCase() !== 'open') { return; }
     handleStakeAmountInput(String(maxStakeable));
   }, [handleStakeAmountInput, maxStakeable]);
 
@@ -258,7 +260,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
     <>
       {currentlyStakedInHuman === undefined
         ? <Progress title={'Loading ...'} />
-        : (currentlyStakedInHuman === null || currentlyStakedInHuman === '0') && !myPool 
+        : (currentlyStakedInHuman === null || currentlyStakedInHuman === '0') && !myPool
           ? <StakeInitialChoice />
           : <>
             <Grid container sx={{ height: '222px' }}>
@@ -268,6 +270,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
                   InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
                   autoFocus
                   color='warning'
+                  disabled={myPool?.bondedPool?.state?.toLowerCase() !== 'open'}
                   error={zeroBalanceAlert}
                   fullWidth
                   helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
@@ -312,9 +315,14 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
                   }
                 </Grid>
                 {myPool?.member?.poolId
-                  ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-                    {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
-                  </Grid>
+                  ? myPool?.bondedPool?.state?.toLowerCase() === 'open'
+                    ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+                      {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
+                    </Grid>
+                    : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+                      {t('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.',
+                        { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name', state: myPool?.bondedPool?.state } })}
+                    </Grid>
                   : <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
                     <PoolSelectionRadionButtons />
                   </Grid>
