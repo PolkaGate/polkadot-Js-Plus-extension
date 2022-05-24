@@ -270,7 +270,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
                   InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
                   autoFocus
                   color='warning'
-                  disabled={myPool?.bondedPool?.state?.toLowerCase() !== 'open'}
+                  disabled={myPool?.bondedPool?.state?.toLowerCase() === 'destroying'}
                   error={zeroBalanceAlert}
                   fullWidth
                   helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}

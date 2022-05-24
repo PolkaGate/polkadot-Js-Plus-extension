@@ -185,7 +185,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           void unbonded(...params).paymentInfo(staker.address).then((i) => {
             const fee = i?.partialFee;
 
-            if (unlockingLen < api.consts.staking.maxUnlockingChunks) {
+            if (unlockingLen > api.consts.staking.maxUnlockingChunks) {
               const dummyParams = [1, 1];
 
               // eslint-disable-next-line no-void

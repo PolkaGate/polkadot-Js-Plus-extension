@@ -376,7 +376,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   useEffect(() => {
     if (myPool === undefined || !decimals) { return; }
 
-    if (myPool === null) { return setCurrentlyStakedInHuman('0'); }
+    if (myPool === null || myPool?.bondedPool?.points === 0) { return setCurrentlyStakedInHuman('0'); }
 
     const staked = new BN(myPool.member.points).mul(new BN(myPool.stashIdAccount.stakingLedger.active)).div(new BN(myPool.bondedPool.points));
 
