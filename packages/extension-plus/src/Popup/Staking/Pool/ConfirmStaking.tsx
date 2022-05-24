@@ -305,6 +305,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         return 'CLAIM';
       case ('stopNominating'):
         return 'STOP NOMINATING';
+      case ('blocked'):
+        return 'BLOCKING';
       default:
         return state.toUpperCase();
     }

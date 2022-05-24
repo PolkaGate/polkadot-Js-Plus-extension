@@ -105,7 +105,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
                     disabled={pool?.bondedPool?.state?.toLowerCase() === 'destroying'}
                     onClick={() => handleStateChange('destroying')}
                     size='medium'
-                    startIcon={<AutoDeleteRoundedIcon sx={{ fontSize: 13 }} />}
+                    startIcon={<AutoDeleteRoundedIcon fontSize='small' />}
                     sx={{ color: 'red', textTransform: 'none' }}
                     variant='text'
                   >
@@ -117,7 +117,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
                     disabled={['blocked', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
                     onClick={() => handleStateChange('blocked')}
                     size='medium'
-                    startIcon={<BlockRoundedIcon sx={{ fontSize: 13 }} />}
+                    startIcon={<BlockRoundedIcon />}
                     sx={{ color: 'black', textTransform: 'none' }}
                     variant='text'
                   >
@@ -131,7 +131,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
                     disabled={['open', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
                     onClick={() => handleStateChange('open')}
                     size='medium'
-                    startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 15 }} />}
+                    startIcon={<PlayArrowRoundedIcon />}
                     sx={{ textTransform: 'none' }}
                     variant='text'
                   >
