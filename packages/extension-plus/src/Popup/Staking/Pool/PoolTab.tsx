@@ -12,7 +12,7 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { BlockRounded as BlockRoundedIcon, ExpandMore, PlayArrowRounded as PlayArrowRoundedIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
+import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, ExpandMore, PlayArrowRounded as PlayArrowRoundedIcon } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Button, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -105,7 +105,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
                     disabled={pool?.bondedPool?.state?.toLowerCase() === 'destroying'}
                     onClick={() => handleStateChange('destroying')}
                     size='medium'
-                    startIcon={<StopRoundedIcon />}
+                    startIcon={<AutoDeleteRoundedIcon fontSize='small' />}
                     sx={{ color: 'red', textTransform: 'none' }}
                     variant='text'
                   >

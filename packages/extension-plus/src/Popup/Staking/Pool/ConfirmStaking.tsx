@@ -13,7 +13,7 @@ import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, StakingConsts, T
 
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Grid, IconButton, Skeleton, Typography } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { grey, red } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -82,6 +82,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   /** list of available trasaction types */
   const chilled = api.tx.staking.chill;
   const poolSetState = api.tx.nominationPools.setState; // (poolId, state)
+  const create = api.tx.nominationPools.create;
+  const setMetadata = api.tx.nominationPools.setMetadata;
   const joined = api.tx.nominationPools.join; // (amount, poolId)
   const unbonded = api.tx.nominationPools.unbond;
   const nominated = api.tx.nominationPools.nominate;
@@ -157,14 +159,15 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
         break;
       case ('createPool'):
+        params = [surAmount, ...Object.values(pool.bondedPool.roles).slice(1)];
 
         // eslint-disable-next-line no-void
-        api && api.tx.nominationPools.create(surAmount, ...Object.values(pool.bondedPool.roles).slice(1)).paymentInfo(staker.address).then((i) => {
+        void create(...params).paymentInfo(staker.address).then((i) => {
           const createFee = i?.partialFee;
 
-          api.tx.nominationPools.setMetadata(pool.poolId, pool.metadata).paymentInfo(staker.address)
-            .then((i) => setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))))
-            .catch(console.error);
+          // eslint-disable-next-line no-void
+          void setMetadata(pool.poolId, pool.metadata).paymentInfo(staker.address).then((i) =>
+            setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))));
         });
 
         setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
@@ -173,16 +176,33 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         params = [staker?.address, surAmount];
 
         // eslint-disable-next-line no-void
-        void unbonded(...params).paymentInfo(staker.address).then((i) => {
-          const fee = i?.partialFee;
+        pool?.accounts && void api.query.staking.ledger(pool.accounts.stashId).then((r) => {
+          const unlockingLen = r.unwrap().unlocking.length;
 
-          // if (surAmount === currentlyStaked) {
-          //   // eslint-disable-next-line no-void
-          //   void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
-          // } else { 
-          setEstimatedFee(fee);
-          // }
+          console.log('unlockingLen', unlockingLen); console.log('maxUnlockingChunks', api.consts.staking.maxUnlockingChunks.toNumber());
+
+          // eslint-disable-next-line no-void
+          void unbonded(...params).paymentInfo(staker.address).then((i) => {
+            const fee = i?.partialFee;
+
+            if (unlockingLen < api.consts.staking.maxUnlockingChunks) {
+              const dummyParams = [1, 1];
+
+              // eslint-disable-next-line no-void
+              void poolWithdrawUnbonded(...dummyParams).paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
+            } else {
+              setEstimatedFee(fee);
+            }
+
+            // if (surAmount === currentlyStaked) {
+            //   // eslint-disable-next-line no-void
+            //   void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
+            // } else { 
+            // setEstimatedFee(fee);
+            // }
+          });
         });
+
         setTotalStakedInHuman(amountToHuman((currentlyStaked.sub(surAmount)).toString(), decimals));
         break;
       // case ('stopNominating'):
@@ -198,14 +218,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         break;
       case ('withdrawUnbound'):
         params = [staker.address, 100]; /** 100 is a dummy number */
-
-        // api && pool && api.query.staking.ledger(pool.accounts.stashId).then((r) => {
-        //   const unlockingLen = r.unwrap().unlocking.length;
-        //   console.log('api.consts.staking.maxUnlockChunks', api.consts.staking.maxUnlockChunks);
-        // if (unlockingLen > api.consts.staking.maxUnlockChunks) {
-        //  call poolWithdrawUnbonded before redeem
-        // }
-        // })
 
         // eslint-disable-next-line no-void
         void redeem(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
@@ -228,7 +240,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     // return () => {
     //   setEstimatedFee(undefined);
     // };
-  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, decimals, pool, joined, poolId, claim, poolSetState]);
+  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, decimals, pool, joined, poolId, claim, poolSetState, create, setMetadata, poolWithdrawUnbonded]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
@@ -300,7 +312,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
   const handleConfirm = async (): Promise<void> => {
     const localState = state;
-    const history: TransactionDetail[] = []; /** collect all records to save in the local history at the end */
+    const history: TransactionDetail[] = []; /** collects all records to save in the local history at the end */
 
     try {
       setConfirmingState('confirming');
@@ -310,7 +322,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      if (['joinPool'].includes(localState) && surAmount !== BN_ZERO) {
+      if (localState === 'joinPool' && surAmount !== BN_ZERO) {
         const params = [surAmount, poolId];
         const { block, failureText, fee, status, txHash } = await broadcast(api, joined, params, signer, staker.address);
 
@@ -329,7 +341,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      if (['bondExtra'].includes(localState) && surAmount !== BN_ZERO) {
+      if (localState === 'bondExtra' && surAmount !== BN_ZERO) {
         const params = [{ FreeBalance: surAmount }];
         const { block, failureText, fee, status, txHash } = await broadcast(api, bondExtra, params, signer, staker.address);
 
@@ -348,7 +360,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      if (['createPool'].includes(localState) && surAmount !== BN_ZERO) {
+      if (localState === 'createPool' && surAmount !== BN_ZERO) {
         const { block, failureText, fee, status, txHash } = await createPool(api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool.metadata);
 
         history.push({
@@ -366,31 +378,19 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      // if (['changeValidators', 'joinPool', 'createPool', 'setNominees'].includes(localState)) {
       if (['changeValidators', 'setNominees'].includes(localState) && poolId) {
-        // if (localState === 'joinPool') {
-        //   if (!selectedValidators) { // TODO: does it realy happen!
-        //     console.log('! there is no selectedValidators to bond at StakeAuto, so might do bondExtera');
+        if (localState === 'changeValidators') {
+          if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
+            console.log('selected and previously nominated validators are the same, no need to renominate');
 
-        //     if (hasAlreadyBonded) {
-        //       setConfirmingState('success');
-        //     } else {
-        //       setConfirmingState('failed');
-        //     }
+            setConfirmingState('success');
 
-        //     return;
-        //   }
+            return;
+          }
+        }
 
-        //   if (isEqual(selectedValidatorsAccountId, nominatedValidatorsId)) {
-        //     console.log('selected and previously nominated validators are the same, no need to renominate');
-
-        //     setConfirmingState('success');
-
-        //     return;
-        //   }
-        // }
-
-        const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, [poolId, selectedValidatorsAccountId], signer, staker.address);
+        const params = [poolId, selectedValidatorsAccountId];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, params, signer, staker.address);
 
         history.push({
           action: 'pool_nominate',
@@ -571,15 +571,15 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           {t('{{ED}} will be bonded in Reward Id, and returned back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
         </Typography>;
       case ('blocked'):
-        return <Typography sx={{ mt: '30px' }} variant='body1'>
+        return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
           {t('The pool state will be changed to blocked, where no members can join and some admin roles can kick members')}
         </Typography>;
       case ('destroying'):
-        return <Typography sx={{ mt: '30px' }} variant='body1'>
-          {t('The pool state will be changed to destroying, where no members can join and all members can be permissionlessly removed. Once a pool is in destroying state, it cannot be reverted to another state')}
+        return <Typography sx={{ color: red[700], mt: '30px' }} variant='body1'>
+          {t('No members can join and all members can be permissionlessly removed. Once a pool is in destroying state, it cannot be reverted to another state')}
         </Typography>;
       case ('open'):
-        return <Typography sx={{ mt: '30px' }} variant='body1'>
+        return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
           {t('The pool state will be changed to open, where anyone can join the pool and no members can be permissionlessly removed')}
         </Typography>;
       default:
@@ -605,9 +605,9 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       const modifiedPool = pool;
 
       modifiedPool.bondedPool.points = adjustedAmount;
-      setNewPool(modifiedPool);
+      setNewPool && setNewPool(modifiedPool);
     }
-  }, [existentialDeposit, estimatedFee, availableBalance]);
+  }, [existentialDeposit, estimatedFee, availableBalance, pool, setNewPool]);
 
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmStakingModal}>
@@ -679,20 +679,16 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
                 <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
                   {t('Pool')}
                 </Grid>
-                <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
+                <Grid container item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
                   <Pool
                     api={api}
                     chain={chain}
                     pool={pool}
                     poolsMembers={poolsMembers}
                   />
-                  {/* {state === 'createPool' &&
-                    <Grid item sx={{ m: '40px 30px', textAlign: 'center' }} xs={12}>
-                      {t('{{ED}} will be bonded in Reward Id, and returned back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
-                    </Grid>
-                  } */}
-                  {writeAppropiateMessage(state)}
-
+                  <Grid item sx={{ m: '30px 30px', textAlign: 'center' }} xs={12}>
+                    {writeAppropiateMessage(state)}
+                  </Grid>
                 </Grid>
               </>
               : <>
