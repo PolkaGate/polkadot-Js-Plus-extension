@@ -19,6 +19,7 @@ import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolSt
 
 import { AddCircleRounded as AddCircleRoundedIcon, GroupWorkOutlined, PersonAddAlt1Rounded as PersonAddAlt1RoundedIcon } from '@mui/icons-material';
 import { Button, Divider, Grid, InputAdornment, Tab, Tabs, TextField } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -32,10 +33,9 @@ import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-cr
 import { BackButton, NextStepButton } from '../../../../../extension-ui/src/components';
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { AllAddresses2, PlusHeader, Popup, ShowAddress, ShowBalance2, ShowValue } from '../../../components';
+import { AddressInput, PlusHeader, Popup, ShowAddress, ShowBalance2, ShowValue } from '../../../components';
 import { EXTENSION_NAME } from '../../../util/constants';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
-import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -315,16 +315,16 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
 
           <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '25px 40px 5px' }}>
             <Grid item xs={12}>
-              <AllAddresses2 api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
+              <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
             </Grid>
             <Grid item xs={12}>
-              <AllAddresses2 api={api} chain={chain} disabled freeSolo selectedAddress={rootId} setSelectedAddress={setRootId} title={t('Root')} />
+              <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={rootId} setSelectedAddress={setRootId} title={t('Root')} />
             </Grid>
             <Grid item xs={12}>
-              <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={nominatorId} setSelectedAddress={setNominatorId} title={t('Nominator')} />
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={nominatorId} setSelectedAddress={setNominatorId} title={t('Nominator')} />
             </Grid>
             <Grid item xs={12}>
-              <AllAddresses2 api={api} chain={chain} freeSolo selectedAddress={stateTogglerId} setSelectedAddress={setStateTogglerId} title={t('State toggler')} />
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={stateTogglerId} setSelectedAddress={setStateTogglerId} title={t('State toggler')} />
             </Grid>
           </Grid>
 
