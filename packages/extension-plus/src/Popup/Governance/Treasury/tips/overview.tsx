@@ -142,6 +142,20 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
                     />
                   </Link>
                 </Grid>
+                <Grid item>
+                  <Link
+                    href={`https://${chainName}.polkassembly.io/tip/${tip?.hash}`}
+                    rel='noreferrer'
+                    target='_blank'
+                    underline='none'
+                  >
+                    <Avatar
+                      alt={'polkassembly'}
+                      src={getLogo('polkassembly')}
+                      sx={{ height: 15, width: 15 }}
+                    />
+                  </Link>
+                </Grid>
               </Grid>
 
               <Grid item sx={{ fontSize: 12 }} xs={12}>
