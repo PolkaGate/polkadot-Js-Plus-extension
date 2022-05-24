@@ -3,6 +3,10 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+/** 
+ * @description this component is used to submit a treasury proposal
+*/
+
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, InputAdornment, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -15,7 +19,7 @@ import { Chain } from '../../../../../../extension-chains/src/types';
 import { AccountContext } from '../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../../extension-ui/src/messaging';
-import { AllAddresses, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
+import { AddressInput, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
@@ -36,7 +40,7 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
 
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
-  const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');
+  const [beneficiaryAddress, setBeneficiaryAddress] = useState<string | undefined>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
@@ -82,15 +86,16 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   }, [beneficiaryAddress, encodedAddressInfo, tx, value]);
 
   useEffect(() => {
-    if (!estimatedFee || !value || !availableBalance || !bondPercentage) { setIsDisabled(true); }
-    else {
+    if (!estimatedFee || !value || !availableBalance || !bondPercentage || !beneficiaryAddress) {
+      setIsDisabled(true);
+    } else {
       /** account must have available balance to bond */
       const valuePercentage = BigInt(bondPercentage) * value / 100n;
       const minBond = valuePercentage > proposalBondMinimum.toBigInt() ? valuePercentage : proposalBondMinimum.toBigInt();
 
       setIsDisabled(minBond + estimatedFee.toBigInt() >= availableBalance.toBigInt());
     }
-  }, [availableBalance, bondPercentage, decimals, estimatedFee, proposalBondMinimum, value]);
+  }, [availableBalance, bondPercentage, decimals, estimatedFee, proposalBondMinimum, value, beneficiaryAddress]);
 
   const handleConfirm = useCallback(async (): Promise<void> => {
     try {
@@ -168,8 +173,8 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <Grid item sx={{ pt: 3 }} xs={12}>
-        <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
+      <Grid item sx={{ p: '24px 40px 1px' }} xs={12}>
+        <AddressInput api={chainInfo.api} chain={chain} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
       </Grid>
 
       <Grid item sx={{ p: '15px 40px' }} xs={12}>

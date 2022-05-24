@@ -35,7 +35,7 @@ interface nameAddress {
   address: string;
 }
 
-export default function AllAddresses2({ api, availableBalance, chain, disabled = false, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
+export default function AddressInput({ api, availableBalance, chain, disabled = false, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);

@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-export { default as AllAddresses } from './AllAddresses';
-export { default as AllAddresses2 } from './AllAddresses2';
+export { default as AddressInput } from './AddressInput';
 export { default as Balance } from './Balance';
 export { default as ConfirmButton } from './ConfirmButton';
 export { default as Hint } from './Hint';

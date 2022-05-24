@@ -13,7 +13,7 @@ import { Chain } from '../../../extension-chains/src/types';
 import { AccountContext, SettingsContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { ChainInfo } from '../util/plusTypes';
-import { amountToHuman, handleAccountBalance } from '../util/plusUtils';
+import { amountToHuman } from '../util/plusUtils';
 
 interface Props {
   chain: Chain;

@@ -6,6 +6,7 @@
 /** 
  * @description this component is used to propose a treasury tip
 */
+
 import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
 import { Grid, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -17,7 +18,7 @@ import { Chain } from '../../../../../../extension-chains/src/types';
 import { AccountContext } from '../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../../extension-ui/src/messaging';
-import { AllAddresses, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
+import { AddressInput, ConfirmButton, Participator, Password, PlusHeader, Popup, ShowBalance } from '../../../../components';
 import Hint from '../../../../components/Hint';
 import broadcast from '../../../../util/api/broadcast';
 import { PASS_MAP } from '../../../../util/constants';
@@ -38,7 +39,7 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
 
   const [availableBalance, setAvailableBalance] = useState<Balance | undefined>();
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
-  const [beneficiaryAddress, setBeneficiaryAddress] = useState<string>('');
+  const [beneficiaryAddress, setBeneficiaryAddress] = useState<string | undefined>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
@@ -151,8 +152,8 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
 
-      <Grid item sx={{ pt: 3 }} xs={12}>
-        <AllAddresses chain={chain} chainInfo={chainInfo} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
+      <Grid item sx={{ p: '24px 40px 1px' }} xs={12}>
+        <AddressInput api={chainInfo.api} chain={chain} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
       </Grid>
 
       <Grid item sx={{ p: '10px 40px' }} xs={12}>
