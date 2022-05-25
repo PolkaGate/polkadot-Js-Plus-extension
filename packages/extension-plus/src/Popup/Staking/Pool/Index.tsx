@@ -630,11 +630,11 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
             <PoolTab
               api={api}
               chain={chain}
+              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               pool={myPool}
               poolsMembers={poolsMembers}
-              staker={staker}
               setState={setState}
-              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              staker={staker}
             />
           </TabPanel>
           <TabPanel index={3} padding={1} value={tabValue}>

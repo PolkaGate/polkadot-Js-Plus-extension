@@ -43,7 +43,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
       <Grid container item sx={{ p: '15px 5px' }} xs={12}>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Minimum {{token}} needed to join a pool', { replace: { token: token } })}:
+            {t('Minimum {{token}}s needed to join a pool', { replace: { token: token } })}:
           </Grid>
           <Grid item>
             <ShowBalance2 api={api} balance={info?.minJoinBond} />
@@ -52,14 +52,14 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
 
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Minimum {{token}} needed to create a pool', { replace: { token: token } })}:
+            {t('Minimum {{token}}s needed to create a pool', { replace: { token: token } })}:
           </Grid>
           <Grid item>
             <ShowBalance2 api={api} balance={info?.minCreateBond?.add(existentialDeposit)} />
           </Grid>
         </Grid>
 
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('The number of currenttly existing pools')}:
           </Grid>
@@ -68,7 +68,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
           </Grid>
         </Grid>
 
-        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('Maximum possible pools')}:
           </Grid>
@@ -77,7 +77,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
           </Grid>
         </Grid>
 
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('Maximum possible pool members')}:
           </Grid>
@@ -86,16 +86,17 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
           </Grid>
         </Grid>
 
-        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <Grid item>
-            {t('Maximum pool members per pool')}:
+        {info && info?.maxPoolMembersPerPool !== -1 &&
+          <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+            <Grid item>
+              {t('Maximum pool members per pool')}:
+            </Grid>
+            <Grid item>
+              <ShowValue value={info?.maxPoolMembersPerPool} />
+            </Grid>
           </Grid>
-          <Grid item>
-            <ShowValue value={info?.maxPoolMembersPerPool === -1 ? t('unlimited') : info?.maxPoolMembersPerPool} />
-          </Grid>
-        </Grid>
-
-        {/* <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+        }
+        {/* <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200],fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('Minimum nominator bond')}:
           </Grid>

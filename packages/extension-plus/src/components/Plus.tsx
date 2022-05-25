@@ -7,6 +7,7 @@
  * @description This is the main component which conects plus to original extension,
  * and make most of the new functionalities avilable
 */
+import type { TFunction } from 'i18next';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { ThemeProps } from '../../../extension-ui/src/types';
@@ -23,14 +24,12 @@ import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
 import { AccountContext } from '../../../extension-ui/src/components/contexts';
-import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../extension-ui/src/messaging';
 import useApi from '../hooks/useApi';
 import useCleanUp from '../hooks/useCleanUp';
 import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
-import EasyStaking from '../Popup/Staking';
 import StakingIndex from '../Popup/Staking/StakingIndex';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
@@ -46,6 +45,7 @@ interface Props {
   className?: string;
   name: string;
   givenType?: KeypairType;
+  t: TFunction;
 }
 
 interface Subscription {
@@ -54,8 +54,7 @@ interface Subscription {
 }
 const defaultSubscribtion = { chainName: '', endpoint: '' };
 
-function Plus({ address, chain, formattedAddress, givenType, name }: Props): React.ReactElement<Props> {
-  const { t } = useTranslation();
+function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): React.ReactElement<Props> {
   const { accounts } = useContext(AccountContext);
   const endpoint = useEndPoint(accounts, address, chain);
   const api = useApi(endpoint);
@@ -157,10 +156,8 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
     if (!chain) return;
 
     if (supported(chain) && endpoint) {
-      // * get ledger info, including users currently staked, locked, etc
       getLedger();
 
-      // ** get redeemable amount
       getRedeemable();
     }
   }, [getLedger, getRedeemable, chain, endpoint]);
@@ -212,8 +209,6 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
 
     if ((balanceChangeSubscribtion.chainName && balanceChangeSubscribtion.chainName !== chain?.name) ||
       (balanceChangeSubscribtion.endpoint && balanceChangeSubscribtion.endpoint !== endpoint)) {
-      // console.log(`balanceChangeSubscribtion.chainName:${balanceChangeSubscribtion.chainName} chain?.name:${chain?.name}`);
-      // console.log(` balanceChangeSubscribtion.endpoint:${ balanceChangeSubscribtion.endpoint} endpoint:${endpoint}`);
 
       subscribeToBalanceChanges();
     }
@@ -410,7 +405,6 @@ function Plus({ address, chain, formattedAddress, givenType, name }: Props): Rea
           api={api}
           chain={chain}
           ledger={ledger}
-          name={name}
           redeemable={redeemable}
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
