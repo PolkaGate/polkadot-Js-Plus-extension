@@ -171,13 +171,13 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
   }, [stakeAmountInHuman, t, minStakeable, staker?.balanceInfo?.available, decimals]);
 
   const handleMinStakeClicked = useCallback(() => {
-    if (myPool?.bondedPool?.state?.toLowerCase() !== 'open') { return; }
+    if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
 
     handleStakeAmountInput(String(minStakeable));
   }, [handleStakeAmountInput, minStakeable, myPool?.bondedPool?.state]);
 
   const handleMaxStakeClicked = useCallback(() => {
-    if (myPool?.bondedPool?.state?.toLowerCase() !== 'open') { return; }
+    if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
 
     handleStakeAmountInput(String(maxStakeable));
   }, [handleStakeAmountInput, maxStakeable, myPool?.bondedPool?.state]);
@@ -305,7 +305,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
                     : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
                   }
                 </Grid>
-                {myPool?.member?.poolId && myPool?.bondedPool?.state?.toLowerCase() === 'open'
+                {myPool?.member?.poolId && myPool?.bondedPool?.state?.toLowerCase() !== 'destroying'
                   ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
                     {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
                   </Grid>
