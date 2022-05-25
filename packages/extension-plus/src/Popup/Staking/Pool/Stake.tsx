@@ -21,7 +21,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Progress } from '../../../components';
+import { Progress, ShowBalance2 } from '../../../components';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
 import CreatePool from './CreatePool';
 import JoinPool from './JoinPool';
@@ -172,13 +172,15 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
 
   const handleMinStakeClicked = useCallback(() => {
     if (myPool?.bondedPool?.state?.toLowerCase() !== 'open') { return; }
+
     handleStakeAmountInput(String(minStakeable));
-  }, [handleStakeAmountInput, minStakeable]);
+  }, [handleStakeAmountInput, minStakeable, myPool?.bondedPool?.state]);
 
   const handleMaxStakeClicked = useCallback(() => {
     if (myPool?.bondedPool?.state?.toLowerCase() !== 'open') { return; }
+
     handleStakeAmountInput(String(maxStakeable));
-  }, [handleStakeAmountInput, maxStakeable]);
+  }, [handleStakeAmountInput, maxStakeable, myPool?.bondedPool?.state]);
 
   const StyledBadge = styled(Badge)(({ theme }) => ({
     '& .MuiBadge-badge': {
@@ -210,50 +212,39 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
   }));
 
   const StakeInitialChoice = () => (
-    <Stack direction='row' justifyContent='center' spacing={8} sx={{ pt: 5 }}>
-      <StyledBadge
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        overlap='circular'
-        variant='dot'
-      >
-        <Avatar onClick={handleJoinPool} sx={{ bgcolor: '#1c4a5a', color: '#ffb057', cursor: 'pointer', height: 110, width: 110 }}>{t('Join pool')}</Avatar>
-      </StyledBadge>
-      <Avatar onClick={handleCreatePool} sx={{ bgcolor: '#ffb057', color: '#1c4a5a', cursor: 'pointer', height: 110, width: 110 }}>{t('Create pool')}</Avatar>
-    </Stack>
-
-  );
-
-  const PoolSelectionRadionButtons = () => (
-    <FormControl fullWidth>
-      <Grid alignItems='center' container justifyContent='center'>
-        <Grid item sx={{ fontSize: 12 }} xs={3}>
-          <FormLabel sx={{ color: 'black', fontSize: 12, fontWeight: '500' }}>{t('Pool selection')}:</FormLabel>
+    <Grid container justifyContent='center' sx={{ pt: 5 }}>
+      <Grid container item justifyContent='center' spacing={0.5} sx={{ fontSize: 12 }} xs={6}>
+        <Grid item sx={{ pb: 1, textAlign: 'center' }} xs={12}>
+          <StyledBadge
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            overlap='circular'
+            variant='dot'
+          >
+            <Avatar onClick={handleJoinPool} sx={{ bgcolor: '#1c4a5a', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#ffb057', cursor: 'pointer', height: 110, width: 110 }}>{t('Join pool')}</Avatar>
+          </StyledBadge>
         </Grid>
-        <Grid item sx={{ textAlign: 'right' }} xs={9}>
-          <RadioGroup defaultValue='Auto' onChange={handleValidatorSelectionType} row value={validatorSelectionType}>
-            <FormControlLabel
-              control={<Radio sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
-              disabled={myPool === undefined}
-              label={
-                <Box fontSize={12}> {t('Auto')}
-                  <Box component='span' sx={{ color: 'gray' }}>
-                    ({t('best return')})
-                  </Box>
-                </Box>
-              }
-              value='Auto'
-            />
-            <FormControlLabel
-              control={<Radio sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
-              disabled={myPool === undefined}
-              label={<Box fontSize={12}> {t('Manual')} </Box>}
-              sx={{ fontSize: 12 }}
-              value='Manual'
-            />
-          </RadioGroup>
+        <Grid item>
+          {t('Min to join')}:
+        </Grid>
+        <Grid item>
+          <ShowBalance2 api={api} balance={poolStakingConsts?.minJoinBond} />
         </Grid>
       </Grid>
-    </FormControl>
+
+      <Grid container item justifyContent='center' spacing={0.5} sx={{ fontSize: 12 }} xs={6}>
+        <Grid container item justifyContent='center' sx={{ pb: 1 }} xs={12}>
+          <Grid item>
+            <Avatar onClick={handleCreatePool} sx={{ bgcolor: '#ffb057', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#1c4a5a', cursor: 'pointer', height: 110, width: 110 }}>{t('Create pool')}</Avatar>
+          </Grid>
+        </Grid>
+        <Grid item>
+          {t('Min to create')}:
+        </Grid>
+        <Grid item>
+          <ShowBalance2 api={api} balance={poolStakingConsts?.minCreateBond?.add(existentialDeposit)} />
+        </Grid>
+      </Grid>
+    </Grid>
   );
 
   return (
@@ -304,7 +295,7 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
                   </Grid>
                   : <Grid container item sx={{ p: '23px' }} xs={12}></Grid>
                 }
-                <Grid container item sx={{ fontSize: 13, fontWeight: '600', textAlign: 'center', p: '5px 30px 5px' }} xs={12}>
+                <Grid container item sx={{ fontSize: 13, fontWeight: '600', p: '5px 30px 5px', textAlign: 'center' }} xs={12}>
                   {alert
                     ? <Grid item xs={12}>
                       <Alert severity='error' sx={{ fontSize: 12 }}>
@@ -314,17 +305,13 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
                     : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
                   }
                 </Grid>
-                {myPool?.member?.poolId
-                  ? myPool?.bondedPool?.state?.toLowerCase() === 'open'
-                    ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-                      {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
-                    </Grid>
-                    : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-                      {t('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.',
-                        { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name', state: myPool?.bondedPool?.state } })}
-                    </Grid>
-                  : <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
-                    <PoolSelectionRadionButtons />
+                {myPool?.member?.poolId && myPool?.bondedPool?.state?.toLowerCase() === 'open'
+                  ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+                    {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
+                  </Grid>
+                  : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+                    {t('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.',
+                      { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name', state: myPool?.bondedPool?.state } })}
                   </Grid>
                 }
               </Grid>
