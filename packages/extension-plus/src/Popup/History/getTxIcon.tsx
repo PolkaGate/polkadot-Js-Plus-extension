@@ -5,7 +5,7 @@
  * @description
  * this component provides icons related to each action, which is depicted in transaction history
  * */
-import { AcUnit as AcUnitIcon, Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, Adjust as AdjustIcon, AllOut as AllOutIcon, CallMade as CallMadeIcon, CallReceived as CallReceivedIcon, Check as CheckIcon, GroupRemove as GroupRemoveIcon, HowToReg as HowToRegIcon, Link as LinkIcon, NotificationsNone as NotificationsNoneIcon, RecommendOutlined as RecommendOutlinedIcon, Redeem as RedeemIcon, Remove as RemoveIcon, StopCircle as StopCircleIcon, SummarizeOutlined as SummarizeOutlinedIcon, ThumbsUpDownRounded as ThumbsUpDownRoundedIcon,VolunteerActivismSharp as VolunteerActivismSharpIcon } from '@mui/icons-material';
+import { AcUnit as AcUnitIcon, Add as AddIcon, AddCircleOutline as AddCircleOutlineIcon, Adjust as AdjustIcon, AllOut as AllOutIcon, CallMade as CallMadeIcon, CallReceived as CallReceivedIcon, Check as CheckIcon, GroupRemove as GroupRemoveIcon, HowToReg as HowToRegIcon, Link as LinkIcon, NotificationsNone as NotificationsNoneIcon, RecommendOutlined as RecommendOutlinedIcon, Redeem as RedeemIcon, Remove as RemoveIcon, StopCircle as StopCircleIcon, SummarizeOutlined as SummarizeOutlinedIcon, ThumbsUpDownRounded as ThumbsUpDownRoundedIcon, VolunteerActivismSharp as VolunteerActivismSharpIcon } from '@mui/icons-material';
 import React from 'react';
 
 export function getTxIcon(action: string): React.ReactNode {
@@ -21,16 +21,20 @@ export function getTxIcon(action: string): React.ReactNode {
         fontSize='small'
       />;
     case ('bond'):
+    case ('pool_bond'):
       return <AddIcon
         color='success'
         fontSize='small'
       />;
     case ('unbond'):
+    case ('pool_unbond'):
+    case ('pool_unbond2'):
       return <RemoveIcon
         color='error'
         fontSize='small'
       />;
     case ('bond_extra'):
+    case ('pool_bond_extra'):
       return <AddCircleOutlineIcon
         color='action'
         fontSize='small'
@@ -41,6 +45,7 @@ export function getTxIcon(action: string): React.ReactNode {
         sx={{ color: 'green' }}
       />;
     case ('redeem'):
+    case ('pool_claim'):
       return <RedeemIcon
         color='warning'
         fontSize='small'
@@ -75,7 +80,7 @@ export function getTxIcon(action: string): React.ReactNode {
         fontSize='small'
         sx={{ color: 'blue' }}
       />;
-    case ('second'):
+    case ('endorse'):
       return <RecommendOutlinedIcon
         fontSize='small'
         sx={{ color: 'purple' }}

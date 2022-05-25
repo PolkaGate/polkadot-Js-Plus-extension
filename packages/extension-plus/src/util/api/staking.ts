@@ -283,7 +283,7 @@ export async function createPool(
 
     return signAndSend(_api, created, _signer, _depositor);
   } catch (error) {
-    console.log('Something went wrong while bond/nominate', error);
+    console.log('Something went wrong while createPool', error);
 
     return { status: 'failed' };
   }

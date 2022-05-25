@@ -88,7 +88,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
       const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo.address);
 
       const currentTransactionDetail: TransactionDetail = {
-        action: 'second',
+        action: 'endorse',
         amount: '0',
         block: block,
         date: Date.now(),
