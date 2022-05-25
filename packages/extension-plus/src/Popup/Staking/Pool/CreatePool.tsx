@@ -9,31 +9,22 @@
  * */
 
 import type { ApiPromise } from '@polkadot/api';
-import type { DeriveOwnContributions } from '@polkadot/api-derive/types';
-import type { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { Balance } from '@polkadot/types/interfaces';
-import type { SettingsStruct } from '@polkadot/ui-settings/types';
 import type { ThemeProps } from '../../../../../extension-ui/src/types';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
-import { AddCircleRounded as AddCircleRoundedIcon, GroupWorkOutlined, PersonAddAlt1Rounded as PersonAddAlt1RoundedIcon } from '@mui/icons-material';
-import { Button, Divider, Grid, InputAdornment, Tab, Tabs, TextField } from '@mui/material';
+import { Pool as PoolIcon } from '@mui/icons-material';
+import { Button, Grid, InputAdornment, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
-import { createWsEndpoints } from '@polkadot/apps-config';
-import { AccountsStore } from '@polkadot/extension-base/stores';
-import keyring from '@polkadot/ui-keyring';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
-import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { BackButton, NextStepButton } from '../../../../../extension-ui/src/components';
-import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { AddressInput, PlusHeader, Popup, ShowAddress, ShowBalance2, ShowValue } from '../../../components';
+import { AddressInput, PlusHeader, Popup, ShowBalance2 } from '../../../components';
 import { EXTENSION_NAME } from '../../../util/constants';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
 
@@ -218,7 +209,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   return (
     <>
       <Popup handleClose={handlePoolStakingModalClose} showModal={showCreatePoolModal}>
-        <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<GroupWorkOutlined fontSize='small' />} title={'Create Pool'} />
+        <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<PoolIcon fontSize='small' />} title={'Create Pool'} />
         <Grid container sx={{ pt: 2 }}>
 
           {/* <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px 25px' }}> */}

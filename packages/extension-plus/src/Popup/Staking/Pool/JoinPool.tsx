@@ -12,9 +12,9 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { ThemeProps } from '../../../../../extension-ui/src/types';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MembersMapEntry, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
-import { GroupWorkOutlined } from '@mui/icons-material';
+import { SettingsAccessibility as SettingsAccessibilityIcon } from '@mui/icons-material';
 import { Button, Grid, InputAdornment, Paper, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -25,7 +25,7 @@ import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 import { BackButton, NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress, ShowBalance2 } from '../../../components';
-import { EXTENSION_NAME, PREFERED_POOL_NAME } from '../../../util/constants';
+import { PREFERED_POOL_NAME } from '../../../util/constants';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
 import Pool from './Pool';
 
@@ -175,7 +175,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   return (
     <>
       <Popup handleClose={handlePoolStakingModalClose} showModal={showJoinPoolModal}>
-        <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<GroupWorkOutlined fontSize='small' />} title={'Join Pool'} />
+        <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<SettingsAccessibilityIcon fontSize='small' />} title={'Join Pool'} />
         <Grid container sx={{ pt: 2 }}>
 
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px 1px' }}>
