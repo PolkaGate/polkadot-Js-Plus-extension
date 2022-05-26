@@ -46,6 +46,7 @@ export interface AccountJson extends KeyringPair$Meta {
   lastBalance?: string;
   txHistory?: string;
   stakingConsts?: string;
+  poolStakingConsts?: string;
   nominatedValidators?: string;
   validatorsInfo?: string;
   validatorsIdentities?: string;

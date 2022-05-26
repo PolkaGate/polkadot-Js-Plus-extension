@@ -592,7 +592,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           {t('Declaring no desire to nominate validators')}
         </Typography>;
       case ('createPool'):
-        return <Typography sx={{ mt: '30px' }} variant='h6'>
+        return <Typography sx={{ mt: '30px' }} variant='body1'>
           {t('{{ED}} will be bonded in Reward Id, and returned back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
         </Typography>;
       case ('blocked'):

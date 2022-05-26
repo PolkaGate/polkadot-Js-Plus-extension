@@ -113,7 +113,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
   const [stakeAmount, setStakeAmount] = useState<BN>(BN_ZERO);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
-  const [currentlyStakedInHuman, setCurrentlyStakedInHuman] = useState<string | undefined | null>(undefined);
+  const [currentlyStaked, setCurrentlyStaked] = useState<BN | undefined | null>(undefined);
   const [validatorsInfo, setValidatorsInfo] = useState<Validators | null>(null); // validatorsInfo is all validators (current and waiting) information
   const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | null>(null);
   const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
@@ -376,11 +376,11 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   useEffect(() => {
     if (myPool === undefined || !decimals) { return; }
 
-    if (myPool === null || myPool?.bondedPool?.points === 0) { return setCurrentlyStakedInHuman('0'); }
+    if (myPool === null || myPool?.bondedPool?.points === 0) { return setCurrentlyStaked(BN_ZERO); }
 
     const staked = new BN(myPool.member.points).mul(new BN(myPool.stashIdAccount.stakingLedger.active)).div(new BN(myPool.bondedPool.points));
 
-    setCurrentlyStakedInHuman(amountToHuman(String(staked), decimals) ?? '0');
+    setCurrentlyStaked(staked);
   }, [myPool, decimals]);
 
   useEffect(() => {
@@ -547,7 +547,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const NominationsIcon = useMemo((): React.ReactElement<any> => (
     gettingNominatedValidatorsInfoFromChain
       ? <CircularProgress size={12} sx={{ px: '5px' }} thickness={2} />
-      : Number(currentlyStakedInHuman) && !nominatedValidators?.length
+      : currentlyStaked && !nominatedValidators?.length
         ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
           <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
         </Hint>
@@ -562,7 +562,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
               </Badge>
             </Hint>
             : <PanToolOutlinedIcon sx={{ fontSize: '17px' }} />
-  ), [gettingNominatedValidatorsInfoFromChain, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
+  ), [gettingNominatedValidatorsInfoFromChain, currentlyStaked, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
   return (
     <Popup handleClose={handlePoolStakingModalClose} showModal={showStakingModal}>
@@ -598,7 +598,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
             <Stake
               api={api}
               chain={chain}
-              currentlyStakedInHuman={currentlyStakedInHuman}
+              currentlyStaked={currentlyStaked}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               myPool={myPool}
               nextPoolId={nextPoolId}
@@ -617,13 +617,14 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
             <Unstake
               api={api}
               availableBalance={staker?.balanceInfo?.available ? new BN(staker?.balanceInfo?.available) : BN_ZERO}
-              currentlyStakedInHuman={currentlyStakedInHuman}
+              currentlyStaked={currentlyStaked}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
-              member={myPool?.member}
               nextToUnStakeButtonBusy={state === 'unstake'}
+              pool={myPool}
+              poolStakingConsts={poolStakingConsts}
               setState={setState}
               setUnstakeAmount={setUnstakeAmount}
-              stakingConsts={stakingConsts}
+              staker={staker}
             />
           </TabPanel>
           <TabPanel index={2} padding={1} value={tabValue}>

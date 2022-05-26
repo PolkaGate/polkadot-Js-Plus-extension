@@ -29,7 +29,7 @@ import JoinPool from './JoinPool';
 interface Props {
   api: ApiPromise | undefined;
   chain: Chain;
-  currentlyStakedInHuman: string | undefined | null;
+  currentlyStaked: BN | undefined | null;
   nextToStakeButtonBusy: boolean;
   setStakeAmount: React.Dispatch<React.SetStateAction<BN>>
   setState: React.Dispatch<React.SetStateAction<string>>;
@@ -44,7 +44,7 @@ interface Props {
   poolsMembers: MembersMapEntry[] | undefined
 }
 
-export default function Stake({ api, chain, currentlyStakedInHuman, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, poolsInfo, poolsMembers, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, chain, currentlyStaked, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, poolsInfo, poolsMembers, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -249,9 +249,9 @@ export default function Stake({ api, chain, currentlyStakedInHuman, handleConfir
 
   return (
     <>
-      {currentlyStakedInHuman === undefined
+      {currentlyStaked === undefined
         ? <Progress title={'Loading ...'} />
-        : (currentlyStakedInHuman === null || currentlyStakedInHuman === '0') && !myPool
+        : (currentlyStaked === null || currentlyStaked?.isZero()) && !myPool
           ? <StakeInitialChoice />
           : <>
             <Grid container sx={{ height: '222px' }}>

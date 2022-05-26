@@ -72,16 +72,14 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
     getStakingConstsWorker.onmessage = (e: MessageEvent<any>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const sConsts: StakingConsts = e.data;
+      const c: StakingConsts = e.data;
 
-      if (sConsts) {
-        setStakingConsts(sConsts);
-
-        // setgettingStakingConstsFromBlockchain(false);
+      if (c) {
+        setStakingConsts(c);
 
         if (staker?.address) {
           // eslint-disable-next-line no-void
-          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(sConsts)));
+          void updateMeta(account.address, prepareMetaData(chain, 'stakingConsts', JSON.stringify(c)));
         }
       }
 
@@ -105,6 +103,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
       const c: PoolStakingConsts = e.data;
 
       if (c) {
+        c.lastPoolId = new BN(c.lastPoolId);
         c.minCreateBond = new BN(c.minCreateBond);
         c.minJoinBond = new BN(c.minJoinBond);
         c.minNominatorBond = new BN(c.minNominatorBond);
@@ -112,16 +111,10 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
         console.log('poolStakingConst:', c);
 
-        // setgettingStakingConstsFromBlockchain(false);
-
-        // if (staker?.address) {
-        //   //   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        //   //   const stringifiedStakingConsts = JSON.stringify(consts, (_key, value) => typeof value === 'bigint' ? value.toString() : value);
-
-        //   // sConsts.existentialDeposit = sConsts.existentialDeposit.toString();
-        //   // eslint-disable-next-line no-void
-        //   //void updateMeta(account.address, prepareMetaData(chain, 'poolStakingConsts', JSON.stringify(sConsts)));
-        // }
+        if (staker?.address) {
+          // eslint-disable-next-line no-void
+          void updateMeta(account.address, prepareMetaData(chain, 'poolStakingConsts', JSON.stringify(c)));
+        }
       }
 
       getPoolStakingConstsWorker.terminate();
@@ -157,13 +150,32 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
       return;
     }
 
+    console.log('Account:', account);
+
     // * retrive staking consts from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const stakingConstsFromLocalStrorage: SavedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
 
-    if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
-      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
+    if (stakingConstsFromLocalStrorage?.metaData && stakingConstsFromLocalStrorage?.chainName === chainName) {
+      console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData as string));
+      setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData as string) as StakingConsts);
+    }
+
+    // * retrive pool staking consts from local sorage
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const poolStakingConstsFromLocalStrorage: SavedMetaData = account?.poolStakingConsts ? JSON.parse(account.poolStakingConsts) : null;
+
+    if (poolStakingConstsFromLocalStrorage?.metaData && poolStakingConstsFromLocalStrorage?.chainName === chainName) {
+      console.log('poolStakingConsts from local:', JSON.parse(poolStakingConstsFromLocalStrorage.metaData as string));
+
+      const c = JSON.parse(poolStakingConstsFromLocalStrorage.metaData as string) as PoolStakingConsts;
+
+      c.lastPoolId = new BN(c.lastPoolId, 'hex');
+      c.minCreateBond = new BN(c.minCreateBond, 'hex');
+      c.minJoinBond = new BN(c.minJoinBond, 'hex');
+      c.minNominatorBond = new BN(c.minNominatorBond, 'hex');
+
+      setPoolStakingConsts(c);
     }
   }, []);
 
@@ -185,7 +197,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
   const handlePoolStakingModalOpen = useCallback(() => {
     api?.tx?.nominationPools && setPoolStakingOpen(true);
-  }, [api])
+  }, [api]);
 
   return (
     <Popup handleClose={handleStakingModalClose} showModal={showStakingModal}>

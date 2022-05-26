@@ -24,7 +24,7 @@ async function getPoolStackingConsts(endpoint) {
       ]);
 
     return {
-      lastPoolId: lastPoolId?.toNumber(),
+      lastPoolId: BigInt(lastPoolId),
       maxPoolMembers: maxPoolMembers.isSome ? maxPoolMembers.unwrap().toNumber() : -1,
       maxPoolMembersPerPool: maxPoolMembersPerPool.isSome ? maxPoolMembersPerPool.unwrap().toNumber() : -1,
       maxPools: maxPools.isSome ? maxPools.unwrap().toNumber() : -1,

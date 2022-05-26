@@ -64,7 +64,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
             {t('The number of currenttly existing pools')}:
           </Grid>
           <Grid item>
-            <ShowValue value={info?.lastPoolId} />
+            <ShowValue value={info?.lastPoolId?.toString()} />
           </Grid>
         </Grid>
 

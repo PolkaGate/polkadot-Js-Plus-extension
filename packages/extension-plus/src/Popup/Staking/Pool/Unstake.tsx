@@ -8,41 +8,62 @@
  *  render unstake tab in easy staking component
  * */
 
-import type { PalletNominationPoolsPoolMember } from '@polkadot/types/lookup';
+import type { Balance } from '@polkadot/types/interfaces';
 
 import { Alert, Button as MuiButton, Grid, InputAdornment, TextField } from '@mui/material';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { BN, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO, bnMax } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { StakingConsts } from '../../../util/plusTypes';
+import { AccountsBalanceType, MyPoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../../util/plusUtils';
 
 interface Props {
   api: ApiPromise | undefined;
-  stakingConsts: StakingConsts | undefined;
+  poolStakingConsts: PoolStakingConsts | undefined;
   setUnstakeAmount: React.Dispatch<React.SetStateAction<BN>>
-  currentlyStakedInHuman: string | undefined | null;
-  member: PalletNominationPoolsPoolMember | undefined;
+  currentlyStaked: BN | undefined | null;
+  pool: MyPoolInfo | undefined | null;
   nextToUnStakeButtonBusy: boolean;
   availableBalance: BN;
   setState: React.Dispatch<React.SetStateAction<string>>;
   handleConfirmStakingModaOpen: () => void
+  staker: AccountsBalanceType;
 }
 
-export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleConfirmStakingModaOpen, member, nextToUnStakeButtonBusy, setState, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
+export default function Unstake({ api, availableBalance, currentlyStaked, handleConfirmStakingModaOpen, nextToUnStakeButtonBusy, pool, poolStakingConsts, setState, setUnstakeAmount, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
   const [alert, setAlert] = useState<string>('');
+  const [maxUnstake, setMaxUnstake] = useState<BN | undefined>();
+  const [maxUnstakeinBalance, setMaxUnstakeInBalanceHuman] = useState<Balance | undefined>();
 
   const UnableToPayFee = availableBalance === BN_ZERO;
-
   const decimals = api?.registry?.chainDecimals[0];
   const token = api?.registry?.chainTokens[0];
+
+  useEffect(() => {
+    if (!currentlyStaked || !decimals || !pool || !poolStakingConsts) return;
+
+    if (staker.address === pool.bondedPool.roles.depositor && pool.bondedPool.state.toLowerCase() !== 'destroying') {
+      const minDeposit = bnMax(poolStakingConsts.minNominatorBond, poolStakingConsts.minCreateBond);
+      const depositorMaxUnstakeAble = currentlyStaked.sub(minDeposit);
+
+      setMaxUnstake(depositorMaxUnstakeAble);
+    } else {
+      setMaxUnstake(currentlyStaked);
+    }
+  }, [currentlyStaked, decimals, pool, poolStakingConsts, staker.address]);
+
+  useEffect(() => {
+    if (!api || !maxUnstake) return;
+
+    setMaxUnstakeInBalanceHuman(api.createType('Balance', maxUnstake));
+  }, [api, maxUnstake]);
 
   const handleNextToUnstake = useCallback((): void => {
     // if (!state) 
@@ -51,7 +72,7 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
   }, [handleConfirmStakingModaOpen, setState]);
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
-    if (!decimals) return;
+    if (!decimals || !currentlyStaked || currentlyStaked?.isZero()) return;
 
     setAlert('');
     value = fixFloatingPoint(value);
@@ -59,7 +80,7 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
 
     if (!Number(value)) { return; }
 
-    const currentlyStaked = member ? new BN(member.points) : BN_ZERO;
+    const currentlyStakedInHuman = amountToHuman(currentlyStaked?.toString(), decimals);
 
     if (Number(value) > Number(currentlyStakedInHuman)) {
       setAlert(t('It is more than already staked!'));
@@ -74,21 +95,21 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
 
     console.log(`remainStaked ${remainStaked}  currentlyStaked ${currentlyStaked} amountToMachine(value, decimals) ${amountToMachine(value, decimals)}`);
 
-    if (remainStakedInHuman > 0 && remainStakedInHuman < Number(amountToHuman(stakingConsts?.minNominatorBond, decimals))) {
-      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} should not be less than ${amountToHuman(stakingConsts?.minNominatorBond, decimals)} ${token}`);
+    if (remainStakedInHuman > 0 && remainStakedInHuman < Number(amountToHuman(poolStakingConsts?.minNominatorBond, decimals))) {
+      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} should not be less than ${amountToHuman(poolStakingConsts?.minNominatorBond, decimals)} ${token}`);
 
       return;
     }
 
-    if (currentlyStakedInHuman && currentlyStakedInHuman === value) {
+    if (currentlyStakedInHuman === value) {
       // to include even dust
-      setUnstakeAmount(member ? new BN(member.points) : BN_ZERO);
+      maxUnstake && setUnstakeAmount(maxUnstake);
     } else {
       setUnstakeAmount(Number(value) ? new BN(String(amountToMachine(value, decimals))) : BN_ZERO);
     }
 
     setNextToUnStakeButtonDisabled(false);
-  }, [member, currentlyStakedInHuman, decimals, stakingConsts?.minNominatorBond, t, token, setUnstakeAmount]);
+  }, [decimals, currentlyStaked, poolStakingConsts?.minNominatorBond, t, token, maxUnstake, setUnstakeAmount]);
 
   const handleUnstakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     setNextToUnStakeButtonDisabled(true);
@@ -100,8 +121,12 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
   }, [handleUnstakeAmountChanged]);
 
   const handleMaxUnstakeClicked = useCallback(() => {
-    if (currentlyStakedInHuman) { handleUnstakeAmountChanged(currentlyStakedInHuman); }
-  }, [currentlyStakedInHuman, handleUnstakeAmountChanged]);
+    if ( decimals && maxUnstake) {
+      const v = amountToHuman(maxUnstake.toString(), decimals);
+
+      handleUnstakeAmountChanged(v);
+    }
+  }, [maxUnstake, decimals, handleUnstakeAmountChanged]);
 
   return (
     <>
@@ -112,21 +137,21 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
             InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
             autoFocus
             color='info'
-            error={!currentlyStakedInHuman || Number(unstakeAmountInHuman) > Number(currentlyStakedInHuman) || UnableToPayFee}
+            error={!currentlyStaked || currentlyStaked.ltn(Number(unstakeAmountInHuman)) || UnableToPayFee}
             fullWidth
             helperText={
               <>
-                {currentlyStakedInHuman === undefined &&
+                {currentlyStaked === undefined &&
                   <Grid xs={12}>
                     {t('Fetching data from blockchain ...')}
                   </Grid>}
 
-                {currentlyStakedInHuman === '0' &&
+                {currentlyStaked?.isZero() &&
                   <Grid xs={12}>
                     {t('Nothing to unstake')}
                   </Grid>
                 }
-                {currentlyStakedInHuman && currentlyStakedInHuman !== '0' && UnableToPayFee &&
+                {currentlyStaked && !currentlyStaked?.isZero() && UnableToPayFee &&
                   <Grid xs={12}>
                     {t('Unable to pay fee')}
                   </Grid>
@@ -138,7 +163,7 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
             name='unstakeAmount'
             onChange={handleUnstakeAmount}
             placeholder='0.0'
-            sx={{ height: '10px' }}
+            sx={{ height: '20px' }}
             type='number'
             value={unstakeAmountInHuman}
             variant='outlined'
@@ -148,14 +173,15 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
         <Grid container item xs={12}>
           <Grid container item justifyContent='flex-end' sx={{ p: '0px 30px 10px' }} xs={12}>
             <Grid item sx={{ fontSize: 12 }}>
-              {!!member?.points &&
+              {currentlyStaked &&
                 <>
                   {t('Max')}:
                   <MuiButton
                     onClick={handleMaxUnstakeClicked}
                     variant='text'
+                    sx={{ textTransform: 'none' }}
                   >
-                    {`${String(currentlyStakedInHuman)} ${token}`}
+                    {maxUnstakeinBalance?.toHuman()}
                   </MuiButton>
                 </>
               }
