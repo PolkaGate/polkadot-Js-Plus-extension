@@ -18,6 +18,7 @@ import { BN, BN_ZERO, bnMax } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { FormatBalance } from '../../../components';
 import { AccountsBalanceType, MyPoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../../util/plusUtils';
 
@@ -181,7 +182,8 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
                     variant='text'
                     sx={{ textTransform: 'none' }}
                   >
-                    {maxUnstakeinBalance?.toHuman()}
+                    <FormatBalance api={api} value={maxUnstakeinBalance}/>
+                    {/* {maxUnstakeinBalance?.toHuman()} */}
                   </MuiButton>
                 </>
               }

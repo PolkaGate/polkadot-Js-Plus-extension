@@ -25,7 +25,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Hint, Password, PlusHeader, Popup } from '../../../components';
+import { ConfirmButton, FormatBalance, Hint, Password, PlusHeader, Popup } from '../../../components';
 import { broadcast, createPool, signAndSend } from '../../../util/api';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
@@ -675,9 +675,9 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
               <Grid item xs={12}>
                 {!estimatedFee
                   ? <span><Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '30px' }} /></span>
-                  : <>
-                    {estimatedFee?.toHuman()}
-                  </>
+                  : 
+                  // <>{estimatedFee?.toHuman()}</>
+                  <FormatBalance api={api} value={estimatedFee} />
                 }
               </Grid>
             </Grid>

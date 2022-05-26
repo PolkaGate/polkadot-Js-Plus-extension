@@ -15,6 +15,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { ApiPromise } from '@polkadot/api';
+import FormatBalance from './FormatBalance';
 
 export interface Props {
   balance: Balance | BN | bigint | string | number | null | undefined;
@@ -35,7 +36,9 @@ function ShowBalance2({ api, balance, direction = 'row', title }: Props): React.
       </>}
 
       {balance !== undefined && api
-        ? <b>{amountToHuman(balance)}</b>
+        ? //<b>{amountToHuman(balance)}</b>
+        <FormatBalance api={api} value={balance} />
+
         : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
       }
     </div>

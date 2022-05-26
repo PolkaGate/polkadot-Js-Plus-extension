@@ -19,3 +19,4 @@ export { default as ShowBalance2 } from './ShowBalance2';
 export { default as ShowValue } from './ShowValue';
 export { default as ShortAddress } from './ShortAddress';
 export { default as ShowAddress } from './ShowAddress';
+export { default as FormatBalance } from './FormatBalance';
