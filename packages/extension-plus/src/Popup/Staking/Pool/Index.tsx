@@ -23,14 +23,14 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
-import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
 import { Hint, PlusHeader, Popup } from '../../../components';
 import { useMapEntries } from '../../../hooks';
 import { getStakingReward } from '../../../util/api/staking';
-import { MAX_ACCEPTED_COMMISSION, PPREFERED_POOL_ID_ON_KUSAMA, PPREFERED_POOL_ID_ON_POLKADOT, PPREFERED_POOL_ID_ON_WESTEND } from '../../../util/constants';
+import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import Nominations from '../Pool/Nominations';
 import Unstake from '../pool/Unstake';
@@ -42,7 +42,6 @@ import Overview from './Overview';
 import PoolTab from './PoolTab';
 import SelectValidators from './SelectValidators';
 import Stake from './Stake';
-
 
 interface Props {
   account: AccountJson,
@@ -65,12 +64,6 @@ interface RewardInfo {
 }
 
 const workers: Worker[] = [];
-const DEFAULT_MEMBER_INFO = {
-  points: BN_ZERO,
-  poolId: BN_ZERO,
-  rewardPoolTotalEarnings: BN_ZERO,
-  unbondingEras: []
-};
 
 BigInt.prototype.toJSON = function () { return this.toString(); };
 
@@ -119,7 +112,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
   const [selectedValidators, setSelectedValidatorsAcounts] = useState<DeriveStakingQuery[] | null>(null);
   const [nominatedValidatorsId, setNominatedValidatorsId] = useState<string[] | undefined>();
-  const [noNominatedValidators, setNoNominatedValidators] = useState<boolean>(false);// if TRUE, shows that nominators are fetched but is empty
+  const [noNominatedValidators, setNoNominatedValidators] = useState<boolean | undefined>();// if TRUE, shows that nominators are fetched but is empty
   const [nominatedValidators, setNominatedValidatorsInfo] = useState<DeriveStakingQuery[] | null>(null);
   const [state, setState] = useState<string>('');
   const [tabValue, setTabValue] = useState(4);
@@ -164,9 +157,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
 
       const parsedInfo = JSON.parse(info) as MyPoolInfo;
 
-      if (!parsedInfo.stashIdAccount.nominators.length) {
-        setNoNominatedValidators(true);
-      }
+      setNoNominatedValidators(!parsedInfo.stashIdAccount.nominators.length);
 
       console.log('*** My pool info returned from worker is:', parsedInfo);
 
@@ -640,6 +631,9 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           </TabPanel>
           <TabPanel index={3} padding={1} value={tabValue}>
             <Nominations
+              setNoNominatedValidators={setNoNominatedValidators}
+              getPoolInfo={getPoolInfo}
+              endpoint={endpoint}
               activeValidator={activeValidator}
               api={api}
               chain={chain}

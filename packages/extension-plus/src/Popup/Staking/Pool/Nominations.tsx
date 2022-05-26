@@ -11,9 +11,12 @@
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts, StakingConsts, Validators } from '../../../util/plusTypes';
 
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { TrackChanges as TrackChangesIcon } from '@mui/icons-material';
-import { Button as MuiButton, Grid } from '@mui/material';
-import React from 'react';
+import { Button as MuiButton, Grid, Link } from '@mui/material';
+import { blue } from '@mui/material/colors';
+import React, { useCallback, useEffect,useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
@@ -29,7 +32,7 @@ interface Props {
   nominatedValidators: DeriveStakingQuery[] | null;
   poolStakingConsts: PoolStakingConsts | undefined;
   stakingConsts: StakingConsts | undefined;
-  noNominatedValidators: boolean;
+  noNominatedValidators: boolean | undefined;
   chain: Chain;
   api: ApiPromise | undefined;
   validatorsIdentities: DeriveAccountInfo[] | null;
@@ -40,13 +43,30 @@ interface Props {
   nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
   staker: AccountsBalanceType;
   myPool: MyPoolInfo | undefined | null;
+  getPoolInfo: (endpoint: string, stakerAddress: string, id?: number | undefined) => void;
+  endpoint: string | undefined;
+  setNoNominatedValidators: React.Dispatch<React.SetStateAction<boolean | undefined>>
 }
 
-function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+function Nominations({ activeValidator, api, setNoNominatedValidators, chain, endpoint, getPoolInfo, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
   const points = myPool?.member?.points;
   const currentlyStaked = points ? new BN(points) : BN_ZERO;
-  console.log('currentlyStaked', currentlyStaked)
+
+  const handleRefresh = useCallback(() => {
+    if (endpoint && staker?.address) {
+      setNoNominatedValidators(undefined);
+      getPoolInfo(endpoint, staker.address);
+
+      setRefreshing(true);
+    }
+  }, [endpoint, getPoolInfo, setNoNominatedValidators, staker.address]);
+
+  useEffect(() => {
+    noNominatedValidators !== undefined && setRefreshing(false);
+  }, [noNominatedValidators]);
 
   return (
     <>
@@ -94,9 +114,23 @@ function Nominations({ activeValidator, api, chain, handleSelectValidatorsModalO
             </Grid>
           }
         </Grid>
-        : !noNominatedValidators
+        : !noNominatedValidators || noNominatedValidators === undefined
           ? <Progress title={'Loading ...'} />
           : <Grid container justifyContent='center'>
+            <Grid item sx={{ textAlign: 'right', p: '10px' }} xs={12}>
+              <Link color='inherit' href='#' underline='none'>
+                <FontAwesomeIcon
+                  color={blue[600]}
+                  icon={faSyncAlt}
+                  id='refreshIcon'
+                  onClick={handleRefresh}
+                  size='sm'
+                  spin={refreshing}
+                  title={t('refresh')}
+                />
+              </Link>
+            </Grid>
+
             <Grid item sx={{ fontSize: 13, margin: '60px 10px 30px', textAlign: 'center' }} xs={12}>
               {t('No nominated validators found')}
             </Grid>
