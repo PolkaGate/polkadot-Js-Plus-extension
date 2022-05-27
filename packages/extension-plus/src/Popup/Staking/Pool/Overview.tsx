@@ -13,7 +13,7 @@
 import type { MyPoolInfo } from '../../../util/plusTypes';
 
 import { AddCircleOutline as AddCircleOutlineIcon, MoreHoriz as MoreHorizIcon, Redeem as RedeemIcon, SystemUpdateAltOutlined as SystemUpdateAltOutlinedIcon } from '@mui/icons-material';
-import { Grid, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper } from '@mui/material';
+import { Grow, Grid, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper, Typography } from '@mui/material';
 import React, { useCallback, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -123,7 +123,9 @@ export default function Overview({ api, availableBalance, handleConfirmStakingMo
           </Grid>
         </Grid>
       </Paper>
+
       <Menu
+        TransitionComponent={Grow}
         anchorEl={anchorEl}
         anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
         onClose={handleClose}
@@ -131,17 +133,21 @@ export default function Overview({ api, availableBalance, handleConfirmStakingMo
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
       >
         <MenuList dense>
-          <MenuItem color={claimable?.gtn(0) ? 'warning' : 'disabled'} onClick={handleClaim} sx={{ fontSize: 12 }}>
+          <MenuItem color={claimable?.gtn(0) ? 'warning' : 'disabled'} onClick={handleClaim}>
             <ListItemIcon>
-              <SystemUpdateAltOutlinedIcon sx={{ fontSize: 12 }} />
+              <SystemUpdateAltOutlinedIcon />
             </ListItemIcon>
-            <ListItemText>Claim</ListItemText>
+            <ListItemText>
+              <Typography variant='caption'> {t('Claim')} </Typography>
+            </ListItemText>
           </MenuItem>
-          <MenuItem onClick={handleStakeClaimable} sx={{ fontSize: 10 }}>
+          <MenuItem onClick={handleStakeClaimable}>
             <ListItemIcon>
-              <AddCircleOutlineIcon sx={{ fontSize: 15 }} />
+              <AddCircleOutlineIcon />
             </ListItemIcon>
-            <ListItemText>Stake</ListItemText>
+            <ListItemText>
+              <Typography variant='caption'> {t('Stake')} </Typography>
+            </ListItemText>
           </MenuItem>
         </MenuList>
       </Menu>
