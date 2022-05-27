@@ -21,7 +21,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Progress, ShowBalance2 } from '../../../components';
+import { FormatBalance, Progress, ShowBalance2 } from '../../../components';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
 import CreatePool from './CreatePool';
 import JoinPool from './JoinPool';
@@ -51,9 +51,10 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const [zeroBalanceAlert, setZeroBalanceAlert] = useState(false);
   const [nextButtonCaption, setNextButtonCaption] = useState<string>(t('Next'));
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
-  const [validatorSelectionType, setValidatorSelectionType] = useState<string>('Auto');
-  const [minStakeable, setMinStakeable] = useState<number>(0);
-  const [maxStakeable, setMaxStakeable] = useState<number>(0);
+  const [minStakeable, setMinStakeable] = useState<BN>(BN_ZERO);
+  const [minStakeableAsNumber, setMinStakeableAsNumber] = useState<number>(0);
+  const [maxStakeable, setMaxStakeable] = useState<BN>(BN_ZERO);
+  const [maxStakeableAsNumber, setMaxStakeableAsNumber] = useState<number>(0);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
   const [showJoinPoolModal, setJoinPoolModalOpen] = useState<boolean>(false);
@@ -66,25 +67,30 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     decimals && setStakeAmount(new BN(String(amountToMachine(stakeAmountInHuman, decimals))));
   }, [decimals, setStakeAmount, stakeAmountInHuman]);
 
-  useEffect(() => {
-    if (!staker?.balanceInfo?.available) { return; }
+  // useEffect(() => {
+  //   if (!staker?.balanceInfo?.available) { return; }
 
-    setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
-  }, [staker, staker?.balanceInfo?.available]);
+  //   setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
+  // }, [staker, staker?.balanceInfo?.available]);
 
   const handleStakeAmountInput = useCallback((value: string): void => {
-    setAlert('');
+    if (!api || !decimals || !staker?.balanceInfo?.available) return;
 
-    if (value && Number(value) < minStakeable) {
-      setAlert(t(`Staking amount is too low, it must be at least ${minStakeable} ${token}`));
+    setAlert('');
+    const valueAsBN = new BN(String(amountToMachine(value, decimals)));
+
+    if (value && valueAsBN.lt(minStakeable)) {
+      const minStakeableAsBalance = api.createType('Balance', minStakeable);
+
+      setAlert(t(`Staking amount is too low, it must be at least ${minStakeableAsBalance.toHuman()}`));
     }
 
-    if (Number(value) > maxStakeable && Number(value) < Number(availableBalanceInHuman)) {
+    if (valueAsBN.gt(maxStakeable) && valueAsBN.lt(new BN(String(staker.balanceInfo.available)))) {
       setAlert(t('Your account might be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [availableBalanceInHuman, maxStakeable, minStakeable, t, token]);
+  }, [api, decimals, maxStakeable, minStakeable, staker?.balanceInfo?.available, t]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -95,11 +101,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
 
     handleStakeAmountInput(value);
   }, [handleStakeAmountInput]);
-
-  const handleValidatorSelectionType = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
-    setValidatorSelectionType(event.target.value);
-    // setConfirmStakingModalOpen(false);
-  }, [setValidatorSelectionType]);
 
   const handleCreatePool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
@@ -116,33 +117,45 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [staker?.balanceInfo?.available, state, setState]);
 
   const handleNextToStake = useCallback((): void => {
-    if (Number(stakeAmountInHuman) >= minStakeable) {
+    if (!decimals) return;
+
+    if (Number(stakeAmountInHuman) >= Number(amountToHuman(minStakeable.toString(), decimals))) {
       handleConfirmStakingModaOpen();
       if (!state) setState('bondExtra');
     }
-  }, [stakeAmountInHuman, minStakeable, handleConfirmStakingModaOpen, state, setState]);
+  }, [stakeAmountInHuman, minStakeable, decimals, handleConfirmStakingModaOpen, state, setState]);
 
   useEffect(() => {
-    if (!poolStakingConsts || !decimals || existentialDeposit === undefined) return;
-    const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
-    let max = Number(fixFloatingPoint(Number(availableBalanceInHuman) - 3 * ED)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
-    const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
+    if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available) return;
+    // const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
+    let max = new BN(String(staker.balanceInfo.available)).sub(existentialDeposit.muln(3)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
+    // const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
     // const m = bnMax(minNominatorBond, minCreateBond, minJoinBond, existentialDeposit);
-    let min = Number(amountToHuman(minJoinBond.toString(), decimals));
+    let min = poolStakingConsts.minJoinBond;
 
-    if (min > max) {
-      min = max = 0;
+    if (min.gt(max)) {
+      min = max = BN_ZERO;
     }
 
     setMaxStakeable(max);
     setMinStakeable(min);
-  }, [availableBalanceInHuman, poolStakingConsts, decimals, existentialDeposit]);
+  }, [poolStakingConsts, existentialDeposit, staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (stakeAmountInHuman && minStakeable <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStakeable) {
+    if (!decimals) return;
+
+    const minStakeableAsNumber = Number(amountToHuman(minStakeable.toString(), decimals));
+    const maxStakeableAsNumber = Number(amountToHuman(maxStakeable.toString(), decimals));
+
+    setMinStakeableAsNumber(minStakeableAsNumber);
+    setMaxStakeableAsNumber(maxStakeableAsNumber);
+  }, [minStakeable, maxStakeable, decimals]);
+
+  useEffect(() => {
+    if (stakeAmountInHuman && minStakeableAsNumber <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStakeableAsNumber) {
       setNextToStakeButtonDisabled(false);
     }
-  }, [minStakeable, maxStakeable, stakeAmountInHuman]);
+  }, [maxStakeableAsNumber, minStakeableAsNumber, stakeAmountInHuman]);
 
   useEffect(() => {
     if (!decimals) { return; }
@@ -165,22 +178,22 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
       setNextButtonCaption(t('Insufficient Balance'));
     }
 
-    if (Number(stakeAmountInHuman) && Number(stakeAmountInHuman) < minStakeable) {
+    if (Number(stakeAmountInHuman) && Number(stakeAmountInHuman) < minStakeableAsNumber) {
       setNextToStakeButtonDisabled(true);
     }
-  }, [stakeAmountInHuman, t, minStakeable, staker?.balanceInfo?.available, decimals]);
+  }, [stakeAmountInHuman, t, minStakeableAsNumber, staker?.balanceInfo?.available, decimals]);
 
   const handleMinStakeClicked = useCallback(() => {
     if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
 
-    handleStakeAmountInput(String(minStakeable));
-  }, [handleStakeAmountInput, minStakeable, myPool?.bondedPool?.state]);
+    handleStakeAmountInput(String(minStakeableAsNumber));
+  }, [handleStakeAmountInput, minStakeableAsNumber, myPool?.bondedPool?.state]);
 
   const handleMaxStakeClicked = useCallback(() => {
     if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
 
-    handleStakeAmountInput(String(maxStakeable));
-  }, [handleStakeAmountInput, maxStakeable, myPool?.bondedPool?.state]);
+    handleStakeAmountInput(String(maxStakeableAsNumber));
+  }, [handleStakeAmountInput, maxStakeableAsNumber, myPool?.bondedPool?.state]);
 
   const StyledBadge = styled(Badge)(({ theme }) => ({
     '& .MuiBadge-badge': {
@@ -254,67 +267,64 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
         : (currentlyStaked === null || currentlyStaked?.isZero()) && !myPool
           ? <StakeInitialChoice />
           : <>
-            <Grid container sx={{ height: '222px' }}>
-              <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
-                <TextField
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
-                  autoFocus
-                  color='warning'
-                  disabled={myPool?.bondedPool?.state?.toLowerCase() === 'destroying'}
-                  error={zeroBalanceAlert}
-                  fullWidth
-                  helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
-                  inputProps={{ step: '.01' }}
-                  label={t('Amount')}
-                  name='stakeAmount'
-                  onChange={handleStakeAmount}
-                  placeholder='0.0'
-                  sx={{ height: '20px' }}
-                  type='number'
-                  value={stakeAmountInHuman}
-                  variant='outlined'
-                />
+            <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
+              <TextField
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
+                autoFocus
+                color='warning'
+                disabled={myPool?.bondedPool?.state?.toLowerCase() === 'destroying'}
+                error={zeroBalanceAlert}
+                fullWidth
+                helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
+                inputProps={{ step: '.01' }}
+                label={t('Amount')}
+                name='stakeAmount'
+                onChange={handleStakeAmount}
+                placeholder='0.0'
+                sx={{ height: '50px' }}
+                type='number'
+                value={stakeAmountInHuman}
+                variant='outlined'
+              />
+            </Grid>
+
+            <Grid container sx={{ height: '160px' }}>
+              {!zeroBalanceAlert && token &&
+                <Grid container item justifyContent='space-between' sx={{ p: '0px 30px 0px' }} xs={12}>
+                  <Grid item sx={{ fontSize: 12 }}>
+                    {t('Min')}:
+                    <MuiButton onClick={handleMinStakeClicked} variant='text'>
+                      <FormatBalance api={api} value={minStakeable} />
+                    </MuiButton>
+                  </Grid>
+                  <Grid item sx={{ fontSize: 12 }}>
+                    {t('Max')}{': ~ '}
+                    <MuiButton onClick={handleMaxStakeClicked} variant='text'>
+                      <FormatBalance api={api} value={maxStakeable} />
+                    </MuiButton>
+                  </Grid>
+                </Grid>
+              }
+              <Grid container item sx={{ fontSize: 13, fontWeight: '600', p: '15px 30px 5px', textAlign: 'center' }} xs={12}>
+                {alert &&
+                  <Grid item xs={12}>
+                    <Alert severity='error' sx={{ fontSize: 12 }}>
+                      {alert}
+                    </Alert>
+                  </Grid>
+                }
               </Grid>
 
-              <Grid container item xs={12}>
-                {!zeroBalanceAlert && token
-                  ? <Grid container item justifyContent='space-between' sx={{ p: '0px 30px 10px' }} xs={12}>
-                    <Grid item sx={{ fontSize: 12 }}>
-                      {t('Min')}:
-                      <MuiButton onClick={handleMinStakeClicked} variant='text'>
-                        {`${minStakeable} ${token}`}
-                      </MuiButton>
-                    </Grid>
-                    <Grid item sx={{ fontSize: 12 }}>
-                      {t('Max')}{': ~ '}
-                      <MuiButton onClick={handleMaxStakeClicked} variant='text'>
-                        {`${maxStakeable} ${token}`}
-                      </MuiButton>
-                    </Grid>
-                  </Grid>
-                  : <Grid container item sx={{ p: '23px' }} xs={12}></Grid>
-                }
-                <Grid container item sx={{ fontSize: 13, fontWeight: '600', p: '5px 30px 5px', textAlign: 'center' }} xs={12}>
-                  {alert
-                    ? <Grid item xs={12}>
-                      <Alert severity='error' sx={{ fontSize: 12 }}>
-                        {alert}
-                      </Alert>
-                    </Grid>
-                    : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
-                  }
+              {myPool?.member?.poolId && myPool?.bondedPool?.state?.toLowerCase() !== 'destroying'
+                ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+                  {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
                 </Grid>
-                {myPool?.member?.poolId && myPool?.bondedPool?.state?.toLowerCase() !== 'destroying'
-                  ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-                    {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
-                  </Grid>
-                  : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
-                    {t('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.',
-                      { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name', state: myPool?.bondedPool?.state } })}
-                  </Grid>
-                }
-              </Grid>
+                : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
+                  {t('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.',
+                    { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name', state: myPool?.bondedPool?.state } })}
+                </Grid>
+              }
             </Grid>
 
             <Grid item sx={{ p: '0px 10px 0px' }} xs={12}>

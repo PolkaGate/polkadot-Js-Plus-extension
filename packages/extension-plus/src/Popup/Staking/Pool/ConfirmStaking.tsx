@@ -69,6 +69,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
 
+  console.log('state in confirm page:', state);
+
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
@@ -145,9 +147,12 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     let params;
 
     switch (state) {
-      case ('bondExtra'): // TODO: reBond
+      case ('bondExtra'):
+      case ('bondExtraRewards'):
+        params = state === 'bondExtra' ? [{ FreeBalance: surAmount }] : ['Rewards'];
+
         // eslint-disable-next-line no-void
-        void bondExtra({ FreeBalance: surAmount }).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+        void bondExtra(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
 
         setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
 
@@ -275,7 +280,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   }, [setConfirmStakingModalOpen]);
 
   const handleBack = useCallback((): void => {
-    if (!['createPool', 'joinPool', 'bondExtra', 'changeValidators', 'setNominees'].includes(state)) {
+    if (!['createPool', 'joinPool', 'changeValidators', 'setNominees'].includes(state)) {
       setState('');
       setConfirmingState('');
     }
@@ -288,6 +293,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       case ('joinPool'):
         return 'JOIN POOL';
       case ('bondExtra'):
+      case ('bondExtraRewards'):
         return 'STAKING OF';
       case ('createPool'):
         return 'CREATE POOL';
@@ -340,8 +346,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         setConfirmingState(status);
       }
 
-      if (localState === 'bondExtra' && surAmount !== BN_ZERO) {
-        const params = [{ FreeBalance: surAmount }];
+      if (['bondExtra', 'bondExtraRewards'].includes(localState) && surAmount !== BN_ZERO) {
+        const params = localState === 'bondExtra' ? [{ FreeBalance: surAmount }] : ['Rewards'];
         const { block, failureText, fee, status, txHash } = await broadcast(api, bondExtra, params, signer, staker.address);
 
         history.push({
@@ -593,7 +599,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         </Typography>;
       case ('createPool'):
         return <Typography sx={{ mt: '30px' }} variant='body1'>
-          {t('{{ED}} will be bonded in Reward Id, and returned back when unbound all.', { replace: { ED: api.createType('Balance', existentialDeposit).toHuman() } })}
+          <FormatBalance api={api} value={existentialDeposit}/>
+          {t(' will be bonded in Reward Id, and returned back when unbound all.')}
         </Typography>;
       case ('blocked'):
         return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
@@ -675,7 +682,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
               <Grid item xs={12}>
                 {!estimatedFee
                   ? <span><Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '30px' }} /></span>
-                  : 
+                  :
                   // <>{estimatedFee?.toHuman()}</>
                   <FormatBalance api={api} value={estimatedFee} />
                 }
