@@ -212,7 +212,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
         <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<PoolIcon fontSize='small' />} title={'Create Pool'} />
         <Grid container sx={{ pt: 2 }}>
 
-          {/* <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px 25px' }}> */}
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px 1px' }}>
             <Grid item sx={{ pr: '5px' }} xs={9}>
               <TextField
@@ -245,13 +244,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
                 variant='outlined'
               />
             </Grid>
-
-            {/* <Grid alignItems='center' color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 11 }} xs>
-              <Grid item>
-                <ShowValue title={t('Pool Id')} value={String(nextPoolId)} />
-              </Grid>
-            </Grid> */}
-
           </Grid>
 
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '15px 40px 1px' }}>
@@ -304,7 +296,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
             </Grid>
           }
 
-          <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '25px 40px 5px' }}>
+          <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '45px 40px 5px' }}>
             <Grid item xs={12}>
               <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
             </Grid>
