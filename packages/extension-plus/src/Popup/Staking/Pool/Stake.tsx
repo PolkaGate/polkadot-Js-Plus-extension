@@ -291,7 +291,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
 
             <Grid container sx={{ height: '160px' }}>
               {!zeroBalanceAlert && token &&
-                <Grid container item justifyContent='space-between' sx={{ p: '0px 30px 0px' }} xs={12}>
+                <Grid container item justifyContent='space-between' sx={{ px: '30px' }} xs={12}>
                   <Grid item sx={{ fontSize: 12 }}>
                     {t('Min')}:
                     <MuiButton onClick={handleMinStakeClicked} variant='text'>
@@ -327,7 +327,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
               }
             </Grid>
 
-            <Grid item sx={{ p: '0px 10px 0px' }} xs={12}>
+            <Grid item sx={{ px: '10px' }} xs={12}>
               <NextStepButton
                 data-button-action='next to stake'
                 isBusy={nextToStakeButtonBusy}

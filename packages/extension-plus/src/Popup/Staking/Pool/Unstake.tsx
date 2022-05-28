@@ -190,7 +190,7 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
         </Grid>
       </Grid>
 
-      <Grid item sx={{ padding: '0px 10px 0px' }} xs={12}>
+      <Grid item sx={{ px: '10px' }} xs={12}>
         <NextStepButton
           data-button-action='next to unstake'
           isBusy={nextToUnStakeButtonBusy}
