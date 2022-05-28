@@ -36,7 +36,7 @@ import getLogo from '../../util/getLogo';
 import { AccountsBalanceType } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
 import isValidAddress from '../../util/validateAddress';
-import ConfirmTx from './ConfirmTransfer';
+import ConfirmTransfer from './ConfirmTransfer';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -107,6 +107,10 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
     setAvailableBalance(balanceToHuman(sender, 'available'));
   }, [sender]);
 
+  useEffect((): void => {
+    decimals && setTransferAmount(amountToMachine(transferAmountInHuman, decimals));
+  }, [decimals, transferAmountInHuman]);
+
   /** find an account in our list */
   function findAccountByAddress(accounts: AccountJson[], _address: string): AccountJson | null {
     return accounts.find(({ address }): boolean =>
@@ -140,14 +144,13 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
     };
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  function handleClearRecepientAddress() {
+  const handleClearRecepientAddress = useCallback(() => {
     setNextButtonDisabled(true);
     setAllAddresesOnThisChain(null);
     setRecepient(null);
     setRecepientAddressIsValid(false);
     setTransferBetweenMyAccountsButtonText(t('Transfer between my accounts'));
-  }
+  }, [t]);
 
   const handleTransferModalClose = useCallback((): void => {
     setTransferModalOpen(false);
@@ -177,7 +180,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
       setZeroBalanceAlert(false);
     }
 
-    // if (Number(availableBalance) <= Number(transferAmountInHuman) || Number(transferAmountInHuman) === 0) {
     if (available <= transferAmount || Number(transferAmountInHuman) === 0) {
       setNextButtonDisabled(true);
 
@@ -197,7 +199,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
       setReapAlert(false);
     }
 
-    // if (Number(availableBalance) === Number(transferAmountInHuman) + Number(amountToHuman(estimatedFee?.toString(), decimals))) {
     if (!(transferAllType === 'All') && sender.balanceInfo?.available === transferAmount + BigInt(String(estimatedFee))) {
       setFeeAlert(true);
     } else {
@@ -218,8 +219,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
     const cutDecimals = fixFloatingPoint(value);
 
     setTransferAmountInHuman(cutDecimals);
-    setTransferAmount(amountToMachine(cutDecimals, decimals));
-  }, [decimals]);
+  }, []);
 
   function handleAccountListClick(event: React.MouseEvent<HTMLElement>) {
     const selectedAddressTextTarget = event.target as HTMLInputElement;
@@ -265,7 +265,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
 
     const amount = BigInt(available) - subtrahend < 0 ? 0n : BigInt(available) - subtrahend;
 
-    setTransferAmountInHuman(amountToHuman(String(amount), decimals));
+    decimals && setTransferAmountInHuman(amountToHuman(String(amount), decimals));
     setTransferAmount(amount);
     setAllAmountLoading(false);
     setMaxAmountLoading(false);
@@ -401,21 +401,16 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
             value={recepient ? recepient.address : ''}
             variant='outlined'
           />
-          {!recepientAddressIsValid && recepient
-            ? <Alert severity='error'>
+          {!recepientAddressIsValid && recepient &&
+            <Alert severity='error'>
               {t('Recipient address is invalid')}
             </Alert>
-            : ''
           }
         </Grid>
       </Grid>
 
       {!recepientAddressIsValid &&
-        <Grid
-          item
-          sx={{ paddingLeft: '20px' }}
-          xs={12}
-        >
+        <Grid item sx={{ paddingLeft: '20px' }} xs={12}>
           <Button
             fullWidth
             onClick={showAlladdressesOnThisChain}
@@ -433,11 +428,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
       {recepientAddressIsValid &&
         <div id='transferBody'>
           <Grid container item justifyContent='space-between' sx={{ padding: '30px 30px 20px' }} xs={12}>
-            <Grid
-              item
-              sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: 5, textAlign: 'left' }}
-              xs={3}
-            >
+            <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: 5, textAlign: 'left' }} xs={3}>
               {t('Asset:')}
             </Grid>
             <Grid item xs={9}>
@@ -445,7 +436,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                 <Grid container justifyContent='flex-start' spacing={1}>
                   <Grid item xs={2}>
                     <Avatar
-                      alt={`${token ?? ''} logo`} // src={getLogoSource(coin)}
+                      alt={`${token ?? ''} logo`}
                       src={getLogo(chain)}
                       sx={{ height: 45, width: 45 }}
                     />
@@ -526,7 +517,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                   margin='dense'
                   name='transfeAmount'
                   onChange={handleTransferAmountChange}
-                  //  placeholder='0.00'
                   size='medium'
                   type='number'
                   value={transferAmountInHuman}
@@ -548,7 +538,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
           </Grid>
 
           {recepient && api &&
-            <ConfirmTx
+            <ConfirmTransfer
               api={api}
               chain={chain}
               confirmModalOpen={confirmModalOpen}
