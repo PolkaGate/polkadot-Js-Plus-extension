@@ -204,8 +204,8 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
       <PlusHeader action={handleStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
 
-      <Grid alignItems='center' container justifyContent='space-around' sx={{ p: '60px 10px' }}>
-        <Paper elevation={stakingType === 'solo' ? 8 : 4} onClick={() => setSoloStakingOpen(true)} onMouseOver={() => setStakingType('solo')} sx={{ borderRadius: '10px', height: 380, pt: 1, width: '45%', cursor: 'pointer' }}>
+      <Grid alignItems='center' container justifyContent='space-around' sx={{ p: '80px 10px' }}>
+        <Paper elevation={stakingType === 'solo' ? 8 : 4} onClick={() => setSoloStakingOpen(true)} onMouseOver={() => setStakingType('solo')} sx={{ borderRadius: '10px', height: 340, pt: 1, width: '45%', cursor: 'pointer' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
             <Grid color={blue[600]} item>
               <p>{t('SOLO STAKING')}</p>
@@ -218,14 +218,13 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
             {t('Stakers (nominators) with sufficient amount of tokens can choose solo staking. Each solo staker will be responsible to nominate validators and keep eyes on them to re-nominate if needed.')}
           </Grid>
-
           <Grid item sx={{ fontSize: 12, p: '20px 10px' }} xs={12}>
             <Divider light />
           </Grid>
 
-          <Grid color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 12, p: '10px 10px' }} xs={12}>
+          <Grid color={grey[700]} container item justifyContent='space-around' sx={{ fontSize: 12, fontWeight: '600', p: '10px 10px' }} xs={12}>
             <Grid item>
-              {t('Min to receive reward')}:
+              {t('Min to receive rewards')}:
             </Grid>
             <Grid item>
               <ShowBalance2 api={api} balance={nominatorInfo?.minNominated} />
@@ -234,7 +233,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
         </Paper>
 
-        <Paper elevation={stakingType === 'pool' ? 8 : 4} onClick={handlePoolStakingModalOpen} onMouseOver={() => setStakingType('pool')} sx={{ borderRadius: '10px', cursor: !(api && !api?.tx?.nominationPools) ? 'pointer' : '', height: 380, pt: 1, width: '45%' }}>
+        <Paper elevation={stakingType === 'pool' ? 8 : 4} onClick={handlePoolStakingModalOpen} onMouseOver={() => setStakingType('pool')} sx={{ borderRadius: '10px', cursor: !(api && !api?.tx?.nominationPools) ? 'pointer' : '', height: 340, pt: 1, width: '45%' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
             <Grid color={green[600]} item>
               <p>{t('POOL STAKING')}</p>
@@ -247,7 +246,6 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
             {t('Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member\'s stake in the bonded pool.')}
           </Grid>
-
           <Grid item sx={{ fontSize: 12, p: '20px 10px' }} xs={12}>
             <Divider light />
           </Grid>
@@ -256,7 +254,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
             ? <Grid color={red[600]} item sx={{ fontSize: 11, pt: '10px', textAlign: 'center' }}>
               {t('Pool staking is not available on {{chainName}} yet', { replace: { chainName: chainName } })}
             </Grid>
-            : <Grid color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 12, p: '10px 10px' }} xs={12}>
+            : <Grid color={grey[700]} container item justifyContent='space-around' sx={{ fontSize: 12, fontWeight: '600', p: '10px 10px' }} xs={12}>
               <Grid item>
                 {t('Min to join a pool')}:
               </Grid>
