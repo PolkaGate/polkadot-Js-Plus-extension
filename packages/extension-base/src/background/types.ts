@@ -48,6 +48,7 @@ export interface AccountJson extends KeyringPair$Meta {
   stakingConsts?: string;
   poolStakingConsts?: string;
   nominatedValidators?: string;
+  poolNominatedValidators?: string;
   validatorsInfo?: string;
   validatorsIdentities?: string;
   endpoint: string;

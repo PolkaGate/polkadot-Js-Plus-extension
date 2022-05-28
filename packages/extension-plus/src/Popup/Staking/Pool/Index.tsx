@@ -382,7 +382,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
 
     // *** retrive nominated validators from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const nominatedValidatorsInfoFromLocalStrorage: SavedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
+    const nominatedValidatorsInfoFromLocalStrorage: SavedMetaData = account?.poolNominatedValidators ? JSON.parse(account.poolNominatedValidators) : null;
 
     if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
       // *** TODO: remove if after next version, because of inconsistency in the stored data formats
@@ -414,17 +414,17 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
       setNominatedValidatorsInfo(nominations);
       // setGettingNominatedValidatorsInfoFromChain(false);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominations));
+      // eslint-disable-next-line no-void
+      void updateMeta(account.address, prepareMetaData(chain, 'poolNominatedValidators', nominations));
     }
   }, [nominatedValidatorsId, validatorsInfo, chain, account.address]);
 
   useEffect(() => {
     if (noNominatedValidators) {
-      console.log('Clear saved nominatedValidators');
+      console.log('Clear saved poolNominatedValidators');
 
       // eslint-disable-next-line no-void
-      void updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', []));
+      void updateMeta(account.address, prepareMetaData(chain, 'poolNominatedValidators', []));
     }
   }, [account.address, chain, noNominatedValidators]);
 
