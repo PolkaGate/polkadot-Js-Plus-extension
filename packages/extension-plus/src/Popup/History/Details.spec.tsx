@@ -44,12 +44,12 @@ describe('Testing Details component', () => {
   test('Checking the existence of elements', () => {
     expect(screen.queryAllByText('Transaction Detail')).toHaveLength(1);
 
-    const detailAction = screen.queryByTestId('details').children.item(0).children.item(0).children.item(0).children.item(0).textContent;
-    const detailStatus = screen.queryByTestId('details').children.item(0).children.item(0).children.item(0).children.item(1).textContent;
-    const detailDate = screen.queryByTestId('details').children.item(0).children.item(0).children.item(0).children.item(3).textContent;
-    const detailAmount = screen.queryByTestId('details').children.item(2).children.item(0).children.item(0).children.item(1).textContent;
-    const detailFrom = screen.queryByTestId('details').children.item(2).children.item(0).children.item(0).children.item(3).children.item(0).textContent;
-    const detailTo = screen.queryByTestId('details').children.item(2).children.item(0).children.item(0).children.item(5).children.item(0).textContent;
+    const detailAction = screen.queryByTestId('details')?.children.item(0)?.children.item(0)?.children.item(0)?.children.item(0)?.textContent;
+    const detailStatus = screen.queryByTestId('details')?.children.item(0)?.children.item(0)?.children.item(0)?.children.item(1)?.textContent;
+    const detailDate = screen.queryByTestId('details')?.children.item(0)?.children.item(0)?.children.item(0)?.children.item(3)?.textContent;
+    const detailAmount = screen.queryByTestId('details')?.children.item(2)?.children.item(0)?.children.item(0)?.children.item(1)?.textContent;
+    const detailFrom = screen.queryByTestId('details')?.children.item(2)?.children.item(0)?.children.item(0)?.children.item(3)?.children.item(0)?.textContent;
+    const detailTo = screen.queryByTestId('details')?.children.item(2)?.children.item(0)?.children.item(0)?.children.item(5)?.children.item(0)?.textContent;
 
     expect(detailAction).toEqual(transaction.action.toUpperCase());
     expect(detailStatus).toEqual((transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)));
@@ -57,6 +57,5 @@ describe('Testing Details component', () => {
     expect(detailAmount).toEqual(`${transaction.amount}  ${coin}`);
     expect(detailFrom).toEqual(makeShortAddr(transaction.from));
     expect(detailTo).toEqual(makeShortAddr(transaction.to));
-    expect(screen.queryAllByText('Subscan')).toHaveLength(1);
   });
 });
