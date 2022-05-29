@@ -12,15 +12,15 @@
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
-import { BarChart as BarChartIcon, Redeem as RedeemIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { BarChart as BarChartIcon, MoreVert as MoreVertIcon, Redeem as RedeemIcon } from '@mui/icons-material';
 import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
 import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import Hint from '../../components/Hint';
-import { amountToHuman } from '../../util/plusUtils';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import Hint from '../../../components/Hint';
+import { amountToHuman } from '../../../util/plusUtils';
 
 interface Props {
   availableBalanceInHuman: string,
@@ -93,7 +93,7 @@ export default function Overview({ api, availableBalanceInHuman, currentlyStaked
                         {t('Rewards')}
                       </Grid>
                       <Grid item>
-                        <Hint id='redeem' place='top' tip={t('View chart')}>
+                        <Hint id='rewards' place='top' tip={t('View chart')}>
                           <BarChartIcon color={rewardSlashes?.length ? 'warning' : 'disabled'} onClick={handleViewChart} sx={{ cursor: 'pointer', fontSize: 15 }} />
                         </Hint>
                       </Grid>

@@ -3,11 +3,15 @@
 /* eslint-disable header/header */
 /* eslint-disable camelcase */
 
+// eslint-disable-next-line simple-import-sort/imports
 import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveReferendumExt, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import type { Option } from '@polkadot/types';
+import type { BN } from '@polkadot/util';
+import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { ApiPromise } from '@polkadot/api';
-import { AccountId, Balance } from '@polkadot/types/interfaces';
-import { LinkOption } from '@polkadot/apps-config/endpoints/types';
+import { Balance } from '@polkadot/types/interfaces';
 
 export interface TransactionStatus {
   blockNumber: string | null;
@@ -16,12 +20,12 @@ export interface TransactionStatus {
 }
 
 export interface BalanceType {
-  coin: string,
-  available: bigint,
-  total: bigint,
-  reserved?: bigint,
-  miscFrozen?: bigint,
-  feeFrozen?: bigint,
+  coin: string;
+  available: bigint;
+  total: bigint;
+  reserved?: bigint;
+  miscFrozen?: bigint;
+  feeFrozen?: bigint;
   decimals: number
 }
 
@@ -36,11 +40,16 @@ export interface AccountsBalanceType {
 }
 
 export interface StakingConsts {
-  existentialDeposit: bigint,
-  maxNominations: number,
-  maxNominatorRewardedPerValidator: number,
-  minNominatorBond: bigint,
+  existentialDeposit: bigint;
+  maxNominations: number;
+  maxNominatorRewardedPerValidator: number;
+  minNominatorBond: bigint;
   unbondingDuration: number
+}
+
+export interface NominatorInfo {
+  minNominated: bigint;
+  isInList: boolean // is Nominator in top 22500 elected
 }
 
 export interface ValidatorInfo extends DeriveStakingQuery {
@@ -48,19 +57,19 @@ export interface ValidatorInfo extends DeriveStakingQuery {
 }
 
 export interface AllValidators {
-  current: ValidatorInfo[],
-  waiting: ValidatorInfo[],
+  current: ValidatorInfo[];
+  waiting: ValidatorInfo[];
   currentEraIndex?: number
 }
 
 export interface Validators {
-  current: DeriveStakingQuery[],
-  waiting: DeriveStakingQuery[],
+  current: DeriveStakingQuery[];
+  waiting: DeriveStakingQuery[];
   currentEraIndex?: number
 }
 
 export interface AllValidatorsFromSubscan {
-  current: ValidatorsFromSubscan[],
+  current: ValidatorsFromSubscan[];
   waiting: ValidatorsFromSubscan[]
 }
 
@@ -114,10 +123,10 @@ export interface TransactionDetail {
 }
 
 export interface TxInfo {
-  block?: number,
-  fee?: string,
-  status: string,
-  txHash?: string,
+  block?: number;
+  fee?: string;
+  status: string;
+  txHash?: string;
   failureText?: string
 }
 
@@ -218,8 +227,8 @@ export interface CouncilInfo extends DeriveElectionsInfo {
 }
 
 export interface PersonsInfo {
-  desiredSeats?: number,
-  backed?: string[],
+  desiredSeats?: number;
+  backed?: string[];
   infos: DeriveAccountInfo[]
 }
 
@@ -310,4 +319,43 @@ export interface Tip {
 export interface Option {
   text: string;
   value: string;
+}
+
+export interface PoolStakingConsts {
+  lastPoolId: BN;
+  maxPoolMembers: number;
+  maxPoolMembersPerPool: number;
+  maxPools: number;
+  minCreateBond: BN;
+  minJoinBond: BN;
+  minNominatorBond: BN
+}
+
+export interface PoolInfo {
+  poolId: BN;
+  bondedPool: PalletNominationPoolsBondedPoolInner | null;
+  metadata: string | null;
+  rewardPool: PalletNominationPoolsRewardPool | null
+}
+
+export interface MyPoolInfo extends PoolInfo {
+  member?: PalletNominationPoolsPoolMember;
+  accounts?: PoolAccounts;
+  nominators?: string[];
+  myClaimable?: BN;
+  redeemable?: BN;
+  rewardClaimable?: BN;
+  ledger?: StakingLedger | null;
+  rewardIdBalance?: any;
+  stashIdAccount?: any;
+}
+
+export interface PoolAccounts {
+  rewardId: string;
+  stashId: string;
+}
+
+export interface MembersMapEntry {
+  accountId: string;
+  member: PalletNominationPoolsPoolMember;
 }

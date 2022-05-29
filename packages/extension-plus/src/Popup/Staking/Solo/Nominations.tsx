@@ -9,6 +9,7 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
+import type {AccountsBalanceType, NominatorInfo, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { Adjust as AdjustIcon, StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
 import { Button as MuiButton, Grid } from '@mui/material';
@@ -17,18 +18,17 @@ import React, { useCallback } from 'react';
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 
-import { Chain } from '../../../../extension-chains/src/types';
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, Progress } from '../../components';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../util/plusTypes';
+import { Chain } from '../../../../../extension-chains/src/types';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Hint, Progress } from '../../../components';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
   activeValidator: DeriveStakingQuery | undefined;
   ledger: StakingLedger | null;
   nominatedValidators: DeriveStakingQuery[] | null;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   noNominatedValidators: boolean;
   chain: Chain;
   api: ApiPromise | undefined;
@@ -38,7 +38,7 @@ interface Props {
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
   handleStopNominating: () => void;
   handleRebag: () => void;
-  nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
+  nominatorInfo: NominatorInfo | undefined;
   putInFrontInfo: PutInFrontInfo | undefined;
   rebagInfo: RebagInfo | undefined;
   staker: AccountsBalanceType;

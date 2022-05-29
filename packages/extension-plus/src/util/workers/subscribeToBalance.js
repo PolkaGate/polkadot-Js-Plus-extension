@@ -7,10 +7,8 @@ import { handleAccountBalance } from '../plusUtils.ts';
 
 async function subscribeToBalance (_address, endpoint, _formattedAddress) {
   const api = await getApi(endpoint);
-  const at = await api.rpc.chain.getFinalizedHead();
-  const apiAt = await api.at(at);
 
-  await apiAt.query.system.account(_formattedAddress, ({ data: balance }) => {
+  await api.query.system.account(_formattedAddress, ({ data: balance }) => {
     if (balance) {
       const result = {
         coin: api.registry.chainTokens[0],

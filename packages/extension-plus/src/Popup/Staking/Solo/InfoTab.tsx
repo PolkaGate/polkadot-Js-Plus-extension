@@ -14,13 +14,13 @@ import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ShowBalance2, ShowValue } from '../../components';
-import { StakingConsts } from '../../util/plusTypes';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { ShowBalance2, ShowValue } from '../../../components';
+import { StakingConsts } from '../../../util/plusTypes';
 
 interface Props {
   api: ApiPromise | undefined;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   minNominated: bigint | undefined;
   currentEraIndex: number | undefined;
 }
@@ -65,7 +65,7 @@ function InfoTab({ api, currentEraIndex, minNominated, stakingConsts }: Props): 
             {t('Minimum {{symbol}}s to recieve rewards today (era: {{eraIndex}})', { replace: { symbol: token, eraIndex: currentEraIndex } })}:
           </Grid>
           <Grid item>
-            <ShowBalance2 api={api} balance={minNominated} decimalDigits={4} />
+            <ShowBalance2 api={api} balance={minNominated} />
           </Grid>
         </Grid>
 

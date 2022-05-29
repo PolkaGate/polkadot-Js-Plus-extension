@@ -14,12 +14,12 @@ import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title
 import React, { useCallback } from 'react';
 import { Bar } from 'react-chartjs-2';
 
+import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup } from '../../components';
-import { ApiPromise } from '@polkadot/api';
-import { amountToHuman } from '../../util/plusUtils';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { PlusHeader, Popup } from '../../../components';
+import { amountToHuman } from '../../../util/plusUtils';
 
 ChartJS.register(
   CategoryScale,

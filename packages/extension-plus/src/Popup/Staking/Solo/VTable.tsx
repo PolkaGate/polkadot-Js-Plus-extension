@@ -14,8 +14,8 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { StakingConsts } from '../../util/plusTypes';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { StakingConsts } from '../../../util/plusTypes';
 import ShowValidator from './ShowValidator';
 
 interface Props {
@@ -23,7 +23,7 @@ interface Props {
   activeValidator?: DeriveStakingQuery;
   chain: Chain;
   validators: DeriveStakingQuery[];
-  stakingConsts: StakingConsts;
+  stakingConsts: StakingConsts | undefined;
   validatorsIdentities: DeriveAccountInfo[] | null;
   setInfo: React.Dispatch<React.SetStateAction<DeriveStakingQuery | null>>;
   setShowValidatorInfoModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -54,7 +54,7 @@ export default function VTable({ activeValidator, api, chain, setInfo, setShowVa
           <Grid item sx={{ textAlign: 'left' }} xs={1}>
             {t('Comm.')}
           </Grid>
-          <Grid sx={{ textAlign: 'center' }} item xs={2}>
+          <Grid item sx={{ textAlign: 'center' }} xs={2}>
             {t('Nominators')}
           </Grid>
         </Grid>

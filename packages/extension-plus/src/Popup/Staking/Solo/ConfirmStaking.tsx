@@ -21,16 +21,15 @@ import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
 
-import { AccountContext } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
-import Hint from '../../components/Hint';
-import broadcast from '../../util/api/broadcast';
-import { bondOrBondExtra } from '../../util/api/staking';
-import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../util/constants';
-import getLogo from '../../util/getLogo';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../util/plusTypes';
-import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
+import { AccountContext } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { ConfirmButton, Hint, Password, PlusHeader, Popup, ShortAddress } from '../../../components';
+import broadcast from '../../../util/api/broadcast';
+import { bondOrBondExtra } from '../../../util/api/staking';
+import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
+import getLogo from '../../../util/getLogo';
+import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
+import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
@@ -43,7 +42,7 @@ interface Props {
   setConfirmStakingModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectValidatorsModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   handleEasyStakingModalClose?: () => void;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   amount: bigint;
   ledger: StakingLedger | null;
   nominatedValidators: DeriveStakingQuery[] | null;

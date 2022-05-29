@@ -16,11 +16,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ApiPromise } from '@polkadot/api';
 import { DeriveStakingQuery } from '@polkadot/api-derive/types';
 
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { MIN_EXTRA_BOND } from '../../util/constants';
-import { AccountsBalanceType, StakingConsts } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { MIN_EXTRA_BOND } from '../../../util/constants';
+import { AccountsBalanceType, StakingConsts } from '../../../util/plusTypes';
+import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -31,7 +31,7 @@ interface Props {
   staker?: AccountsBalanceType;
   state: string;
   ledger: StakingLedger | null;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   handleConfirmStakingModaOpen: () => void;
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
 }
@@ -194,17 +194,15 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
               sx={{ fontSize: 12 }}
               value='Manual'
             />
-            {!!nominatedValidators?.length &&
-              <FormControlLabel
-                control={<Radio sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
-                label={
-                  <Box fontSize={12}>
-                    {t('Keep nominated')}
-                  </Box>}
-                sx={{ fontSize: 12 }}
-                value='KeepNominated'
-              />
-            }
+            <FormControlLabel
+              control={<Radio disabled={!nominatedValidators?.length} sx={{ fontSize: 12, '& .MuiSvgIcon-root': { fontSize: 14 } }} />}
+              label={
+                <Box fontSize={12}>
+                  {t('Keep nominated')}
+                </Box>}
+              sx={{ fontSize: 12 }}
+              value='KeepNominated'
+            />
           </RadioGroup>
         </Grid>
       </Grid>
@@ -213,31 +211,31 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
 
   return (
     <>
-      <Grid container sx={{ height: '222px' }}>
-        <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
-          <TextField
-            InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
-            autoFocus
-            color='warning'
-            error={zeroBalanceAlert}
-            fullWidth
-            helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
-            inputProps={{ step: '.01' }}
-            label={t('Amount')}
-            name='stakeAmount'
-            onChange={handleStakeAmount}
-            placeholder='0.0'
-            sx={{ height: '20px' }}
-            type='number'
-            value={stakeAmountInHuman}
-            variant='outlined'
-          />
-        </Grid>
+      <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
+        <TextField
+          InputLabelProps={{ shrink: true }}
+          InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
+          autoFocus
+          color='warning'
+          error={zeroBalanceAlert}
+          fullWidth
+          helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
+          inputProps={{ step: '.01' }}
+          label={t('Amount')}
+          name='stakeAmount'
+          onChange={handleStakeAmount}
+          placeholder='0.0'
+          sx={{ height: '50px' }}
+          type='number'
+          value={stakeAmountInHuman}
+          variant='outlined'
+        />
+      </Grid>
 
+      <Grid container sx={{ height: '128px' }}>
         <Grid container item xs={12}>
-          {!zeroBalanceAlert && token
-            ? <Grid container item justifyContent='space-between' sx={{ p: '0px 30px 10px' }} xs={12}>
+          {!zeroBalanceAlert && token &&
+            <Grid container item justifyContent='space-between' sx={{ px: '30px' }} xs={12}>
               <Grid item sx={{ fontSize: 12 }}>
                 {t('Min')}:
                 <MuiButton onClick={handleMinStakeClicked} variant='text'>
@@ -251,25 +249,25 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
                 </MuiButton>
               </Grid>
             </Grid>
-            : <Grid container item sx={{ p: '23px' }} xs={12}></Grid>
           }
-          <Grid container item sx={{ fontSize: 13, fontWeight: '600', textAlign: 'center', p: '5px 30px 5px' }} xs={12}>
-            {alert
-              ? <Grid item xs={12}>
+          <Grid container item sx={{ fontSize: 13, fontWeight: '600', textAlign: 'center', p: '15px 30px 5px' }} xs={12}>
+            {alert &&
+              <Grid item xs={12}>
                 <Alert severity='error' sx={{ fontSize: 12 }}>
                   {alert}
                 </Alert>
               </Grid>
-              : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
             }
           </Grid>
-          <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
-            <ValidatorSelectionRadionButtons />
-          </Grid>
+
         </Grid>
       </Grid>
 
-      <Grid item sx={{ p: '0px 10px 0px' }} xs={12}>
+      <Grid item justifyContent='center' sx={{ textAlign: 'center' }} xs={12}>
+        <ValidatorSelectionRadionButtons />
+      </Grid>
+
+      <Grid item sx={{ px: '10px' }} xs={12}>
         <Grid item xs={12}>
           <NextStepButton
             data-button-action='next to stake'

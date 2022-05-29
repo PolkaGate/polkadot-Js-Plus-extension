@@ -136,7 +136,7 @@ export default function Proposals({ address, chain, chainInfo, proposalsInfo }: 
               <Grid container justifyContent='center' sx={{ paddingTop: 2 }}>
                 <Hint id='seconding' place='top' tip={secondToolTip}>
                   <Button color='warning' onClick={() => handleSecond(p)} variant='contained'>
-                    {t('Second')}
+                    {t('Endorse')}
                   </Button>
                 </Hint>
               </Grid>

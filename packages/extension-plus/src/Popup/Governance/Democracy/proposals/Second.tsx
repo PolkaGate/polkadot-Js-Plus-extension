@@ -88,7 +88,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
       const { block, failureText, fee, status, txHash } = await broadcast(api, tx, params, pair, encodedAddressInfo.address);
 
       const currentTransactionDetail: TransactionDetail = {
-        action: 'second',
+        action: 'endorse',
         amount: '0',
         block: block,
         date: Date.now(),
@@ -111,7 +111,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
 
   return (
     <Popup handleClose={handleVoteProposalModalClose} showModal={showVoteProposalModal}>
-      <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Second'} />
+      <PlusHeader action={handleVoteProposalModalClose} chain={chain} closeText={'Close'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Endorse'} />
       <Participator
         address={address}
         availableBalance={availableBalance}

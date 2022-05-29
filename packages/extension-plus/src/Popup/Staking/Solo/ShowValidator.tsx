@@ -17,16 +17,14 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import { ShortAddress } from '../../components';
-import Hint from '../../components/Hint';
-import Identity from '../../components/Identity';
-import { SELECTED_COLOR } from '../../util/constants';
-import { StakingConsts } from '../../util/plusTypes';
+import { Hint, Identity, ShortAddress } from '../../../components';
+import { SELECTED_COLOR } from '../../../util/constants';
+import { StakingConsts } from '../../../util/plusTypes';
 
 interface Props {
   api: ApiPromise;
   chain: Chain;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   validator: DeriveStakingQuery;
   showSwitch?: boolean;
   handleSwitched?: (event: React.ChangeEvent<HTMLInputElement>, validator: DeriveStakingQuery) => void;

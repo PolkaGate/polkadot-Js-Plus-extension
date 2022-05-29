@@ -12,6 +12,8 @@ import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { configure, shallow } from 'enzyme';
 import React from 'react';
 
+import useTranslation from '@polkadot/extension-ui/hooks/useTranslation';
+
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
 import TransferFunds from '../Popup/Transfer';
@@ -35,7 +37,10 @@ const Props = {
 };
 
 describe('Testing Plus component', () => {
+
   test('rendering Plus while chain is null', () => {
+    // const t = useTranslation();
+
     const wrapper = shallow(
       <Plus
         address={Props.address}
@@ -43,6 +48,7 @@ describe('Testing Plus component', () => {
         formattedAddress={Props.formattedAddress}
         givenType={Props.givenType}
         name={Props.name}
+        t={t}
       />).dive();
 
     expect(wrapper.find(FontAwesomeIcon)).toHaveLength(5);
@@ -53,6 +59,8 @@ describe('Testing Plus component', () => {
   });
 
   test('rendering Plus', () => {
+    // const t = useTranslation();
+
     const wrapper = shallow(
       <Plus
         address={Props.address}
@@ -60,6 +68,8 @@ describe('Testing Plus component', () => {
         formattedAddress={Props.formattedAddress}
         givenType={Props.givenType}
         name={Props.name}
+        t={t}
+
       />).dive();
 
     expect(wrapper.find(Balance)).toHaveLength(3);

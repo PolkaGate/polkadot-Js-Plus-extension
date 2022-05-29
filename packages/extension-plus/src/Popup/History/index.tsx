@@ -173,7 +173,7 @@ export default function TransactionHistory({ address, chain, name, setTxHistoryM
         history = history.filter((h) => ['send', 'receive'].includes(h.action.toLowerCase()));
         break;
       case (TAB_MAP.STAKING):
-        history = history.filter((h) => STAKING_ACTIONS.includes(h.action));
+        history = history.filter((h) => STAKING_ACTIONS.includes(h.action) || h.action.includes('pool'));
         break;
       default:
         break;

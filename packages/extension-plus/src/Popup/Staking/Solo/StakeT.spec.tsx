@@ -13,10 +13,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import getChainInfo from '../../util/getChainInfo';
-import { AccountsBalanceType, ChainInfo } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine } from '../../util/plusUtils';
-import { nominatedValidators, stakingConsts } from '../../util/test/testHelper';
+import getChainInfo from '../../../util/getChainInfo';
+import { AccountsBalanceType, ChainInfo } from '../../../util/plusTypes';
+import { amountToHuman, amountToMachine } from '../../../util/plusUtils';
+import { nominatedValidators, stakingConsts } from '../../../util/test/testHelper';
 import Stake from './Stake';
 
 jest.setTimeout(60000);

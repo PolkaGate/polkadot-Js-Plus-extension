@@ -2,7 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
+import { BN } from '@polkadot/util';
+
+export const EXTENSION_NAME = 'Polkadot js plus';
+export const PREFERED_POOL_NAME = EXTENSION_NAME;
 export const PLUS_VERSION = '0.42.8.13';
+export const ENVIREONMENT = 'production'; //developement or production
+export const PPREFERED_POOL_ID_ON_WESTEND = new BN(6)
+export const PPREFERED_POOL_ID_ON_KUSAMA = undefined;
+export const PPREFERED_POOL_ID_ON_POLKADOT = undefined;
+export const DEVELOPEMENT_ENDPOINT = 'wss://109.109.36.23:443'
 export const SELECTED_COLOR = '#fffbed';
 export const AUCTION_GRACE_PERIOD = 27000;// BLOCKS
 export const MAX_NOMINATIONS = 16;

@@ -56,7 +56,7 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, show
             </Grid>
 
             <Grid alignItems='center' container item sx={{ paddingLeft: '5px' }} xs={11}>
-              <Grid alignItems='center' id='namesAndSocials' container item justifyContent='flex-start' spacing={0.3} xs={12}>
+              <Grid alignItems='center' container id='namesAndSocials' item justifyContent='flex-start' spacing={0.3} xs={12}>
 
                 <Grid container id='names' item sx={{ flexWrap: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={hasSocial && showSocial ? 9 : 12}>
                   <Grid item sx={{ pr: '5px' }}>
@@ -83,7 +83,7 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, show
 
                 </Grid>
 
-                {showSocial && <Grid container item id='socials' justifyContent='flex-start' xs={hasSocial ? 3 : 0}>
+                {showSocial && <Grid container id='socials' item justifyContent='flex-start' xs={hasSocial ? 3 : 0}>
                   {accountInfo?.identity.twitter &&
                     <Grid item>
                       <Link href={`https://TwitterIcon.com/${accountInfo?.identity.twitter}`}>
@@ -121,7 +121,7 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, show
                 </Grid>
                 }
               </Grid>
-              <Grid alignItems='center' id='totalStaked' container item justifyContent='flex-start' sx={{ paddingLeft: '18px' }} xs={12}>
+              <Grid alignItems='center' container id='totalStaked' item justifyContent='flex-start' sx={{ paddingLeft: '18px' }} xs={12}>
                 {showAddress &&
                   <Grid item sx={{ color: grey[500], textAlign: 'left' }} xs={12}>
                     {String(accountInfo?.accountId)}

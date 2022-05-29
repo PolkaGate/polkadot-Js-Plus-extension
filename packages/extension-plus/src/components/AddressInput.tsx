@@ -3,28 +3,31 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
+import type { ApiPromise } from '@polkadot/api';
+import type { Balance } from '@polkadot/types/interfaces';
+import type { Chain } from '../../../extension-chains/src/types';
+
 import { Autocomplete, FormControl, FormHelperText, Grid, InputLabel, Select, SelectChangeEvent, Skeleton, TextField } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import Identicon from '@polkadot/react-identicon';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
-import { Chain } from '../../../extension-chains/src/types';
 import { AccountContext, SettingsContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
-import { ChainInfo } from '../util/plusTypes';
-import { amountToHuman } from '../util/plusUtils';
+import isValidAddress from '../util/validateAddress';
 
 interface Props {
   chain: Chain;
-  setSelectedAddress: React.Dispatch<React.SetStateAction<string>>;
-  selectedAddress: string;
-  availableBalance?: string;
-  setAvailableBalance?: React.Dispatch<React.SetStateAction<string>>;
-  chainInfo?: ChainInfo;
+  setSelectedAddress?: React.Dispatch<React.SetStateAction<string | undefined>>;
+  selectedAddress: string | undefined;
+  availableBalance?: Balance;
+  setAvailableBalance?: React.Dispatch<React.SetStateAction<Balance | undefined>>;
+  api: ApiPromise | undefined;
   text?: string | Element;
   freeSolo?: boolean;
   title?: string;
+  disabled?: boolean;
 }
 
 interface nameAddress {
@@ -32,17 +35,19 @@ interface nameAddress {
   address: string;
 }
 
-export default function AllAddresses({ availableBalance, chain, chainInfo, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
+export default function AddressInput({ api, availableBalance, chain, disabled = false, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
   const [allAddresesOnThisChain, setAllAddresesOnThisChain] = useState<nameAddress[]>([]);
 
+  const decimals = api && api.registry.chainDecimals[0];
+
   function showAlladdressesOnThisChain(prefix: number): void {
     const allAddresesOnSameChain = accounts.map((acc): nameAddress => {
       const publicKey = decodeAddress(acc.address);
 
-      return { name: acc?.name, address: encodeAddress(publicKey, prefix) };
+      return { address: encodeAddress(publicKey, prefix), name: acc?.name };
     });
 
     setAllAddresesOnThisChain(allAddresesOnSameChain);
@@ -55,36 +60,45 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
   }, [chain, settings]);
 
   useEffect(() => {
-    if (allAddresesOnThisChain.length && !freeSolo) { setSelectedAddress(allAddresesOnThisChain[0].address); }
+    if (allAddresesOnThisChain.length && !freeSolo) { setSelectedAddress && setSelectedAddress(allAddresesOnThisChain[0].address); }
   }, [allAddresesOnThisChain]);
 
   useEffect(() => {
-    if (!selectedAddress || !setAvailableBalance || !chainInfo) return;
+    if (!selectedAddress || !setAvailableBalance || !api) return;
 
-    setAvailableBalance('');
+    setAvailableBalance(undefined);
 
     // eslint-disable-next-line no-void
-    void chainInfo?.api.derive.balances?.all(selectedAddress).then((b) => {
-      setAvailableBalance(b?.availableBalance.toString());
+    void api.derive.balances?.all(selectedAddress).then((b) => {
+      setAvailableBalance(b?.availableBalance);
     });
-  }, [chainInfo, selectedAddress, setAvailableBalance]);
+  }, [api, selectedAddress, setAvailableBalance]);
 
-  const handleAddressChange = (event: SelectChangeEvent) => setSelectedAddress(event.target.value);
+  const handleAddressChange = useCallback((event: SelectChangeEvent) => setSelectedAddress && setSelectedAddress(event.target.value), [setSelectedAddress]);
 
-  const handleChange = (_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
+  const handleAddress = useCallback((value: string | null) => {
     const indexOfDots = value?.indexOf(':');
+    let mayBeAddress = value?.slice(indexOfDots + 1)?.trim();
+    mayBeAddress = isValidAddress(mayBeAddress) ? mayBeAddress : undefined;
 
-    setSelectedAddress(value?.slice(indexOfDots + 1).trim());
-  };
+    setSelectedAddress && setSelectedAddress(mayBeAddress);
+  }, [setSelectedAddress]);
 
-  const handleBlur = (event: React.FocusEventHandler<HTMLDivElement> | undefined) => {
-    const value = event.target.value
-    const indexOfDots = value?.indexOf(':');
-    setSelectedAddress(value?.slice(indexOfDots + 1).trim());
-  };
+  const handleAutoComplateChange = useCallback((_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
+    setSelectedAddress && handleAddress(value);
+  }, [handleAddress, setSelectedAddress]);
+
+  const handleChange = useCallback((_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = _event.target.value;
+    setSelectedAddress && handleAddress(value);
+  }, [handleAddress, setSelectedAddress]);
+
+  const handleBlur = useCallback((event: React.FocusEvent<HTMLDivElement> | undefined) => {
+    setSelectedAddress && handleAddress(event.target.value);
+  }, [handleAddress, setSelectedAddress]);
 
   return (
-    <Grid alignItems='center' container sx={{ padding: '20px 40px 0px' }}>
+    <Grid alignItems='center' container>
       <Grid item sx={{ paddingBottom: !freeSolo ? 2 : 0 }} xs={1}>
         {!!selectedAddress &&
           <Identicon
@@ -94,20 +108,21 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
             value={selectedAddress}
           />}
       </Grid>
-
       <Grid item xs={11}>
         {freeSolo
           ? <Autocomplete
             ListboxProps={{ sx: { fontSize: 12 } }}
+            defaultValue={selectedAddress}
+            disabled={disabled}
             freeSolo
             id='Select-account'
             onBlur={handleBlur}
-            onChange={handleChange}
+            onChange={handleAutoComplateChange}
             options={allAddresesOnThisChain?.map((option) => `${option?.name} :    ${option.address}`)}
-            renderInput={(params) => <TextField {...params} label={title} />}
-            sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 12 } }}
+            // eslint-disable-next-line react/jsx-no-bind
+            renderInput={(params) => <TextField {...params} error={!selectedAddress} label={title} onChange={handleChange} />}
+            sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}
           />
-
           : <FormControl fullWidth>
             <InputLabel id='selec-address'>{title}</InputLabel>
             <Select
@@ -152,8 +167,8 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
             {setAvailableBalance &&
               <Grid data-testid='balance' item>
                 {t('Balance')}{': '}
-                {availableBalance
-                  ? `${amountToHuman(availableBalance, chainInfo?.decimals)}  ${chainInfo?.coin}`
+                {availableBalance && decimals
+                  ? `${availableBalance?.toHuman()}`
                   : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
                 }
               </Grid>
@@ -161,7 +176,6 @@ export default function AllAddresses({ availableBalance, chain, chainInfo, freeS
           </Grid>
         </FormHelperText>
       </Grid>
-
     </Grid>
   );
 }

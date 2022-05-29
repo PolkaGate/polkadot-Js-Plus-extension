@@ -5,13 +5,17 @@
 // eslint-disable-next-line header/header
 /* eslint-disable camelcase */
 
-import { SubmittableExtrinsic } from '@polkadot/api/types';
-import { Chain } from '@polkadot/extension-chains/types';
-import { KeyringPair } from '@polkadot/keyring/types';
-import { ISubmittableResult } from '@polkadot/types/types';
+import type { ApiPromise } from '@polkadot/api';
+import type { SubmittableExtrinsic } from '@polkadot/api/types';
+import type { Chain } from '@polkadot/extension-chains/types';
+import type { ISubmittableResult } from '@polkadot/types/types';
+import type { TxInfo, ValidatorsFromSubscan } from '../plusTypes';
 
+import { KeyringPair } from '@polkadot/keyring/types';
+import { BN, BN_ZERO } from '@polkadot/util';
+
+import getApi from '../getApi';
 import getChainInfo from '../getChainInfo';
-import { TxInfo, ValidatorsFromSubscan } from '../plusTypes';
 import { postData } from '../postData';
 import { signAndSend } from './signAndSend';
 
@@ -214,6 +218,72 @@ export async function bondOrBondExtra(
     return signAndSend(api, bonded, _signer, _stashAccountId);
   } catch (error) {
     console.log('Something went wrong while bond/nominate', error);
+
+    return { status: 'failed' };
+  }
+}
+
+
+//* *******************************POOL STAKING********************************************/
+
+export async function poolJoinOrBondExtra(
+  _api: ApiPromise,
+  _stashAccountId: string | null,
+  _signer: KeyringPair,
+  _value: BN,
+  _nextPoolId: BN,
+  _alreadyBondedAmount: boolean): Promise<TxInfo> {
+  try {
+    console.log('poolJoinOrBondExtra is called! nextPoolId:', _nextPoolId);
+
+    if (!_stashAccountId) {
+      console.log('polBondOrBondExtra:  _stashAccountId is empty!');
+
+      return { status: 'failed' };
+    }
+
+    let tx: SubmittableExtrinsic<'promise', ISubmittableResult>;
+
+    if (_alreadyBondedAmount) {
+      tx = _api.tx.nominationPools.bondExtra({ FreeBalance: _value });
+    } else {
+      tx = _api.tx.nominationPools.join(_value, _nextPoolId);
+    }
+
+    return signAndSend(_api, tx, _signer, _stashAccountId);
+  } catch (error) {
+    console.log('Something went wrong while bond/nominate', error);
+
+    return { status: 'failed' };
+  }
+}
+
+export async function createPool(
+  _api: ApiPromise,
+  _depositor: string | null,
+  _signer: KeyringPair,
+  _value: BN,
+  _poolId: BN,
+  _roles: any,
+  _poolName: string
+): Promise<TxInfo> {
+  try {
+    console.log('createPool is called!');
+
+    if (!_depositor) {
+      console.log('createPool:  _depositor is empty!');
+
+      return { status: 'failed' };
+    }
+
+    const created = _api.tx.utility.batch([
+      _api.tx.nominationPools.create(_value, _roles.root, _roles.nominator, _roles.stateToggler),
+      _api.tx.nominationPools.setMetadata(_poolId, _poolName)
+    ]);
+
+    return signAndSend(_api, created, _signer, _depositor);
+  } catch (error) {
+    console.log('Something went wrong while createPool', error);
 
     return { status: 'failed' };
   }

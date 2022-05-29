@@ -7,7 +7,7 @@
   },
   "include": [
     "packages/**/src/**/*"
-  ],
+, "packages/extension-plus/src/Popup/Staking/Pool/.tsx"  ],
   "exclude": [
     "**/node_modules/**/*"
   ]

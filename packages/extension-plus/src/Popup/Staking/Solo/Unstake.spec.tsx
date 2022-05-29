@@ -13,9 +13,9 @@ import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import getChainInfo from '../../util/getChainInfo';
-import { ChainInfo } from '../../util/plusTypes';
-import { stakingConsts } from '../../util/test/testHelper';
+import getChainInfo from '../../../util/getChainInfo';
+import { ChainInfo } from '../../../util/plusTypes';
+import { stakingConsts } from '../../../util/test/testHelper';
 import Unstake from './Unstake';
 
 ReactDOM.createPortal = jest.fn((modal) => modal);

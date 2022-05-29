@@ -39,7 +39,7 @@ export async function signAndSend (
         }
       }
 
-      if (result.status.isFinalized) { // || result.status.isInBlock) {
+      if (result.status.isFinalized || result.status.isInBlock) {
         const hash = result.status.isFinalized ? result.status.asFinalized : result.status.asInBlock;
         const signedBlock = await api.rpc.chain.getBlock(hash);
         const blockNumber = signedBlock.block.header.number;

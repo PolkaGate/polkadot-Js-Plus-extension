@@ -7,7 +7,9 @@
  * @description
  *  in this component manual selection of validators is provided, with some filtering features to facilitate selection process
  **/
-import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import type { Chain } from '../../../../../extension-chains/src/types';
+import type { AccountsBalanceType, MembersMapEntry, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded as DeleteSweepRoundedIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
@@ -17,18 +19,15 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FixedSizeList as List } from "react-window";
 
 import { ApiPromise } from '@polkadot/api';
-import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import { BN, BN_ZERO } from '@polkadot/util';
 
-import { Chain } from '../../../../extension-chains/src/types';
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup } from '../../components';
-import Hint from '../../components/Hint';
-import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../util/constants';
-import { AccountsBalanceType, StakingConsts, Validators } from '../../util/plusTypes';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { Hint, PlusHeader, Popup } from '../../../components';
+import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
+import ShowValidator from '../Solo/ShowValidator';
+import ValidatorInfo from '../Solo/ValidatorInfo';
 import ConfirmStaking from './ConfirmStaking';
-import ShowValidator from './ShowValidator';
-import ValidatorInfo from './ValidatorInfo';
 
 interface Props {
   chain: Chain;
@@ -38,12 +37,13 @@ interface Props {
   nominatedValidators: DeriveStakingQuery[] | null;
   setSelectValidatorsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   stakingConsts: StakingConsts;
-  stakeAmount: bigint;
+  stakeAmount: BN;
   validatorsInfo: Validators;
   setState: React.Dispatch<React.SetStateAction<string>>;
   state: string;
-  ledger: StakingLedger | null;
   validatorsIdentities: DeriveAccountInfo[] | null;
+  pool: any | undefined;
+  poolsMembers: MembersMapEntry[] | undefined;
 }
 
 interface Data {
@@ -304,7 +304,9 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, ledger, nominatedValidators, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+
+
+export default function SelectValidators({ api, chain, poolsMembers, nominatedValidators, pool, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
@@ -470,13 +472,14 @@ export default function SelectValidators({ api, chain, ledger, nominatedValidato
 
       </Grid>
 
-      {!!selected.length && showConfirmStakingModal && api &&
+      {!!selected.length && showConfirmStakingModal && api && pool &&
         <ConfirmStaking
-          amount={['changeValidators', 'setNominees'].includes(state) ? 0n : stakeAmount}
+          amount={['changeValidators', 'setNominees'].includes(state) ? BN_ZERO : stakeAmount}
           api={api}
           chain={chain}
-          ledger={ledger}
           nominatedValidators={nominatedValidators}
+          pool={pool}
+          poolsMembers={poolsMembers}
           selectedValidators={selected}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}

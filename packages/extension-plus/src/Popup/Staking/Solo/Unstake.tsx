@@ -5,7 +5,7 @@
 
 /**
  * @description
- *  render unstake tab in easy staking component 
+ *  render unstake tab in easy staking component
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
@@ -15,14 +15,14 @@ import React, { useCallback, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
-import { NextStepButton } from '../../../../extension-ui/src/components';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { StakingConsts } from '../../util/plusTypes';
-import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../util/plusUtils';
+import { NextStepButton } from '../../../../../extension-ui/src/components';
+import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
+import { StakingConsts } from '../../../util/plusTypes';
+import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../../util/plusUtils';
 
 interface Props {
   api: ApiPromise | undefined;
-  stakingConsts: StakingConsts | null;
+  stakingConsts: StakingConsts | undefined;
   setUnstakeAmount: React.Dispatch<React.SetStateAction<bigint>>
   currentlyStakedInHuman: string | null;
   ledger: StakingLedger | null;
@@ -43,6 +43,8 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
   const token = api?.registry?.chainTokens[0];
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
+    if (!decimals) return;
+
     setAlert('');
     value = fixFloatingPoint(value);
     setUnstakeAmountInHuman(value);
@@ -95,48 +97,48 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
 
   return (
     <>
-      <Grid container sx={{ height: '222px' }} title='Unstake'>
-        <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
-          <TextField
-            InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
-            autoFocus
-            color='info'
-            error={!currentlyStakedInHuman || Number(unstakeAmountInHuman) > Number(currentlyStakedInHuman) || UnableToPayFee}
-            fullWidth
-            helperText={
-              <>
-                {currentlyStakedInHuman === null &&
-                  <Grid xs={12}>
-                    {t('Fetching data from blockchain ...')}
-                  </Grid>}
+      <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>
+        <TextField
+          InputLabelProps={{ shrink: true }}
+          InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
+          autoFocus
+          color='info'
+          error={!currentlyStakedInHuman || Number(unstakeAmountInHuman) > Number(currentlyStakedInHuman) || UnableToPayFee}
+          fullWidth
+          helperText={
+            <>
+              {currentlyStakedInHuman === null &&
+                <Grid xs={12}>
+                  {t('Fetching data from blockchain ...')}
+                </Grid>}
 
-                {currentlyStakedInHuman === '0' &&
-                  <Grid xs={12}>
-                    {t('Nothing to unstake')}
-                  </Grid>
-                }
-                {currentlyStakedInHuman !== '0' && UnableToPayFee &&
-                  <Grid xs={12}>
-                    {t('Unable to pay fee')}
-                  </Grid>
-                }
-              </>
-            }
-            inputProps={{ step: '.01' }}
-            label={t('Amount')}
-            name='unstakeAmount'
-            onChange={handleUnstakeAmount}
-            placeholder='0.0'
-            sx={{ height: '10px' }}
-            type='number'
-            value={unstakeAmountInHuman}
-            variant='outlined'
-          />
-        </Grid>
+              {currentlyStakedInHuman === '0' &&
+                <Grid xs={12}>
+                  {t('Nothing to unstake')}
+                </Grid>
+              }
+              {currentlyStakedInHuman !== '0' && UnableToPayFee &&
+                <Grid xs={12}>
+                  {t('Unable to pay fee')}
+                </Grid>
+              }
+            </>
+          }
+          inputProps={{ step: '.01' }}
+          label={t('Amount')}
+          name='unstakeAmount'
+          onChange={handleUnstakeAmount}
+          placeholder='0.0'
+          sx={{ height: '50px' }}
+          type='number'
+          value={unstakeAmountInHuman}
+          variant='outlined'
+        />
+      </Grid>
 
+      <Grid container sx={{ height: '160px' }} title='Unstake'>
         <Grid container item xs={12}>
-          <Grid container item justifyContent='flex-end' sx={{ p: '0px 30px 10px' }} xs={12}>
+          <Grid container item justifyContent='flex-end' sx={{ px: '30px' }} xs={12}>
             <Grid item sx={{ fontSize: 12 }}>
               {!!ledger?.active &&
                 <>
@@ -151,20 +153,19 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
               }
             </Grid>
           </Grid>
-          {/* } */}
-          <Grid container item sx={{ fontSize: 13, fontWeight: '600', padding: '5px 30px 5px', textAlign: 'center' }} xs={12}>
-            {alert
-              ? <Grid item xs={12}>
+
+          <Grid container item sx={{ fontSize: 13, fontWeight: '600', padding: '15px 30px 5px', textAlign: 'center' }} xs={12}>
+            {alert &&
+              <Grid item xs={12}>
                 <Alert severity='error' sx={{ fontSize: 12 }}>
                   {alert}
                 </Alert>
               </Grid>
-              : <Grid item sx={{ paddingTop: '45px' }} xs={12}></Grid>
             }
           </Grid>
         </Grid>
       </Grid>
-      <Grid item sx={{ padding: '0px 10px 0px' }} xs={12}>
+      <Grid item sx={{ px: '10px' }} xs={12}>
         <NextStepButton
           data-button-action='next to unstake'
           isBusy={nextToUnStakeButtonBusy}

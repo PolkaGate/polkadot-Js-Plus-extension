@@ -50,9 +50,7 @@ function CrowdloanTab({ auction, chainInfo, className, endpoints, handleContribu
   }, []);
 
   return (
-    <div
-      id='crowdloan-list'
-    >
+    <div id='crowdloan-list'>
       <CrowdloanList
         chainInfo={chainInfo}
         crowdloans={activeCrowdloans}
