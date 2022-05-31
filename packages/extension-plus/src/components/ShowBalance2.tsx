@@ -36,7 +36,7 @@ function ShowBalance2({ api, balance, direction = 'row', title }: Props): React.
       </>}
 
       {balance !== undefined && api
-        ? //<b>{amountToHuman(balance)}</b>
+        ? // <b>{amountToHuman(balance)}</b>
         <FormatBalance api={api} value={balance} />
 
         : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
