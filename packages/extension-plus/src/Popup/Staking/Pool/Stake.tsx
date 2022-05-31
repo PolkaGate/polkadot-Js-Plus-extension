@@ -10,8 +10,8 @@
 
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
-import { Alert, Avatar, Badge, Box, Button as MuiButton, FormControl, FormControlLabel, FormLabel, Grid, InputAdornment, Radio, RadioGroup, Stack, TextField } from '@mui/material';
-import { blue, deepOrange, green, grey } from '@mui/material/colors';
+import { Alert, Avatar, Badge, Button as MuiButton, Grid, InputAdornment, TextField } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import { styled } from '@mui/material/styles';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -22,7 +22,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { FormatBalance, Progress, ShowBalance2 } from '../../../components';
-import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../../util/plusUtils';
+import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../../util/plusUtils';
 import CreatePool from './CreatePool';
 import JoinPool from './JoinPool';
 
@@ -55,7 +55,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const [minStakeableAsNumber, setMinStakeableAsNumber] = useState<number>(0);
   const [maxStakeable, setMaxStakeable] = useState<BN>(BN_ZERO);
   const [maxStakeableAsNumber, setMaxStakeableAsNumber] = useState<number>(0);
-  const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
   const [showJoinPoolModal, setJoinPoolModalOpen] = useState<boolean>(false);
 
@@ -127,10 +126,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
 
   useEffect(() => {
     if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available) return;
-    // const ED = Number(amountToHuman(existentialDeposit.toString(), decimals));
     let max = new BN(String(staker.balanceInfo.available)).sub(existentialDeposit.muln(3)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
-    // const { minCreateBond, minJoinBond, minNominatorBond } = poolStakingConsts;
-    // const m = bnMax(minNominatorBond, minCreateBond, minJoinBond, existentialDeposit);
     let min = poolStakingConsts.minJoinBond;
 
     if (min.gt(max)) {
@@ -254,7 +250,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
           {t('Min to create')}:
         </Grid>
         <Grid item>
-          <ShowBalance2 api={api} balance={poolStakingConsts?.minCreateBond?.add(existentialDeposit)} />
+          <ShowBalance2 api={api} balance={poolStakingConsts?.minCreationBond} />
         </Grid>
       </Grid>
     </Grid>

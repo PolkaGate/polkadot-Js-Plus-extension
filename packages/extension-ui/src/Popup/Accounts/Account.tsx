@@ -40,7 +40,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
 
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | undefined | null>(name); // added for plus
 
-  const selectedgenesisOption = genesisOptions.find((option) => option.value === genesisHash); // added for plus
+  const selectedgenesisOption = genesisOptions?.find((option) => option.value === genesisHash); // added for plus
   const chainName = selectedgenesisOption?.text?.replace(' Relay Chain', ''); // added for plus
 
   const _onChangeGenesis = useCallback(

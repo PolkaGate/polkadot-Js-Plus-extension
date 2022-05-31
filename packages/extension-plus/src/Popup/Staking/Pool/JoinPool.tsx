@@ -49,7 +49,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
 
-  const defaultPool = useMemo((): PoolInfo | undefined => poolsInfo?.find((p) => p.metadata.trim() === PREFERED_POOL_NAME && p.bondedPool.state === 'Open'), [poolsInfo]);
+  const defaultPool = useMemo((): PoolInfo | undefined => poolsInfo?.find((p) => p?.metadata?.trim() === PREFERED_POOL_NAME && p?.bondedPool?.state === 'Open'), [poolsInfo]);
 
   const [alert, setAlert] = useState<string | undefined>();
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>('0');
@@ -264,7 +264,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
             }
 
             {poolsInfo?.length
-              ? poolsInfo.map((p, i) => p.bondedPool.state === 'Open' && p.poolId !== selectedPool.poolId &&
+              ? poolsInfo.map((p, i) => p?.bondedPool?.state === 'Open' && p?.poolId !== selectedPool?.poolId &&
                 <Grid container item key={i} sx={{ fontSize: 11, pt: '5px' }}>
                   <Pool api={api} chain={chain} pool={p} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} />
                 </Grid>)

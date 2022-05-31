@@ -327,8 +327,9 @@ export interface PoolStakingConsts {
   maxPoolMembersPerPool: number;
   maxPools: number;
   minCreateBond: BN;
+  minCreationBond: BN
   minJoinBond: BN;
-  minNominatorBond: BN
+  minNominatorBond: BN;
 }
 
 export interface PoolInfo {

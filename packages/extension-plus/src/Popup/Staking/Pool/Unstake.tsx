@@ -50,8 +50,8 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
     if (!currentlyStaked || !decimals || !pool || !poolStakingConsts) return;
 
     if (staker.address === pool.bondedPool.roles.depositor && pool.bondedPool.state.toLowerCase() !== 'destroying') {
-      const minDeposit = bnMax(poolStakingConsts.minNominatorBond, poolStakingConsts.minCreateBond);
-      
+      const minDeposit = poolStakingConsts.minCreationBond;
+
       setMinDeposit(minDeposit);
       const depositorMaxUnstakeAble = currentlyStaked.sub(minDeposit);
 
@@ -164,7 +164,7 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
       <Grid container sx={{ height: '160px' }} title='Unstake'>
         <Grid container item justifyContent='flex-end' sx={{ p: '0px 30px 0px' }} xs={12}>
           <Grid item sx={{ fontSize: 12 }}>
-            { currentlyStaked && !currentlyStaked?.isZero() &&
+            {currentlyStaked && !currentlyStaked?.isZero() &&
               <>
                 {t('Max')}:
                 <MuiButton

@@ -55,7 +55,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
             {t('Minimum {{token}}s needed to create a pool', { replace: { token: token } })}:
           </Grid>
           <Grid item>
-            <ShowBalance2 api={api} balance={info?.minCreateBond?.add(existentialDeposit)} />
+            <ShowBalance2 api={api} balance={info?.minCreationBond} />
           </Grid>
         </Grid>
 

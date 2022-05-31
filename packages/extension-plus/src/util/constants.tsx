@@ -4,7 +4,7 @@
 
 import { BN } from '@polkadot/util';
 
-export const EXTENSION_NAME = 'Polkadot js plus';
+export const EXTENSION_NAME = 'Polkadot js plus ❤️';
 export const PREFERED_POOL_NAME = EXTENSION_NAME;
 export const PLUS_VERSION = '0.42.8.13';
 export const ENVIREONMENT = 'production'; //developement or production

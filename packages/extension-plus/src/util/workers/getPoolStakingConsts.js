@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 
-import { BN } from '@polkadot/util';
+import { BN, bnMax } from '@polkadot/util';
 
 import getApi from '../getApi.ts';
 
@@ -11,6 +11,8 @@ async function getPoolStackingConsts(endpoint) {
     const api = await getApi(endpoint);
     const at = await api.rpc.chain.getFinalizedHead();
     const apiAt = await api.at(at);
+
+    const ED = new BN(api.consts.balances.existentialDeposit);
 
     const [maxPoolMembers, maxPoolMembersPerPool, maxPools, minCreateBond, minJoinBond, minNominatorBond, lastPoolId] =
       await Promise.all([
@@ -24,14 +26,16 @@ async function getPoolStackingConsts(endpoint) {
       ]);
 
     return {
-      lastPoolId: BigInt(lastPoolId),
+      lastPoolId: lastPoolId.toString(),
       maxPoolMembers: maxPoolMembers.isSome ? maxPoolMembers.unwrap().toNumber() : -1,
       maxPoolMembersPerPool: maxPoolMembersPerPool.isSome ? maxPoolMembersPerPool.unwrap().toNumber() : -1,
       maxPools: maxPools.isSome ? maxPools.unwrap().toNumber() : -1,
-      minCreateBond: BigInt(minCreateBond),
-      minJoinBond: BigInt(minJoinBond),
-      minNominatorBond: BigInt(minNominatorBond)
+      minCreateBond: minCreateBond.toString(),
+      minCreationBond: bnMax(minCreateBond, ED, minNominatorBond).add(ED).toString(), // minimum that is needed in action
+      minJoinBond: minJoinBond.toString(),
+      minNominatorBond: minNominatorBond.toString()
     };
+
   } catch (error) {
     console.log('something went wrong while getStackingConsts. err: ' + error);
 

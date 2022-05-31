@@ -105,8 +105,10 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
       if (c) {
         c.lastPoolId = new BN(c.lastPoolId);
         c.minCreateBond = new BN(c.minCreateBond);
+        c.minCreationBond = new BN(c.minCreationBond);
         c.minJoinBond = new BN(c.minJoinBond);
         c.minNominatorBond = new BN(c.minNominatorBond);
+
         setPoolStakingConsts(c);
 
         console.log('poolStakingConst:', c);
@@ -172,6 +174,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
       c.lastPoolId = new BN(c.lastPoolId, 'hex');
       c.minCreateBond = new BN(c.minCreateBond, 'hex');
+      c.minCreationBond = new BN(c.minCreationBond, 'hex');
       c.minJoinBond = new BN(c.minJoinBond, 'hex');
       c.minNominatorBond = new BN(c.minNominatorBond, 'hex');
 

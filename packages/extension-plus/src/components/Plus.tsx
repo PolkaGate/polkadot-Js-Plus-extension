@@ -279,7 +279,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                 id='receive'
                 onClick={handleShowQRcode}
                 size='sm'
-                title={t('receive')}
+                title={t && t('receive')}
               />
             </Link>
           </Grid>
@@ -290,7 +290,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
         <Grid container item justifyContent='center' xs={10}>
           {!chain
             ? <Grid id='noChainAlert' item sx={{ color: grey[700], fontFamily: '"Source Sans Pro", Arial, sans-serif', fontWeight: 600, fontSize: 12, textAlign: 'center', paddingLeft: '20px' }} xs={12} >
-              {t('Please select a chain to view your balance.')}
+              {t && t('Please select a chain to view your balance.')}
             </Grid>
             : <Grid container item sx={{ paddingLeft: '75px', textAlign: 'left' }} xs={12}>
               <Grid item xs={4}>
@@ -317,7 +317,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                   onClick={handleTransferFunds}
                   size='sm'
                   swapOpacity={true}
-                  title={t('send')}
+                  title={t && t('send')}
                 />
               </Link>
             </Grid>
@@ -330,7 +330,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                   onClick={handlerefreshBalance}
                   size='sm'
                   spin={refreshing}
-                  title={t('refresh')}
+                  title={t && t('refresh')}
                 />
               </Link>
             </Grid>
@@ -342,7 +342,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                   id='history'
                   onClick={handleTxHistory}
                   size='sm'
-                  title={t('history')}
+                  title={t && t('history')}
                 />
               </Link>
             </Grid>
@@ -354,7 +354,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                   id='staking'
                   onClick={handleStaking}
                   size='sm'
-                  title={t('staking')}
+                  title={t && t('staking')}
                 />
               </Link>
             </Grid>
