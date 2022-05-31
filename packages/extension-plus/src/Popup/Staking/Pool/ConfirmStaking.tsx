@@ -69,6 +69,8 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
 
+  console.log('pool: ', pool);
+
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);

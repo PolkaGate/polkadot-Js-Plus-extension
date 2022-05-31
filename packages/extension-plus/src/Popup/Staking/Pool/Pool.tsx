@@ -67,7 +67,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
   const handleMorePoolInfoClose = useCallback(() => {
     setShowPoolInfo(false);
   }, []);
-  
+
   return (
     <Grid container sx={{ p: 0 }}>
       {pool !== undefined && api
