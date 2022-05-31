@@ -10,6 +10,8 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { AccountId } from '@polkadot/types/interfaces';
+import type { AccountsBalanceType, NominatorInfo, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { AddCircleOutlineOutlined, CheckOutlined, CircleOutlined as CircleOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
 import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
@@ -28,7 +30,6 @@ import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
-import type { NominatorInfo, AccountsBalanceType, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
@@ -97,6 +98,7 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
   const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
   const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
   const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
+  const [gettingIdentities, setGettingIdentities] = useState<boolean>(false);
 
   const decimals = api && api.registry.chainDecimals[0];
   const chainName = chain?.name.replace(' Relay Chain', '');
@@ -289,11 +291,10 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
     endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
   }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
 
-  useEffect(() => {
-    if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
-
-    const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
+  const getValidatorsIdentities = useCallback((endpoint: string, validatorsAccountIds: AccountId[]) => {
     /** get validators identities */
+
+    setGettingIdentities(true);
     const getValidatorsIdWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsId.js', import.meta.url));
 
     workers.push(getValidatorsIdWorker);
@@ -321,7 +322,15 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
 
       getValidatorsIdWorker.terminate();
     };
-  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, chain, validatorsIdentities, account.address]);
+  }, [account.address, chain, validatorsIdentities]);
+
+  useEffect(() => {
+    if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
+
+    const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
+
+    endpoint && !gettingIdentities && getValidatorsIdentities(endpoint, validatorsAccountIds);
+  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, account.address, getValidatorsIdentities]);
 
   useEffect(() => {
     if (!api || !decimals) return;

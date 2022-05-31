@@ -185,11 +185,11 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
   useEffect(() => {
     /** get some staking constant like min Nominator Bond ,... */
     endpoint && getStakingConsts(chain, endpoint);
-    endpoint && getPoolStakingConsts(endpoint);
+    endpoint && api?.tx?.nominationPools && getPoolStakingConsts(endpoint);
 
     /**  get nominator staking info to consider rebag ,... */
     endpoint && getNominatorInfo(endpoint, staker.address);
-  }, [chain, endpoint, staker.address]);
+  }, [api, chain, endpoint, staker.address]);
 
   const handleStakingModalClose = useCallback((): void => {
     // should terminate workers

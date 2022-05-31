@@ -37,7 +37,7 @@ async function getPoolStackingConsts(endpoint) {
     };
 
   } catch (error) {
-    console.log('something went wrong while getStackingConsts. err: ' + error);
+    console.log('something went wrong while getPoolStackingConsts. err: ' + error);
 
     return null;
   }
