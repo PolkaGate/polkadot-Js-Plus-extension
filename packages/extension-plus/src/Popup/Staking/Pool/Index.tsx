@@ -582,7 +582,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               myPool={myPool}
               nextPoolId={nextPoolId}
-              nextToStakeButtonBusy={!!amount && (!(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
+              nextToStakeButtonBusy={!!amount && state !== ''}
               poolStakingConsts={poolStakingConsts}
               poolsInfo={poolsInfo}
               poolsMembers={poolsMembers}

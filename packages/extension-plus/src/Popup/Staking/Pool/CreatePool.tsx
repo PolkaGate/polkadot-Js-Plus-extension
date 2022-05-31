@@ -128,7 +128,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   useEffect(() => {
     if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) return;
     const max = new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedMaxFee));
-    const min = poolStakingConsts.minCreateBond.add(existentialDeposit);
+    const min = poolStakingConsts.minCreationBond;
 
     let maxInHuman = Number(amountToHuman(max.toString(), decimals));
     let minInHuman = Number(amountToHuman(min.toString(), decimals));
