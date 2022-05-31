@@ -313,27 +313,29 @@ describe('Testing ConfirmStaking component', () => {
   });
 
   test.skip('when state is withdrawUnbound', () => {
-    const withdrawUnboundPool: MyPoolInfo = pool(state[6]);
+
+    // TODO
+    // const withdrawUnboundPool: MyPoolInfo = pool(state[6]);
 
     // amount = withdrawUnboundPool.myClaimable;  // withdrawUnbound
 
-    const { queryAllByText, queryByTestId, queryByText } = render(
-      <ConfirmStaking
-        amount={amount}
-        api={api}
-        chain={chain}
-        nominatedValidators={validatorsList}
-        pool={withdrawUnboundPool}
-        poolsMembers={poolsMembers}
-        selectedValidators={validatorsList}
-        setConfirmStakingModalOpen={setConfirmStakingModalOpen}
-        setState={setState}
-        showConfirmStakingModal={true}
-        staker={staker}
-        stakingConsts={stakingConsts}
-        state={state[6]}
-        validatorsIdentities={validatorsIdentities}
-      />
-    );
+    // const { queryAllByText, queryByTestId, queryByText } = render(
+    //   <ConfirmStaking
+    //     amount={amount}
+    //     api={api}
+    //     chain={chain}
+    //     nominatedValidators={validatorsList}
+    //     pool={withdrawUnboundPool}
+    //     poolsMembers={poolsMembers}
+    //     selectedValidators={validatorsList}
+    //     setConfirmStakingModalOpen={setConfirmStakingModalOpen}
+    //     setState={setState}
+    //     showConfirmStakingModal={true}
+    //     staker={staker}
+    //     stakingConsts={stakingConsts}
+    //     state={state[6]}
+    //     validatorsIdentities={validatorsIdentities}
+    //   />
+    // );
   });
 });
