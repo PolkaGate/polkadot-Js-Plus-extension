@@ -7,7 +7,18 @@ import getApi from '../getApi.ts';
 async function getAllValidatorsId (endpoint, _accountIds) {
   try {
     const api = await getApi(endpoint);
-    const accountInfo = await Promise.all(_accountIds.map((i) => api.derive.accounts.info(i)));
+    // const accountInfo = await Promise.all(_accountIds.map((i) => api.derive.accounts.info(i)));
+    let accountInfo = [];
+    const page = 50;
+    let totalFetched = 0;
+
+    while (_accountIds.length > totalFetched) {
+      console.log(`_accountIds.length  :${_accountIds.length}  totalFetched :${totalFetched}`)
+      const info = await Promise.all(_accountIds.slice(totalFetched, totalFetched + page).map((i) => api.derive.accounts.info(i)));
+
+      accountInfo = accountInfo.concat(info);
+      totalFetched += page;
+    }
 
     return JSON.parse(JSON.stringify(accountInfo));
   } catch (error) {

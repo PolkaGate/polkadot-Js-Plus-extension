@@ -11,7 +11,7 @@
  * */
 
 import type { Option, StorageKey } from '@polkadot/types';
-import type { AccountId32 } from '@polkadot/types/interfaces';
+import type { AccountId, AccountId32 } from '@polkadot/types/interfaces';
 import type { PalletNominationPoolsPoolMember } from '@polkadot/types/lookup';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
@@ -98,6 +98,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [redeemable, setRedeemable] = useState<BN | undefined>();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
   const [nextPoolId, setNextPoolId] = useState<BN | undefined>();
+  const [gettingIdentities, setGettingIdentities] = useState<boolean>(false);
 
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
@@ -312,16 +313,15 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
   }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
 
-  useEffect(() => {
-    /**  get nominator staking info to consider rebag ,... */
-    endpoint && myPool && getNominatorInfo(endpoint, myPool.accounts.stashId);
-  }, [endpoint, myPool]);
+  // useEffect(() => {
+  //   /**  get nominator staking info to consider rebag ,... */
+  //   endpoint && myPool && getNominatorInfo(endpoint, myPool.accounts.stashId);
+  // }, [endpoint, myPool]);
 
-  useEffect(() => {
-    if (!validatorsInfoIsUpdated || !validatorsInfo?.current?.length) { return; }
-
-    const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
+  const getValidatorsIdentities = useCallback((endpoint: string, validatorsAccountIds: AccountId[]) => {
     /** get validators identities */
+
+    setGettingIdentities(true);
     const getValidatorsIdWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsId.js', import.meta.url));
 
     workers.push(getValidatorsIdWorker);
@@ -343,13 +343,22 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
         console.log(`setting new identities #old was: ${validatorsIdentities?.length} `);
 
         setValidatorsIdentities(fetchedIdentities);
+        setGettingIdentities(false);
         // eslint-disable-next-line no-void
         void updateMeta(account.address, prepareMetaData(chain, 'validatorsIdentities', fetchedIdentities));
       }
 
       getValidatorsIdWorker.terminate();
     };
-  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, chain, validatorsIdentities, account.address]);
+  }, [account.address, chain, validatorsIdentities]);
+
+  useEffect(() => {
+    if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
+
+    const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
+
+    endpoint && !gettingIdentities && getValidatorsIdentities(endpoint, validatorsAccountIds);
+  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, account.address, getValidatorsIdentities, gettingIdentities]);
 
   useEffect(() => {
     if (!api || !decimals) return;

@@ -39,7 +39,7 @@ interface Props {
 function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSocial = true, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? SELECTED_COLOR : '');
-  const getAccountInfo = (id: AccountId): DeriveAccountInfo | undefined => validatorsIdentities?.find((v) => v.accountId === id);
+  const getAccountInfo = (id: AccountId): DeriveAccountInfo | undefined => validatorsIdentities?.find((v) => v?.accountId === id);
   const nominatorCount = validator.exposure.others.length;
   const isActive = validator.accountId === activeValidator?.accountId;
   const isOverSubscribed = validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
