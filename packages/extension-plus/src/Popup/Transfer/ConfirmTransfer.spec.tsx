@@ -20,7 +20,7 @@ import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint, toSho
 import { createAccount, createExtension } from '../../util/test/testHelper';
 import ConfirmTransfer from './ConfirmTransfer';
 
-jest.setTimeout(50000);
+jest.setTimeout(90000);
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
@@ -59,7 +59,7 @@ let secondSuri = 'inspire erosion chalk grant decade photo ribbon custom quality
 const password = 'passw0rd';
 let chainInfo: ChainInfo;
 
-[firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
+// [firstSuri, secondSuri] = [secondSuri, firstSuri]; /** comment or uncomment this when test fails due to insufficient balance */
 
 describe('ConfirmTransfer for Successful Scenario (Note: account must have some fund to transfer)', () => {
   beforeAll(async () => {
@@ -110,36 +110,36 @@ describe('ConfirmTransfer for Successful Scenario (Note: account must have some 
     expect(screen.queryAllByText(sender.name)).toHaveLength(1);
     expect(screen.queryAllByText(toShortAddress(recepient.address))).toHaveLength(1);
 
-    const amountToTransfer = screen.queryByTestId('infoInMiddle').children.item(0).children.item(1).textContent;
+    const amountToTransfer = screen.queryByTestId('infoInMiddle')?.children.item(0)?.children.item(1)?.textContent;
 
     expect(amountToTransfer).toEqual(`${transferAmountInHuman}${balanceInfo.coin}`);
-    expect(screen.queryByTestId('infoInMiddle').children.item(1).children.item(1).textContent).toEqual(`${fee.toHuman()}estimated`);
-    expect(screen.queryByTestId('infoInMiddle').children.item(3).children.item(0).textContent).toEqual('Total');
+    expect(screen.queryByTestId('infoInMiddle')?.children.item(1)?.children.item(1)?.textContent).toEqual(`${fee.toHuman()}estimated`);
+    expect(screen.queryByTestId('infoInMiddle')?.children.item(3)?.children.item(0)?.textContent).toEqual('Total');
 
     const total = transferAmount + fee.toBigInt();
     const totalInHuman = amountToHuman(total.toString(), decimals);
     const parsedTotal = fixFloatingPoint(totalInHuman);
 
-    expect(screen.queryByTestId('infoInMiddle').children.item(3).children.item(2).textContent).toEqual(parsedTotal + 'WND');
+    expect(screen.queryByTestId('infoInMiddle')?.children.item(3)?.children.item(2)?.textContent).toEqual(parsedTotal + 'WND');
 
     expect(screen.queryAllByLabelText('Password')).toHaveLength(1);
-    fireEvent.change(screen.queryByLabelText('Password'), { target: { value: password } });
+    fireEvent.change(screen.queryByLabelText('Password') as Element, { target: { value: password } });
 
     expect(screen.queryAllByText('Confirm')).toHaveLength(1);
-    fireEvent.click(screen.queryByText('Confirm'));
+    fireEvent.click(screen.queryByText('Confirm') as Element);
 
     expect(screen.queryAllByText('Password is not correct')).toHaveLength(0);
-    await waitFor(() => expect(screen.queryByTestId('confirmButton').textContent).toEqual('Done'), { timeout: 60000 }); // wait enough to recive the transaction confirm from blockchain
+    await waitFor(() => expect(screen.queryByTestId('confirmButton')?.textContent).toEqual('Done'), { timeout: 70000 }); // wait enough to recive the transaction confirm from blockchain
   });
 
   test('ConfirmTransfer when password is wrong', () => {
     const invalidPassword = '123456';
 
     expect(screen.queryAllByLabelText('Password')).toHaveLength(1);
-    fireEvent.change(screen.queryByLabelText('Password'), { target: { value: invalidPassword } });
+    fireEvent.change(screen.queryByLabelText('Password') as Element, { target: { value: invalidPassword } });
 
     expect(screen.queryAllByText('Confirm')).toHaveLength(1);
-    fireEvent.click(screen.queryByText('Confirm'));
+    fireEvent.click(screen.queryByText('Confirm') as Element);
 
     expect(screen.queryAllByText('Password is not correct')).toHaveLength(1);
   });

@@ -1404,12 +1404,13 @@ export const putInFront: PutInFrontInfo = {
 };
 export const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating', 'tuneUp', 'withdrawClaimable', 'bondExtraRewards', 'bondExtra', 'createPool', 'joinPool'];
 
-export const poolStakingConst: PoolStakingConsts = {
+export const poolStakingConst: PoolStakingConsts | undefined = {
   lastPoolId: new BN('30'),
   maxPoolMembers: 524288,
   maxPoolMembersPerPool: -1,
   maxPools: 512,
-  minCreateBond: new BN('1000000000000'),
+  minCreateBond: new BN('1010000000000'),
+  minCreationBond: new BN('1000000000000'),
   minJoinBond: new BN('100000000000'),
   minNominatorBond: new BN('10817536')
 };

@@ -45,18 +45,14 @@ describe('Testing Info component', () => {
       ).asFragment().textContent;
     };
 
-    const ed = new BN(String(api?.consts.balances.existentialDeposit));
-
     expect(queryByText('Welcome to pool Staking')).toBeTruthy();
     expect(queryByText('Information you need to know about')).toBeTruthy();
     expect(queryByTestId('info')?.children.item(2)?.children.item(0)?.textContent).toEqual(`Minimum {{token}}s needed to join a pool:${ShowValue(poolStakingConst.minJoinBond)}`);
-    expect(queryByTestId('info')?.children.item(2)?.children.item(1)?.textContent).toEqual(`Minimum {{token}}s needed to create a pool:${ShowValue(poolStakingConst.minCreateBond.add(ed))}`);
+    expect(queryByTestId('info')?.children.item(2)?.children.item(1)?.textContent).toEqual(`Minimum {{token}}s needed to create a pool:${ShowValue(poolStakingConst.minCreationBond)}`);
     expect(queryByTestId('info')?.children.item(2)?.children.item(2)?.textContent).toEqual(`The number of currenttly existing pools:${poolStakingConst.lastPoolId} `);
     expect(queryByTestId('info')?.children.item(2)?.children.item(3)?.textContent).toEqual(`Maximum possible pools:${poolStakingConst.maxPools} `);
     expect(queryByTestId('info')?.children.item(2)?.children.item(4)?.textContent).toEqual(`Maximum possible pool members:${poolStakingConst.maxPoolMembers} `);
-
-    poolStakingConst.maxPoolMembersPerPool === -1
-      ? expect(queryByTestId('info')?.children.item(2)?.children.item(5)?.textContent).toBeFalsy()
-      : expect(queryByTestId('info')?.children.item(2)?.children.item(5)?.textContent).toEqual(`Maximum pool members per pool:${poolStakingConst.maxPoolMembersPerPool} `);
+    // poolStakingConst.maxPoolMembersPerPool = -1;
+    expect(queryByTestId('info')?.children.item(2)?.children.item(5)?.textContent).toBeFalsy();
   });
 });
