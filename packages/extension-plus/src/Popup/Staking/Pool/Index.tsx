@@ -343,6 +343,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
         console.log(`setting new identities #old was: ${validatorsIdentities?.length} `);
 
         setValidatorsIdentities(fetchedIdentities);
+        setGettingIdentities(false);
         // eslint-disable-next-line no-void
         void updateMeta(account.address, prepareMetaData(chain, 'validatorsIdentities', fetchedIdentities));
       }

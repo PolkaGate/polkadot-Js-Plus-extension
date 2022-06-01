@@ -316,6 +316,7 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
         console.log(`setting new identities #old was: ${validatorsIdentities?.length} `);
 
         setValidatorsIdentities(fetchedIdentities);
+        setGettingIdentities(false);
         // eslint-disable-next-line no-void
         void updateMeta(account.address, prepareMetaData(chain, 'validatorsIdentities', fetchedIdentities));
       }
@@ -330,7 +331,7 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
     const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
 
     endpoint && !gettingIdentities && getValidatorsIdentities(endpoint, validatorsAccountIds);
-  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, account.address, getValidatorsIdentities]);
+  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, account.address, getValidatorsIdentities, gettingIdentities]);
 
   useEffect(() => {
     if (!api || !decimals) return;
