@@ -32,20 +32,7 @@ describe('Testing Info component', () => {
     coin = chainInfo?.coin;
   });
 
-  test('Checking exist element while loading!', () => {
-    const { queryByText } = render(
-      <Info
-        api={api}
-        currentEraIndex={undefined}
-        minNominated={undefined}
-        stakingConsts={stakingConsts}
-      />);
-
-    expect(queryByText('Welcome to Staking')).toBeTruthy();
-    expect(queryByText('Information you need to know about')).toBeTruthy();
-  });
-
-  test('Checking the existence of elements when loading is done', async () => {
+  test('Checking the existence of elements', async () => {
     const currentEraIndex = Number(await api.query.staking.currentEra());
     const { queryByTestId, queryByText } = render(
       <Info

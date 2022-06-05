@@ -6,12 +6,13 @@ import { LinkOption } from '@polkadot/apps-config/endpoints/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 import keyring from '@polkadot/ui-keyring';
+import { BN } from '@polkadot/util';
 import { cryptoWaitReady } from '@polkadot/util-crypto';
 
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
 import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
 import { AccountsStore } from '../../../../extension-base/src/stores';
-import { Crowdloan, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
 import { SHORT_ADDRESS_CHARACTERS } from '../constants';
 import { Auction } from '../plusTypes';
 
@@ -539,7 +540,6 @@ export const auction: Auction = {
     ]
   ]
 };
-
 
 export const endpoints: LinkOption[] = [
   {
@@ -1194,7 +1194,7 @@ export const winners = auction.crowdloans.filter((c) => c.fund.hasLeased);
 export const display = (c: Crowdloan): string => c.identity.info.display || c.identity.info.legal || getText(c.fund.paraId) || '';
 export const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
 
-export function makeShortAddr(address: string) {
+export function makeShortAddr (address: string) {
   return `${address.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
 }
 
@@ -1270,7 +1270,7 @@ export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[9].address, exposure: { others: others, total: 123456 }, validatorPrefs: { commission: 750000000 } }
 ];
 
-export async function createAcc(suri: string, genesisHash: string, extension: Extension): Promise<string> {
+export async function createAcc (suri: string, genesisHash: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: genesisHash,
     name: 'Amir khan',
@@ -1284,7 +1284,7 @@ export async function createAcc(suri: string, genesisHash: string, extension: Ex
   return address;
 }
 
-export async function createAccount(suri: string, extension: Extension): Promise<string> {
+export async function createAccount (suri: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: westendGenesisHash,
     name: 'Amir khan',
@@ -1298,7 +1298,7 @@ export async function createAccount(suri: string, extension: Extension): Promise
   return address;
 }
 
-export async function createExtension(): Promise<Extension> {
+export async function createExtension (): Promise<Extension> {
   try {
     return new Promise((resolve) => {
       cryptoWaitReady()
@@ -1401,4 +1401,418 @@ export const rebagTrue: RebagInfo = {
 export const putInFront: PutInFrontInfo = {
   lighter: accounts[0].address,
   shouldPutInFront: true
+};
+export const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating', 'tuneUp', 'withdrawClaimable', 'bondExtraRewards', 'bondExtra', 'createPool', 'joinPool'];
+
+export const poolStakingConst: PoolStakingConsts | undefined = {
+  lastPoolId: new BN('30'),
+  maxPoolMembers: 524288,
+  maxPoolMembersPerPool: -1,
+  maxPools: 512,
+  minCreateBond: new BN('1010000000000'),
+  minCreationBond: new BN('1000000000000'),
+  minJoinBond: new BN('100000000000'),
+  minNominatorBond: new BN('10817536')
+};
+
+export const pool = (states: string): MyPoolInfo => {
+  return {
+    accounts: {
+      rewardId: '5EYCAe5ijiYfAXEth5DXrWyDFTVKxJeJ5YA8VanQUrFZT3za',
+      stashId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs'
+    },
+    bondedPool: {
+      points: '0aaacc4fe9ba',
+      state: ['bondExtra', 'joinPool', 'bondExtraRewards', 'withdrawClaimable'].includes(states) ? 'Open' : 'Creating',
+      memberCounter: states === 'joinPool' ? 12 : states === 'bondExtra' ? 12 : 0,
+      roles: {
+        depositor: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
+        root: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
+        nominator: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
+        stateToggler: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ'
+      }
+    },
+    ledger: {
+      stash: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
+      total: 3490000000000,
+      active: 3490000000000,
+      unlocking: [],
+      claimedRewards: [
+        5085,
+        5086,
+        5087,
+        5088,
+        5089,
+        5090,
+        5091,
+        5092,
+        5093,
+        5094,
+        5095,
+        5096,
+        5097,
+        5098,
+        5099,
+        5100,
+        5101,
+        5102,
+        5103,
+        5104,
+        5105,
+        5106,
+        5107,
+        5108,
+        5109,
+        5110,
+        5111,
+        5112,
+        5113,
+        5114,
+        5115,
+        5116,
+        5117,
+        5118,
+        5119,
+        5120,
+        5121,
+        5122,
+        5123,
+        5124,
+        5125,
+        5126,
+        5127,
+        5128,
+        5129,
+        5130,
+        5131,
+        5132,
+        5133,
+        5134,
+        5135,
+        5136,
+        5137,
+        5138,
+        5139,
+        5140,
+        5141,
+        5142,
+        5143,
+        5144,
+        5145,
+        5146,
+        5147,
+        5148,
+        5149,
+        5150,
+        5151,
+        5152,
+        5153,
+        5154,
+        5155,
+        5156,
+        5157,
+        5158,
+        5159,
+        5160,
+        5161,
+        5162,
+        5163,
+        5164,
+        5165,
+        5166,
+        5167,
+        5168
+      ]
+    },
+    member: {
+      poolId: 57,
+      points: states === 'join' ? 0 : 3490000000000,
+      rewardPoolTotalEarnings: 0,
+      unbondingEras: {}
+    },
+    metadata: 'Polkadot js plus',
+    myClaimable: new BN('14405639157'),
+    poolId: new BN('06'),
+    redeemable: 0,
+    rewardClaimable: new BN('14405639157'),
+    rewardIdBalance: {
+      free: 24405639157,
+      reserved: 0,
+      miscFrozen: 0,
+      feeFrozen: 0
+    },
+    rewardPool: ['bondExtra', 'joinPool', 'bondExtraRewards'].includes(states)
+      ? {
+        balance: 175429298587,
+        points: '0x000000000000000000000000000000000000000000025b0f4235ca0211000200',
+        totalEarnings: 938023415005
+      }
+      : null,
+    stashIdAccount: {
+      nextSessionIds: [],
+      sessionIds: [],
+      accountId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
+      controllerId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
+      exposure: {
+        total: 0,
+        own: 0,
+        others: []
+      },
+      nominators: [
+        '5CFPcUJgYgWryPaV1aYjSbTpbTLu42V32Ytw1L9rfoMAsfGh',
+        '5CFPqoTU7fiUp1JJNbfcY2z6yavEBKDPQGg4SGeG3Fm7vCsg',
+        '5GYaYNVq6e855t5hVCyk4Wuqssaf6ADTrvdPZ3QXyHvFXTip'
+      ],
+      rewardDestination: {
+        account: '5EYCAe5ijiYfAXEth5DXrWyDFTVKxJeJ5YA8VanQUrFZT3za'
+      },
+      stakingLedger: {
+        stash: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
+        total: 3490000000000,
+        active: 3490000000000,
+        unlocking: [],
+        claimedRewards: [
+          5085,
+          5086,
+          5087,
+          5088,
+          5089,
+          5090,
+          5091,
+          5092,
+          5093,
+          5094,
+          5095,
+          5096,
+          5097,
+          5098,
+          5099,
+          5100,
+          5101,
+          5102,
+          5103,
+          5104,
+          5105,
+          5106,
+          5107,
+          5108,
+          5109,
+          5110,
+          5111,
+          5112,
+          5113,
+          5114,
+          5115,
+          5116,
+          5117,
+          5118,
+          5119,
+          5120,
+          5121,
+          5122,
+          5123,
+          5124,
+          5125,
+          5126,
+          5127,
+          5128,
+          5129,
+          5130,
+          5131,
+          5132,
+          5133,
+          5134,
+          5135,
+          5136,
+          5137,
+          5138,
+          5139,
+          5140,
+          5141,
+          5142,
+          5143,
+          5144,
+          5145,
+          5146,
+          5147,
+          5148,
+          5149,
+          5150,
+          5151,
+          5152,
+          5153,
+          5154,
+          5155,
+          5156,
+          5157,
+          5158,
+          5159,
+          5160,
+          5161,
+          5162,
+          5163,
+          5164,
+          5165,
+          5166,
+          5167,
+          5168
+        ]
+      },
+      stashId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
+      validatorPrefs: {
+        commission: 0,
+        blocked: false
+      },
+      redeemable: '0x00000000000000000000000000000000'
+    }
+  };
+};
+
+export const poolsMembers: MembersMapEntry[] | undefined = {
+  1: [
+    {
+      accountId: '5FLNTP4Tz9gQRgSvGSrcKboxjqg6ajcRn8B3ZXzZGW22VXPk',
+      member: {
+        poolId: 1,
+        points: 1000000000000,
+        rewardPoolTotalEarnings: 420220792569,
+        unbondingEras: {}
+      }
+    },
+    {
+      accountId: '5DnmBTNKHi2BbT8m4V1UV6dSMWZGAD7V7TxvEhDUYYUYybDP',
+      member: {
+        poolId: 1,
+        points: 0,
+        rewardPoolTotalEarnings: 400583082538,
+        unbondingEras: {
+          5183: 1000000000000
+        }
+      }
+    },
+    {
+      accountId: '5Csv6DN7ZqrncxN3Fpfob9Hc7KptUd31sLMTYLSpfgyeG3oh',
+      member: {
+        poolId: 1,
+        points: 100000000000,
+        rewardPoolTotalEarnings: 461723611430,
+        unbondingEras: {}
+      }
+    },
+    {
+      accountId: '5FPRKZk6zBNUGQFWw8GXLaYW3cUjfUKR6CiAbP6sHbhF6fgC',
+      member: {
+        poolId: 1,
+        points: 11000000000000,
+        rewardPoolTotalEarnings: 0,
+        unbondingEras: {}
+      }
+    },
+    {
+      accountId: '5CaNb8YEZRjMKEh2EQ4mmDzH9abZiUNnuAeGFsY1rG5zUCyh',
+      member: {
+        poolId: 1,
+        points: 1000000000000,
+        rewardPoolTotalEarnings: 303554726869,
+        unbondingEras: {}
+      }
+    }
+  ],
+  2: [
+    {
+      accountId: '5Gp8ykxb8wubVjfi4cEcb6zUC1uiDVtFPhyggNXHKMoiKzdU',
+      member: {
+        poolId: 2,
+        points: 1420000000000,
+        rewardPoolTotalEarnings: 0,
+        unbondingEras: {}
+      }
+    }
+  ],
+  3: [
+    {
+      accountId: '5D8CkJdpzHmC4zSFoqyPxKohzF1hZW1vzqmm84MWtioGwvtj',
+      member: {
+        poolId: 3,
+        points: 0,
+        rewardPoolTotalEarnings: 2501461741151,
+        unbondingEras: {
+          5152: 1000000000000
+        }
+      }
+    },
+    {
+      accountId: '5HjCSJz4TYET82kEejyAQCpsgs2CcicfitZ2CzoHCYFu26Ph',
+      member: {
+        poolId: 3,
+        points: 0,
+        rewardPoolTotalEarnings: 2501461741151,
+        unbondingEras: {
+          5152: 1000000000000
+        }
+      }
+    },
+    {
+      accountId: '5FUDdxaaZfye6ogJgqHh3Usqd6WN6q8aApFH4XNjU9iDvC49',
+      member: {
+        poolId: 3,
+        points: 1000000000000000,
+        rewardPoolTotalEarnings: 1340210033112,
+        unbondingEras: {}
+      }
+    },
+    {
+      accountId: '5DJGuRBBMVmtD94ftSznw2hQqSEhEQ2g8EQcpPbBANsJKLdv',
+      member: {
+        poolId: 3,
+        points: 0,
+        rewardPoolTotalEarnings: 0,
+        unbondingEras: {
+          5123: 1000000000000
+        }
+      }
+    }
+  ],
+  4: [
+    {
+      accountId: '5EWNeodpcQ6iYibJ3jmWVe85nsok1EDG8Kk3aFg8ZzpfY1qX',
+      member: {
+        poolId: 4,
+        points: 500000000000000,
+        rewardPoolTotalEarnings: 0,
+        unbondingEras: {}
+      }
+    }
+  ],
+  5: [
+    {
+      accountId: '5EeC4h1aBweCmHAdVZeusLeeSnfLoHfPwLZU5pXBYCinHMtk',
+      member: {
+        poolId: 5,
+        points: 0,
+        rewardPoolTotalEarnings: 645011121655,
+        unbondingEras: {
+          5189: 100000000000
+        }
+      }
+    },
+    {
+      accountId: '5EkAgQdmTHbcB29Vi5msQeRi3xE3inMYZvaaGYnPBkwNpLFc',
+      member: {
+        poolId: 5,
+        points: 100000000000,
+        rewardPoolTotalEarnings: 419176182776,
+        unbondingEras: {}
+      }
+    },
+    {
+      accountId: '5HeAYjXFNWrGmTnH35CuivoExNLFrHoeWf5CaQTWHM5qPxRW',
+      member: {
+        poolId: 5,
+        points: 66000000000000,
+        rewardPoolTotalEarnings: 0,
+        unbondingEras: {}
+      }
+    }
+  ]
 };
