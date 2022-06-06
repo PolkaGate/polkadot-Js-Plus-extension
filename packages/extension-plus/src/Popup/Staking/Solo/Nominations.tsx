@@ -9,9 +9,9 @@
  * */
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import type {AccountsBalanceType, NominatorInfo, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, NominatorInfo, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../../util/plusTypes';
 
-import { Adjust as AdjustIcon, StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
+import { MoveUpRounded as MoveUpRoundedIcon, StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
 import { Button as MuiButton, Grid } from '@mui/material';
 import React, { useCallback } from 'react';
 
@@ -53,7 +53,7 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
     <>
       {nominatedValidators?.length && stakingConsts && !noNominatedValidators
         ? <Grid container sx={{ p: 0 }}>
-          <Grid item sx={{height: '245px'}} xs={12}>
+          <Grid item sx={{ height: '245px' }} xs={12}>
             <ValidatorsList
               activeValidator={activeValidator}
               api={api}
@@ -82,11 +82,12 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
             <Grid item sx={{ textAlign: 'center' }} xs={3}>
               <Hint id='rebag' place='top' tip='Rebag/putInFrontOf if needed'>
                 <MuiButton
+                  color='primary'
                   disabled={!tuneUpButtonEnable}
                   onClick={handleRebag}
                   size='medium'
-                  startIcon={<AdjustIcon />}
-                  sx={{ color: 'red', textTransform: 'none' }}
+                  startIcon={<MoveUpRoundedIcon />}
+                  sx={{ textTransform: 'none' }}
                   variant='text'
                 >
                   {t('Tune up')}
@@ -119,7 +120,7 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
                 <NextStepButton
                   data-button-action='Set Nominees'
                   isBusy={validatorsInfo && state === 'setNominees'}
-                  onClick={()=>handleSelectValidatorsModalOpen(true)}
+                  onClick={() => handleSelectValidatorsModalOpen(true)}
                 >
                   {t('Set nominees')}
                 </NextStepButton>

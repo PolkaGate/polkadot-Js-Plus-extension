@@ -4,7 +4,7 @@
 
 import getApi from '../getApi.ts';
 
-async function needsRebag (endpoint, currentAccount) {
+async function needsRebag(endpoint, currentAccount) {
   console.log(`needsRebag is running for ${currentAccount}`);
 
   const api = await getApi(endpoint);
@@ -19,8 +19,10 @@ async function needsRebag (endpoint, currentAccount) {
     return { currentBagThreshold: '0.00 DOT', shouldRebag: false };
   }
 
+  const renameConsistentApi = apiAt.query?.bagsList || apiAt.query?.voterList;
+
   const currentWeight = api.createType('Balance', (await apiAt.query.staking.ledger(currentCtrl)).unwrapOrDefault().active);
-  const unwrapedCurrentNode = await apiAt.query.bagsList.listNodes(currentCtrl);
+  const unwrapedCurrentNode = await renameConsistentApi.listNodes(currentCtrl);
   const currentNode = unwrapedCurrentNode.isSome ? unwrapedCurrentNode.unwrap() : undefined;
 
   if (!currentNode) {

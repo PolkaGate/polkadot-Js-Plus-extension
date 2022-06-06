@@ -4,7 +4,7 @@
 
 import getApi from '../getApi.ts';
 
-async function needsPutInFrontOf (endpoint, target) {
+async function needsPutInFrontOf(endpoint, target) {
   console.log(` needsPutInFrontOf is running for ${target}`);
 
   const api = await getApi(endpoint);
@@ -21,8 +21,10 @@ async function needsPutInFrontOf (endpoint, target) {
     return undefined;
   }
 
+  const renameConsistentApi = apiAt.query?.bagsList || apiAt.query?.voterList;
+
   const targetWeight = api.createType('Balance', (await apiAt.query.staking.ledger(targetCtrl)).unwrapOrDefault().active);
-  const unWrappedTargetNode = await apiAt.query.bagsList.listNodes(targetCtrl);
+  const unWrappedTargetNode = await renameConsistentApi.listNodes(targetCtrl);
   const targetNode = unWrappedTargetNode.isSome ? unWrappedTargetNode.unwrap() : undefined;
 
   if (!targetNode) {
@@ -30,7 +32,7 @@ async function needsPutInFrontOf (endpoint, target) {
     return undefined;
   }
 
-  const targetBag = (await apiAt.query.bagsList.listBags(targetNode.bagUpper)).unwrap();
+  const targetBag = (await renameConsistentApi.listBags(targetNode.bagUpper)).unwrap();
 
   let lighterUnwrapped = targetBag.head;
 
@@ -52,7 +54,7 @@ async function needsPutInFrontOf (endpoint, target) {
       return mayLighter?.toHuman();
     }
 
-    lighterUnwrapped = (await apiAt.query.bagsList.listNodes(mayLighter)).unwrap().next;
+    lighterUnwrapped = (await renameConsistentApi.listNodes(mayLighter)).unwrap().next;
   }
 
   return undefined;
