@@ -133,15 +133,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     }
   }, [selectedValidatorsAccountId, state, nominatedValidatorsId, t, confirmingState]);
 
-  useEffect(() => {
-    if (['confirming', 'success', 'failed'].includes(confirmingState) || !api || currentlyStaked === undefined) {
-      return;
-    }
-
-    /** defaults for many states */
-    setTotalStakedInHuman(amountToHuman(String(currentlyStaked), decimals));
-
-    /** set fees and stakeAmount */
+  const setFee = useCallback(() => {
     let params;
 
     switch (state) {
@@ -236,11 +228,21 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         break;
       default:
     }
+  }, [api, bondExtra, claim, create, currentlyStaked, decimals, joined, maxUnlockingChunks, nominated, pool.bondedPool.roles, pool.metadata, pool.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen]);
 
-    // return () => {
-    //   setEstimatedFee(undefined);
-    // };
-  }, [surAmount, currentlyStaked, api, state, confirmingState, staker.address, bonding, bondExtra, unbonded, selectedValidatorsAccountId, nominatedValidatorsId, nominated, redeem, decimals, pool, joined, poolId, claim, poolSetState, create, setMetadata, poolWithdrawUnbonded, unlockingLen, maxUnlockingChunks]);
+  useEffect(() => {
+    if (['confirming', 'success', 'failed'].includes(confirmingState) || !api || currentlyStaked === undefined) {
+      return;
+    }
+
+    /** set fees and stakeAmount */
+    !estimatedFee && setFee();
+  }, [api, confirmingState, currentlyStaked, estimatedFee, setFee]);
+
+  useEffect(() => {
+    /** defaults for many states */
+    setTotalStakedInHuman(amountToHuman(String(currentlyStaked), decimals));
+  }, [currentlyStaked, decimals]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
@@ -597,7 +599,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         </Typography>;
       case ('createPool'):
         return <Typography sx={{ mt: '30px' }} variant='body1'>
-          <FormatBalance api={api} value={existentialDeposit}/>
+          <FormatBalance api={api} value={existentialDeposit} />
           {t(' will be bonded in Reward Id, and returned back when unbound all.')}
         </Typography>;
       case ('blocked'):
