@@ -9,7 +9,7 @@ import { ISubmittableResult } from '@polkadot/types/types';
 
 import { TxInfo } from '../plusTypes';
 
-export async function signAndSend (
+export async function signAndSend(
   api: ApiPromise,
   submittable: SubmittableExtrinsic<'promise', ISubmittableResult>,
   _signer: KeyringPair,
@@ -58,6 +58,9 @@ export async function signAndSend (
           }
         });
       }
+    }).catch((error) => {
+      console.log(error);
+      resolve({ status: 'failed' });
     });
   });
 }
