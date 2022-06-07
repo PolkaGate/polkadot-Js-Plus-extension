@@ -1423,7 +1423,7 @@ export const pool = (states: string): MyPoolInfo => {
     },
     bondedPool: {
       points: '0aaacc4fe9ba',
-      state: ['bondExtra', 'joinPool', 'bondExtraRewards', 'withdrawClaimable'].includes(states) ? 'Open' : 'Creating',
+      state: ['bondExtra', 'joinPool', 'bondExtraRewards', 'withdrawClaimable'].includes(states) ? 'Open' : 'Destroying',
       memberCounter: states === 'joinPool' ? 12 : states === 'bondExtra' ? 12 : 0,
       roles: {
         depositor: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
@@ -1525,21 +1525,21 @@ export const pool = (states: string): MyPoolInfo => {
       ]
     },
     member: {
+      points: states === 'join' ? 0 : new BN('3490000000000'),
       poolId: 57,
-      points: states === 'join' ? 0 : 3490000000000,
       rewardPoolTotalEarnings: 0,
       unbondingEras: {}
     },
     metadata: 'Polkadot js plus',
     myClaimable: new BN('14405639157'),
     poolId: new BN('06'),
-    redeemable: 0,
+    redeemable: new BN('0'),
     rewardClaimable: new BN('14405639157'),
     rewardIdBalance: {
+      feeFrozen: 0,
       free: 24405639157,
-      reserved: 0,
       miscFrozen: 0,
-      feeFrozen: 0
+      reserved: 0
     },
     rewardPool: ['bondExtra', 'joinPool', 'bondExtraRewards'].includes(states)
       ? {
@@ -1549,28 +1549,26 @@ export const pool = (states: string): MyPoolInfo => {
       }
       : null,
     stashIdAccount: {
-      nextSessionIds: [],
-      sessionIds: [],
       accountId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
       controllerId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
       exposure: {
-        total: 0,
+        others: [],
         own: 0,
-        others: []
+        total: 0
       },
+      nextSessionIds: [],
       nominators: [
         '5CFPcUJgYgWryPaV1aYjSbTpbTLu42V32Ytw1L9rfoMAsfGh',
         '5CFPqoTU7fiUp1JJNbfcY2z6yavEBKDPQGg4SGeG3Fm7vCsg',
         '5GYaYNVq6e855t5hVCyk4Wuqssaf6ADTrvdPZ3QXyHvFXTip'
       ],
+      redeemable: '0x00000000000000000000000000000000',
       rewardDestination: {
         account: '5EYCAe5ijiYfAXEth5DXrWyDFTVKxJeJ5YA8VanQUrFZT3za'
       },
+      sessionIds: [],
       stakingLedger: {
-        stash: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
-        total: 3490000000000,
         active: 3490000000000,
-        unlocking: [],
         claimedRewards: [
           5085,
           5086,
@@ -1656,14 +1654,16 @@ export const pool = (states: string): MyPoolInfo => {
           5166,
           5167,
           5168
-        ]
+        ],
+        stash: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
+        total: 3490000000000,
+        unlocking: []
       },
       stashId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
       validatorPrefs: {
-        commission: 0,
-        blocked: false
-      },
-      redeemable: '0x00000000000000000000000000000000'
+        blocked: false,
+        commission: 0
+      }
     }
   };
 };
