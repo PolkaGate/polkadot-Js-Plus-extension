@@ -40,7 +40,6 @@ interface Props {
   state: string;
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
   handleStopNominating: () => void;
-  nominatorInfo: { minNominated: bigint, isInList: boolean } | undefined;
   staker: AccountsBalanceType;
   myPool: MyPoolInfo | undefined | null;
   getPoolInfo: (endpoint: string, stakerAddress: string, id?: number | undefined) => void;
@@ -48,7 +47,7 @@ interface Props {
   setNoNominatedValidators: React.Dispatch<React.SetStateAction<boolean | undefined>>
 }
 
-function Nominations({ activeValidator, api, setNoNominatedValidators, chain, endpoint, getPoolInfo, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, nominatorInfo, poolStakingConsts, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handleSelectValidatorsModalOpen, handleStopNominating, myPool, noNominatedValidators, nominatedValidators, poolStakingConsts, setNoNominatedValidators, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState<boolean>(false);
 

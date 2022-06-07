@@ -101,13 +101,10 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [gettingIdentities, setGettingIdentities] = useState<boolean>(false);
 
   const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
-  const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
-  const [showChartModal, setChartModalOpen] = useState<boolean>(false);
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
   const [amount, setAmount] = useState<BN>(BN_ZERO);
-  const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
-  const [currentlyStaked, setCurrentlyStaked] = useState<BN | undefined | null>(undefined);
+  const [currentlyStaked, setCurrentlyStaked] = useState<BN | undefined | null>();
   const [validatorsInfo, setValidatorsInfo] = useState<Validators | null>(null); // validatorsInfo is all validators (current and waiting) information
   const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | null>(null);
   const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
@@ -121,11 +118,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
   const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
-  const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
-  const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
-  const [nominatorInfo, setNominatorInfo] = useState<{ minNominated: bigint, isInList: boolean } | undefined>();
 
-  const decimals = api && api.registry.chainDecimals[0];
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
@@ -203,28 +196,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     };
   };
 
-  const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
-    const getNominatorInfoWorker: Worker = new Worker(new URL('../../../util/workers/getNominatorInfo.js', import.meta.url));
-
-    workers.push(getNominatorInfoWorker);
-
-    getNominatorInfoWorker.postMessage({ endpoint, stakerAddress });
-
-    getNominatorInfoWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getNominatorInfoWorker.onmessage = (e: MessageEvent<any>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const nominatorInfo = e.data;
-
-      console.log('nominatorInfo:', nominatorInfo);
-
-      setNominatorInfo(nominatorInfo);
-      getNominatorInfoWorker.terminate();
-    };
-  };
-
   const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
     const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
 
@@ -281,12 +252,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     });
   }, [api]);
 
-  useEffect((): void => {
-    if (!currentEraIndex || !currentEraIndexOfStore) { return; }
-
-    setStoreIsUpdate(currentEraIndex === currentEraIndexOfStore);
-  }, [currentEraIndex, currentEraIndexOfStore]);
-
   useEffect(() => {
     endpoint && getPoolInfo(endpoint, staker.address);
 
@@ -312,11 +277,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     /** get validators info, including current and waiting, should be called after validatorsInfoFromStore gets value */
     endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
   }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
-
-  // useEffect(() => {
-  //   /**  get nominator staking info to consider rebag ,... */
-  //   endpoint && myPool && getNominatorInfo(endpoint, myPool.accounts.stashId);
-  // }, [endpoint, myPool]);
 
   const getValidatorsIdentities = useCallback((endpoint: string, validatorsAccountIds: AccountId[]) => {
     /** get validators identities */
@@ -361,29 +321,19 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, account.address, getValidatorsIdentities, gettingIdentities]);
 
   useEffect(() => {
-    if (!api || !decimals) return;
+    if (myPool === undefined) { return; }
 
-    /** get staking reward from subscan, can use onChain data, TODO */
-    // eslint-disable-next-line no-void
-    void getStakingReward(chain, staker.address).then((reward) => {
-      if (!reward) reward = '0';
-      reward = amountToHuman(String(reward), decimals) === '0' ? '0.00' : amountToHuman(reward, decimals);
-      setTotalReceivedReward(reward);
-    });
-  }, [chain, api, staker.address, decimals]);
+    if (myPool === null) { return setCurrentlyStaked(null); }
 
-  useEffect(() => {
-    if (myPool === undefined || !decimals) { return; }
-
-    if (myPool === null || myPool?.bondedPool?.points === 0) { return setCurrentlyStaked(BN_ZERO); }
+    if (myPool?.bondedPool?.points === 0) { return setCurrentlyStaked(BN_ZERO); }
 
     const staked = new BN(myPool.member.points).mul(new BN(myPool.stashIdAccount.stakingLedger.active)).div(new BN(myPool.bondedPool.points));
 
     setCurrentlyStaked(staked);
-  }, [myPool, decimals]);
+  }, [myPool]);
 
   useEffect(() => {
-    if (!account) {
+    if (!account || !chainName) {
       console.log(' no account, wait for it...!..');
 
       return;
@@ -407,11 +357,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
       setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
     }
-  }, []);
-
-  useEffect((): void => {
-    setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
-  }, [staker]);
+  }, [account, chainName]);
 
   useEffect(() => {
     if (validatorsInfo && nominatedValidatorsId && chain && account.address) {
@@ -496,17 +442,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     if (!state) setState('stopNominating');
   }, [handleConfirmStakingModaOpen, state]);
 
-  const handleRebag = useCallback((): void => {
-    handleConfirmStakingModaOpen();
-
-    if (!state) setState('tuneUp');
-  }, [handleConfirmStakingModaOpen, state]);
-
-  const handleViewChart = useCallback(() => {
-    if (!rewardSlashes) return;
-    setChartModalOpen(true);
-  }, [setChartModalOpen, rewardSlashes]);
-
   const getAmountToConfirm = useCallback(() => {
     switch (state) {
       case ('unstake'):
@@ -565,7 +500,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
             api={api}
             availableBalance={staker?.balanceInfo?.available ? new BN(staker.balanceInfo.available) : BN_ZERO}
             handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
-            handleViewChart={handleViewChart}
             myPool={myPool}
             redeemable={redeemable}
             unlockingAmount={unlockingAmount}
@@ -637,7 +571,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
               myPool={myPool}
               noNominatedValidators={noNominatedValidators}
               nominatedValidators={nominatedValidators}
-              nominatorInfo={nominatorInfo}
               poolStakingConsts={poolStakingConsts}
               setNoNominatedValidators={setNoNominatedValidators}
               staker={staker}
@@ -693,16 +626,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           stakingConsts={stakingConsts}
           state={state}
           validatorsIdentities={validatorsIdentities}
-        />
-      }
-
-      {rewardSlashes && showChartModal && api &&
-        <RewardChart
-          api={api}
-          chain={chain}
-          rewardSlashes={rewardSlashes}
-          setChartModalOpen={setChartModalOpen}
-          showChartModal={showChartModal}
         />
       }
     </Popup>
