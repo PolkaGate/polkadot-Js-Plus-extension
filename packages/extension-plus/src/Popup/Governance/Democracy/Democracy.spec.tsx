@@ -154,7 +154,7 @@ describe('Testing Democracy component', () => {
       expect(queryByText(`Nay(${referendum[0].allNay?.length})`)).toBeTruthy();
       expect(queryByText(`${totalAye} ${chainInfo.coin}`)).toBeTruthy();
       expect(getByRole('progressbar')).toBeTruthy();
-      expect(queryByText('Remaining Time', { exact: false })?.textContent).toEqual(`Remaining Time:  ${remainingTime(currentBlockNumber, referendum[0].status.end)}`);
+      expect(queryByText('Remaining Time', { exact: false })?.textContent).toEqual(`Remaining Time:  ${remainingTime(referendum[0].status.end - currentBlockNumber)}`);
       expect(queryByText(`${totalNay} ${chainInfo.coin}`)).toBeTruthy();
       expect(getByRole('button', { name: 'Aye' })).toBeTruthy();
       expect(getByRole('button', { name: 'Nay' })).toBeTruthy();
