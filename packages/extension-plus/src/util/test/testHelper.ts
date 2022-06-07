@@ -1415,7 +1415,7 @@ export const poolStakingConst: PoolStakingConsts | undefined = {
   minNominatorBond: new BN('10817536')
 };
 
-export const pool = (states: string): MyPoolInfo => {
+export const pool = (states = ''): MyPoolInfo => {
   return {
     accounts: {
       rewardId: '5EYCAe5ijiYfAXEth5DXrWyDFTVKxJeJ5YA8VanQUrFZT3za',

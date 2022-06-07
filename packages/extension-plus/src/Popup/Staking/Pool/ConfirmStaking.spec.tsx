@@ -84,8 +84,6 @@ describe('Testing ConfirmStaking component', () => {
     const mayPoolBalance = joinPool?.ledger?.active ?? joinPool?.bondedPool?.points;
     const staked = api.createType('Balance', mayPoolBalance).toHuman();
 
-    console.log('const staked:', staked);
-
     expect(queryByText('JOIN POOL')).toBeTruthy();
     expect(queryByTestId('amount')?.textContent).toEqual(`${amountToStakeInHuman}${coin}`);
     expect(queryByText('Currently staked')).toBeTruthy();

@@ -42,7 +42,7 @@ describe('Testing EasyStaking component', () => {
     staker = { balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
   });
 
-  test.skip('Checking the exist component while loading', () => {
+  test('Checking the exist component while loading', () => {
     const { queryByText } = render(
       <Stake
         api={chainInfo.api}
@@ -63,11 +63,11 @@ describe('Testing EasyStaking component', () => {
       />
     );
 
-    expect(queryByText('Loading ...'));
+    expect(queryByText('Loading ...')).toBeTruthy();
   });
 
-  test.skip('Checking the exist component when account hasn\'t staked', () => {
-    const { queryByText } = render(
+  test('When account hasn\'t staked', () => {
+    const { queryByText, queryAllByTestId } = render(
       <Stake
         api={chainInfo.api}
         chain={chain}
@@ -87,7 +87,7 @@ describe('Testing EasyStaking component', () => {
       />
     );
 
-    const ShowValue = (value: BN) => {
+    const ShowValue = (value: BN | string) => {
       return render(
         <ShowBalance2
           api={chainInfo.api}
@@ -96,17 +96,49 @@ describe('Testing EasyStaking component', () => {
       ).asFragment().textContent;
     };
 
-    expect(queryByText('Create pool'));
-    expect(queryByText('Min to join:'));
-    expect(queryByText(`${ShowValue(poolStakingConst?.minJoinBond)}`));
-
-    expect(queryByText('Join pool'));
-    expect(queryByText('Min to create:'));
-    expect(queryByText(`${ShowValue(poolStakingConst?.minCreationBond)}`));
+    expect(queryByText('Create pool')).toBeTruthy();
+    expect(queryByText('Min to join:')).toBeTruthy();
+    expect(queryAllByTestId('ShowBalance2')[0].textContent).toEqual(ShowValue(poolStakingConst?.minJoinBond));
+    expect(queryByText('Join pool')).toBeTruthy();
+    expect(queryByText('Min to create:')).toBeTruthy();
+    expect(queryAllByTestId('ShowBalance2')[1].textContent).toEqual(ShowValue(poolStakingConst?.minCreationBond));
   });
 
-  test.skip('Checking the exist component while loading when account has staked and pool state is OPEN or BLOCKED also available balance > 0', () => {
-    const currentlyStaked = pool('joinPool').member.points;
+  test('Pool state is OPEN or BLOCKED also available balance > 0', () => {
+    const currentlyStaked = pool().member.points;
+
+    const { debug, queryByLabelText, queryByRole, queryByText } = render(
+      <Stake
+        api={chainInfo.api}
+        chain={chain}
+        currentlyStaked={currentlyStaked}
+        handleConfirmStakingModaOpen={setState}
+        myPool={pool('joinPool')} // pool state open
+        nextPoolId={undefined}
+        nextToStakeButtonBusy={nextToStakeButtonBusy}
+        poolStakingConsts={poolStakingConst}
+        poolsInfo={undefined}
+        poolsMembers={undefined}
+        setNewPool={setState}
+        setStakeAmount={setStakeAmount}
+        setState={setState}
+        staker={staker}
+        state={state}
+      />
+    );
+    const amountInput = queryByRole('spinbutton');
+
+    expect(queryByLabelText('Amount')).toBeTruthy();
+    expect(queryByText('Min:')).toBeTruthy();
+    expect(queryByText('Max: ~')).toBeTruthy();
+    expect(queryByText('You are staking in "{{poolName}}" pool (index: {{poolId}}).')).toBeTruthy();
+    expect(amountInput?.hasAttribute('disabled')).toBeFalsy();
+  });
+
+  test('Available balance == 0', () => {
+    const currentlyStaked = pool().member.points;
+
+    staker.balanceInfo.available = 0n;
 
     const { queryByLabelText, queryByRole, queryByText } = render(
       <Stake
@@ -131,56 +163,23 @@ describe('Testing EasyStaking component', () => {
     const amountInput = queryByRole('spinbutton');
 
     expect(queryByLabelText('Amount')).toBeTruthy();
-    expect(queryByText('Min:')).toBeTruthy();
-    expect(queryByText('Max: ~')).toBeTruthy();
-    expect(queryByText('You are staking in "{{poolName}}" pool (index: {{poolId}}).'));
+    expect(queryByText('No available fund to stake')).toBeTruthy();
+    expect(queryByText('You are staking in "{{poolName}}" pool (index: {{poolId}}).')).toBeTruthy();
     expect(amountInput?.hasAttribute('disabled')).toBeFalsy();
   });
 
-  test.skip('Checking the exist component while loading when account has staked and pool state is OPEN or BLOCKED also available balance > 0', () => {
-    const currentlyStaked = pool('joinPool').member.points;
+  test('Pool state is DESTROYING', () => {
+    const currentlyStaked = pool().member.points;
 
-    staker.balanceInfo.available = '0';
+    staker.balanceInfo.available = amountToMachine(availableBalance, chainInfo.decimals);
 
-    const { queryByLabelText, queryByRole, queryByText } = render(
+    const { debug, queryByLabelText, queryByRole, queryByText } = render(
       <Stake
         api={chainInfo.api}
         chain={chain}
         currentlyStaked={currentlyStaked}
         handleConfirmStakingModaOpen={setState}
-        myPool={pool('joinPool')}
-        nextPoolId={undefined}
-        nextToStakeButtonBusy={nextToStakeButtonBusy}
-        poolStakingConsts={poolStakingConst}
-        poolsInfo={undefined}
-        poolsMembers={undefined}
-        setNewPool={setState}
-        setStakeAmount={setStakeAmount}
-        setState={setState}
-        staker={staker}
-        state={state}
-      />
-    );
-
-    const amountInput = queryByRole('spinbutton');
-
-    expect(queryByLabelText('Amount')).toBeTruthy();
-    expect(queryByText('Min:')).toBeTruthy();
-    expect(queryByText('Max: ~')).toBeTruthy();
-    expect(queryByText('You are staking in "{{poolName}}" pool (index: {{poolId}}).'));
-    expect(amountInput?.hasAttribute('disabled')).toBeFalsy();
-  });
-
-  test.only('Checking the exist component when account has staked and pool state is DESTROYING', () => {
-    const currentlyStaked = pool('joinPool').member.points;
-
-    const { queryByLabelText, queryByRole, queryByText } = render(
-      <Stake
-        api={chainInfo.api}
-        chain={chain}
-        currentlyStaked={currentlyStaked}
-        handleConfirmStakingModaOpen={setState}
-        myPool={pool('')}
+        myPool={pool()}
         nextPoolId={undefined}
         nextToStakeButtonBusy={nextToStakeButtonBusy}
         poolStakingConsts={poolStakingConst}
@@ -198,7 +197,7 @@ describe('Testing EasyStaking component', () => {
     expect(queryByLabelText('Amount')).toBeTruthy();
     expect(queryByText('Min:')).toBeTruthy();
     expect(queryByText('Max: ~')).toBeTruthy();
-    expect(queryByText('You are staking in "{{poolName}}" pool (index: {{poolId}}).'));
+    expect(queryByText('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.')).toBeTruthy();
     expect(amountInput?.hasAttribute('disabled')).toBeTruthy();
   });
 });
