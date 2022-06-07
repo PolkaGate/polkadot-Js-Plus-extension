@@ -47,7 +47,7 @@ describe('Testing EasyStaking component', () => {
       <Stake
         api={chainInfo.api}
         chain={chain}
-        currentlyStaked={undefined} // undefined == loading      // testfield
+        currentlyStaked={undefined} // undefined == loading
         handleConfirmStakingModaOpen={setState}
         myPool={undefined} // don't care
         nextPoolId={undefined} // don't care
@@ -71,7 +71,7 @@ describe('Testing EasyStaking component', () => {
       <Stake
         api={chainInfo.api}
         chain={chain}
-        currentlyStaked={null} // (null || zero) && !mypool chose to join or create
+        currentlyStaked={null} // (null) && !mypool choose to join or create
         handleConfirmStakingModaOpen={setState}
         myPool={null}
         nextPoolId={undefined} // don't care
@@ -140,7 +140,7 @@ describe('Testing EasyStaking component', () => {
   test.skip('Checking the exist component while loading when account has staked and pool state is OPEN or BLOCKED also available balance > 0', () => {
     const currentlyStaked = pool('joinPool').member.points;
 
-    staker.balanceInfo?.available = '0';
+    staker.balanceInfo.available = '0';
 
     const { queryByLabelText, queryByRole, queryByText } = render(
       <Stake
