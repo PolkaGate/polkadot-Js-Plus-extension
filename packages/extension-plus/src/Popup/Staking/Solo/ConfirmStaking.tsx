@@ -77,6 +77,8 @@ export default function ConfirmStaking({ amount, api, chain, handleEasyStakingMo
   const validatorsToList = ['stakeAuto', 'stakeManual', 'changeValidators', 'setNominees'].includes(state) ? selectedValidators : nominatedValidators;
 
   /** list of available trasaction types */
+  const renameConsistentApi = api.tx?.bagsList || api.tx?.voterList;
+
   const chilled = api.tx.staking.chill;
   const unbonded = api.tx.staking.unbond;
   const nominated = api.tx.staking.nominate;
@@ -84,8 +86,8 @@ export default function ConfirmStaking({ amount, api, chain, handleEasyStakingMo
   const bond = api.tx.staking.bond;
   const redeem = api.tx.staking.withdrawUnbonded;
   const bonding = currentlyStaked ? bondExtra : bond;
-  const rebaged = api.tx.bagsList.rebag;
-  const putInFrontOf = api.tx.bagsList.putInFrontOf;
+  const rebaged = renameConsistentApi.rebag;
+  const putInFrontOf = renameConsistentApi.putInFrontOf;
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) return false;

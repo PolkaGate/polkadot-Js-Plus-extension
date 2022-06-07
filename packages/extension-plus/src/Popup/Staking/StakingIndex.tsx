@@ -16,13 +16,13 @@ import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CircleOutlined as CircleOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon } from '@mui/icons-material';
 import { Divider, Grid, Paper } from '@mui/material';
-import { blue, green, grey, orange, red } from '@mui/material/colors';
+import { blue, green, grey, red } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
-import { BN } from '@polkadot/util';
+import { BN, bnMax } from '@polkadot/util';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShowBalance2 } from '../../components';
@@ -57,8 +57,9 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
   const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
 
   const [stakingType, setStakingType] = useState<string | undefined>(undefined);
+  const [minToReceiveRewardsInSolo, setMinToReceiveRewardsInSolo] = useState<BN | undefined>();
 
-  const getStakingConsts = (chain: Chain, endpoint: string) => {
+  const getStakingConsts = useCallback((chain: Chain, endpoint: string) => {
     /** 1- get some staking constant like min Nominator Bond ,... */
     const getStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getStakingConsts.js', import.meta.url));
 
@@ -85,9 +86,9 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
       getStakingConstsWorker.terminate();
     };
-  };
+  }, [account.address, staker?.address]);
 
-  const getPoolStakingConsts = (endpoint: string) => {
+  const getPoolStakingConsts = useCallback((endpoint: string) => {
     const getPoolStakingConstsWorker: Worker = new Worker(new URL('../../util/workers/getPoolStakingConsts.js', import.meta.url));
 
     workers.push(getPoolStakingConstsWorker);
@@ -121,7 +122,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
       getPoolStakingConstsWorker.terminate();
     };
-  };
+  }, [account.address, chain, staker?.address]);
 
   const getNominatorInfo = (endpoint: string, stakerAddress: string) => {
     const getNominatorInfoWorker: Worker = new Worker(new URL('../../util/workers/getNominatorInfo.js', import.meta.url));
@@ -180,7 +181,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
       setPoolStakingConsts(c);
     }
-  }, []);
+  }, [account, chainName]);
 
   useEffect(() => {
     /** get some staking constant like min Nominator Bond ,... */
@@ -189,7 +190,15 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
 
     /**  get nominator staking info to consider rebag ,... */
     endpoint && getNominatorInfo(endpoint, staker.address);
-  }, [api, chain, endpoint, staker.address]);
+  }, [api, chain, endpoint, getPoolStakingConsts, getStakingConsts, staker.address]);
+
+  useEffect(() => {
+    if (!stakingConsts || !nominatorInfo?.minNominated) return;
+
+    const minSolo = bnMax(new BN(stakingConsts.minNominatorBond.toString()), new BN(stakingConsts?.existentialDeposit.toString()), new BN(nominatorInfo.minNominated.toString()));
+
+    setMinToReceiveRewardsInSolo(minSolo);
+  }, [nominatorInfo?.minNominated, stakingConsts]);
 
   const handleStakingModalClose = useCallback((): void => {
     // should terminate workers
@@ -230,7 +239,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
               {t('Min to receive rewards')}:
             </Grid>
             <Grid item>
-              <ShowBalance2 api={api} balance={nominatorInfo?.minNominated} />
+              <ShowBalance2 api={api} balance={minToReceiveRewardsInSolo} />
             </Grid>
           </Grid>
 

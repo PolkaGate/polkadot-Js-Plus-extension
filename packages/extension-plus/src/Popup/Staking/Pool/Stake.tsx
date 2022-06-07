@@ -66,12 +66,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     decimals && setStakeAmount(new BN(String(amountToMachine(stakeAmountInHuman, decimals))));
   }, [decimals, setStakeAmount, stakeAmountInHuman]);
 
-  // useEffect(() => {
-  //   if (!staker?.balanceInfo?.available) { return; }
-
-  //   setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
-  // }, [staker, staker?.balanceInfo?.available]);
-
   const handleStakeAmountInput = useCallback((value: string): void => {
     if (!api || !decimals || !staker?.balanceInfo?.available) return;
 
@@ -260,7 +254,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     <>
       {currentlyStaked === undefined
         ? <Progress title={'Loading ...'} />
-        : (currentlyStaked === null || currentlyStaked?.isZero()) && !myPool
+        : currentlyStaked === null && !myPool
           ? <StakeInitialChoice />
           : <>
             <Grid item sx={{ p: '10px 30px 0px' }} xs={12}>

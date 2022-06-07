@@ -13,7 +13,7 @@
 import type { MyPoolInfo } from '../../../util/plusTypes';
 
 import { AddCircleOutline as AddCircleOutlineIcon, MoreHoriz as MoreHorizIcon, Redeem as RedeemIcon, SystemUpdateAltOutlined as SystemUpdateAltOutlinedIcon } from '@mui/icons-material';
-import { Grow, Grid, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper, Typography } from '@mui/material';
+import { Grid, Grow, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper, Typography } from '@mui/material';
 import React, { useCallback, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -25,14 +25,13 @@ import { Hint, ShowBalance2 } from '../../../components';
 interface Props {
   availableBalance: BN,
   api: ApiPromise | undefined;
-  handleViewChart: () => void;
   myPool: MyPoolInfo | undefined | null;
   redeemable: BN | undefined;
   unlockingAmount: BN | undefined;
   handleConfirmStakingModaOpen: (state?: string | undefined, amount?: BN | undefined) => void;
 }
 
-export default function Overview({ api, availableBalance, handleConfirmStakingModaOpen, handleViewChart, myPool, redeemable, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalance, handleConfirmStakingModaOpen, myPool, redeemable, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const staked = myPool === undefined ? undefined : new BN(myPool?.member?.points ?? 0);
