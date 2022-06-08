@@ -3,8 +3,9 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-import { AccountBalance as AccountBalanceIcon, SummarizeOutlined as SummarizeOutlinedIcon, VolunteerActivismSharp as VolunteerActivismSharpIcon } from '@mui/icons-material';
-import { Grid, Tab, Tabs } from '@mui/material';
+import { AccountBalance as AccountBalanceIcon, InfoOutlined as InfoOutlinedIcon, SummarizeOutlined as SummarizeOutlinedIcon, VolunteerActivismSharp as VolunteerActivismSharpIcon } from '@mui/icons-material';
+import { Divider, Grid, Tab, Tabs } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { DeriveTreasuryProposals } from '@polkadot/api-derive/types';
@@ -12,8 +13,9 @@ import { BN, BN_MILLION, BN_ZERO, u8aConcat } from '@polkadot/util';
 
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, Progress } from '../../../components';
+import { CircularProgressWithValue, PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../../components';
 import getTips from '../../../util/api/getTips';
+import { POLKADOT_COLOR } from '../../../util/constants';
 import { ChainInfo, Tip } from '../../../util/plusTypes';
 import { remainingTime } from '../../../util/plusUtils';
 import ProposalOverview from './proposals/Overview';
@@ -29,12 +31,24 @@ const EMPTY_U8A_32 = new Uint8Array(32);
 
 export default function Treasury({ address, chainInfo, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [tabValue, setTabValue] = useState('proposals');
+  const [tabValue, setTabValue] = useState('info');
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
   const [activeProposalCount, setActiveProposalCount] = useState<number | undefined>();
+  const [availableTreasuryBalance, setAvailableTreasuryBalance] = useState<BN | undefined>();
+  const [spendPeriod, setSpendPeriod] = useState<BN | undefined>();
+  const [remainingSpendPeriod, setRemainingSpendPeriod] = useState<string | undefined>();
+  const [remainingSpendPeriodPrecent, setRemainingSpendPeriodPrecent] = useState<number | undefined>();
+  const [pendingBounties, setPendingBounties] = useState<BN | undefined>();
+  const [pendingProposals, setPendingProposals] = useState<BN | undefined>();
+  const [spendable, setSpendable] = useState<BN | undefined>();
+  const [spenablePercent, setSpendablePercent] = useState<number | undefined>();
+  const [nextBurn, setNextBurn] = useState<BN | undefined>();
+  const [approved, setApproved] = useState<BN | undefined>();
 
   const [tips, setTips] = useState<Tip[] | undefined | null>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
+  const api = chainInfo?.api;
+  const chainName = chainInfo?.chainName;
 
   useEffect(() => {
     if (!chainInfo) return;
@@ -65,6 +79,15 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
   }, [chainInfo]);
 
   useEffect(() => {
+    if (!pendingBounties || !pendingProposals || !availableTreasuryBalance) return;
+    const spendable = availableTreasuryBalance.sub(pendingBounties).sub(pendingProposals);
+
+    setSpendable(spendable);
+    setSpendablePercent(spendable.muln(100).div(availableTreasuryBalance).toNumber());
+    setApproved(pendingBounties.add(pendingProposals))
+  }, [availableTreasuryBalance, pendingBounties, pendingProposals]);
+
+  useEffect(() => {
     if (!chainInfo) return;
     const api = chainInfo.api;
     const treasuryAccount = u8aConcat(
@@ -75,43 +98,45 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
       EMPTY_U8A_32
     ).subarray(0, 32);
 
-    console.log('treasuryAccountt:', treasuryAccount.toString());
-
     // eslint-disable-next-line no-void
     void api.derive.chain.bestNumber().then((bestNumber) => {
       const spendPeriod = new BN(api.consts.treasury?.spendPeriod) ?? BN_ZERO;
 
-      console.log('remaining spent period:', remainingTime(spendPeriod.sub(bestNumber.mod(spendPeriod)).toNumber()));
+      setSpendPeriod(spendPeriod.divn(24 * 60 * 10));
+      const remainingSpendPeriod = spendPeriod.sub(bestNumber.mod(spendPeriod));
+
+      setRemainingSpendPeriod(remainingTime(remainingSpendPeriod.toNumber()));
+      setRemainingSpendPeriodPrecent(spendPeriod.sub(remainingSpendPeriod).muln(100).div(spendPeriod).toNumber());
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
     void api.derive.balances?.account(treasuryAccount).then((b) => {
-      const treasuryBalance = api.createType('Balance', b.freeBalance)
-      console.log('available treasury balance:', treasuryBalance?.toHuman());
+      const treasuryBalance = b.freeBalance;
+
+      setAvailableTreasuryBalance(treasuryBalance);
 
       const burn = api.consts.treasury.burn.mul(treasuryBalance).div(BN_MILLION);
-      console.log('burn:', api.createType('Balance', burn)?.toHuman());
+      setNextBurn(burn);
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
     void api.derive.bounties?.bounties()?.then((bounties) => {
       const pendingBounties = bounties.reduce((total, { bounty: { status, value } }) =>
         total.iadd(status.isApproved ? value : BN_ZERO), new BN(0)
-      )
+      );
 
-      console.log('treasury pendingBounties:', api.createType('Balance', pendingBounties)?.toHuman());
+      setPendingBounties(pendingBounties);
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
     void api.derive.treasury?.proposals()?.then((treasuryProposals) => {
       const pendingProposals = treasuryProposals.approvals.reduce((total, { proposal: { value } }) =>
         total.iadd(value), new BN(0)
-      )
+      );
 
-      console.log('treasury pendingProposals:', api.createType('Balance', pendingProposals)?.toHuman());
+      setPendingProposals(pendingProposals);
     }).catch(console.error);
   }, [chainInfo]);
-
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -141,6 +166,13 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
               sx={{ fontSize: 11 }}
               value='tips'
             />
+            <Tab
+              icon={<InfoOutlinedIcon fontSize='small' />}
+              iconPosition='start'
+              label={t('info')}
+              sx={{ fontSize: 11 }}
+              value='info'
+            />
           </Tabs>
         </Grid>
 
@@ -157,6 +189,82 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
             {chainInfo && tips !== undefined
               ? <TipOverview address={address} chain={chain} chainInfo={chainInfo} tips={tips} />
               : <Progress title={t('Loading tips ...')} />}
+          </Grid>
+        }
+
+        {tabValue === 'info' &&
+          <Grid container item sx={{ fontSize: 12, pt: 8 }} xs={12}>
+            <Grid item sx={{ textAlign: 'center' }} xs={6}>
+              <Grid item sx={{ textAlign: 'center' }} xs={12}>
+                <CircularProgressWithValue value={spenablePercent ?? 0} Kolor={chainName === 'Polkadot' ? POLKADOT_COLOR : 'black'} />
+              </Grid>
+              <Grid container item justifyContent='center' sx={{ pt: 2 }} xs={12}>
+                <Grid item sx={{ color: grey[600] }}>
+                  {t('spendable / available')}
+                </Grid>
+                <Grid container item justifyContent='center' spacing={0.5} sx={{ pt: 1 }} xs={12}>
+                  <Grid item>
+                    <ShowBalance2 api={api} balance={spendable} />
+                  </Grid>
+                  <Grid item>
+                    /
+                  </Grid>
+                  <Grid item>
+                    <ShowBalance2 api={api} balance={availableTreasuryBalance} />
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sx={{ pt: 4 }}>
+                  <Divider light />
+                </Grid>
+                <Grid container item justifyContent='center' spacing={1} sx={{ pt: 1 }} xs={12}>
+                  <Grid item sx={{ color: grey[600] }}>
+                    {t('approved')}
+                  </Grid>
+                  <Grid item>
+                    <ShowBalance2 api={api} balance={approved} />
+                  </Grid>
+                </Grid>
+
+              </Grid>
+            </Grid>
+
+            <Grid container item justifyContent='center' sx={{ textAlign: 'center' }} xs={6}>
+              <Grid item sx={{ textAlign: 'center' }} xs={12}>
+                <CircularProgressWithValue value={remainingSpendPeriodPrecent ?? 0} Kolor={chainName === 'Polkadot' ? POLKADOT_COLOR : 'black'} />
+              </Grid>
+              <Grid container item justifyContent='center' spacing={0.5} sx={{ pt: 2 }} xs={12}>
+                <Grid item sx={{ color: grey[600] }}>
+                  {t('spend period')}
+                </Grid>
+                <Grid item>
+                  <ShowValue value={spendPeriod?.toString()} />
+                </Grid>
+                <Grid item>
+                  {t('days')}
+                </Grid>
+              </Grid>
+              <Grid container item justifyContent='center' spacing={0.5} sx={{ pt: 1, textAlign: 'center' }} xs={12}>
+                <Grid item sx={{ color: grey[600] }}>
+                  {t('remaining')}
+                </Grid>
+                <Grid item>
+                  <ShowValue value={remainingSpendPeriod} />
+                </Grid>
+              </Grid>
+              <Grid item xs={12} sx={{ pt: 4 }}>
+                <Divider light />
+              </Grid>
+              <Grid container item justifyContent='center' spacing={1} sx={{ pt: 1 }} xs={12}>
+                <Grid item sx={{ color: grey[600] }}>
+                  {t('next burn')}
+                </Grid>
+                <Grid item>
+                  <ShowBalance2 api={api} balance={nextBurn} />
+                </Grid>
+              </Grid>
+
+
+            </Grid>
           </Grid>
         }
       </Grid>

@@ -20,3 +20,4 @@ export { default as ShowValue } from './ShowValue';
 export { default as ShortAddress } from './ShortAddress';
 export { default as ShowAddress } from './ShowAddress';
 export { default as FormatBalance } from './FormatBalance';
+export { default as CircularProgressWithValue } from './CircularProgressWithValue';
