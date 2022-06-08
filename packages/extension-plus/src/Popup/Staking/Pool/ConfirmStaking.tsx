@@ -136,6 +136,9 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const setFee = useCallback(() => {
     let params;
 
+    console.log('currentlyStaked', currentlyStaked.toString())
+    const lastStaked = currentlyStaked ?? BN_ZERO;
+
     switch (state) {
       case ('bondExtra'):
       case ('bondExtraRewards'):
@@ -143,8 +146,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
         // eslint-disable-next-line no-void
         void bondExtra(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-
-        setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
+        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
 
         break;
       case ('joinPool'):
@@ -152,7 +154,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         // eslint-disable-next-line no-void
         void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
 
-        setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
+        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
 
         break;
       case ('createPool'):
@@ -167,7 +169,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
             setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))));
         });
 
-        setTotalStakedInHuman(amountToHuman((currentlyStaked.add(surAmount)).toString(), decimals));
+        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
         break;
 
       case ('unstake'):
@@ -195,7 +197,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           // }
         });
 
-        setTotalStakedInHuman(amountToHuman((currentlyStaked.sub(surAmount)).toString(), decimals));
+        currentlyStaked && !currentlyStaked.isZero() && setTotalStakedInHuman(amountToHuman((currentlyStaked.sub(surAmount)).toString(), decimals));
         break;
       // case ('stopNominating'):
       //   // eslint-disable-next-line no-void
@@ -238,11 +240,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     /** set fees and stakeAmount */
     !estimatedFee && setFee();
   }, [api, confirmingState, currentlyStaked, estimatedFee, setFee]);
-
-  useEffect(() => {
-    /** defaults for many states */
-    setTotalStakedInHuman(amountToHuman(String(currentlyStaked), decimals));
-  }, [currentlyStaked, decimals]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }

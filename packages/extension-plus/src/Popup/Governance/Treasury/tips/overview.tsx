@@ -89,8 +89,8 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
 
       {tips
         ? tips.map((tip, index) => {
-          const finderAccountInfo = { accountId: tip.finder.address, identity: { display: tip.finder.display, judgements: tip.finder.judgements } };
-          const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } };
+          const finderAccountInfo = { accountId: tip.finder.address, identity: { display: tip.finder.display, judgements: tip.finder.judgements } } as unknown as DeriveAccountInfo;
+          const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } } as unknown as DeriveAccountInfo;
           const finderAddress = tip.finder.address;
           const beneficiaryAddres = tip.beneficiary.address;
 
@@ -115,7 +115,7 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
 
                   {tippers && !!tippers[index]?.length && tippers[index]?.map((t: [DeriveAccountInfo, u128], index: number) => (
                     <Grid container justifyContent='space-between' key={index} xs={12}>
-                      <Grid item xs={9} sx={{ textAlign: 'left' }}>
+                      <Grid item sx={{ textAlign: 'left' }} xs={9}>
                         <Identity accountInfo={t[0]} chain={chain} showSocial={false} />
                       </Grid>
                       <Grid item sx={{ pr: 1, textAlign: 'right' }} xs={3}>
