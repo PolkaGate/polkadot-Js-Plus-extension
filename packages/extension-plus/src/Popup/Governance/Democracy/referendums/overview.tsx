@@ -156,7 +156,7 @@ export default function Referendums({ address, chain, chainInfo, convictions, cu
                   {Number(amountToHuman(r.status.tally.ayes.toString(), decimals)).toLocaleString()}{' '}{coin}
                 </Grid>
                 <Grid item sx={{ color: 'green', fontSize: 11 }}>
-                  {t('Remaining Time')}{': '} {remainingTime(currentBlockNumber, r.status.end)}
+                  {t('Remaining Time')}{': '} {remainingTime(Number(String(r.status.end)) - currentBlockNumber)}
                 </Grid>
                 <Grid item>
                   {Number(amountToHuman(Number(r.status.tally.nays).toString(), decimals)).toLocaleString()}{' '}{coin}

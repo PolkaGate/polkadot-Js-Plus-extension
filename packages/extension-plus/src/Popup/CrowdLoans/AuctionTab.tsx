@@ -66,7 +66,7 @@ function AuctionTab({ auction, chainInfo, className, endpoints, myContributions 
             {t('Bids')}
           </Paper>
         </Grid>
-        <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} myContributions={myContributions}/>
+        <Fund coin={chainInfo.coin} crowdloan={crowdloan} decimals={chainInfo.decimals} endpoints={endpoints} myContributions={myContributions} />
       </Grid>
     );
   };
@@ -112,7 +112,7 @@ function AuctionTab({ auction, chainInfo, className, endpoints, myContributions 
 
         <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }} xs={12}>
           <Grid item sx={{ color: 'green' }}>
-            {t('Remaining Time')}{': '} {remainingTime(currentBlock, end)}
+            {t('Remaining Time')}{': '} {remainingTime(end - currentBlock)}
           </Grid>
           <Grid item sx={{ color: grey[600] }}>
             {t('in')} {stageInHuman}

@@ -156,9 +156,8 @@ export const getWebsiteFavico = (url: string | undefined): string => {
   return 'https://s2.googleusercontent.com/s2/favicons?domain=' + url;
 };
 
-export function remainingTime(currentBlockNumber: number, end: number): string {
-  end = Number(end.toString());
-  let mins = Math.floor((end - currentBlockNumber) * BLOCK_RATE / 60);
+export function remainingTime(blocks: number): string {
+  let mins = Math.floor(blocks * BLOCK_RATE / 60);
 
   if (!mins) return 'finished';
 

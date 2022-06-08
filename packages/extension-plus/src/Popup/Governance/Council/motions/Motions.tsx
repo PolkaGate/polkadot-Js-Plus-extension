@@ -81,19 +81,6 @@ export default function Motions({ chainInfo, currentBlockNumber, motions }: Prop
                 </Grid>
               </Grid>
             </Grid>
-
-            {/* <Grid item sx={{ pt: '20px' }} xs={12}>
-              <LinearProgress
-                color='warning'
-                sx={{ backgroundColor: 'black' }}
-                value={100 * (Number(currentBlock) - start) / (end - start)}
-                variant='determinate'
-              />
-            </Grid>
-            <Grid item sx={{ color: 'green', fontSize: 12 }} xs={12}>
-              {t('Remaining Time')}{': '} {{ remainingTime(currentBlockNumber, p.votes.end)}}
-            </Grid> */}
-
           </Paper>
         ))
         : <Grid item sx={{ paddingTop: 3, textAlign: 'center' }} xs={12}>

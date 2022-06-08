@@ -8,12 +8,14 @@ import { Grid, Tab, Tabs } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { DeriveTreasuryProposals } from '@polkadot/api-derive/types';
+import { BN, BN_MILLION, BN_ZERO, u8aConcat } from '@polkadot/util';
 
 import useMetadata from '../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../../components';
 import getTips from '../../../util/api/getTips';
-import { ChainInfo } from '../../../util/plusTypes';
+import { ChainInfo, Tip } from '../../../util/plusTypes';
+import { remainingTime } from '../../../util/plusUtils';
 import ProposalOverview from './proposals/Overview';
 import TipOverview from './tips/Overview';
 
@@ -23,6 +25,7 @@ interface Props {
   chainInfo: ChainInfo | undefined;
   setTreasuryModalOpen: Dispatch<SetStateAction<boolean>>;
 }
+const EMPTY_U8A_32 = new Uint8Array(32);
 
 export default function Treasury({ address, chainInfo, setTreasuryModalOpen, showTreasuryModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -30,7 +33,7 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
   const [proposals, setProposals] = useState<DeriveTreasuryProposals | undefined>();
   const [activeProposalCount, setActiveProposalCount] = useState<number | undefined>();
 
-  const [tips, setTips] = useState<any[]>();
+  const [tips, setTips] = useState<Tip[] | undefined | null>();
   const chain = useMetadata(chainInfo?.genesisHash, true);// TODO:double check to have genesisHash here
 
   useEffect(() => {
@@ -55,13 +58,60 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
       const proposedTips = tipList?.filter((tip) => tip.status === 'proposed');
 
       setTips(proposedTips);
+    }).catch((e) => {
+      console.error(e);
+      setTips(null);
+    });
+  }, [chainInfo]);
+
+  useEffect(() => {
+    if (!chainInfo) return;
+    const api = chainInfo.api;
+    const treasuryAccount = u8aConcat(
+      'modl',
+      api.consts.treasury && api.consts.treasury.palletId
+        ? api.consts.treasury.palletId.toU8a(true)
+        : 'py/trsry',
+      EMPTY_U8A_32
+    ).subarray(0, 32);
+
+    console.log('treasuryAccountt:', treasuryAccount.toString());
+
+    // eslint-disable-next-line no-void
+    void api.derive.chain.bestNumber().then((bestNumber) => {
+      const spendPeriod = new BN(api.consts.treasury?.spendPeriod) ?? BN_ZERO;
+
+      console.log('remaining spent period:', remainingTime(spendPeriod.sub(bestNumber.mod(spendPeriod)).toNumber()));
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
-    // void getCurrentBlockNumber(chainInfo.chainName).then((n) => {
-    //   setCurrentBlockNumber(n);
-    // });
+    void api.derive.balances?.account(treasuryAccount).then((b) => {
+      const treasuryBalance = api.createType('Balance', b.freeBalance)
+      console.log('available treasury balance:', treasuryBalance?.toHuman());
+
+      const burn = api.consts.treasury.burn.mul(treasuryBalance).div(BN_MILLION);
+      console.log('burn:', api.createType('Balance', burn)?.toHuman());
+    }).catch(console.error);
+
+    // eslint-disable-next-line no-void
+    void api.derive.bounties?.bounties()?.then((bounties) => {
+      const pendingBounties = bounties.reduce((total, { bounty: { status, value } }) =>
+        total.iadd(status.isApproved ? value : BN_ZERO), new BN(0)
+      )
+
+      console.log('treasury pendingBounties:', api.createType('Balance', pendingBounties)?.toHuman());
+    }).catch(console.error);
+
+    // eslint-disable-next-line no-void
+    void api.derive.treasury?.proposals()?.then((treasuryProposals) => {
+      const pendingProposals = treasuryProposals.approvals.reduce((total, { proposal: { value } }) =>
+        total.iadd(value), new BN(0)
+      )
+
+      console.log('treasury pendingProposals:', api.createType('Balance', pendingProposals)?.toHuman());
+    }).catch(console.error);
   }, [chainInfo]);
+
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);

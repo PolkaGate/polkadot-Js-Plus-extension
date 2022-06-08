@@ -69,13 +69,13 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
     setTippers(tipInfos);
   }, [api, chainName, tips]);
 
-  if (!tips) {
-    return (
-      <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
-        {t('No active tips')}
-      </Grid>
-    );
-  }
+  // if (!tips) {
+  //   return (
+  //     <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
+  //       {t('No active tips')}
+  //     </Grid>
+  //   );
+  // }
 
   return (
     <>
@@ -87,96 +87,101 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
         </Grid>
       </Grid>
 
-      {tips.map((tip, index) => {
-        const finderAccountInfo = { accountId: tip.finder.address, identity: { display: tip.finder.display, judgements: tip.finder.judgements } };
-        const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } };
-        const finderAddress = tip.finder.address;
-        const beneficiaryAddres = tip.beneficiary.address;
+      {tips
+        ? tips.map((tip, index) => {
+          const finderAccountInfo = { accountId: tip.finder.address, identity: { display: tip.finder.display, judgements: tip.finder.judgements } };
+          const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } };
+          const finderAddress = tip.finder.address;
+          const beneficiaryAddres = tip.beneficiary.address;
 
-        return (
-          <Paper elevation={4} key={index} sx={{ bgcolor: [finderAddress, beneficiaryAddres].includes(encodedAddress) ? SELECTED_COLOR : '', borderRadius: '10px', margin: '10px 30px 10px' }}>
+          return (
+            <Paper elevation={4} key={index} sx={{ bgcolor: [finderAddress, beneficiaryAddres].includes(encodedAddress) ? SELECTED_COLOR : '', borderRadius: '10px', margin: '10px 30px 10px' }}>
 
-            <Accordion disableGutters expanded={expanded === index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Grid container justifyContent='space-between'>
-                  <Grid item>
-                    {`${t('Status')}: ${tip.status}`}
-                  </Grid>
-                  <Grid item>
-                    {`${t('Amount')}: ${toHuman(api, tip.amount)}`}
-                  </Grid>
-                  <Grid item>
-                    {`${t('Tippers')}: ${tip.tipper_num}`}
-                  </Grid>
-                </Grid>
-              </AccordionSummary>
-              <AccordionDetails sx={{ backgroundColor: grey[200], p: 0 }}>
-
-                {tippers && !!tippers[index]?.length && tippers[index]?.map((t: [DeriveAccountInfo, u128], index: number) => (
-                  <Grid container justifyContent='space-between' key={index} xs={12}>
-                    <Grid item xs={9} sx={{ textAlign: 'left' }}>
-                      <Identity accountInfo={t[0]} chain={chain} showSocial={false} />
+              <Accordion disableGutters expanded={expanded === index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Grid container justifyContent='space-between'>
+                    <Grid item>
+                      {`${t('Status')}: ${tip.status}`}
                     </Grid>
-                    <Grid item sx={{ pr: 1, textAlign: 'right' }} xs={3}>
-                      {t[1].toHuman()}
+                    <Grid item>
+                      {`${t('Amount')}: ${toHuman(api, tip.amount)}`}
+                    </Grid>
+                    <Grid item>
+                      {`${t('Tippers')}: ${tip.tipper_num}`}
                     </Grid>
                   </Grid>
-                ))}
-              </AccordionDetails>
-            </Accordion>
+                </AccordionSummary>
+                <AccordionDetails sx={{ backgroundColor: grey[200], p: 0 }}>
 
-            <Grid alignItems='center' container justifyContent='space-between' sx={{ p: '10px 20px' }}>
+                  {tippers && !!tippers[index]?.length && tippers[index]?.map((t: [DeriveAccountInfo, u128], index: number) => (
+                    <Grid container justifyContent='space-between' key={index} xs={12}>
+                      <Grid item xs={9} sx={{ textAlign: 'left' }}>
+                        <Identity accountInfo={t[0]} chain={chain} showSocial={false} />
+                      </Grid>
+                      <Grid item sx={{ pr: 1, textAlign: 'right' }} xs={3}>
+                        {t[1].toHuman()}
+                      </Grid>
+                    </Grid>
+                  ))}
+                </AccordionDetails>
+              </Accordion>
 
-              <Grid container item justifyContent='flex-end' spacing={1} xs={12}>
-                <Grid item>
-                  <Link
-                    href={`https://${chainName}.subscan.io/treasury_tip/${tip?.hash}`}
-                    rel='noreferrer'
-                    target='_blank'
-                    underline='none'
-                  >
-                    <Avatar
-                      alt={'subscan'}
-                      src={getLogo('subscan')}
-                      sx={{ height: 15, width: 15 }}
-                    />
-                  </Link>
+              <Grid alignItems='center' container justifyContent='space-between' sx={{ p: '10px 20px' }}>
+
+                <Grid container item justifyContent='flex-end' spacing={1} xs={12}>
+                  <Grid item>
+                    <Link
+                      href={`https://${chainName}.subscan.io/treasury_tip/${tip?.hash}`}
+                      rel='noreferrer'
+                      target='_blank'
+                      underline='none'
+                    >
+                      <Avatar
+                        alt={'subscan'}
+                        src={getLogo('subscan')}
+                        sx={{ height: 15, width: 15 }}
+                      />
+                    </Link>
+                  </Grid>
+                  <Grid item>
+                    <Link
+                      href={`https://${chainName}.polkassembly.io/tip/${tip?.hash}`}
+                      rel='noreferrer'
+                      target='_blank'
+                      underline='none'
+                    >
+                      <Avatar
+                        alt={'polkassembly'}
+                        src={getLogo('polkassembly')}
+                        sx={{ height: 15, width: 15 }}
+                      />
+                    </Link>
+                  </Grid>
                 </Grid>
-                <Grid item>
-                  <Link
-                    href={`https://${chainName}.polkassembly.io/tip/${tip?.hash}`}
-                    rel='noreferrer'
-                    target='_blank'
-                    underline='none'
-                  >
-                    <Avatar
-                      alt={'polkassembly'}
-                      src={getLogo('polkassembly')}
-                      sx={{ height: 15, width: 15 }}
-                    />
-                  </Link>
+
+                <Grid item sx={{ fontSize: 12 }} xs={12}>
+                  <strong>{t('Reason')}</strong><br />{tip.reason}
                 </Grid>
-              </Grid>
 
-              <Grid item sx={{ fontSize: 12 }} xs={12}>
-                <strong>{t('Reason')}</strong><br />{tip.reason}
-              </Grid>
+                <Grid item sx={{ fontSize: 12, pt: '15px', textAlign: 'left' }} xs={12}>
+                  {tip?.finder &&
+                    <Identity accountInfo={finderAccountInfo} chain={chain} showAddress title={t('Finder')} />
+                  }
+                </Grid>
 
-              <Grid item sx={{ fontSize: 12, pt: '15px', textAlign: 'left' }} xs={12}>
-                {tip?.finder &&
-                  <Identity accountInfo={finderAccountInfo} chain={chain} showAddress title={t('Finder')} />
-                }
-              </Grid>
+                <Grid item sx={{ fontSize: 12, pt: 1, textAlign: 'left' }} xs={12}>
+                  {tip?.beneficiary &&
+                    <Identity accountInfo={beneficiaryAccountInfo} chain={chain} showAddress title={t('Beneficiary')} />
+                  }
+                </Grid>
 
-              <Grid item sx={{ fontSize: 12, pt: 1, textAlign: 'left' }} xs={12}>
-                {tip?.beneficiary &&
-                  <Identity accountInfo={beneficiaryAccountInfo} chain={chain} showAddress title={t('Beneficiary')} />
-                }
               </Grid>
-
-            </Grid>
-          </Paper>);
-      })}
+            </Paper>);
+        })
+        : <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
+          {t('No active tips')}
+        </Grid>
+      }
 
       {showProposeTipModal &&
         <ProposeTip

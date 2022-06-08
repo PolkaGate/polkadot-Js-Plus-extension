@@ -56,7 +56,7 @@ describe('Testing Auction component', () => {
     expect(queryAllByText(`${Number(auction.auctionInfo[1])} - ${Number(auction.auctionInfo[1]) + Number(chainInfo.api.consts.auctions?.endingPeriod.toString())}`, { exact: false })).toBeTruthy();
     expect(queryAllByText('Current block', { exact: false })).toBeTruthy();
     expect(queryAllByText(`${auction.currentBlockNumber}`, { exact: false })).toBeTruthy();
-    expect(queryByText('Remaining Time', { exact: false })?.textContent).toEqual(`Remaining Time:  ${remainingTime(auction.currentBlockNumber, (Number(auction.auctionInfo[1]) + Number(chainInfo.api.consts.auctions?.endingPeriod.toString())))}`);
+    expect(queryByText('Remaining Time', { exact: false })?.textContent).toEqual(`Remaining Time:  ${remainingTime((Number(auction.auctionInfo[1]) + Number(chainInfo.api.consts.auctions?.endingPeriod.toString())) - auction.currentBlockNumber)}`);
 
     // Bids
     expect(queryByText('Bids')).toBeTruthy();
