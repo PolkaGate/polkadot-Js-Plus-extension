@@ -287,7 +287,7 @@ export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingM
   }, [setConfirmStakingModalOpen]);
 
   const handleBack = useCallback((): void => {
-    if (!['createPool', 'joinPool', 'changeValidators', 'setNominees'].includes(state)) {
+    if (!['createPool', 'joinPool', 'changeValidators', 'setNominees', 'editPool'].includes(state)) {
       setState('');
       setConfirmingState('');
     }

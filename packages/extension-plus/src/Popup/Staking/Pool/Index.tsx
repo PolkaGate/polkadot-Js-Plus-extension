@@ -92,7 +92,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
 
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined | null>(undefined);
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>(undefined);
-  const [newPool, setNewPool] = useState<MyPoolInfo | undefined>();
+  const [newPool, setNewPool] = useState<MyPoolInfo | undefined>(); // new or edited Pool
   const [redeemable, setRedeemable] = useState<BN | undefined>();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
   const [nextPoolId, setNextPoolId] = useState<BN | undefined>();
@@ -437,6 +437,8 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
               poolsMembers={poolsMembers}
               setState={setState}
               staker={staker}
+              setNewPool={setNewPool}
+              newPool={newPool}
             />
           </TabPanel>
           <TabPanel index={3} padding={1} value={tabValue}>
@@ -495,7 +497,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           handlePoolStakingModalClose={handlePoolStakingModalClose}
           nextPoolId={nextPoolId}
           nominatedValidators={nominatedValidators}
-          pool={['createPool', 'joinPool'].includes(state) ? newPool : myPool}
+          pool={['createPool', 'joinPool', 'editPool'].includes(state) ? newPool : myPool}
           poolsMembers={poolsMembers}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
