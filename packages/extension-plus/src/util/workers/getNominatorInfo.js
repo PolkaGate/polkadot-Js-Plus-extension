@@ -15,13 +15,13 @@ async function getNominatorInfo (endpoint, _nominatorAddress) {
   const stakers = await api.query.staking.erasStakers.entries(currentEra);
 
   stakers.map((x) => x[1].others).flat().forEach((x) => {
-    const nominator = String(x.who);
+    const nominatorAddress = String(x.who);
     const amount = BigInt(x.value);
 
-    if (assignments.get(nominator)) {
-      assignments.set(nominator, amount + (assignments.get(nominator)));
+    if (assignments.get(nominatorAddress)) {
+      assignments.set(nominatorAddress, amount + (assignments.get(nominatorAddress)));
     } else {
-      assignments.set(nominator, amount);
+      assignments.set(nominatorAddress, amount);
     }
   });
 

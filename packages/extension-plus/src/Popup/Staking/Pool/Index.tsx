@@ -11,7 +11,7 @@
  * */
 
 import type { Option, StorageKey } from '@polkadot/types';
-import type { AccountId, AccountId32 } from '@polkadot/types/interfaces';
+import type { AccountId32 } from '@polkadot/types/interfaces';
 import type { PalletNominationPoolsPoolMember } from '@polkadot/types/lookup';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
@@ -51,16 +51,14 @@ interface Props {
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
   stakingConsts: StakingConsts | undefined;
-
   poolStakingConsts: PoolStakingConsts | undefined;
   endpoint: string | undefined;
-}
-
-interface RewardInfo {
-  era: number;
-  reward: bigint;
-  timeStamp?: number;
-  event?: string;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
+  validatorsInfo: Validators | undefined;
+  // localStrorageIsUpdate: boolean;
+  currentEraIndex: number | undefined;
+  gettingNominatedValidatorsInfoFromChain: boolean;
+  validatorsInfoIsUpdated: boolean;
 }
 
 const workers: Worker[] = [];
@@ -88,7 +86,7 @@ const OPT_ENTRIES = {
     }, {})
 };
 
-export default function Index({ account, api, chain, endpoint, poolStakingConsts, setStakingModalOpen, showStakingModal, staker, stakingConsts }: Props): React.ReactElement<Props> {
+export default function Index({ account, api, chain, currentEraIndex, endpoint, gettingNominatedValidatorsInfoFromChain, poolStakingConsts, setStakingModalOpen, showStakingModal, staker, stakingConsts, validatorsIdentities, validatorsInfo, validatorsInfoIsUpdated }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const poolsMembers: MembersMapEntry[] | undefined = useMapEntries(api?.query?.nominationPools?.poolMembers, OPT_ENTRIES);
 
@@ -98,16 +96,10 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [redeemable, setRedeemable] = useState<BN | undefined>();
   const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
   const [nextPoolId, setNextPoolId] = useState<BN | undefined>();
-  const [gettingIdentities, setGettingIdentities] = useState<boolean>(false);
-
-  const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
   const [amount, setAmount] = useState<BN>(BN_ZERO);
   const [currentlyStaked, setCurrentlyStaked] = useState<BN | undefined | null>();
-  const [validatorsInfo, setValidatorsInfo] = useState<Validators | null>(null); // validatorsInfo is all validators (current and waiting) information
-  const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | null>(null);
-  const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
   const [selectedValidators, setSelectedValidatorsAcounts] = useState<DeriveStakingQuery[] | null>(null);
   const [nominatedValidatorsId, setNominatedValidatorsId] = useState<string[] | undefined>();
   const [noNominatedValidators, setNoNominatedValidators] = useState<boolean | undefined>();// if TRUE, shows that nominators are fetched but is empty
@@ -116,8 +108,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
   const [tabValue, setTabValue] = useState(4);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
-  const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
-  const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
 
   const chainName = chain?.name.replace(' Relay Chain', '');
 
@@ -196,38 +186,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     };
   };
 
-  const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
-    const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
-
-    workers.push(getValidatorsInfoWorker);
-
-    getValidatorsInfoWorker.postMessage({ endpoint });
-
-    getValidatorsInfoWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getValidatorsInfoWorker.onmessage = (e) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const fetchedValidatorsInfo: Validators | null = e.data;
-
-      setGettingNominatedValidatorsInfoFromChain(false);
-
-      console.log(`validatorsfrom chain (era:${fetchedValidatorsInfo?.currentEraIndex}), current: ${fetchedValidatorsInfo?.current?.length} waiting ${fetchedValidatorsInfo?.waiting?.length} `);
-
-      if (fetchedValidatorsInfo && JSON.stringify(validatorsInfoFromStore?.metaData) !== JSON.stringify(fetchedValidatorsInfo)) {
-        setValidatorsInfo(fetchedValidatorsInfo);
-        console.log(`save validators to local storage, old was current: ${validatorsInfoFromStore?.metaData?.current?.length} waiting ${validatorsInfoFromStore?.metaData?.waiting?.length} `);
-
-        // eslint-disable-next-line no-void
-        void updateMeta(account.address, prepareMetaData(chain, 'validatorsInfo', fetchedValidatorsInfo));
-      }
-
-      setValidatorsInfoIsUpdated(true);
-      getValidatorsInfoWorker.terminate();
-    };
-  };
-
   useEffect(() => {
     if (myPool === undefined || !api || !currentEraIndex) { return; }
 
@@ -245,80 +203,11 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
     setUnlockingAmount(unlockingValue);
   }, [myPool, api, currentEraIndex]);
 
-  useEffect((): void => {
-    // eslint-disable-next-line no-void
-    api && void api.query.staking.currentEra().then((ce) => {
-      setCurrentEraIndex(Number(ce));
-    });
-  }, [api]);
-
   useEffect(() => {
     endpoint && getPoolInfo(endpoint, staker.address);
 
     endpoint && getPools(endpoint);
-
-    /** retrive validatorInfo from local sorage */
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validatorsInfoFromStore: SavedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
-
-    if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
-      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
-
-      // *** TODO: remove if after next version, because of inconsistency in the stored data formats
-      if (!String((validatorsInfoFromStore.metaData as Validators)?.current[0]?.stakingLedger?.total)?.includes('.')) {
-        setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
-      }
-
-      setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
-      console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
-      on chain: ${validatorsInfoFromStore?.chainName}`);
-    }
-
-    /** get validators info, including current and waiting, should be called after validatorsInfoFromStore gets value */
-    endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
-  }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
-
-  const getValidatorsIdentities = useCallback((endpoint: string, validatorsAccountIds: AccountId[]) => {
-    /** get validators identities */
-
-    setGettingIdentities(true);
-    const getValidatorsIdWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsId.js', import.meta.url));
-
-    workers.push(getValidatorsIdWorker);
-
-    getValidatorsIdWorker.postMessage({ endpoint, validatorsAccountIds });
-
-    getValidatorsIdWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getValidatorsIdWorker.onmessage = (e) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const fetchedIdentities: DeriveAccountInfo[] | null = e.data;
-
-      console.log(`got ${fetchedIdentities?.length} validators identities from ${chain?.name} `);
-
-      /** if fetched differs from saved then setIdentities and save to local storage */
-      if (fetchedIdentities?.length && JSON.stringify(validatorsIdentities) !== JSON.stringify(fetchedIdentities)) {
-        console.log(`setting new identities #old was: ${validatorsIdentities?.length} `);
-
-        setValidatorsIdentities(fetchedIdentities);
-        setGettingIdentities(false);
-        // eslint-disable-next-line no-void
-        void updateMeta(account.address, prepareMetaData(chain, 'validatorsIdentities', fetchedIdentities));
-      }
-
-      getValidatorsIdWorker.terminate();
-    };
-  }, [account.address, chain, validatorsIdentities]);
-
-  useEffect(() => {
-    if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
-
-    const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
-
-    endpoint && !gettingIdentities && getValidatorsIdentities(endpoint, validatorsAccountIds);
-  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, account.address, getValidatorsIdentities, gettingIdentities]);
+  }, [endpoint, staker.address]);
 
   useEffect(() => {
     if (myPool === undefined) { return; }
@@ -349,14 +238,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
         setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
       }
     }
-
-    // **** retrive validators identities from local storage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validarorsIdentitiesFromStore: SavedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
-
-    if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
-      setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
-    }
   }, [account, chainName]);
 
   useEffect(() => {
@@ -367,7 +248,6 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
         .filter((v: DeriveStakingQuery) => nominatedValidatorsId.includes(String(v.accountId)));
 
       setNominatedValidatorsInfo(nominations);
-      // setGettingNominatedValidatorsInfoFromChain(false);
 
       // eslint-disable-next-line no-void
       void updateMeta(account.address, prepareMetaData(chain, 'poolNominatedValidators', nominations));
@@ -498,7 +378,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
         <Grid container item xs={12}>
           <Overview
             api={api}
-            availableBalance={staker?.balanceInfo?.available ? new BN(staker.balanceInfo.available) : BN_ZERO}
+            availableBalance={staker?.balanceInfo?.available ? new BN(String(staker.balanceInfo.available)) : BN_ZERO}
             handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
             myPool={myPool}
             redeemable={redeemable}
@@ -539,7 +419,7 @@ export default function Index({ account, api, chain, endpoint, poolStakingConsts
           <TabPanel index={1} value={tabValue}>
             <Unstake
               api={api}
-              availableBalance={staker?.balanceInfo?.available ? new BN(staker?.balanceInfo?.available) : BN_ZERO}
+              availableBalance={staker?.balanceInfo?.available ? new BN(String(staker.balanceInfo.available)) : BN_ZERO}
               currentlyStaked={currentlyStaked}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               nextToUnStakeButtonBusy={state === 'unstake'}
