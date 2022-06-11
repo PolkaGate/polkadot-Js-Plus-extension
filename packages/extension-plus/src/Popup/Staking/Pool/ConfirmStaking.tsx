@@ -26,7 +26,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, FormatBalance, Hint, Password, PlusHeader, Popup } from '../../../components';
-import { broadcast, createPool, signAndSend } from '../../../util/api';
+import { broadcast, createPool, editPool, signAndSend } from '../../../util/api';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
 import ValidatorsList from '../Solo/ValidatorsList';
@@ -51,9 +51,10 @@ interface Props {
   validatorsIdentities: DeriveAccountInfo[] | undefined;
   poolsMembers: MembersMapEntry[] | undefined;
   setNewPool?: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
+  basePool: MyPoolInfo | undefined;
 }
 
-export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingModalClose, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setNewPool, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, basePool, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setNewPool, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string | undefined>();
@@ -93,8 +94,9 @@ export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingM
   const redeem = api.tx.nominationPools.withdrawUnbonded;
   const poolWithdrawUnbonded = api.tx.nominationPools.poolWithdrawUnbonded;
   const claim = api.tx.nominationPools.claimPayout;
+  const updateRoles = api.tx.nominationPools.updateRoles;//(poolId, root, nominator, stateToggler)
 
-  async function saveHistory (chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
+  async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) return false;
 
     const accountSubstrateAddress = getSubstrateAddress(address);
@@ -131,8 +133,18 @@ export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingM
     }
   }, [selectedValidatorsAccountId, state, nominatedValidatorsId, t, confirmingState]);
 
+  const getRole = useCallback((role) => {
+    if (!basePool) { return; }
+
+    if (!pool.bondedPool.roles[role]) return 'Remove';
+    if (pool.bondedPool.roles[role] === basePool.bondedPool.roles[role]) return 'Noop';
+
+    return { set: pool.bondedPool.roles[role] };
+  }, [basePool, pool]);
+
   const setFee = useCallback(() => {
     let params;
+    if (estimatedFee?.gtn(0)) return;
 
     switch (state) {
       case ('bondExtra'):
@@ -160,7 +172,26 @@ export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingM
         });
 
         break;
+      case ('editPool'):
+        params = [pool.member.poolId, pool.metadata];
+        // eslint-disable-next-line no-void
+        basePool && basePool.metadata !== pool.metadata && void setMetadata(...params).paymentInfo(staker.address).then((i) => {
+          console.log('setmetadata fee set')
+          setEstimatedFee((prevEstimatedFee) => api.createType('Balance', (prevEstimatedFee ?? BN_ZERO).add(i?.partialFee)));
+        });
 
+        params = [pool.member.poolId, getRole('root'), getRole('nominator'), getRole('stateToggler')];
+
+        console.log('basePool.bondedPool.roles ', basePool.bondedPool.roles)
+        console.log('Pool.bondedPool.roles ', pool.bondedPool.roles)
+        // eslint-disable-next-line no-void
+        basePool && JSON.stringify(basePool.bondedPool.roles) !== JSON.stringify(pool.bondedPool.roles) &&
+          void updateRoles(...params).paymentInfo(staker.address).then((i) => {
+            setEstimatedFee((prevEstimatedFee) => api.createType('Balance', (prevEstimatedFee ?? BN_ZERO).add(i?.partialFee)));
+            console.log('updateRoles fee set')
+          });
+
+        break;
       case ('unstake'):
         params = [staker?.address, surAmount];
         console.log('unlockingLen', unlockingLen); console.log('maxUnlockingChunks', maxUnlockingChunks);
@@ -218,7 +249,7 @@ export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingM
         break;
       default:
     }
-  }, [api, bondExtra, claim, create, joined, maxUnlockingChunks, nominated, pool?.bondedPool?.roles, pool?.metadata, pool?.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen]);
+  }, [api, basePool, bondExtra, claim, create, getRole, joined, maxUnlockingChunks, nominated, pool.bondedPool.roles, pool.member?.poolId, pool.metadata, pool.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen, updateRoles]);
 
   const setTotalStakedInHumanBasedOnStates = useCallback(() => {
     const lastStaked = currentlyStaked ?? BN_ZERO;
@@ -317,6 +348,8 @@ export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingM
         return 'STOP NOMINATING';
       case ('blocked'):
         return 'BLOCKING';
+      case ('editPool'):
+        return 'EDIT POOL';
       default:
         return state.toUpperCase();
     }
@@ -378,6 +411,24 @@ export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingM
         history.push({
           action: 'pool_create',
           amount: amountToHuman(String(surAmount), decimals),
+          block: block,
+          date: Date.now(),
+          fee: fee || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
+
+      if (localState === 'editPool' && basePool) {
+        const { block, failureText, fee, status, txHash } = await editPool(api, staker.address, signer, pool, basePool);
+
+        history.push({
+          action: 'edit_create',
+          amount: '',
           block: block,
           date: Date.now(),
           fee: fee || '',

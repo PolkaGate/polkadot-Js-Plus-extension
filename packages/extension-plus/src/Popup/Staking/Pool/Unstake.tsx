@@ -8,13 +8,11 @@
  *  render unstake tab in easy staking component
  * */
 
-import type { Balance } from '@polkadot/types/interfaces';
-
 import { Alert, Button as MuiButton, Grid, InputAdornment, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { BN, BN_ZERO, bnMax } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
@@ -204,4 +202,3 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
     </>
   );
 }
-
