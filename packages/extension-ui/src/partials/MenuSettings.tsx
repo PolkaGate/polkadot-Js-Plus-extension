@@ -3,8 +3,7 @@
 
 import type { Theme, ThemeProps } from '../types';
 
-// added for plus 'faCompass' and 'faLandmark'
-import { faCompass, faExpand, faLandmark, faTasks } from '@fortawesome/free-solid-svg-icons';
+import { faExpand, faTasks } from '@fortawesome/free-solid-svg-icons';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
