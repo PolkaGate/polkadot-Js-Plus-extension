@@ -666,11 +666,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         </Typography>;
       case ('destroying'):
         return <Typography sx={{ color: red[700], mt: '30px' }} variant='body1'>
-          {t('No members can join and all members can be permissionlessly removed. Once a pool is in destroying state, it cannot be reverted to another state')}
+          {t('No one can join and all members can be permissionlessly removed. Once in destroying state, it cannot be reverted to another state')}
         </Typography>;
       case ('open'):
         return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
-          {t('The pool state will be changed to open, where anyone can join the pool and no members can be permissionlessly removed')}
+          {t('The pool state will be changed to open, where anyone can join and no members can be permissionlessly removed')}
         </Typography>;
       default:
         return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>

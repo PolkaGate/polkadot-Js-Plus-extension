@@ -233,7 +233,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
           <ShowBalance2 api={api} balance={poolStakingConsts?.minJoinBond} />
         </Grid>
       </Grid>
-
       <Grid container item justifyContent='center' spacing={0.5} sx={{ fontSize: 12 }} xs={6}>
         <Grid container item justifyContent='center' sx={{ pb: 1 }} xs={12}>
           <Grid item>
@@ -278,7 +277,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
                 variant='outlined'
               />
             </Grid>
-
             <Grid container sx={{ height: '160px' }}>
               {!zeroBalanceAlert && token &&
                 <Grid container item justifyContent='space-between' sx={{ px: '30px' }} xs={12}>
@@ -305,7 +303,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
                   </Grid>
                 }
               </Grid>
-
               {myPool?.member?.poolId && myPool?.bondedPool?.state?.toLowerCase() !== 'destroying'
                 ? <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
                   {t('You are staking in "{{poolName}}" pool (index: {{poolId}}).', { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name' } })}
@@ -316,7 +313,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
                 </Grid>
               }
             </Grid>
-
             <Grid item sx={{ px: '10px' }} xs={12}>
               <NextStepButton
                 data-button-action='next to stake'
