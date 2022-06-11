@@ -1402,7 +1402,7 @@ export const putInFront: PutInFrontInfo = {
   lighter: accounts[0].address,
   shouldPutInFront: true
 };
-export const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating', 'tuneUp', 'withdrawClaimable', 'bondExtraRewards', 'bondExtra', 'createPool', 'joinPool'];
+export const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating', 'tuneUp', 'withdrawClaimable', 'bondExtraRewards', 'bondExtra', 'createPool', 'joinPool', 'editPool'];
 
 export const poolStakingConst: PoolStakingConsts | undefined = {
   lastPoolId: new BN('30'),
