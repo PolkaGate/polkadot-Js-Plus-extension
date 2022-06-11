@@ -318,13 +318,15 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
     /** get some staking constant like min Nominator Bond ,... */
     endpoint && getStakingConsts(chain, endpoint);
     endpoint && api?.tx?.nominationPools && getPoolStakingConsts(endpoint);
-
-    /**  get nominator staking info to consider rebag ,... */
-    endpoint && getNominatorInfo(endpoint, staker.address);
-  }, [api, chain, endpoint, getPoolStakingConsts, getStakingConsts, staker.address]);
+  }, [api, chain, endpoint, getPoolStakingConsts, getStakingConsts]);
 
   useEffect(() => {
-    if (!stakingConsts || !nominatorInfo?.minNominated) return;
+    /**  get nominator staking info to consider rebag ,... */
+    endpoint && getNominatorInfo(endpoint, staker.address);
+  }, [endpoint, staker.address]);
+
+  useEffect(() => {
+    if (!stakingConsts || !nominatorInfo?.minNominated) { return; }
 
     const minSolo = bnMax(new BN(stakingConsts.minNominatorBond.toString()), new BN(stakingConsts?.existentialDeposit.toString()), new BN(nominatorInfo.minNominated.toString()));
 
@@ -344,9 +346,7 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
 
   return (
     <Popup handleClose={handleStakingModalClose} showModal={showStakingModal}>
-
       <PlusHeader action={handleStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
-
       <Grid alignItems='center' container justifyContent='space-around' sx={{ p: '80px 10px' }}>
         <Paper elevation={stakingType === 'solo' ? 8 : 4} onClick={() => setSoloStakingOpen(true)} onMouseOver={() => setStakingType('solo')} sx={{ borderRadius: '10px', height: 340, pt: 1, width: '45%', cursor: 'pointer' }}>
           <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 3 }}>
