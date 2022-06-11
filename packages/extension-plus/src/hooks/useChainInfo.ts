@@ -4,7 +4,7 @@
 import type { Chain } from '@polkadot/extension-chains/types';
 
 import Memoize from 'memoize-one';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';// added for plus, useContext
 
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { createWsEndpoints } from '@polkadot/apps-config';

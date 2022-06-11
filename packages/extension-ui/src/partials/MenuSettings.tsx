@@ -32,7 +32,7 @@ const prefixOptions = settings.availablePrefixes
   .filter(({ value }) => value !== -1)
   .map(({ text, value }): Option => ({ text, value: `${value}` }));
 
-function MenuSettings({ className, reference }: Props): React.ReactElement<Props> {
+function MenuSettings ({ className, reference }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [camera, setCamera] = useState(settings.camera === 'on');
   const [prefix, setPrefix] = useState(`${settings.prefix === -1 ? 42 : settings.prefix}`);
@@ -51,8 +51,7 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
     (value: string): void => {
       setPrefix(value);
       settings.set({ prefix: parseInt(value, 10) });
-    },
-    []
+    }, []
   );
 
   const _onChangeNotification = useCallback(
@@ -61,8 +60,7 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
 
       updateNotification(value);
       settings.set({ notification: value });
-    },
-    []
+    }, []
   );
 
   const _onChangeTheme = useCallback(
@@ -71,15 +69,15 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
   );
 
   const _onWindowOpen = useCallback(
-    () => windowOpen('/').catch(console.error),
-    []
+    (): void => {
+      windowOpen('/').catch(console.error);
+    }, []
   );
 
   const _onChangeLang = useCallback(
     (value: string): void => {
       settings.set({ i18nLang: value });
-    },
-    []
+    }, []
   );
 
   const _goToAuthList = useCallback(
@@ -152,15 +150,6 @@ function MenuSettings({ className, reference }: Props): React.ReactElement<Props
         />
       </MenuItem>
       <MenuDivider />
-      {/* // added for plus */}
-      {/* <MenuItem className='setting'>
-        <ActionText
-          className='crowdloans'
-          icon={faCompass}
-          onClick={_goToCrowdloans}
-          text={t<string>('Crowdloans')}
-        />
-      </MenuItem> */}
       <MenuItem className='setting'>
         <ActionText
           className='manageWebsiteAccess'
@@ -187,16 +176,6 @@ export default React.memo(styled(MenuSettings)(({ theme }: Props) => `
   margin-top: 50px;
   right: 24px;
   user-select: none;
-
-  .crowdloans, .governance{ // added for plus
-    span {
-      color: ${theme.textColor};
-      font-size: ${theme.fontSize};
-      font-weight: bold;
-      line-height: ${theme.lineHeight};
-      text-decoration: none;
-      vertical-align: middle;
-    }
 
   .openWindow, .manageWebsiteAccess{
     span {

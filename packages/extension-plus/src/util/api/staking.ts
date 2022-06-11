@@ -1,9 +1,5 @@
-
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable header/header */
-// eslint-disable-next-line header/header
-/* eslint-disable camelcase */
 
 import type { ApiPromise } from '@polkadot/api';
 import type { SubmittableExtrinsic } from '@polkadot/api/types';
@@ -12,14 +8,13 @@ import type { ISubmittableResult } from '@polkadot/types/types';
 import type { MyPoolInfo, TxInfo, ValidatorsFromSubscan } from '../plusTypes';
 
 import { KeyringPair } from '@polkadot/keyring/types';
-import { BN, BN_ZERO } from '@polkadot/util';
+import { BN } from '@polkadot/util';
 
-import getApi from '../getApi';
 import getChainInfo from '../getChainInfo';
 import { postData } from '../postData';
 import { signAndSend } from './signAndSend';
 
-export async function getAllValidatorsFromSubscan(_chain: Chain): Promise<{ current: ValidatorsFromSubscan[] | null, waiting: ValidatorsFromSubscan[] | null } | null> {
+export async function getAllValidatorsFromSubscan (_chain: Chain): Promise<{ current: ValidatorsFromSubscan[] | null, waiting: ValidatorsFromSubscan[] | null } | null> {
   if (!_chain) {
     return null;
   }
@@ -33,7 +28,7 @@ export async function getAllValidatorsFromSubscan(_chain: Chain): Promise<{ curr
 }
 
 // TODO: get from blockchain too
-export async function getCurrentValidatorsFromSubscan(_chain: Chain): Promise<ValidatorsFromSubscan[] | null> {
+export async function getCurrentValidatorsFromSubscan (_chain: Chain): Promise<ValidatorsFromSubscan[] | null> {
   return new Promise((resolve) => {
     try {
       const network = _chain.name.replace(' Relay Chain', '');
@@ -59,7 +54,7 @@ export async function getCurrentValidatorsFromSubscan(_chain: Chain): Promise<Va
   });
 }
 
-export async function getWaitingValidatorsFromSubscan(_chain: Chain): Promise<ValidatorsFromSubscan[] | null> {
+export async function getWaitingValidatorsFromSubscan (_chain: Chain): Promise<ValidatorsFromSubscan[] | null> {
   return new Promise((resolve) => {
     try {
       const network = _chain ? _chain.name.replace(' Relay Chain', '') : 'westend';
@@ -85,7 +80,7 @@ export async function getWaitingValidatorsFromSubscan(_chain: Chain): Promise<Va
   });
 }
 
-export async function getBonded(_chain: Chain, _address: string): Promise<ValidatorsFromSubscan[] | null> {
+export async function getBonded (_chain: Chain, _address: string): Promise<ValidatorsFromSubscan[] | null> {
   return new Promise((resolve) => {
     try {
       const network = _chain ? _chain.name.replace(' Relay Chain', '') : 'westend';
@@ -120,7 +115,7 @@ export async function getBonded(_chain: Chain, _address: string): Promise<Valida
   });
 }
 
-export async function getStakingReward(_chain: Chain | null | undefined, _stakerAddress: string | null): Promise<string | null> {
+export async function getStakingReward (_chain: Chain | null | undefined, _stakerAddress: string | null): Promise<string | null> {
   if (!_stakerAddress) {
     console.log('_stakerAddress is null in getting getStakingReward ');
 
@@ -157,7 +152,7 @@ export async function getStakingReward(_chain: Chain | null | undefined, _staker
   });
 }
 
-export async function getCurrentEraIndex(_chain: Chain | null | undefined): Promise<number | null> {
+export async function getCurrentEraIndex (_chain: Chain | null | undefined): Promise<number | null> {
   try {
     console.log('getCurrentEraIndex is called!');
 
@@ -182,7 +177,7 @@ export async function getCurrentEraIndex(_chain: Chain | null | undefined): Prom
   }
 }
 
-export async function bondOrBondExtra(
+export async function bondOrBondExtra (
   _chain: Chain | null | undefined,
   _stashAccountId: string | null,
   _signer: KeyringPair,
@@ -223,10 +218,9 @@ export async function bondOrBondExtra(
   }
 }
 
-
 //* *******************************POOL STAKING********************************************/
 
-export async function poolJoinOrBondExtra(
+export async function poolJoinOrBondExtra (
   _api: ApiPromise,
   _stashAccountId: string | null,
   _signer: KeyringPair,
@@ -258,7 +252,7 @@ export async function poolJoinOrBondExtra(
   }
 }
 
-export async function createPool(
+export async function createPool (
   _api: ApiPromise,
   _depositor: string | null,
   _signer: KeyringPair,
@@ -289,7 +283,7 @@ export async function createPool(
   }
 }
 
-export async function editPool(
+export async function editPool (
   _api: ApiPromise,
   _depositor: string | null,
   _signer: KeyringPair,
@@ -306,8 +300,12 @@ export async function editPool(
     }
 
     const getRole = (role: string) => {
-      if (!_pool.bondedPool.roles[role]) return 'Remove';
-      if (_pool.bondedPool.roles[role] === _basePool.bondedPool.roles[role]) return 'Noop';
+      if (!_pool.bondedPool.roles[role]) {return 'Remove';
+      }
+
+      if (_pool.bondedPool.roles[role] === _basePool.bondedPool.roles[role]) {
+        return 'Noop';
+      }
 
       return { set: _pool.bondedPool.roles[role] };
     };

@@ -45,15 +45,15 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
   const token = api?.registry?.chainTokens[0];
 
   useEffect(() => {
-    if (!currentlyStaked || !decimals || !pool || !poolStakingConsts) return;
+    if (!currentlyStaked || !decimals || !pool || !poolStakingConsts) { return; }
 
-    if (staker.address === pool.bondedPool.roles.depositor && pool.bondedPool.state.toLowerCase() !== 'destroying') {
+    if (staker.address === String(pool.bondedPool.roles.depositor) && pool.bondedPool.state.toLowerCase() !== 'destroying') {
       const minDeposit = poolStakingConsts.minCreationBond;
 
       setMinDeposit(minDeposit);
       const depositorMaxUnstakeAble = currentlyStaked.sub(minDeposit);
 
-      setMaxUnstake(depositorMaxUnstakeAble);
+      setMaxUnstake(depositorMaxUnstakeAble.gtn(0) ? depositorMaxUnstakeAble : BN_ZERO);
     } else {
       setMaxUnstake(currentlyStaked);
     }
@@ -64,7 +64,7 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
   }, [handleConfirmStakingModaOpen, unstakeAmount]);
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
-    if (!decimals || !currentlyStaked || currentlyStaked?.isZero()) return;
+    if (!decimals || !currentlyStaked || currentlyStaked?.isZero()) { return; }
 
     setAlert('');
     value = fixFloatingPoint(value);
@@ -158,7 +158,6 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
           variant='outlined'
         />
       </Grid>
-
       <Grid container sx={{ height: '160px' }} title='Unstake'>
         <Grid container item justifyContent='flex-end' sx={{ p: '0px 30px 0px' }} xs={12}>
           <Grid item sx={{ fontSize: 12 }}>
@@ -176,7 +175,6 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
             }
           </Grid>
         </Grid>
-
         <Grid container item sx={{ fontSize: 13, fontWeight: '600', padding: '15px 30px 5px', textAlign: 'center' }} xs={12}>
           {alert &&
             <Grid item xs={12}>

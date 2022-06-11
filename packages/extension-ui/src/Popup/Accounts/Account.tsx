@@ -3,7 +3,7 @@
 
 import type { AccountJson } from '@polkadot/extension-base/background/types';
 
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';// added for plus, useContext
+import React, { useCallback, useContext, useMemo, useState, useEffect } from 'react'; // added for plus,useEffect, useContext
 import styled from 'styled-components';
 
 import { canDerive } from '@polkadot/extension-base/utils';
@@ -14,6 +14,7 @@ import { CROWDLOANS_CHAINS } from '../../../../extension-plus/src/util/constants
 import { SavedMetaData } from '../../../../extension-plus/src/util/plusTypes';// added for plus
 import { prepareMetaData } from '../../../../extension-plus/src/util/plusUtils';// added for plus
 import { AccountContext, Address, Dropdown, Link, MenuDivider } from '../../components';// added for plus, AccountContext
+
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useTranslation from '../../hooks/useTranslation';
 import { editAccount, tieAccount, updateMeta } from '../../messaging';// added for plus, updateMeta
@@ -118,7 +119,6 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
           {t<string>('Derive New Account')}
         </Link>
       )}
-
       <MenuDivider />
       {!isExternal && (
         <Link
@@ -161,7 +161,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
         </>
       )}
     </>
-  ), [_onChangeEndpoint, _onChangeGenesis, _toggleEdit, address, endpointOptions, genesisHash, genesisOptions, isExternal, isHardware, selectedEndpoint, t, type]);
+  ), [_onChangeGenesis, _toggleEdit, address, genesisHash, genesisOptions, isExternal, isHardware, t, type]);
 
   return (
     <div className={className}>

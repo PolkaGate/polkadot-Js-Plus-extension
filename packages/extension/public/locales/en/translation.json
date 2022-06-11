@@ -162,8 +162,9 @@
   "Notifications": "",
   "Search by name or network...": "",
   "Message signing is not supported for hardware wallets.": "",
-  "Contribute in Crowdloans": "",
-  "Governance": "",
-  "Crowdloans": "",
-  "Crowdloan": ""
+  "Message signing is not supported for QR wallets.": "",
+  "Raw data signing is not supported for hardware wallets.": "",
+  "Raw data signing is not supported for QR wallets.": "",
+  "Crowdloan": "",
+  "Governance": ""
 }

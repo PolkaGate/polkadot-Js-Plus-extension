@@ -17,11 +17,12 @@ interface Props {
   error: string | null;
   isExternal?: boolean;
   isFirst: boolean;
+  isSignable: boolean;
   setError: (value: string | null) => void;
   signId: string;
 }
 
-function SignArea ({ buttonText, className, error, isExternal, isFirst, setError, signId }: Props): JSX.Element {
+function SignArea ({ buttonText, className, error, isExternal, isFirst, isSignable, setError, signId }: Props): JSX.Element {
   const [savePass, setSavePass] = useState(false);
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
@@ -46,14 +47,15 @@ function SignArea ({ buttonText, className, error, isExternal, isFirst, setError
       })
       .catch((error: Error) => console.error(error));
 
-    return () => { !!timeout && clearTimeout(timeout); };
+    return () => {
+      !!timeout && clearTimeout(timeout);
+    };
   }, [isExternal, signId]);
 
   const _onSign = useCallback(
-    (): Promise<void> => {
+    (): void => {
       setIsBusy(true);
-
-      return approveSignPassword(signId, savePass, password)
+      approveSignPassword(signId, savePass, password)
         .then((): void => {
           setIsBusy(false);
           onAction();
@@ -68,9 +70,11 @@ function SignArea ({ buttonText, className, error, isExternal, isFirst, setError
   );
 
   const _onCancel = useCallback(
-    (): Promise<void> => cancelSignRequest(signId)
-      .then(() => onAction())
-      .catch((error: Error) => console.error(error)),
+    (): void => {
+      cancelSignRequest(signId)
+        .then(() => onAction())
+        .catch((error: Error) => console.error(error));
+    },
     [onAction, signId]
   );
 
@@ -93,9 +97,9 @@ function SignArea ({ buttonText, className, error, isExternal, isFirst, setError
 
   return (
     <ButtonArea className={className}>
-      {isFirst && !isExternal && (
+      {isSignable && isFirst && !isExternal && (
         <>
-          { isLocked && (
+          {isLocked && (
             <Unlock
               error={error}
               isBusy={isBusy}

@@ -34,7 +34,7 @@ function Accounts({ className }: Props): React.ReactElement {
   useEffect(() => {
     // eslint-disable-next-line no-void
     void cryptoWaitReady().then(() => {
-        keyring.loadAll({ store: new AccountsStore() });
+      keyring.loadAll({ store: new AccountsStore() });
     }).catch(console.error);
   }, []);
 

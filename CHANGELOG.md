@@ -1,5 +1,102 @@
 # CHANGELOG
 
+## 0.44.1 Jun 6, 2022
+
+**Important** CHANGELOG entries are a rollup of details since last publish to the stores
+
+Contributed:
+
+- Adjust nvm version (Thanks to https://github.com/pedroapfilho)
+- Add filtered account subscriptions (Thanks to https://github.com/hamidra)
+- Display signed data as Ascii (Thanks to https://github.com/hamidra)
+- Removal for authorized URLs (Thanks to https://github.com/Are10)
+- Fix typo on https://polkadot.js.org/docs/ (Thanks to https://github.com/michaelhealyco)
+
+Changes:
+
+- Remove all signing via QR (imcompatible)
+- Swap to React 18
+- Gracefully handle promise rejections
+- Don't apply shims on content pages, only apply on background
+- Ensure that only latest metadata is applied (when multiple genesis)
+- Rename all `*.test.ts` to `*.spec.ts` (cross-repo consistency)
+- Only apply cross-browser environment globally in non-content scripts
+- Ensure package path is available under ESM & CJS
+- Upgrade to `@polkadot/api` 8.7.1
+- Updated to `@polkadot/util` 9.4.1
+
+
+## 0.43.3 Jun 4, 2022
+
+- **Important** Not published to the stores, aligns with latest released packages.
+
+Contributed:
+
+- Adjust nvm version (Thanks to https://github.com/pedroapfilho)
+- Add filtered account subscriptions (Thanks to https://github.com/hamidra)
+
+Changes:
+
+- Gracefully handle promise rejections
+- Upgrade to `@polkadot/api` 8.7.1
+- Updated to `@polkadot/util` 9.4.1
+
+
+## 0.43.2 May 15, 2022
+
+- **Important** Not published to the stores, aligns with latest released packages.
+
+Contributed:
+
+- Display signed data as Ascii (Thanks to https://github.com/hamidra)
+
+Changes:
+
+- Remove all signing via QR (imcompatible)
+- Swap to React 18
+- Upgrade to `@polkadot/api` 8.4.1
+- Updated to `@polkadot/util` 9.2.1
+
+
+## 0.43.1 Apr 11, 2022
+
+- **Important** Not published to the stores, aligns with latest released packages.
+
+- **Breaking change** In this version the commonjs outputs are moved to a sub-folder. Since the export map and main field in package.json does reflect this change, there should be no usage changes. However the packages here will all need to be on the same version for internal linkage.
+
+Changes:
+
+- Output commonjs files under the `cjs/**` root
+- Upgrade to `@polkadot/api` 8.0.1
+- Updated to `@polkadot/util` 9.0.1
+
+
+## 0.42.10 Apr 4, 2022
+
+**Important** Not published to the stores, aligns with latest released packages.
+
+Contributed:
+
+- Removal for authorized URLs (Thanks to https://github.com/Are10)
+
+Changes:
+
+- Adjust for bundlers where `import.meta.url` is undefined
+- Bump `@polkadot/api` to 7.15.1
+- Bump `@polkadot/util` to 8.7.1
+
+
+## 0.42.9 Mar 14, 2022
+
+**Important** Not published to the stores, aligns with latest released packages.
+
+Changes:
+
+- Adjust for bundlers where `import.meta.url` is undefined
+- Bump `@polkadot/api` to 7.12.1
+- Bump `@polkadot/util` to 8.5.1
+
+
 ## 0.42.7 Jan 23, 2022
 
 **Important** Not published to the stores, aligns with latest released packages.
@@ -67,6 +164,8 @@ Changes:
 
 ## 0.42.1 Dec 10, 2021
 
+**Important** CHANGELOG entries are a rollup of details since last publish to the stores
+
 Contributed:
 
 - Allow for configuration of base ports (Thanks to https://github.com/AndreiEres)
@@ -94,6 +193,8 @@ Changes:
 
 
 ## 0.41.1 Nov 8, 2021
+
+**Important** CHANGELOG entries are a rollup of details since last publish to the stores
 
 Contributed:
 
@@ -143,6 +244,7 @@ Changes:
 ## 0.40.1 Sep 16, 2021
 
 - **Important** The signatures generated now via the extension will be a wrapped data set, i.e. `signRaw` cannot be used directly to sign transactions, rather it is only meant to be used for actual messages
+**Important** CHANGELOG entries are a rollup of details since last publish to the stores
 
 Contributed:
 

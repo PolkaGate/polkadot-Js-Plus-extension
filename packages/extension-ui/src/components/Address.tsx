@@ -19,6 +19,7 @@ import styled from 'styled-components';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { Plus } from '../../../extension-plus/src/components'; // added for Plus
+
 import details from '../assets/details.svg';
 import useMetadata from '../hooks/useMetadata';
 import useOutsideClick from '../hooks/useOutsideClick';
@@ -107,10 +108,11 @@ function Address({ actions, address, children, className, genesisHash, isExterna
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [moveMenuUp, setIsMovedMenu] = useState(false);
-  const actionsRef = useRef<HTMLDivElement>(null);
+  const actIconRef = useRef<HTMLDivElement>(null);
+  const actMenuRef = useRef<HTMLDivElement>(null);
   const { show } = useToast();
 
-  useOutsideClick(actionsRef, () => (showActionsMenu && setShowActionsMenu(!showActionsMenu)));
+  useOutsideClick([actIconRef, actMenuRef], () => (showActionsMenu && setShowActionsMenu(!showActionsMenu)));
 
   useEffect((): void => {
     if (!address) {
@@ -133,8 +135,8 @@ function Address({ actions, address, children, className, genesisHash, isExterna
   useEffect(() => {
     if (!showActionsMenu) {
       setIsMovedMenu(false);
-    } else if (actionsRef.current) {
-      const { bottom } = actionsRef.current.getBoundingClientRect();
+    } else if (actMenuRef.current) {
+      const { bottom } = actMenuRef.current.getBoundingClientRect();
 
       if (bottom > ACCOUNTS_SCREEN_HEIGHT) {
         setIsMovedMenu(true);
@@ -163,7 +165,9 @@ function Address({ actions, address, children, className, genesisHash, isExterna
   );
 
   const _toggleVisibility = useCallback(
-    () => address && showAccount(address, isHidden || false).catch(console.error),
+    (): void => {
+      address && showAccount(address, isHidden || false).catch(console.error);
+    },
     [address, isHidden]
   );
 
@@ -284,6 +288,7 @@ function Address({ actions, address, children, className, genesisHash, isExterna
             <div
               className='settings'
               onClick={_onClick}
+              ref={actIconRef}
             >
               <Svg
                 className={`detailsIcon ${showActionsMenu ? 'active' : ''}`}
@@ -293,7 +298,7 @@ function Address({ actions, address, children, className, genesisHash, isExterna
             {showActionsMenu && (
               <Menu
                 className={`movableMenu ${moveMenuUp ? 'isMoved' : ''}`}
-                reference={actionsRef}
+                reference={actMenuRef}
               >
                 {actions}
               </Menu>
@@ -319,7 +324,7 @@ function Address({ actions, address, children, className, genesisHash, isExterna
 }
 
 export default styled(Address)(({ theme }: ThemeProps) => `
-  background: ${theme.accountBackground};
+  background: ${theme.boxBackground};
   border: 1px solid ${theme.boxBorderColor};
   box-sizing: border-box;
   border-radius: 4px;

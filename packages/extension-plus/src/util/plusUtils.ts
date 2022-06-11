@@ -1,8 +1,5 @@
-
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable header/header */
-/* eslint-disable camelcase */
 
 import type { Text } from '@polkadot/types';
 import type { AccountId } from '@polkadot/types/interfaces';
@@ -39,7 +36,7 @@ export function fixFloatingPoint(_number: number | string, decimalDigit = FLOATI
 }
 
 export function balanceToHuman(_balance: AccountsBalanceType | null, _type: string, decimalDigits?: number, commify?: boolean): string {
-  if (!_balance || !_balance.balanceInfo) return '';
+  if (!_balance || !_balance.balanceInfo) { return ''; }
 
   const balance = _balance.balanceInfo;
 
@@ -79,7 +76,10 @@ export function amountToMachine(_amount: string | undefined, _decimals: number):
 
     _amount = _amount.slice(0, dotIndex) + _amount.slice(dotIndex + 1, _amount.length);
     _decimals -= decimalsOfAmount;
-    if (_decimals < 0) throw new Error("_decimals should be more than _amount's decimals digits");
+
+    if (_decimals < 0) {
+      throw new Error("_decimals should be more than _amount's decimals digits");
+    }
   }
 
   const x = 10 ** _decimals;
@@ -151,7 +151,7 @@ export function getTransactionHistoryFromLocalStorage(
 }
 
 export const getWebsiteFavico = (url: string | undefined): string => {
-  if (!url) return '';
+  if (!url) { return ''; }
 
   return 'https://s2.googleusercontent.com/s2/favicons?domain=' + url;
 };
@@ -159,7 +159,7 @@ export const getWebsiteFavico = (url: string | undefined): string => {
 export function remainingTime(blocks: number): string {
   let mins = Math.floor(blocks * BLOCK_RATE / 60);
 
-  if (!mins) return 'finished';
+  if (!mins) { return 'finished'; }
 
   let hrs = Math.floor(mins / 60);
   const days = Math.floor(hrs / 24);
@@ -193,7 +193,7 @@ function splitParts(value: string): string[] {
   return ['[', ']'].reduce((result: string[], sep) => splitSingle(result, sep), [value]);
 }
 
-export function formatMeta(meta?: Meta): string[] {
+export function formatMeta(meta?: Meta): string[] | null {
   if (!meta || !meta.docs.length) {
     return null;
   }
@@ -237,5 +237,5 @@ export function saveHistory(chain: Chain | null, hierarchy: AccountWithChildren[
 
   savedHistory.push(currentTransactionDetail);
 
-  return [accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory, _chainName)];
+  return [accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory)];
 }
