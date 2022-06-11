@@ -58,9 +58,6 @@ export async function signAndSend(
           }
         });
       }
-    }).catch((error) => {
-      console.log(error);
-      resolve({ status: 'failed' });
     });
   });
 }
