@@ -1415,7 +1415,7 @@ export const poolStakingConst: PoolStakingConsts | undefined = {
   minNominatorBond: new BN('10817536')
 };
 
-export const pool = (states = ''): MyPoolInfo => {
+export const pool = (states = '', nameEdited = false, rolesEdited = false): MyPoolInfo => {
   return {
     accounts: {
       rewardId: '5EYCAe5ijiYfAXEth5DXrWyDFTVKxJeJ5YA8VanQUrFZT3za',
@@ -1427,9 +1427,9 @@ export const pool = (states = ''): MyPoolInfo => {
       memberCounter: ['bondExtra', 'joinPool'].includes(states) ? 12 : 0,
       roles: {
         depositor: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
-        root: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
-        nominator: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
-        stateToggler: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ'
+        root: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
+        nominator: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
+        stateToggler: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm'
       }
     },
     ledger: {
@@ -1541,7 +1541,7 @@ export const pool = (states = ''): MyPoolInfo => {
       rewardPoolTotalEarnings: 0,
       unbondingEras: {}
     },
-    metadata: 'Polkadot js plus',
+    metadata: !nameEdited ? 'Polkadot js plus' : 'Polkadot js plus ❤',
     myClaimable: new BN('16844370676'),
     poolId: new BN('06'),
     redeemable: new BN('500000000000'),
