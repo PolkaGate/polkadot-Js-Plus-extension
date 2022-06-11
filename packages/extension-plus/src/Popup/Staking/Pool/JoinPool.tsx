@@ -185,9 +185,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
                 InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
                 color='warning'
                 fullWidth
-                // error={zeroBalanceAlert}
                 inputProps={{ step: '.01', style: { padding: '12px' } }}
-                // helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
                 label={t('Amount')}
                 name='stakeAmount'
                 onChange={handleStakeAmount}

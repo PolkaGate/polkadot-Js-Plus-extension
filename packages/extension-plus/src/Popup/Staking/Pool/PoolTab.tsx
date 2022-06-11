@@ -34,7 +34,7 @@ interface Props {
   newPool: MyPoolInfo | undefined;
 }
 
-function PoolTab({ api, chain, handleConfirmStakingModaOpen,newPool,setNewPool, pool, poolsMembers, setState, staker }: Props): React.ReactElement<Props> {
+function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showAction, setShowAction] = useState<boolean | undefined>();
   const [expanded, setExpanded] = useState<string>('roles');
@@ -82,10 +82,10 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen,newPool,setNewPool, 
                   <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
                     <Grid item xs={12}>
                       <Paper elevation={3} sx={{ p: '10px' }}>
-                        <ShowAddress address={pool.bondedPool.roles.root} chain={chain} role={'Root'} />
-                        <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />
-                        <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />
-                        <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />
+                        {pool.bondedPool.roles.root && <ShowAddress address={pool.bondedPool.roles.root} chain={chain} role={'Root'} />}
+                        {pool.bondedPool.roles.depositor && <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />}
+                        {pool.bondedPool.roles.nominator && <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />}
+                        {pool.bondedPool.roles.stateToggler && <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />}
                       </Paper>
                     </Grid>
                   </AccordionDetails>

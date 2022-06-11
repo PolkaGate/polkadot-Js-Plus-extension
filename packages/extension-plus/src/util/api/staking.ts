@@ -9,7 +9,7 @@ import type { ApiPromise } from '@polkadot/api';
 import type { SubmittableExtrinsic } from '@polkadot/api/types';
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { ISubmittableResult } from '@polkadot/types/types';
-import type { TxInfo, ValidatorsFromSubscan } from '../plusTypes';
+import type { MyPoolInfo, TxInfo, ValidatorsFromSubscan } from '../plusTypes';
 
 import { KeyringPair } from '@polkadot/keyring/types';
 import { BN, BN_ZERO } from '@polkadot/util';
@@ -284,6 +284,46 @@ export async function createPool(
     return signAndSend(_api, created, _signer, _depositor);
   } catch (error) {
     console.log('Something went wrong while createPool', error);
+
+    return { status: 'failed' };
+  }
+}
+
+export async function editPool(
+  _api: ApiPromise,
+  _depositor: string | null,
+  _signer: KeyringPair,
+  _pool: MyPoolInfo,
+  _basePool: MyPoolInfo
+): Promise<TxInfo> {
+  try {
+    console.log('editPool is called!');
+
+    if (!_depositor) {
+      console.log('editPool:  _depositor is empty!');
+
+      return { status: 'failed' };
+    }
+
+    const getRole = (role: string) => {
+      if (!_pool.bondedPool.roles[role]) return 'Remove';
+      if (_pool.bondedPool.roles[role] === _basePool.bondedPool.roles[role]) return 'Noop';
+
+      return { set: _pool.bondedPool.roles[role] };
+    };
+
+    const calls = [];
+
+    _basePool.metadata !== _pool.metadata &&
+      calls.push(_api.tx.nominationPools.setMetadata(_pool.member.poolId, _pool.metadata));
+    JSON.stringify(_basePool.bondedPool.roles) !== JSON.stringify(_pool.bondedPool.roles) &&
+      calls.push(_api.tx.nominationPools.updateRoles(_pool.member.poolId, getRole('root'), getRole('nominator'), getRole('stateToggler')))
+
+    const created = _api.tx.utility.batch(calls);
+
+    return signAndSend(_api, created, _signer, _depositor);
+  } catch (error) {
+    console.log('Something went wrong while editPool', error);
 
     return { status: 'failed' };
   }

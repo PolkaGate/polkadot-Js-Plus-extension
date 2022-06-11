@@ -433,12 +433,12 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
               api={api}
               chain={chain}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              newPool={newPool}
               pool={myPool}
               poolsMembers={poolsMembers}
+              setNewPool={setNewPool}
               setState={setState}
               staker={staker}
-              setNewPool={setNewPool}
-              newPool={newPool}
             />
           </TabPanel>
           <TabPanel index={3} padding={1} value={tabValue}>
@@ -493,7 +493,8 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
         <ConfirmStaking
           amount={getAmountToConfirm()}
           api={api}
-          chain={chain}
+          basePool={myPool !== null ? myPool : undefined}
+          chain={chain} // be used for comparision when edit a pool
           handlePoolStakingModalClose={handlePoolStakingModalClose}
           nextPoolId={nextPoolId}
           nominatedValidators={nominatedValidators}
