@@ -10,7 +10,7 @@ import { canDerive } from '@polkadot/extension-base/utils';
 import { ThemeProps } from '@polkadot/extension-ui/types';
 
 import useEndpoints from '../../../../extension-plus/src/hooks/useEndpoints';// added for plus
-import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
+import { CROWDLOANS_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
 import { SavedMetaData } from '../../../../extension-plus/src/util/plusTypes';// added for plus
 import { prepareMetaData } from '../../../../extension-plus/src/util/plusUtils';// added for plus
 import { AccountContext, Address, Dropdown, Link, MenuDivider } from '../../components';// added for plus, AccountContext
@@ -175,7 +175,6 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
         name={editedName}
         parentName={parentName}
         showPlus={true}// added for plus
-        // endpoint={selectedEndpoint}// added for plus
         suri={suri}
         toggleActions={toggleActions}
       >
