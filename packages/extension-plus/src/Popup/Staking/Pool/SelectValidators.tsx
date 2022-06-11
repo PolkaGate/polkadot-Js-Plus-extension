@@ -41,7 +41,7 @@ interface Props {
   validatorsInfo: Validators;
   setState: React.Dispatch<React.SetStateAction<string>>;
   state: string;
-  validatorsIdentities: DeriveAccountInfo[] | null;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
   pool: any | undefined;
   poolsMembers: MembersMapEntry[] | undefined;
 }

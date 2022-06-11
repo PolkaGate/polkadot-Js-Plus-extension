@@ -5,12 +5,13 @@
 
 /**
  * @description
- *  this component provides access to all easy staking where one can choose between Solo and Pool staking.
+ *  this component provides access to all easy staking stuff where one can choose between Solo and Pool staking.
  * */
 
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import type { AccountsBalanceType, NominatorInfo, PoolStakingConsts, SavedMetaData, StakingConsts } from '../../util/plusTypes';
+import type { AccountId } from '@polkadot/types/interfaces';
+import type { AccountsBalanceType, NominatorInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -20,6 +21,7 @@ import { blue, green, grey, red } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
+import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { BN, bnMax } from '@polkadot/util';
@@ -36,7 +38,6 @@ interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   ledger: StakingLedger | null;
-  redeemable: bigint | null;
   showStakingModal: boolean;
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
@@ -44,20 +45,26 @@ interface Props {
 
 const workers: Worker[] = [];
 
-export default function StakingIndex({ account, api, chain, ledger, redeemable, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
+export default function StakingIndex({ account, api, chain, ledger, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const endpoint = useEndPoint(account, undefined, chain);
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | undefined>();
   const [nominatorInfo, setNominatorInfo] = useState<NominatorInfo | undefined>();
-
   const [poolStakingOpen, setPoolStakingOpen] = useState<boolean>(false);
   const [soloStakingOpen, setSoloStakingOpen] = useState<boolean>(false);
   const [poolStakingConsts, setPoolStakingConsts] = useState<PoolStakingConsts | undefined>();
-
   const [stakingType, setStakingType] = useState<string | undefined>(undefined);
   const [minToReceiveRewardsInSolo, setMinToReceiveRewardsInSolo] = useState<BN | undefined>();
+  const [validatorsInfo, setValidatorsInfo] = useState<Validators | undefined>(); // validatorsInfo is all validators (current and waiting) information
+  const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
+  const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
+  const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
+  const [validatorsIdentitiesIsFetched, setValidatorsIdentitiesIsFetched] = useState<boolean>(false);
+  const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | undefined>();
+  const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
+  const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
 
   const getStakingConsts = useCallback((chain: Chain, endpoint: string) => {
     /** 1- get some staking constant like min Nominator Bond ,... */
@@ -146,6 +153,130 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
     };
   };
 
+  const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
+    const getValidatorsInfoWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsInfo.js', import.meta.url));
+
+    workers.push(getValidatorsInfoWorker);
+
+    getValidatorsInfoWorker.postMessage({ endpoint });
+
+    getValidatorsInfoWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getValidatorsInfoWorker.onmessage = (e) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const fetchedValidatorsInfo: Validators | null = e.data;
+
+      setGettingNominatedValidatorsInfoFromChain(false);
+
+      console.log(`validatorsfrom chain (era:${fetchedValidatorsInfo?.currentEraIndex}), current: ${fetchedValidatorsInfo?.current?.length} waiting ${fetchedValidatorsInfo?.waiting?.length} `);
+
+      if (fetchedValidatorsInfo && JSON.stringify(validatorsInfoFromStore?.metaData) !== JSON.stringify(fetchedValidatorsInfo)) {
+        setValidatorsInfo(fetchedValidatorsInfo);
+        console.log(`save validators to local storage, old was current: ${validatorsInfoFromStore?.metaData?.current?.length} waiting ${validatorsInfoFromStore?.metaData?.waiting?.length} `);
+
+        // eslint-disable-next-line no-void
+        void updateMeta(account.address, prepareMetaData(chain, 'validatorsInfo', fetchedValidatorsInfo));
+      }
+
+      setValidatorsInfoIsUpdated(true);
+      getValidatorsInfoWorker.terminate();
+    };
+  };
+
+  useEffect(() => {
+    /** retrive validatorInfo from local sorage */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const validatorsInfoFromStore: SavedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
+
+    if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
+      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
+
+      setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
+
+      setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
+      console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
+      on chain: ${validatorsInfoFromStore?.chainName}`);
+    }
+
+    /** get validators info, including current and waiting, should be called after validatorsInfoFromStore gets value */
+    endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
+
+  const getValidatorsIdentities = useCallback((endpoint: string, validatorsAccountIds: AccountId[]) => {
+    /** get validators identities */
+    const getValidatorsIdWorker: Worker = new Worker(new URL('../../util/workers/getValidatorsId.js', import.meta.url));
+
+    workers.push(getValidatorsIdWorker);
+
+    getValidatorsIdWorker.postMessage({ endpoint, validatorsAccountIds });
+
+    getValidatorsIdWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    getValidatorsIdWorker.onmessage = (e) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const fetchedIdentities: DeriveAccountInfo[] | null = e.data;
+
+      console.log(`got ${fetchedIdentities?.length ?? ''} validators identities from ${chain?.name} `);
+
+      /** if fetched differs from saved then setIdentities and save to local storage */
+      if (fetchedIdentities?.length && JSON.stringify(validatorsIdentities) !== JSON.stringify(fetchedIdentities)) {
+        console.log(`setting new identities #old was: ${validatorsIdentities?.length ?? ''} `);
+
+        setValidatorsIdentities(fetchedIdentities);
+        setValidatorsIdentitiesIsFetched(true);
+        // eslint-disable-next-line no-void
+        void updateMeta(account.address, prepareMetaData(chain, 'validatorsIdentities', fetchedIdentities));
+      }
+
+      getValidatorsIdWorker.terminate();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account.address, chain]);
+
+  useEffect(() => {
+    if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length || !endpoint || validatorsIdentitiesIsFetched) { return; }
+
+    const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
+
+    getValidatorsIdentities(endpoint, validatorsAccountIds);
+  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, validatorsIdentitiesIsFetched, getValidatorsIdentities]);
+
+  useEffect((): void => {
+    if (!currentEraIndex || !currentEraIndexOfStore) { return; }
+
+    setStoreIsUpdate(currentEraIndex === currentEraIndexOfStore);
+  }, [currentEraIndex, currentEraIndexOfStore]);
+
+  useEffect((): void => {
+    // eslint-disable-next-line no-void
+    api && void api.query.staking.currentEra().then((ce) => {
+      setCurrentEraIndex(Number(ce));
+    });
+  }, [api]);
+
+  useEffect(() => {
+    if (!account) {
+      console.log(' no account, wait for it...!..');
+
+      return;
+    }
+
+    console.log('account in staking stake:', account);
+
+    // **** retrive validators identities from local storage
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const validarorsIdentitiesFromStore: SavedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
+
+    if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
+      setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
+    }
+  }, [account, chainName]);
+
   useEffect(() => {
     if (!account) {
       console.log(' no account, wait for it...!..');
@@ -223,7 +354,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
               <p>{t('SOLO STAKING')}</p>
             </Grid>
             <Grid item>
-              <CircleOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px', color: blue[900] }} />
+              <CircleOutlinedIcon sx={{ color: blue[900], fontSize: 30, p: '10px 0 0 5px' }} />
             </Grid>
           </Grid>
 
@@ -251,7 +382,7 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
               <p>{t('POOL STAKING')}</p>
             </Grid>
             <Grid item>
-              <GroupWorkOutlinedIcon sx={{ fontSize: 30, p: '10px 0 0 5px', color: green[900] }} />
+              <GroupWorkOutlinedIcon sx={{ color: green[900], fontSize: 30, p: '10px 0 0 5px' }} />
             </Grid>
           </Grid>
 
@@ -279,38 +410,46 @@ export default function StakingIndex({ account, api, chain, ledger, redeemable, 
         </Paper>
       </Grid>
 
-      {
-        soloStakingOpen &&
+      {soloStakingOpen &&
         <SoloStaking
           account={account}
           api={api}
           chain={chain}
+          currentEraIndex={currentEraIndex}
           endpoint={endpoint}
+          gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
           ledger={ledger}
+          localStrorageIsUpdate={localStrorageIsUpdate}
           nominatorInfo={nominatorInfo}
-          redeemable={redeemable}
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
           staker={staker}
           stakingConsts={stakingConsts}
+          validatorsIdentities={validatorsIdentities}
+          validatorsInfo={validatorsInfo}
+          validatorsInfoIsUpdated={validatorsInfoIsUpdated}
         />
       }
 
-      {
-        poolStakingOpen &&
+      {poolStakingOpen &&
         <PoolStaking
           account={account}
           api={api}
           chain={chain}
+          currentEraIndex={currentEraIndex}
           endpoint={endpoint}
+          gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
           poolStakingConsts={poolStakingConsts}
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
           staker={staker}
           stakingConsts={stakingConsts}
+          validatorsIdentities={validatorsIdentities}
+          validatorsInfo={validatorsInfo}
+          validatorsInfoIsUpdated={validatorsInfoIsUpdated}
         />
       }
 
-    </Popup >
+    </Popup>
   );
 }

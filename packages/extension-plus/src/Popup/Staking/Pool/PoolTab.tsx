@@ -12,13 +12,14 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, ExpandMore, PlayArrowRounded as PlayArrowRoundedIcon } from '@mui/icons-material';
+import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, ExpandMore, PlayArrowRounded as PlayArrowRoundedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Button, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress, ShowAddress } from '../../../components';
+import EditPool from './EditPool';
 import Pool from './Pool';
 
 interface Props {
@@ -29,12 +30,15 @@ interface Props {
   poolsMembers: MembersMapEntry[] | undefined;
   setState: React.Dispatch<React.SetStateAction<string>>;
   handleConfirmStakingModaOpen: () => void;
+  setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>;
+  newPool: MyPoolInfo | undefined;
 }
 
-function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers, setState, staker }: Props): React.ReactElement<Props> {
+function PoolTab({ api, chain, handleConfirmStakingModaOpen,newPool,setNewPool, pool, poolsMembers, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showAction, setShowAction] = useState<boolean | undefined>();
   const [expanded, setExpanded] = useState<string>('roles');
+  const [showEditPoolModal, setEditPoolModalOpen] = useState<boolean>(false);
 
   const handleAccordionChange = useCallback((panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : '');
@@ -47,6 +51,12 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
     setState(state);
     handleConfirmStakingModaOpen();
   }, [api, handleConfirmStakingModaOpen, setState]);
+
+  const handleEditPool = useCallback(() => {
+    console.log('going to edit pool ');
+    setState('editPool');
+    setEditPoolModalOpen(true);
+  }, [setState]);
 
   useEffect(() => {
     if (!pool) return;
@@ -99,43 +109,57 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
             </Grid>
 
             {showAction &&
-              <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px' }} xs={12}>
-                <Grid item>
-                  <Button
-                    disabled={pool?.bondedPool?.state?.toLowerCase() === 'destroying'}
-                    onClick={() => handleStateChange('destroying')}
-                    size='medium'
-                    startIcon={<AutoDeleteRoundedIcon fontSize='small' />}
-                    sx={{ color: 'red', textTransform: 'none' }}
-                    variant='text'
-                  >
-                    {t('Destroy')}
-                  </Button>
+              <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
+                <Grid container item xs={8}>
+                  <Grid item>
+                    <Button
+                      disabled={pool?.bondedPool?.state?.toLowerCase() === 'destroying'}
+                      onClick={() => handleStateChange('destroying')}
+                      size='small'
+                      startIcon={<AutoDeleteRoundedIcon fontSize='small' />}
+                      sx={{ color: 'red', textTransform: 'none' }}
+                      variant='text'
+                    >
+                      {t('Destroy')}
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      disabled={['blocked', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
+                      onClick={() => handleStateChange('blocked')}
+                      size='small'
+                      startIcon={<BlockRoundedIcon />}
+                      sx={{ color: 'black', textTransform: 'none' }}
+                      variant='text'
+                    >
+                      {t('Block')}
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      color='warning'
+                      disabled={['open', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
+                      onClick={() => handleStateChange('open')}
+                      size='medium'
+                      startIcon={<PlayArrowRoundedIcon />}
+                      sx={{ textTransform: 'none' }}
+                      variant='text'
+                    >
+                      {t('Open')}
+                    </Button>
+                  </Grid>
                 </Grid>
-                <Grid item>
-                  <Button
-                    disabled={['blocked', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
-                    onClick={() => handleStateChange('blocked')}
-                    size='medium'
-                    startIcon={<BlockRoundedIcon />}
-                    sx={{ color: 'black', textTransform: 'none' }}
-                    variant='text'
-                  >
-                    {t('Block')}
-                  </Button>
-                </Grid>
-
                 <Grid item>
                   <Button
                     color='warning'
-                    disabled={['open', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
-                    onClick={() => handleStateChange('open')}
+                    disabled={['destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
+                    onClick={handleEditPool}
                     size='medium'
-                    startIcon={<PlayArrowRoundedIcon />}
+                    startIcon={<SettingsApplicationsOutlinedIcon />}
                     sx={{ textTransform: 'none' }}
                     variant='text'
                   >
-                    {t('Open')}
+                    {t('Edit')}
                   </Button>
                 </Grid>
               </Grid>
@@ -147,6 +171,22 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, pool, poolsMembers,
           </Grid>
         : <Progress title={t('Loading ...')} />
       }
+
+      {showEditPoolModal && pool &&
+        <EditPool
+          api={api}
+          chain={chain}
+          handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+          setEditPoolModalOpen={setEditPoolModalOpen}
+          setState={setState}
+          showEditPoolModal={showEditPoolModal}
+          staker={staker}
+          pool={pool}
+          setNewPool={setNewPool}
+          newPool={newPool}
+        />
+      }
+
     </Grid>
 
   );

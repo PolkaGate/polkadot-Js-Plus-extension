@@ -3,7 +3,7 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description This is the main component which conects plus to original extension,
  * and make most of the new functionalities avilable
 */
@@ -53,7 +53,7 @@ interface Subscription {
 }
 const defaultSubscribtion = { chainName: '', endpoint: '' };
 
-function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): React.ReactElement<Props> {
+function Plus ({ address, chain, formattedAddress, givenType, name, t }: Props): React.ReactElement<Props> {
   const { accounts } = useContext(AccountContext);
   const endpoint = useEndPoint(accounts, address, chain);
   const api = useApi(endpoint);
@@ -70,7 +70,6 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const [sender, setSender] = useState<AccountsBalanceType>({ address: String(address), chain: null, name: String(name) });
   const [price, setPrice] = useState<number>(0);
   const [ledger, setLedger] = useState<StakingLedger | null>(null);
-  const [redeemable, setRedeemable] = useState<bigint | null>(null);
 
   const getLedger = useCallback((): void => {
     if (!endpoint || !address) { return; }
@@ -90,28 +89,6 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       console.log('Ledger:', ledger);
       setLedger(ledger);
       getLedgerWorker.terminate();
-    };
-  }, [address, endpoint]);
-
-  const getRedeemable = useCallback((): void => {
-    if (!endpoint || !address) { return; }
-
-    const getRedeemableWorker: Worker = new Worker(new URL('../util/workers/getRedeemable.js', import.meta.url));
-
-    getRedeemableWorker.postMessage({ address, endpoint });
-
-    getRedeemableWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getRedeemableWorker.onmessage = (e) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const stakingAccount: string = e.data;
-      const rcvdRedeemable = JSON.parse(stakingAccount)?.redeemable as string;
-
-      if (rcvdRedeemable) { setRedeemable(BigInt(rcvdRedeemable)); } else { setRedeemable(0n); }
-
-      getRedeemableWorker.terminate();
     };
   }, [address, endpoint]);
 
@@ -154,12 +131,10 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
 
     if (supported(chain) && endpoint) {
       getLedger();
-
-      getRedeemable();
     }
-  }, [getLedger, getRedeemable, chain, endpoint]);
+  }, [getLedger, chain, endpoint]);
 
-  function getBalanceFromMetaData(_account: AccountJson, _chain: Chain): AccountsBalanceType | null {
+  function getBalanceFromMetaData (_account: AccountJson, _chain: Chain): AccountsBalanceType | null {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const accLastBalance: SavedMetaData = _account.lastBalance ? JSON.parse(_account.lastBalance) : null;
 
@@ -206,7 +181,6 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
 
     if ((balanceChangeSubscribtion.chainName && balanceChangeSubscribtion.chainName !== chain?.name) ||
       (balanceChangeSubscribtion.endpoint && balanceChangeSubscribtion.endpoint !== endpoint)) {
-
       subscribeToBalanceChanges();
     }
   }, [accounts, balanceChangeSubscribtion.chainName, balanceChangeSubscribtion.endpoint, chain, endpoint, subscribeToBalanceChanges]);
@@ -260,7 +234,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
     subscribeToBalanceChanges();
   }, [chain, refreshing, subscribeToBalanceChanges]);
 
-  function getCoin(_myBalance: AccountsBalanceType): string {
+  function getCoin (_myBalance: AccountsBalanceType): string {
     return !_myBalance || !_myBalance.balanceInfo ? '' : _myBalance.balanceInfo.coin;
   }
 
@@ -286,7 +260,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       <Grid alignItems='center' container>
         <Grid container item justifyContent='center' xs={10}>
           {!chain
-            ? <Grid id='noChainAlert' item sx={{ color: grey[700], fontFamily: '"Source Sans Pro", Arial, sans-serif', fontWeight: 600, fontSize: 12, textAlign: 'center', paddingLeft: '20px' }} xs={12} >
+            ? <Grid id='noChainAlert' item sx={{ color: grey[700], fontFamily: '"Source Sans Pro", Arial, sans-serif', fontSize: 12, fontWeight: 600, paddingLeft: '20px', textAlign: 'center' }} xs={12} >
               {t && t('Please select a chain to view your balance.')}
             </Grid>
             : <Grid container item sx={{ paddingLeft: '75px', textAlign: 'left' }} xs={12}>
@@ -402,7 +376,6 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
           api={api}
           chain={chain}
           ledger={ledger}
-          redeemable={redeemable}
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
           staker={sender}

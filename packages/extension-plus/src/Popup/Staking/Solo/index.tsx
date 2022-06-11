@@ -46,13 +46,18 @@ interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
   ledger: StakingLedger | null;
-  redeemable: bigint | null;
   showStakingModal: boolean;
   setStakingModalOpen: Dispatch<SetStateAction<boolean>>;
   staker: AccountsBalanceType;
   stakingConsts: StakingConsts | undefined;
   endpoint: string | undefined;
   nominatorInfo: NominatorInfo | undefined;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
+  validatorsInfo: Validators | undefined;
+  localStrorageIsUpdate: boolean;
+  currentEraIndex: number | undefined;
+  gettingNominatedValidatorsInfoFromChain: boolean;
+  validatorsInfoIsUpdated: boolean;
 }
 
 interface RewardInfo {
@@ -66,12 +71,8 @@ const workers: Worker[] = [];
 
 BigInt.prototype.toJSON = function () { return this.toString() };
 
-export default function SoloStaking({ account, api, chain, endpoint, ledger, nominatorInfo, redeemable, setStakingModalOpen, showStakingModal, staker, stakingConsts }: Props): React.ReactElement<Props> {
+export default function SoloStaking({ account, api, chain, currentEraIndex, endpoint, gettingNominatedValidatorsInfoFromChain, ledger, localStrorageIsUpdate, nominatorInfo, setStakingModalOpen, showStakingModal, staker, stakingConsts, validatorsIdentities, validatorsInfo, validatorsInfoIsUpdated }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  // const endpoint = useEndPoint(account, undefined, chain);
-
-  // const [gettingStakingConstsFromBlockchain, setgettingStakingConstsFromBlockchain] = useState<boolean>(true);
-  const [gettingNominatedValidatorsInfoFromChain, setGettingNominatedValidatorsInfoFromChain] = useState<boolean>(true);
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
   const [showChartModal, setChartModalOpen] = useState<boolean>(false);
@@ -79,9 +80,6 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
   const [stakeAmount, setStakeAmount] = useState<bigint>(0n);
   const [availableBalanceInHuman, setAvailableBalanceInHuman] = useState<string>('');
   const [currentlyStakedInHuman, setCurrentlyStakedInHuman] = useState<string | null>(null);
-  const [validatorsInfo, setValidatorsInfo] = useState<Validators | null>(null); // validatorsInfo is all validators (current and waiting) information
-  const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | null>(null);
-  const [validatorsInfoIsUpdated, setValidatorsInfoIsUpdated] = useState<boolean>(false);
   const [selectedValidators, setSelectedValidatorsAcounts] = useState<DeriveStakingQuery[] | null>(null);
   const [nominatedValidatorsId, setNominatedValidatorsId] = useState<string[] | null>(null);
   const [noNominatedValidators, setNoNominatedValidators] = useState<boolean>(false);
@@ -92,13 +90,10 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
   const [unlockingAmount, setUnlockingAmount] = useState<bigint>(0n);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
   const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
-  const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
-  const [currentEraIndexOfStore, setCurrentEraIndexOfStore] = useState<number | undefined>();
   const [rewardSlashes, setRewardSlashes] = useState<RewardInfo[]>([]);
-  const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
   const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
   const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
-  const [gettingIdentities, setGettingIdentities] = useState<boolean>(false);
+  const [redeemable, setRedeemable] = useState<bigint | null>(null);
 
   const decimals = api && api.registry.chainDecimals[0];
   const chainName = chain?.name.replace(' Relay Chain', '');
@@ -107,10 +102,10 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
     setTabValue(newValue);
   }, []);
 
-  const checkNeedsTuneUp = (endpoint: string, stakerAddress: string) => {
+  const checkNeedsTuneUp = useCallback((endpoint: string, stakerAddress: string) => {
     checkNeedsRebag(endpoint, stakerAddress);
     checkNeedsPutInFrontOf(endpoint, stakerAddress);
-  };
+  }, []);
 
   const checkNeedsRebag = (endpoint: string, stakerAddress: string) => {
     const needsRebag: Worker = new Worker(new URL('../../../util/workers/needsRebag.js', import.meta.url));
@@ -155,29 +150,30 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
     };
   };
 
-  // const getStakingRewardsFromChain = (chain: Chain, stakerAddress: string) => {
-  //   // TODO: does not work on polkadot/kusama but Westend!!
-  //   /**  get some staking rewards ,... */
-  //   const getRewards: Worker = new Worker(new URL('../../../util/workers/getRewards.js', import.meta.url));
+  const getRedeemable = useCallback((): void => {
+    if (!endpoint || !staker.address) { return; }
 
-  //   workers.push(getRewards);
+    const address = staker.address;
+    const getRedeemableWorker: Worker = new Worker(new URL('../../../util/workers/getRedeemable.js', import.meta.url));
 
-  //   getRewards.postMessage({ chain, stakerAddress });
+    workers.push(getRedeemableWorker);
 
-  //   getRewards.onerror = (err) => {
-  //     console.log(err);
-  //   };
+    getRedeemableWorker.postMessage({ address, endpoint });
 
-  //   getRewards.onmessage = (e: MessageEvent<any>) => {
-  //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  //     const rewards: RewardInfo[] = e.data;
+    getRedeemableWorker.onerror = (err) => {
+      console.log(err);
+    };
 
-  //     setRewardSlashes((r) => r.concat(rewards));
-  //     console.log('REWARDS:', rewards);
+    getRedeemableWorker.onmessage = (e) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const stakingAccount: string = e.data;
+      const rcvdRedeemable = JSON.parse(stakingAccount)?.redeemable as string;
 
-  //     getRewards.terminate();
-  //   };
-  // };
+      if (rcvdRedeemable) { setRedeemable(BigInt(rcvdRedeemable)); } else { setRedeemable(0n); }
+
+      getRedeemableWorker.terminate();
+    };
+  }, [staker.address, endpoint]);
 
   const getNominations = (endpoint: string, stakerAddress: string) => {
     const getNominatorsWorker: Worker = new Worker(new URL('../../../util/workers/getNominations.js', import.meta.url));
@@ -201,46 +197,11 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
     };
   };
 
-  const getValidatorsInfo = (chain: Chain, endpoint: string, validatorsInfoFromStore: SavedMetaData) => {
-    const getValidatorsInfoWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsInfo.js', import.meta.url));
-
-    workers.push(getValidatorsInfoWorker);
-
-    getValidatorsInfoWorker.postMessage({ endpoint });
-
-    getValidatorsInfoWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getValidatorsInfoWorker.onmessage = (e) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const fetchedValidatorsInfo: Validators | null = e.data;
-
-      setGettingNominatedValidatorsInfoFromChain(false);
-
-      console.log(`validatorsfrom chain (era:${fetchedValidatorsInfo?.currentEraIndex}), current: ${fetchedValidatorsInfo?.current?.length} waiting ${fetchedValidatorsInfo?.waiting?.length} `);
-
-      if (fetchedValidatorsInfo && JSON.stringify(validatorsInfoFromStore?.metaData) !== JSON.stringify(fetchedValidatorsInfo)) {
-        setValidatorsInfo(fetchedValidatorsInfo);
-        console.log(`save validators to local storage, old was current: ${validatorsInfoFromStore?.metaData?.current?.length} waiting ${validatorsInfoFromStore?.metaData?.waiting?.length} `);
-
-        // eslint-disable-next-line no-void
-        void updateMeta(account.address, prepareMetaData(chain, 'validatorsInfo', fetchedValidatorsInfo));
-      }
-
-      setValidatorsInfoIsUpdated(true);
-      getValidatorsInfoWorker.terminate();
-    };
-  };
+  useEffect((): void => {
+    endpoint && getRedeemable();
+  }, [getRedeemable, endpoint]);
 
   useEffect((): void => {
-    // eslint-disable-next-line no-void
-    api && void api.query.staking.currentEra().then((ce) => {
-      setCurrentEraIndex(Number(ce));
-    });
-
-    // staker.address && getStakingRewardsFromChain(chain, staker.address);
-
     // eslint-disable-next-line no-void
     staker.address && void getRewardsSlashes(chainName, 0, 10, staker.address).then((r) => {
       const rewardsFromSubscan = r?.data.list?.map((d): RewardInfo => {
@@ -259,93 +220,16 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
     });
   }, [api, chainName, staker.address]);
 
-  useEffect((): void => {
-    if (!currentEraIndex || !currentEraIndexOfStore) { return; }
-
-    setStoreIsUpdate(currentEraIndex === currentEraIndexOfStore);
-  }, [currentEraIndex, currentEraIndexOfStore]);
-
   useEffect(() => {
-
     // *** get nominated validators list
     endpoint && getNominations(endpoint, staker.address);
 
     /** to check if rebag and putInFrontOf is needed */
     endpoint && checkNeedsTuneUp(endpoint, staker.address);
-
-    /** retrive validatorInfo from local sorage */
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validatorsInfoFromStore: SavedMetaData = account?.validatorsInfo ? JSON.parse(account.validatorsInfo) : null;
-
-    if (validatorsInfoFromStore && validatorsInfoFromStore?.chainName === chainName) {
-      console.log(`validatorsInfo is set from local storage current:${validatorsInfoFromStore.metaData?.current?.length} waiting:${validatorsInfoFromStore.metaData?.waiting?.length}`);
-
-      setValidatorsInfo(validatorsInfoFromStore.metaData as Validators);
-
-      setCurrentEraIndexOfStore(Number(validatorsInfoFromStore.metaData.currentEraIndex));
-      console.log(`validatorsInfro in storage is from era: ${validatorsInfoFromStore.metaData.currentEraIndex}
-      on chain: ${validatorsInfoFromStore?.chainName}`);
-    }
-
-    /** get validators info, including current and waiting, should be called after validatorsInfoFromStore gets value */
-    endpoint && getValidatorsInfo(chain, endpoint, validatorsInfoFromStore);
-  }, [endpoint, chain, staker.address, account.validatorsInfo, chainName]);
-
-  const getValidatorsIdentities = useCallback((endpoint: string, validatorsAccountIds: AccountId[]) => {
-    /** get validators identities */
-
-    setGettingIdentities(true);
-    const getValidatorsIdWorker: Worker = new Worker(new URL('../../../util/workers/getValidatorsId.js', import.meta.url));
-
-    workers.push(getValidatorsIdWorker);
-
-    getValidatorsIdWorker.postMessage({ endpoint, validatorsAccountIds });
-
-    getValidatorsIdWorker.onerror = (err) => {
-      console.log(err);
-    };
-
-    getValidatorsIdWorker.onmessage = (e) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const fetchedIdentities: DeriveAccountInfo[] | null = e.data;
-
-      console.log(`got ${fetchedIdentities?.length} validators identities from ${chain?.name} `);
-
-      /** if fetched differs from saved then setIdentities and save to local storage */
-      if (fetchedIdentities?.length && JSON.stringify(validatorsIdentities) !== JSON.stringify(fetchedIdentities)) {
-        console.log(`setting new identities #old was: ${validatorsIdentities?.length} `);
-
-        setValidatorsIdentities(fetchedIdentities);
-        setGettingIdentities(false);
-        // eslint-disable-next-line no-void
-        void updateMeta(account.address, prepareMetaData(chain, 'validatorsIdentities', fetchedIdentities));
-      }
-
-      getValidatorsIdWorker.terminate();
-    };
-  }, [account.address, chain, validatorsIdentities]);
-
-  useEffect(() => {
-    if (!validatorsInfoIsUpdated || !validatorsInfo?.current.length) { return; }
-
-    const validatorsAccountIds = validatorsInfo.current.map((v) => v.accountId).concat(validatorsInfo.waiting.map((v) => v.accountId));
-
-    endpoint && !gettingIdentities && getValidatorsIdentities(endpoint, validatorsAccountIds);
-  }, [validatorsInfoIsUpdated, validatorsInfo, endpoint, account.address, getValidatorsIdentities, gettingIdentities]);
+  }, [checkNeedsTuneUp, endpoint, staker.address]);
 
   useEffect(() => {
     if (!api || !decimals) return;
-
-    // // eslint-disable-next-line no-void
-    // void api.derive.staking.stakerRewards(staker.address).then((t) =>
-    //   console.log('stakerRewards', JSON.parse(JSON.stringify(t)))
-    // );
-
-    // // eslint-disable-next-line no-void
-    // void api.query.balances.totalIssuance().then((t) =>
-    //   console.log('totalIssuance', amountToHuman(t?.toString(), decimals))
-    // );
-
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
@@ -377,29 +261,12 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
 
     console.log('account in staking stake:', account);
 
-    // // * retrive staking consts from local sorage
-    // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    // const stakingConstsFromLocalStrorage: SavedMetaData = account?.stakingConsts ? JSON.parse(account.stakingConsts) : null;
-
-    // if (stakingConstsFromLocalStrorage && stakingConstsFromLocalStrorage?.chainName === chainName) {
-    //   console.log('stakingConsts from local:', JSON.parse(stakingConstsFromLocalStrorage.metaData));
-    //   setStakingConsts(JSON.parse(stakingConstsFromLocalStrorage.metaData) as StakingConsts);
-    // }
-
     // *** retrive nominated validators from local sorage
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const nominatedValidatorsInfoFromLocalStrorage: SavedMetaData = account?.nominatedValidators ? JSON.parse(account.nominatedValidators) : null;
 
     if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
       setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
-    }
-
-    // **** retrive validators identities from local storage
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const validarorsIdentitiesFromStore: SavedMetaData = account?.validatorsIdentities ? JSON.parse(account.validatorsIdentities) : null;
-
-    if (validarorsIdentitiesFromStore && validarorsIdentitiesFromStore?.chainName === chainName) {
-      setValidatorsIdentities(validarorsIdentitiesFromStore.metaData as DeriveAccountInfo[]);
     }
   }, []);
 
@@ -415,7 +282,6 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
         .filter((v: DeriveStakingQuery) => nominatedValidatorsId.includes(String(v.accountId)));
 
       setNominatedValidatorsInfo(nominations);
-      // setGettingNominatedValidatorsInfoFromChain(false);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       updateMeta(account.address, prepareMetaData(chain, 'nominatedValidators', nominations));
@@ -441,7 +307,9 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
   }, [stakingConsts, validatorsInfo]);
 
   useEffect(() => {
-    const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
+    if (!stakingConsts) return;
+
+    const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts.maxNominatorRewardedPerValidator);
 
     setOversubscribedsCount(oversubscribeds?.length);
   }, [nominatedValidators, stakingConsts]);
@@ -466,9 +334,7 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       setStakingModalOpen(false);
-    },
-    [setStakingModalOpen]
-  );
+    }, [setStakingModalOpen]);
 
   const handleConfirmStakingModaOpen = useCallback((): void => {
     setConfirmStakingModalOpen(true);
@@ -678,7 +544,6 @@ export default function SoloStaking({ account, api, chain, endpoint, ledger, nom
           validatorsIdentities={validatorsIdentities}
         />
       }
-
       {rewardSlashes && showChartModal && api &&
         <RewardChart
           api={api}

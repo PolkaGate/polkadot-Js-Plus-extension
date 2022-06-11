@@ -42,7 +42,7 @@ interface Props {
   setState: React.Dispatch<React.SetStateAction<string>>;
   state: string;
   ledger: StakingLedger | null;
-  validatorsIdentities: DeriveAccountInfo[] | null;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
 }
 
 interface Data {

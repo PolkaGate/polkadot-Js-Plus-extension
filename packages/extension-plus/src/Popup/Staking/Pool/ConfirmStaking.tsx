@@ -48,15 +48,15 @@ interface Props {
   stakingConsts: StakingConsts | undefined;
   nextPoolId?: BN;
   nominatedValidators: DeriveStakingQuery[] | null;
-  validatorsIdentities: DeriveAccountInfo[] | null;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
   poolsMembers: MembersMapEntry[] | undefined;
   setNewPool?: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
 }
 
-export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, setNewPool, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking ({ amount, api, chain, handlePoolStakingModalClose, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setNewPool, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
-  const [confirmingState, setConfirmingState] = useState<string>('');
+  const [confirmingState, setConfirmingState] = useState<string | undefined>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [currentlyStaked, setCurrentlyStaked] = useState<BN | undefined>();
@@ -90,13 +90,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const unbonded = api.tx.nominationPools.unbond;
   const nominated = api.tx.nominationPools.nominate;
   const bondExtra = api.tx.nominationPools.bondExtra;
-  const bond = api.tx.nominationPools.bond;
   const redeem = api.tx.nominationPools.withdrawUnbonded;
   const poolWithdrawUnbonded = api.tx.nominationPools.poolWithdrawUnbonded;
   const claim = api.tx.nominationPools.claimPayout;
-  const bonding = currentlyStaked ? bondExtra : bond;
 
-  async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
+  async function saveHistory (chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) return false;
 
     const accountSubstrateAddress = getSubstrateAddress(address);
@@ -112,7 +110,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   }, [staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (['confirming', 'success', 'failed'].includes(confirmingState)) {
+    if (confirmingState) {
       // do not run following code while are in these states
       return;
     }
@@ -136,9 +134,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   const setFee = useCallback(() => {
     let params;
 
-    console.log('currentlyStaked', currentlyStaked.toString())
-    const lastStaked = currentlyStaked ?? BN_ZERO;
-
     switch (state) {
       case ('bondExtra'):
       case ('bondExtraRewards'):
@@ -146,16 +141,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
         // eslint-disable-next-line no-void
         void bondExtra(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
-
         break;
       case ('joinPool'):
         params = [surAmount, poolId];
         // eslint-disable-next-line no-void
         void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-
-        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
-
         break;
       case ('createPool'):
         params = [surAmount, ...Object.values(pool.bondedPool.roles).slice(1)];
@@ -169,7 +159,6 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
             setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))));
         });
 
-        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
         break;
 
       case ('unstake'):
@@ -192,12 +181,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           // if (surAmount === currentlyStaked) {
           //   // eslint-disable-next-line no-void
           //   void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
-          // } else { 
+          // } else {
           // setEstimatedFee(fee);
           // }
         });
 
-        currentlyStaked && !currentlyStaked.isZero() && setTotalStakedInHuman(amountToHuman((currentlyStaked.sub(surAmount)).toString(), decimals));
         break;
       // case ('stopNominating'):
       //   // eslint-disable-next-line no-void
@@ -230,21 +218,43 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         break;
       default:
     }
-  }, [api, bondExtra, claim, create, currentlyStaked, decimals, joined, maxUnlockingChunks, nominated, pool.bondedPool.roles, pool.metadata, pool.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen]);
+  }, [api, bondExtra, claim, create, joined, maxUnlockingChunks, nominated, pool?.bondedPool?.roles, pool?.metadata, pool?.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen]);
+
+  const setTotalStakedInHumanBasedOnStates = useCallback(() => {
+    const lastStaked = currentlyStaked ?? BN_ZERO;
+
+    switch (state) {
+      case ('bondExtra'):
+      case ('bondExtraRewards'):
+      case ('joinPool'):
+      case ('createPool'):
+
+        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
+        break;
+
+      case ('unstake'):
+
+        !lastStaked.isZero() && setTotalStakedInHuman(amountToHuman((lastStaked.sub(surAmount)).toString(), decimals));
+        break;
+      default:
+        setTotalStakedInHuman(amountToHuman(String(lastStaked), decimals)); // as default for states like setState
+    }
+  }, [currentlyStaked, decimals, state, surAmount]);
 
   useEffect(() => {
-    if (['confirming', 'success', 'failed'].includes(confirmingState) || !api || currentlyStaked === undefined) {
+    if (confirmingState || !api) {
       return;
     }
 
     /** set fees and stakeAmount */
     !estimatedFee && setFee();
-  }, [api, confirmingState, currentlyStaked, estimatedFee, setFee]);
+    setTotalStakedInHumanBasedOnStates();
+  }, [api, confirmingState, estimatedFee, setFee, setTotalStakedInHumanBasedOnStates]);
 
   useEffect(() => {
     if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
 
-    if (['confirming', 'success', 'failed'].includes(confirmingState)) {
+    if (confirmingState) {
       // do not run following code while confirming
       return;
     }
@@ -277,7 +287,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
   }, [setConfirmStakingModalOpen]);
 
   const handleBack = useCallback((): void => {
-    if (!['createPool', 'joinPool', 'changeValidators', 'setNominees'].includes(state)) {
+    if (!['createPool', 'joinPool', 'changeValidators', 'setNominees', 'editPool'].includes(state)) {
       setState('');
       setConfirmingState('');
     }
@@ -312,7 +322,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
     }
   };
 
-  const handleConfirm = async (): Promise<void> => {
+  const handleConfirm = useCallback(async (): Promise<void> => {
     const localState = state;
     const history: TransactionDetail[] = []; /** collects all records to save in the local history at the end */
 
@@ -363,7 +373,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       }
 
       if (localState === 'createPool' && surAmount !== BN_ZERO) {
-        const { block, failureText, fee, status, txHash } = await createPool(api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool.metadata);
+        const { block, failureText, fee, status, txHash } = await createPool(api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool?.metadata ?? '');
 
         history.push({
           action: 'pool_create',
@@ -564,7 +574,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       setState(localState);
       setConfirmingState('');
     }
-  };
+  }, [api, bondExtra, chain, claim, decimals, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool?.bondedPool?.roles, pool?.metadata, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -645,7 +655,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
       <Grid alignItems='center' container>
         <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
 
-          <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center', fontVariant: 'small-caps' }}>
+          <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center' }}>
             {stateInHuman(confirmingState || state)}
           </Grid>
           <Grid container data-testid='amount' item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 20, height: '25px', textAlign: 'center' }} xs={12}>
@@ -679,9 +689,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
               <Grid item xs={12}>
                 {!estimatedFee
                   ? <span><Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '30px' }} /></span>
-                  :
-                  // <>{estimatedFee?.toHuman()}</>
-                  <FormatBalance api={api} value={estimatedFee} />
+                  : <FormatBalance api={api} value={estimatedFee} />
                 }
               </Grid>
             </Grid>
@@ -722,7 +730,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
               </>
               : <>
                 <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
-                  {t('VALIDATORS')}{` (${validatorsToList?.length})`}
+                  {t('VALIDATORS')}{` (${validatorsToList?.length ?? ''})`}
                 </Grid>
                 <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
                   <ValidatorsList
@@ -745,7 +753,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
       <Grid container item sx={{ p: '25px 25px' }} xs={12}>
         <Password
-          autofocus={!['confirming', 'failed', 'success'].includes(confirmingState)}
+          autofocus={!confirmingState}
           handleIt={handleConfirm}
           isDisabled={!stakingConsts || confirmButtonDisabled || !estimatedFee}
           password={password}
@@ -761,7 +769,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
               handleConfirm={handleConfirm}
               handleReject={handleReject}
               isDisabled={!stakingConsts || confirmButtonDisabled || !estimatedFee || !availableBalance || !api}
-              state={confirmingState}
+              state={confirmingState ?? ''}
               text={confirmButtonText}
             />
           </Grid>

@@ -35,8 +35,8 @@ interface Props {
   noNominatedValidators: boolean | undefined;
   chain: Chain;
   api: ApiPromise | undefined;
-  validatorsIdentities: DeriveAccountInfo[] | null;
-  validatorsInfo: Validators | null;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
+  validatorsInfo: Validators | undefined;
   state: string;
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
   handleStopNominating: () => void;
