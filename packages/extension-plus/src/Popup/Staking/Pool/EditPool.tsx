@@ -14,7 +14,7 @@ import type { ThemeProps } from '../../../../../extension-ui/src/types';
 import type { AccountsBalanceType, MyPoolInfo } from '../../../util/plusTypes';
 
 import { SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
-import { Grid, TextField } from '@mui/material';
+import { Divider, Grid, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -73,9 +73,8 @@ function EditPool({ api, chain, handleConfirmStakingModaOpen, newPool, pool, set
       <Popup handleClose={handleEditPoolModalClose} showModal={showEditPoolModal}>
         <PlusHeader action={handleEditPoolModalClose} chain={chain} closeText={'Close'} icon={<SettingsApplicationsOutlinedIcon fontSize='small' />} title={'Edit Pool'} />
         <Grid container sx={{ pt: 2 }}>
-
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '20px 40px 1px' }}>
-            <Grid item sx={{ pr: '5px' }} xs={9}>
+            <Grid item sx={{ pr: '5px' }} xs={10}>
               <TextField
                 InputLabelProps={{ shrink: true }}
                 autoFocus
@@ -107,12 +106,10 @@ function EditPool({ api, chain, handleConfirmStakingModaOpen, newPool, pool, set
               />
             </Grid>
           </Grid>
-
-          <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, pt: '50px', textAlign: 'center' }} xs={12}>
-            {t('Roles')}
+          <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, pt: '40px', textAlign: 'center' }} xs={12}>
+            <Divider textAlign='left'> {t('Roles')}</Divider>
           </Grid>
-
-          <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '10px 40px 5px' }}>
+          <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '20px 40px 5px' }}>
             <Grid item xs={12}>
               <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={pool?.bondedPool?.roles?.depositor} title={t('Depositor')} />
             </Grid>
@@ -126,7 +123,6 @@ function EditPool({ api, chain, handleConfirmStakingModaOpen, newPool, pool, set
               <AddressInput api={api} chain={chain} freeSolo selectedAddress={stateToggler} setSelectedAddress={setStateToggler} title={t('State toggler')} />
             </Grid>
           </Grid>
-
           <Grid container item sx={{ p: '50px 34px' }} xs={12}>
             <Grid item xs={1}>
               <BackButton onClick={handleEditPoolModalClose} />
@@ -141,7 +137,6 @@ function EditPool({ api, chain, handleConfirmStakingModaOpen, newPool, pool, set
               </NextStepButton>
             </Grid>
           </Grid>
-
         </Grid>
       </Popup>
     </>

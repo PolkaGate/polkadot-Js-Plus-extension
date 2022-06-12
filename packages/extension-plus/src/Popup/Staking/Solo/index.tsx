@@ -419,9 +419,7 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
 
   return (
     <Popup handleClose={handleSoloStakingModalClose} showModal={showStakingModal}>
-
       <PlusHeader action={handleSoloStakingModalClose} chain={chain} closeText={'Close'} icon={<CircleOutlinedIcon fontSize='small' />} title={'Solo Staking'} />
-
       <Grid alignItems='center' container>
         <Grid container item xs={12}>
           <Overview

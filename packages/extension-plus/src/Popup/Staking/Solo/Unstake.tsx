@@ -43,7 +43,7 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
   const token = api?.registry?.chainTokens[0];
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
-    if (!decimals) return;
+    if (!decimals) { return; }
 
     setAlert('');
     value = fixFloatingPoint(value);
@@ -111,7 +111,6 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
                 <Grid xs={12}>
                   {t('Fetching data from blockchain ...')}
                 </Grid>}
-
               {currentlyStakedInHuman === '0' &&
                 <Grid xs={12}>
                   {t('Nothing to unstake')}
@@ -135,7 +134,6 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
           variant='outlined'
         />
       </Grid>
-
       <Grid container sx={{ height: '160px' }} title='Unstake'>
         <Grid container item xs={12}>
           <Grid container item justifyContent='flex-end' sx={{ px: '30px' }} xs={12}>
@@ -147,13 +145,12 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
                     onClick={handleMaxUnstakeClicked}
                     variant='text'
                   >
-                    {`${String(currentlyStakedInHuman)} ${token}`}
+                    {`${String(currentlyStakedInHuman)} ${token ?? ''}`}
                   </MuiButton>
                 </>
               }
             </Grid>
           </Grid>
-
           <Grid container item sx={{ fontSize: 13, fontWeight: '600', padding: '15px 30px 5px', textAlign: 'center' }} xs={12}>
             {alert &&
               <Grid item xs={12}>

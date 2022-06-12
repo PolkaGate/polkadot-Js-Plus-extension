@@ -5,7 +5,7 @@
   "name": "polkadot{.js} plus extension",
   "short_name": "Plus",
   "manifest_version": 2,
-  "version": "0.42.8.1",
+  "version": "0.44.1.1",
   "permissions": ["storage", "tabs"],
   "background": {
     "scripts": ["background.js"],
@@ -28,10 +28,5 @@
     "128": "images/icon-128.png"
   },
   "web_accessible_resources": ["page.js"],
-  "content_security_policy": "script-src 'self' blob: 'unsafe-eval' 'wasm-eval'; object-src 'self'",
-  "browser_specific_settings": {
-    "Plus": {
-      "update_url": "https://github.com/Nick-1979/polkadot-Js-Plus-extension/tree/master/packages/extension-plus/docs/updates.json"
-    }
-  }
+  "content_security_policy": "script-src 'self' blob: 'unsafe-eval' 'wasm-eval'; object-src 'self'"
 }

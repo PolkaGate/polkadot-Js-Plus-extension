@@ -519,6 +519,10 @@ export default class Extension {
     return { list: this.#state.toggleAuthorization(url) };
   }
 
+  private removeAuthorization(url: string): ResponseAuthorizeList {
+    return { list: this.#state.removeAuthorization(url) };
+  }
+
   // Weird thought, the eslint override is not needed in Tabs
   // eslint-disable-next-line @typescript-eslint/require-await
   public async handle<TMessageType extends MessageTypes>(id: string, type: TMessageType, request: RequestTypes[TMessageType], port: chrome.runtime.Port): Promise<ResponseType<TMessageType>> {
@@ -535,6 +539,9 @@ export default class Extension {
       case 'pri(authorize.toggle)':
         return this.toggleAuthorization(request as string);
 
+      case 'pri(authorize.remove)':
+        return this.removeAuthorization(request as string);
+
       case 'pri(authorize.requests)':
         return this.authorizeSubscribe(id, port);
 
@@ -547,14 +554,14 @@ export default class Extension {
       case 'pri(accounts.create.suri)':
         return this.accountsCreateSuri(request as RequestAccountCreateSuri);
 
+      case 'pri(accounts.updateMeta)': // added for plus 
+        return this.accountsUpdateMeta(request as RequestUpdateMeta);
+
       case 'pri(accounts.changePassword)':
         return this.accountsChangePassword(request as RequestAccountChangePassword);
 
       case 'pri(accounts.edit)':
         return this.accountsEdit(request as RequestAccountEdit);
-
-      case 'pri(accounts.updateMeta)': // added for plus 
-        return this.accountsUpdateMeta(request as RequestUpdateMeta);
 
       case 'pri(accounts.export)':
         return this.accountsExport(request as RequestAccountExport);

@@ -51,7 +51,7 @@ Once added, you can create an account (via a generated seed) or import via an ex
 
 #### To test on westend:
 
-Check wheather westend network info exists in './node_modules/@substrate/ss58-registry/index.js', if not add the following:
+Check wheather westend network info exists in './node_modules/@substrate/ss58-registry/esm/index.js', if not add the following:
 
 {
 		"prefix": 42,

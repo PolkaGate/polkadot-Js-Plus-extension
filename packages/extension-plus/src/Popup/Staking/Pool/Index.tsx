@@ -371,9 +371,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
 
   return (
     <Popup handleClose={handlePoolStakingModalClose} showModal={showStakingModal}>
-
       <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<GroupWorkOutlinedIcon fontSize='small' />} title={'Pool Staking'} />
-
       <Grid alignItems='center' container>
         <Grid container item xs={12}>
           <Overview
@@ -405,7 +403,6 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
               myPool={myPool}
               nextPoolId={nextPoolId}
-              nextToStakeButtonBusy={!!amount && state !== ''}
               poolStakingConsts={poolStakingConsts}
               poolsInfo={poolsInfo}
               poolsMembers={poolsMembers}
@@ -422,7 +419,6 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
               availableBalance={staker?.balanceInfo?.available ? new BN(String(staker.balanceInfo.available)) : BN_ZERO}
               currentlyStaked={currentlyStaked}
               handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
-              nextToUnStakeButtonBusy={state === 'unstake'}
               pool={myPool}
               poolStakingConsts={poolStakingConsts}
               staker={staker}

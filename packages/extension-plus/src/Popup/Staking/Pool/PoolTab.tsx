@@ -12,7 +12,7 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, ExpandMore, PlayArrowRounded as PlayArrowRoundedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
+import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, ExpandMore, PlayCircleOutlined as PlayCircleOutlinedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Button, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -45,7 +45,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
   }, []);
 
   const handleStateChange = useCallback((state: string) => {
-    if (!api) return;
+    if (!api) { return; }
 
     console.log('going to change state to ', state);
     setState(state);
@@ -59,7 +59,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
   }, [setState]);
 
   useEffect(() => {
-    if (!pool) return;
+    if (!pool) { return; }
 
     const hasPriviledge = [pool.bondedPool.roles.root, pool.bondedPool.roles.stateToggler].includes(staker.address);
 
@@ -72,7 +72,6 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
         ? pool
           ? <>
             <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} />
-
             <Grid container sx={{ height: showAction && 180, pt: 1 }}>
               <Grid item xs={12}>
                 <Accordion disableGutters expanded={expanded === 'roles'} onChange={handleAccordionChange('roles')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>
@@ -107,7 +106,6 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
                 </Accordion>
               }
             </Grid>
-
             {showAction &&
               <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
                 <Grid container item xs={8}>
@@ -140,8 +138,8 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
                       color='warning'
                       disabled={['open', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
                       onClick={() => handleStateChange('open')}
-                      size='medium'
-                      startIcon={<PlayArrowRoundedIcon />}
+                      size='small'
+                      startIcon={<PlayCircleOutlinedIcon />}
                       sx={{ textTransform: 'none' }}
                       variant='text'
                     >
@@ -164,14 +162,12 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
                 </Grid>
               </Grid>
             }
-
           </>
           : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
             {t('No active pool found')}
           </Grid>
         : <Progress title={t('Loading ...')} />
       }
-
       {showEditPoolModal && pool &&
         <EditPool
           api={api}
@@ -186,7 +182,6 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
           newPool={newPool}
         />
       }
-
     </Grid>
 
   );
