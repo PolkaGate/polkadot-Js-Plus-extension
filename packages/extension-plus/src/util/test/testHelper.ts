@@ -1194,7 +1194,7 @@ export const winners = auction.crowdloans.filter((c) => c.fund.hasLeased);
 export const display = (c: Crowdloan): string => c.identity.info.display || c.identity.info.legal || getText(c.fund.paraId) || '';
 export const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
 
-export function makeShortAddr (address: string) {
+export function makeShortAddr(address: string) {
   return `${address.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
 }
 
@@ -1270,7 +1270,7 @@ export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[9].address, exposure: { others: others, total: 123456 }, validatorPrefs: { commission: 750000000 } }
 ];
 
-export async function createAcc (suri: string, genesisHash: string, extension: Extension): Promise<string> {
+export async function createAcc(suri: string, genesisHash: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: genesisHash,
     name: 'Amir khan',
@@ -1284,7 +1284,7 @@ export async function createAcc (suri: string, genesisHash: string, extension: E
   return address;
 }
 
-export async function createAccount (suri: string, extension: Extension): Promise<string> {
+export async function createAccount(suri: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: westendGenesisHash,
     name: 'Amir khan',
@@ -1298,7 +1298,7 @@ export async function createAccount (suri: string, extension: Extension): Promis
   return address;
 }
 
-export async function createExtension (): Promise<Extension> {
+export async function createExtension(): Promise<Extension> {
   try {
     return new Promise((resolve) => {
       cryptoWaitReady()
@@ -1402,7 +1402,7 @@ export const putInFront: PutInFrontInfo = {
   lighter: accounts[0].address,
   shouldPutInFront: true
 };
-export const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating', 'tuneUp', 'withdrawClaimable', 'bondExtraRewards', 'bondExtra', 'createPool', 'joinPool'];
+export const state = ['stakeAuto', 'stakeManual', 'stakeKeepNominated', 'changeValidators', 'setNominees', 'unstake', 'withdrawUnbound', 'stopNominating', 'tuneUp', 'withdrawClaimable', 'bondExtraRewards', 'bondExtra', 'createPool', 'joinPool', 'editPool'];
 
 export const poolStakingConst: PoolStakingConsts | undefined = {
   lastPoolId: new BN('30'),
@@ -1415,28 +1415,39 @@ export const poolStakingConst: PoolStakingConsts | undefined = {
   minNominatorBond: new BN('10817536')
 };
 
-export const pool = (states: string): MyPoolInfo => {
+export const pool = (states = '', nameEdited = false, rolesEdited = false): MyPoolInfo => {
   return {
     accounts: {
       rewardId: '5EYCAe5ijiYfAXEth5DXrWyDFTVKxJeJ5YA8VanQUrFZT3za',
       stashId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs'
     },
     bondedPool: {
-      points: '0aaacc4fe9ba',
-      state: ['bondExtra', 'joinPool', 'bondExtraRewards', 'withdrawClaimable'].includes(states) ? 'Open' : 'Creating',
-      memberCounter: states === 'joinPool' ? 12 : states === 'bondExtra' ? 12 : 0,
+      points: 13195788507322,
+      state: ['bondExtra', 'joinPool', 'bondExtraRewards', 'withdrawClaimable'].includes(states) ? 'Open' : 'Destroying',
+      memberCounter: ['bondExtra', 'joinPool'].includes(states) ? 12 : 0,
       roles: {
         depositor: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
-        root: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
-        nominator: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
-        stateToggler: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ'
+        root: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
+        nominator: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
+        stateToggler: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm'
       }
     },
     ledger: {
       stash: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
-      total: 3490000000000,
-      active: 3490000000000,
-      unlocking: [],
+      total: 13695788507322,
+      active: 13695788507322,
+      unlocking: states === ''
+        ? [
+          {
+            value: 400000000000,
+            era: 5194
+          },
+          {
+            value: 100000000000,
+            era: 5206
+          }
+        ]
+        : [],
       claimedRewards: [
         5085,
         5086,
@@ -1525,52 +1536,50 @@ export const pool = (states: string): MyPoolInfo => {
       ]
     },
     member: {
+      points: states === 'joinPool' ? 0 : 1267100000000,
       poolId: 57,
-      points: states === 'join' ? 0 : 3490000000000,
       rewardPoolTotalEarnings: 0,
       unbondingEras: {}
     },
-    metadata: 'Polkadot js plus',
-    myClaimable: new BN('14405639157'),
+    metadata: !nameEdited ? 'Polkadot js plus' : 'Polkadot js plus ❤',
+    myClaimable: new BN('16844370676'),
     poolId: new BN('06'),
-    redeemable: 0,
-    rewardClaimable: new BN('14405639157'),
+    redeemable: new BN('500000000000'),
+    rewardClaimable: new BN('523506206240'),
     rewardIdBalance: {
+      feeFrozen: 0,
       free: 24405639157,
-      reserved: 0,
       miscFrozen: 0,
-      feeFrozen: 0
+      reserved: 0
     },
     rewardPool: ['bondExtra', 'joinPool', 'bondExtraRewards'].includes(states)
       ? {
-        balance: 175429298587,
-        points: '0x000000000000000000000000000000000000000000025b0f4235ca0211000200',
-        totalEarnings: 938023415005
+        balance: '269378329919',
+        points: '3959162288463855089412904',
+        totalEarnings: '1031972446337'
       }
       : null,
     stashIdAccount: {
-      nextSessionIds: [],
-      sessionIds: [],
       accountId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
       controllerId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
       exposure: {
-        total: 0,
+        others: [],
         own: 0,
-        others: []
+        total: 0
       },
+      nextSessionIds: [],
       nominators: [
         '5CFPcUJgYgWryPaV1aYjSbTpbTLu42V32Ytw1L9rfoMAsfGh',
         '5CFPqoTU7fiUp1JJNbfcY2z6yavEBKDPQGg4SGeG3Fm7vCsg',
         '5GYaYNVq6e855t5hVCyk4Wuqssaf6ADTrvdPZ3QXyHvFXTip'
       ],
+      redeemable: '0x00000000000000000000000000000000',
       rewardDestination: {
         account: '5EYCAe5ijiYfAXEth5DXrWyDFTVKxJeJ5YA8VanQUrFZT3za'
       },
+      sessionIds: [],
       stakingLedger: {
-        stash: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
-        total: 3490000000000,
-        active: 3490000000000,
-        unlocking: [],
+        active: 13195788507322,
         claimedRewards: [
           5085,
           5086,
@@ -1656,14 +1665,27 @@ export const pool = (states: string): MyPoolInfo => {
           5166,
           5167,
           5168
-        ]
+        ],
+        stash: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
+        total: 13695788507322,
+        unlocking: states === ''
+          ? [
+            {
+              value: 400000000000,
+              era: 5194
+            },
+            {
+              value: 100000000000,
+              era: 5206
+            }
+          ]
+          : []
       },
       stashId: '5EYCAe5ijiYfAXEth5DG7VRd8xp8VkYRLsDcwe6a22NqBKJs',
       validatorPrefs: {
-        commission: 0,
-        blocked: false
-      },
-      redeemable: '0x00000000000000000000000000000000'
+        blocked: false,
+        commission: 0
+      }
     }
   };
 };

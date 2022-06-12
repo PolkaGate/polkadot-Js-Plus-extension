@@ -63,6 +63,7 @@ describe('Testing ConfirmStaking component', () => {
       <ConfirmStaking
         amount={amount}
         api={api}
+        basePool={joinPool}
         chain={chain}
         nominatedValidators={validatorsList}
         pool={joinPool}
@@ -83,8 +84,6 @@ describe('Testing ConfirmStaking component', () => {
     const index = joinPool.poolId.toString();
     const mayPoolBalance = joinPool?.ledger?.active ?? joinPool?.bondedPool?.points;
     const staked = api.createType('Balance', mayPoolBalance).toHuman();
-
-    console.log('const staked:', staked);
 
     expect(queryByText('JOIN POOL')).toBeTruthy();
     expect(queryByTestId('amount')?.textContent).toEqual(`${amountToStakeInHuman}${coin}`);
@@ -121,6 +120,7 @@ describe('Testing ConfirmStaking component', () => {
       <ConfirmStaking
         amount={amount}
         api={api}
+        basePool={createPool}
         chain={chain}
         nominatedValidators={validatorsList}
         pool={createPool}
@@ -169,6 +169,7 @@ describe('Testing ConfirmStaking component', () => {
       <ConfirmStaking
         amount={amount}
         api={api}
+        basePool={bondPool}
         chain={chain}
         nominatedValidators={validatorsList}
         pool={bondPool}
@@ -219,6 +220,7 @@ describe('Testing ConfirmStaking component', () => {
       <ConfirmStaking
         amount={amount}
         api={api}
+        basePool={bondExtraRewardPool}
         chain={chain}
         nominatedValidators={validatorsList}
         pool={bondExtraRewardPool}
@@ -337,5 +339,55 @@ describe('Testing ConfirmStaking component', () => {
     //     validatorsIdentities={validatorsIdentities}
     //   />
     // );
+  });
+
+  test('when state is editPool', () => {
+    const justAPool: MyPoolInfo = pool('');
+    const editPool: MyPoolInfo = pool('', true, true); // metaData and roles going to change
+
+    const { queryAllByText, queryByTestId, queryByText } = render(
+      <ConfirmStaking
+        amount={new BN('0')}
+        api={api}
+        basePool={editPool}
+        chain={chain}
+        nominatedValidators={validatorsList}
+        pool={justAPool}
+        poolsMembers={poolsMembers}
+        selectedValidators={validatorsList}
+        setConfirmStakingModalOpen={setConfirmStakingModalOpen}
+        setState={setState}
+        showConfirmStakingModal={true}
+        staker={staker}
+        stakingConsts={stakingConsts}
+        state={state[14]} // edit pool
+        validatorsIdentities={validatorsIdentities}
+      />
+    );
+
+    const currentlyStaked = amountToHuman(justAPool.member.points.toString(), decimals);
+    const index = justAPool.poolId.toString();
+    const mayPoolBalance = justAPool?.ledger?.active ?? justAPool?.bondedPool?.points;
+    const staked = api.createType('Balance', mayPoolBalance).toHuman();
+
+    expect(queryByText('EDIT POOL')).toBeTruthy();
+    expect(queryByTestId('amount')?.textContent).toEqual('');
+    expect(queryByText('Currently staked')).toBeTruthy();
+    expect(queryByText('Total staked')).toBeTruthy();
+    expect(queryAllByText(`${Number(currentlyStaked)} ${coin}`).length === 2).toBeTruthy();
+    expect(queryByText('Fee')).toBeTruthy();
+
+    expect(queryByText('Pool')).toBeTruthy();
+    expect(queryByText('More')).toBeTruthy();
+    expect(queryByText('Index')).toBeTruthy();
+    expect(queryByText(index)).toBeTruthy();
+    expect(queryByText('Name')).toBeTruthy();
+    expect(queryByText(justAPool.metadata)).toBeTruthy();
+    expect(queryByText('State')).toBeTruthy();
+    expect(queryByText(justAPool.bondedPool.state)).toBeTruthy();
+    expect(queryByText('Staked')).toBeTruthy();
+    expect(queryByText(staked)).toBeTruthy();
+    expect(queryByText('Members')).toBeTruthy();
+    expect(queryByText(justAPool.bondedPool.memberCounter)).toBeTruthy();
   });
 });
