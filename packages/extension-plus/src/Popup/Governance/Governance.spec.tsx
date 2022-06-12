@@ -68,7 +68,12 @@ describe('Testing Governance Home page', () => {
 
     fireEvent.click(Treasury);
 
-    expect(queryByText('Loading proposals ...')).toBeTruthy();
+    expect(queryByText('spendable / available')).toBeTruthy();
+    expect(queryByText('approved')).toBeTruthy();
+    expect(queryByText('spend period')).toBeTruthy();
+    expect(queryByText('days')).toBeTruthy();
+    expect(queryByText('remaining')).toBeTruthy();
+    expect(queryByText('next burn')).toBeTruthy();
 
     expect(queryByText('Tips (0)')).toBeTruthy();
     fireEvent.click(queryByText('Tips (0)') as Element);
