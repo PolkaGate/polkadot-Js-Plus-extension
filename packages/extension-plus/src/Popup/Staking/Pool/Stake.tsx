@@ -51,7 +51,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const [zeroBalanceAlert, setZeroBalanceAlert] = useState(false);
   const [nextButtonCaption, setNextButtonCaption] = useState<string>(t('Next'));
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
-  const [minStakeable, setMinStakeable] = useState<BN>(BN_ZERO);
   const [maxStakeable, setMaxStakeable] = useState<BN>(BN_ZERO);
   const [maxStakeableAsNumber, setMaxStakeableAsNumber] = useState<number>(0);
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
@@ -66,23 +65,17 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [decimals, setStakeAmount, stakeAmountInHuman]);
 
   const handleStakeAmountInput = useCallback((value: string): void => {
-    if (!api || !decimals || !staker?.balanceInfo?.available) return;
+    if (!api || !decimals || !staker?.balanceInfo?.available) { return; }
 
     setAlert('');
     const valueAsBN = new BN(String(amountToMachine(value, decimals)));
-
-    if (value && valueAsBN.lt(minStakeable)) {
-      const minStakeableAsBalance = api.createType('Balance', minStakeable);
-
-      setAlert(t(`Staking amount is too low, it must be at least ${minStakeableAsBalance.toHuman()}`));
-    }
 
     if (valueAsBN.gt(maxStakeable) && valueAsBN.lt(new BN(String(staker.balanceInfo.available)))) {
       setAlert(t('Your account might be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [api, currentlyStaked, decimals, maxStakeable, minStakeable, staker?.balanceInfo?.available, t]);
+  }, [api, decimals, maxStakeable, staker?.balanceInfo?.available, t]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -105,30 +98,32 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const handleJoinPool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
       setJoinPoolModalOpen(true);
-      if (!state) setState('joinPool');
+
+      if (!state) { setState('joinPool'); }
     }
   }, [staker?.balanceInfo?.available, state, setState]);
 
   const handleNextToStake = useCallback((): void => {
-    if (!decimals) return;
+    if (!decimals) { return; }
 
-    if (Number(stakeAmountInHuman) >= Number(amountToHuman(minStakeable.toString(), decimals))) {
+    if (Number(stakeAmountInHuman)) {
       handleConfirmStakingModaOpen();
-      if (!state) setState('bondExtra');
+
+      if (!state) { setState('bondExtra'); }
     }
-  }, [stakeAmountInHuman, minStakeable, decimals, handleConfirmStakingModaOpen, state, setState]);
+  }, [stakeAmountInHuman, decimals, handleConfirmStakingModaOpen, state, setState]);
 
   useEffect(() => {
-    if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available) return;
-    let max = new BN(String(staker.balanceInfo.available)).sub(existentialDeposit.muln(3)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
-    let min = poolStakingConsts.minJoinBond;
+    if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available) { return; }
 
-    if (min.gt(max)) {
-      min = max = BN_ZERO;
+    let max = new BN(String(staker.balanceInfo.available)).sub(existentialDeposit.muln(3)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
+    // let min = poolStakingConsts.minJoinBond;
+
+    if (max.ltn(0)) {
+      max = BN_ZERO;
     }
 
     setMaxStakeable(max);
-    setMinStakeable(min);
   }, [poolStakingConsts, existentialDeposit, staker?.balanceInfo?.available]);
 
   useEffect(() => {
@@ -137,7 +132,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     const maxStakeableAsNumber = Number(amountToHuman(maxStakeable.toString(), decimals));
 
     setMaxStakeableAsNumber(maxStakeableAsNumber);
-  }, [minStakeable, maxStakeable, decimals, currentlyStaked]);
+  }, [maxStakeable, decimals, currentlyStaked]);
 
   useEffect(() => {
     if (stakeAmountInHuman && Number(stakeAmountInHuman) <= maxStakeableAsNumber) {
