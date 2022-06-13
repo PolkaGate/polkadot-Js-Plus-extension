@@ -29,7 +29,7 @@ interface Props {
   stakingConsts: StakingConsts | undefined;
   validatorsIdentities: DeriveAccountInfo[] | null;
   height: number;
-  staker?: AccountsBalanceType;
+  staker?: AccountsBalanceType | string;
 
 }
 
@@ -66,7 +66,6 @@ export default function ValidatorsList({ activeValidator, api, chain, height, st
           : <Progress title={t('Loading validators....')} />
         }
       </Grid>
-
       {showValidatorInfoModal && info && api && chain &&
         <ValidatorInfo
           api={api}

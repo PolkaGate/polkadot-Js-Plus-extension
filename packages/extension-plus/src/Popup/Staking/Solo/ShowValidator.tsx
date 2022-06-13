@@ -10,16 +10,17 @@
 import type { AccountId } from '@polkadot/types/interfaces';
 
 import { DirectionsRun as DirectionsRunIcon, MoreVert as MoreVertIcon, ReportProblemOutlined as ReportProblemOutlinedIcon } from '@mui/icons-material';
-import { Grid, Paper, Switch } from '@mui/material';
+import { Grid, Paper, Switch, Tooltip } from '@mui/material';
 import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
-import { Hint, Identity, ShortAddress } from '../../../components';
+import { Identity, ShortAddress } from '../../../components';
 import { SELECTED_COLOR } from '../../../util/constants';
 import { StakingConsts } from '../../../util/plusTypes';
+import { TFunction } from '@polkadot/apps-config/types';
 
 interface Props {
   api: ApiPromise;
@@ -34,9 +35,10 @@ interface Props {
   validatorsIdentities: DeriveAccountInfo[] | null;
   activeValidator?: DeriveStakingQuery;
   showSocial?: boolean;
+  t: TFunction;
 }
 
-function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSocial = true, showSwitch = false, stakingConsts, validator, validatorsIdentities }: Props) {
+function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSocial = true, showSwitch = false, stakingConsts, t, validator, validatorsIdentities }: Props) {
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? SELECTED_COLOR : '');
   const getAccountInfo = (id: AccountId): DeriveAccountInfo | undefined => validatorsIdentities?.find((v) => v?.accountId === id);
@@ -47,14 +49,11 @@ function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwit
   const total = api.createType('Balance', validator.exposure.total);
 
   return (
-
     <Paper elevation={2} sx={{ backgroundColor: rowBackground, borderRadius: '10px', mt: '4px', p: '1px 10px 2px 0px' }}>
       <Grid alignItems='center' container sx={{ fontSize: 11 }}>
-
         <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
           <MoreVertIcon fontSize={showSwitch ? 'medium' : 'small'} onClick={() => handleMoreInfo(validator)} sx={{ cursor: 'pointer' }} />
         </Grid>
-
         <Grid item sx={{ fontSize: 11 }} xs={6}>
           {validatorsIdentities
             ? <Identity
@@ -67,37 +66,33 @@ function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwit
             : <ShortAddress address={String(validator?.accountId)} fontSize={11} />
           }
         </Grid>
-
         {!showSwitch &&
           <Grid item sx={{ textAlign: 'left' }} xs={2}>
             {total ? total.toHuman() : ''}
           </Grid>
         }
-
         <Grid item sx={{ textAlign: 'center' }} xs={showSwitch ? 2 : 1}>
           {Number(validator.validatorPrefs.commission) / (10 ** 7) < 1 ? 0 : Number(validator.validatorPrefs.commission) / (10 ** 7)}%
         </Grid>
-
         <Grid alignItems='center' container item justifyContent='center' xs={2}>
           <Grid item sx={{ textAlign: 'right' }} xs={2}>
             {!!nominatorCount && isActive &&
-              <Hint id='active' place='left' tip='Active'>
+              <Tooltip placement='left' title={t('Active')}>
                 <DirectionsRunIcon color='primary' sx={{ fontSize: '17px' }} />
-              </Hint>
+              </Tooltip>
             }
           </Grid>
-          <Grid item xs={'auto'} sx={{ textAlign: 'center' }} >
+          <Grid item sx={{ textAlign: 'center' }} xs={'auto'}>
             {nominatorCount || 'waiting'}
           </Grid>
-          <Grid item xs={2} sx={{ textAlign: 'left' }}>
+          <Grid item sx={{ textAlign: 'left' }} xs={2}>
             {!!nominatorCount && isOverSubscribed &&
-              <Hint id='oversubscribed' place='left' tip='Oversubscribed'>
+              <Tooltip placement='left' title={t('Oversubscribed')}>
                 <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '17px' }} />
-              </Hint>
+              </Tooltip>
             }
           </Grid>
         </Grid>
-
         {showSwitch && <Grid item xs={1}>
           <Switch checked={isItemSelected} color='warning' onChange={(e) => handleSwitched(e, validator)} size='small' />
         </Grid>

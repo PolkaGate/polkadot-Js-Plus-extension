@@ -16,7 +16,7 @@ import type { PalletNominationPoolsPoolMember } from '@polkadot/types/lookup';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { AddCircleOutlineOutlined as AddCircleOutlineOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, PanToolOutlined as PanToolOutlinedIcon, RemoveCircleOutlineOutlined as RemoveCircleOutlineOutlinedIcon, ReportOutlined as ReportOutlinedIcon, WorkspacesOutlined as WorkspacesOutlinedIcon } from '@mui/icons-material';
-import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
+import { Badge, Box, CircularProgress, Grid, Tab, Tabs, Tooltip } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -27,7 +27,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
-import { Hint, PlusHeader, Popup } from '../../../components';
+import { PlusHeader, Popup } from '../../../components';
 import { useMapEntries } from '../../../hooks';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
@@ -319,7 +319,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   const handleStopNominating = useCallback((): void => {
     handleConfirmStakingModaOpen();
 
-    if (!state) setState('stopNominating');
+    if (!state) { setState('stopNominating'); }
   }, [handleConfirmStakingModaOpen, state]);
 
   const getAmountToConfirm = useCallback(() => {
@@ -338,7 +338,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   }, [state, amount]);
 
   useEffect(() => {
-    if (!myPool?.accounts?.stashId) return;
+    if (!myPool?.accounts?.stashId) { return; }
 
     const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === myPool.accounts.stashId));
 
@@ -353,19 +353,19 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
     gettingNominatedValidatorsInfoFromChain
       ? <CircularProgress size={12} sx={{ px: '5px' }} thickness={2} />
       : currentlyStaked && !nominatedValidators?.length
-        ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
+        ? <Tooltip placement='top' title={t('No validators nominated')}>
           <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
-        </Hint>
+        </Tooltip>
         : !activeValidator && nominatedValidators?.length
-          ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
+          ? <Tooltip placement='top' title={t('No active validator in this era')}>
             <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
-          </Hint>
+          </Tooltip>
           : oversubscribedsCount
-            ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
+            ? <Tooltip placement='top' title={t('oversubscribed nominees')}>
               <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
                 <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
               </Badge>
-            </Hint>
+            </Tooltip>
             : <PanToolOutlinedIcon sx={{ fontSize: '17px' }} />
   ), [gettingNominatedValidatorsInfoFromChain, currentlyStaked, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 

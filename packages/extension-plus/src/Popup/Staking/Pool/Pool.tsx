@@ -29,14 +29,13 @@ interface Props {
   api: ApiPromise | undefined;
   pool: MyPoolInfo | undefined;
   poolsMembers?: MembersMapEntry[] | undefined;
-  showAction?: boolean;
   showCheck?: boolean;
   showHeader?: boolean;
   selectedPool?: PoolInfo;
   setSelectedPool?: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
 }
 
-export default function Pool({ api, chain, pool, poolsMembers, selectedPool, setSelectedPool, showAction = false, showCheck = false, showHeader = true }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, pool, poolsMembers, selectedPool, setSelectedPool, showCheck = false, showHeader = true }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [staked, setStaked] = useState<Balance | undefined>();
@@ -84,7 +83,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
                     {t('Index')}
                   </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 3 : 4}>
+                  <Grid item sx={{ textAlign: 'center' }} xs={ 4}>
                     {t('Name')}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
@@ -93,14 +92,9 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                   <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
                     {t('Staked')}
                   </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 1 : 2}>
+                  <Grid item sx={{ textAlign: 'center' }} xs={2}>
                     {t('Members')}
                   </Grid>
-                  {showAction &&
-                    <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                      {t('Actions')}
-                    </Grid>
-                  }
                 </Grid>
               </Paper>
             }
@@ -115,7 +109,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {String(poolId)}
                 </Grid>
-                <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={showAction ? 3 : 4}>
+                <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={4}>
                   {pool.metadata ?? t('no name')}
                 </Grid>
                 {!showCheck &&
@@ -126,28 +120,9 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                 <Grid item sx={{ textAlign: 'center' }} xs={pool.bondedPool.state !== 'Creating' ? 3 : 4}>
                   {staked?.toHuman() ?? 0}
                 </Grid>
-                <Grid item sx={{ textAlign: 'center' }} xs={showAction ? 1 : 2}>
+                <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {pool.bondedPool.memberCounter}
                 </Grid>
-                {showAction &&
-                  <Grid alignItems='center' container direction='row' item justifyContent='space-around' sx={{ textAlign: 'center' }} xs={2}>
-                    <Grid item>
-                      <Hint id='destroying' place='bottom' tip={t('destroy')}>
-                        <StopRoundedIcon color='secondary' fontSize='small' sx={{ cursor: 'pointer' }} />
-                      </Hint>
-                    </Grid>
-                    <Grid item>
-                      <Hint id='block' place='bottom' tip={t('block')}>
-                        <BlockRoundedIcon color='warning' sx={{ cursor: 'pointer', fontSize: 13, pb: '0.8px' }} />
-                      </Hint>
-                    </Grid>
-                    <Grid item>
-                      <Hint id='open' place='bottom' tip={t('open')}>
-                        <PlayArrowRoundedIcon color='primary' fontSize='small' sx={{ cursor: 'pointer' }} />
-                      </Hint>
-                    </Grid>
-                  </Grid>
-                }
                 {showCheck &&
                   <Grid item xs={1}>
                     <Switch checked={selectedPool && selectedPool.poolId.eq(pool.poolId)} color='warning' onChange={() => setSelectedPool(pool)} size='small' />

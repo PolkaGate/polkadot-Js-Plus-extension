@@ -70,6 +70,7 @@ export default function VTable({ activeValidator, api, chain, setInfo, setShowVa
               key={index}
               showSocial={false}
               stakingConsts={stakingConsts}
+              t={t}
               validator={v}
               validatorsIdentities={validatorsIdentities}
             />
