@@ -51,8 +51,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const [zeroBalanceAlert, setZeroBalanceAlert] = useState(false);
   const [nextButtonCaption, setNextButtonCaption] = useState<string>(t('Next'));
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
-  const [minStakeable, setMinStakeable] = useState<BN>(BN_ZERO);
-  const [minStakeableAsNumber, setMinStakeableAsNumber] = useState<number>(0);
   const [maxStakeable, setMaxStakeable] = useState<BN>(BN_ZERO);
   const [maxStakeableAsNumber, setMaxStakeableAsNumber] = useState<number>(0);
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
@@ -67,23 +65,17 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [decimals, setStakeAmount, stakeAmountInHuman]);
 
   const handleStakeAmountInput = useCallback((value: string): void => {
-    if (!api || !decimals || !staker?.balanceInfo?.available) return;
+    if (!api || !decimals || !staker?.balanceInfo?.available) { return; }
 
     setAlert('');
     const valueAsBN = new BN(String(amountToMachine(value, decimals)));
-
-    if (value && valueAsBN.lt(minStakeable)) {
-      const minStakeableAsBalance = api.createType('Balance', minStakeable);
-
-      setAlert(t(`Staking amount is too low, it must be at least ${minStakeableAsBalance.toHuman()}`));
-    }
 
     if (valueAsBN.gt(maxStakeable) && valueAsBN.lt(new BN(String(staker.balanceInfo.available)))) {
       setAlert(t('Your account might be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [api, decimals, maxStakeable, minStakeable, staker?.balanceInfo?.available, t]);
+  }, [api, decimals, maxStakeable, staker?.balanceInfo?.available, t]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -98,54 +90,55 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const handleCreatePool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
       setCreatePoolModalOpen(true);
-      if (!state) setState('createPool');
+
+      if (!state) { setState('createPool'); }
     }
   }, [staker?.balanceInfo?.available, state, setState]);
 
   const handleJoinPool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
       setJoinPoolModalOpen(true);
-      if (!state) setState('joinPool');
+
+      if (!state) { setState('joinPool'); }
     }
   }, [staker?.balanceInfo?.available, state, setState]);
 
   const handleNextToStake = useCallback((): void => {
-    if (!decimals) return;
+    if (!decimals) { return; }
 
-    if (Number(stakeAmountInHuman) >= Number(amountToHuman(minStakeable.toString(), decimals))) {
+    if (Number(stakeAmountInHuman)) {
       handleConfirmStakingModaOpen();
-      if (!state) setState('bondExtra');
+
+      if (!state) { setState('bondExtra'); }
     }
-  }, [stakeAmountInHuman, minStakeable, decimals, handleConfirmStakingModaOpen, state, setState]);
+  }, [stakeAmountInHuman, decimals, handleConfirmStakingModaOpen, state, setState]);
 
   useEffect(() => {
-    if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available) return;
-    let max = new BN(String(staker.balanceInfo.available)).sub(existentialDeposit.muln(3)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
-    let min = poolStakingConsts.minJoinBond;
+    if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available) { return; }
 
-    if (min.gt(max)) {
-      min = max = BN_ZERO;
+    let max = new BN(String(staker.balanceInfo.available)).sub(existentialDeposit.muln(3)); // 3: one goes to pool rewardId, 2 others remain as my account ED + some fee (FIXME: ED is lowerthan fee in some chains like KUSAMA)
+    // let min = poolStakingConsts.minJoinBond;
+
+    if (max.ltn(0)) {
+      max = BN_ZERO;
     }
 
     setMaxStakeable(max);
-    setMinStakeable(min);
   }, [poolStakingConsts, existentialDeposit, staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (!decimals) return;
+    if (!decimals) { return; }
 
-    const minStakeableAsNumber = Number(amountToHuman(minStakeable.toString(), decimals));
     const maxStakeableAsNumber = Number(amountToHuman(maxStakeable.toString(), decimals));
 
-    setMinStakeableAsNumber(minStakeableAsNumber);
     setMaxStakeableAsNumber(maxStakeableAsNumber);
-  }, [minStakeable, maxStakeable, decimals]);
+  }, [maxStakeable, decimals, currentlyStaked]);
 
   useEffect(() => {
-    if (stakeAmountInHuman && minStakeableAsNumber <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStakeableAsNumber) {
+    if (stakeAmountInHuman && Number(stakeAmountInHuman) <= maxStakeableAsNumber) {
       setNextToStakeButtonDisabled(false);
     }
-  }, [maxStakeableAsNumber, minStakeableAsNumber, stakeAmountInHuman]);
+  }, [maxStakeableAsNumber, stakeAmountInHuman]);
 
   useEffect(() => {
     if (!decimals) { return; }
@@ -167,17 +160,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     if (Number(stakeAmountInHuman) && balanceIsInsufficient) {
       setNextButtonCaption(t('Insufficient Balance'));
     }
-
-    if (Number(stakeAmountInHuman) && Number(stakeAmountInHuman) < minStakeableAsNumber) {
-      setNextToStakeButtonDisabled(true);
-    }
-  }, [stakeAmountInHuman, t, minStakeableAsNumber, staker?.balanceInfo?.available, decimals]);
-
-  const handleMinStakeClicked = useCallback(() => {
-    if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
-
-    handleStakeAmountInput(String(minStakeableAsNumber));
-  }, [handleStakeAmountInput, minStakeableAsNumber, myPool?.bondedPool?.state]);
+  }, [stakeAmountInHuman, t, staker?.balanceInfo?.available, decimals]);
 
   const handleMaxStakeClicked = useCallback(() => {
     if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
@@ -279,13 +262,8 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
             </Grid>
             <Grid container sx={{ height: '160px' }}>
               {!zeroBalanceAlert && token &&
-                <Grid container item justifyContent='space-between' sx={{ px: '30px' }} xs={12}>
-                  <Grid item sx={{ fontSize: 12 }}>
-                    {t('Min')}:
-                    <MuiButton onClick={handleMinStakeClicked} variant='text'>
-                      <FormatBalance api={api} value={minStakeable} />
-                    </MuiButton>
-                  </Grid>
+                <Grid container item justifyContent='flex-end' sx={{ px: '30px' }} xs={12}>
+
                   <Grid item sx={{ fontSize: 12 }}>
                     {t('Max')}{': ~ '}
                     <MuiButton onClick={handleMaxStakeClicked} variant='text'>

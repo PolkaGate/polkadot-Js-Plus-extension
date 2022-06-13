@@ -83,7 +83,6 @@ function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handl
               validatorsInfo={nominatedValidators}
             />
           </Grid>
-
           {[myPool?.bondedPool?.roles?.root, myPool?.bondedPool?.roles?.nominator].includes(staker.address) &&
             <Grid container item justifyContent='flex-end' sx={{ padding: '5px 10px 0px' }} xs={12}>
               {/* <Grid item xs={5}>
@@ -97,7 +96,6 @@ function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handl
                   {t('Stop nominating')}
                 </MuiButton>
               </Grid> */}
-
               <Grid item sx={{ textAlign: 'right' }} xs={4}>
                 <MuiButton
                   color='warning'
@@ -129,7 +127,6 @@ function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handl
                 />
               </Link>
             </Grid>
-
             <Grid item sx={{ fontSize: 13, margin: '60px 10px 30px', textAlign: 'center' }} xs={12}>
               {t('No nominated validators found')}
             </Grid>

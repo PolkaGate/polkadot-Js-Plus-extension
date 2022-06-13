@@ -13,14 +13,14 @@
 import type { MyPoolInfo } from '../../../util/plusTypes';
 
 import { AddCircleOutline as AddCircleOutlineIcon, MoreHoriz as MoreHorizIcon, Redeem as RedeemIcon, SystemUpdateAltOutlined as SystemUpdateAltOutlinedIcon } from '@mui/icons-material';
-import { Grid, Grow, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper, Typography } from '@mui/material';
+import { Grid, Grow, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper, Tooltip, Typography } from '@mui/material';
 import React, { useCallback, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, ShowBalance2 } from '../../../components';
+import { ShowBalance2 } from '../../../components';
 
 interface Props {
   availableBalance: BN,
@@ -84,20 +84,18 @@ export default function Overview({ api, availableBalance, handleConfirmStakingMo
                         {t('Rewards')}
                       </Grid>
                       <Grid item>
-                        <Hint id='claim' place='top' tip={t('Rewards decision')}>
-                          {/* <SystemUpdateAltOutlinedIcon color={claimable?.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawClaimable} sx={{ cursor: 'pointer', fontSize: 15 }} /> */}
+                        <Tooltip placement='top' title={t('Reward decision')}>
                           <MoreHorizIcon
                             color={claimable?.gtn(0) ? 'warning' : 'disabled'}
                             onClick={handleRewardsMenuClick}
                             sx={{ cursor: 'pointer', fontSize: 15 }}
                           />
-                        </Hint>
+                        </Tooltip>
                       </Grid>
                     </Grid>
                   }
                 />
               </Grid>
-
               <Grid container item justifyContent='center' xs={4}>
                 <ShowBalance2 api={api} balance={redeemable} direction='column'
                   title={
@@ -106,15 +104,14 @@ export default function Overview({ api, availableBalance, handleConfirmStakingMo
                         {t('Redeemable')}
                       </Grid>
                       <Grid item>
-                        <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
+                        <Tooltip placement='top' title={t('Withdraw unbounded')}>
                           <RedeemIcon color={redeemable?.gtn(0) ? 'warning' : 'disabled'} onClick={handleWithdrawUnbounded} sx={{ cursor: 'pointer', fontSize: 15 }} />
-                        </Hint>
+                        </Tooltip>
                       </Grid>
                     </Grid>
                   }
                 />
               </Grid>
-
               <Grid item xs={4}>
                 <ShowBalance2 api={api} balance={unlockingAmount} direction='column' title={t('Unstaking')} />
               </Grid>
@@ -122,7 +119,6 @@ export default function Overview({ api, availableBalance, handleConfirmStakingMo
           </Grid>
         </Grid>
       </Paper>
-
       <Menu
         TransitionComponent={Grow}
         anchorEl={anchorEl}
