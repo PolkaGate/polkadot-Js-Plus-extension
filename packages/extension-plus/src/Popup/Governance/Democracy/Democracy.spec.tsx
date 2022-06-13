@@ -63,8 +63,8 @@ let seconds: string;
 
 describe('Testing Democracy component', () => {
   beforeAll(async () => {
-    currentBlockNumber = await getCurrentBlockNumber(chain.name);
-    chainInfo = await getChainInfo(chain.name);
+    currentBlockNumber = await getCurrentBlockNumber(chain().name);
+    chainInfo = await getChainInfo(chain().name);
 
     extension = await createExtension();
     address = await createAcc(firstSuri, chainInfo.genesisHash, extension);
@@ -77,7 +77,7 @@ describe('Testing Democracy component', () => {
       votingBalance = b?.votingBalance;
     });
 
-    referendum = await getReferendums(chain.name);
+    referendum = await getReferendums(chain().name);
 
     if (referendum?.length) {
       rValue = referendum[0].image?.proposal;
@@ -133,7 +133,7 @@ describe('Testing Democracy component', () => {
     const { getByRole, queryByText } = render(
       <ReferendumsOverview
         address={accounts[0].address}
-        chain={chain}
+        chain={chain()}
         chainInfo={chainInfo}
         convictions={convictions}
         currentBlockNumber={currentBlockNumber}
@@ -174,7 +174,7 @@ describe('Testing Democracy component', () => {
         >
           <Vote
             address={address}
-            chain={chain}
+            chain={chain()}
             chainInfo={chainInfo}
             convictions={convictions}
             showVoteReferendumModal={true}
@@ -208,7 +208,7 @@ describe('Testing Democracy component', () => {
   test('Checking the Proposal\'s tab elements', () => {
     const { queryAllByRole, queryAllByText, queryByText } = render(
       <DemocracyProposals
-        chain={chain}
+        chain={chain()}
         chainInfo={chainInfo}
         proposalsInfo={proposalsInfo?.proposals.length ? proposalsInfo : []}
       />

@@ -47,12 +47,12 @@ let address: string;
 
 describe('Testing Council component', () => {
   beforeAll(async () => {
-    chainInfo = await getChainInfo(chain.name);
+    chainInfo = await getChainInfo(chain().name);
 
     extension = await createExtension();
     address = await createAcc(firstSuri, chainInfo.genesisHash, extension);
 
-    currentBlockNumber = await getCurrentBlockNumber(chain.name);
+    currentBlockNumber = await getCurrentBlockNumber(chain().name);
 
     await chainInfo.api.derive.council?.proposals().then((p) => {
       if (p) motions = (JSON.parse(JSON.stringify(p)));
@@ -62,7 +62,7 @@ describe('Testing Council component', () => {
       availableBalance = chainInfo.api.createType('Balance', (balance.data.free).sub(balance.data.miscFrozen));
     });
 
-    await getCouncilAll(chain.name).then((c) => {
+    await getCouncilAll(chain().name).then((c) => {
       councilInfo = c;
     });
 
@@ -174,7 +174,7 @@ describe('Testing Council component', () => {
           <VoteCouncil
             address={address}
             allCouncilInfo={allCouncilInfo}
-            chain={chain}
+            chain={chain()}
             chainInfo={chainInfo}
             showVotesModal={true}
           />
