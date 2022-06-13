@@ -129,7 +129,6 @@ describe('Testing EasyStaking component', () => {
     const amountInput = queryByRole('spinbutton');
 
     expect(queryByLabelText('Amount')).toBeTruthy();
-    expect(queryByText('Min:')).toBeTruthy();
     expect(queryByText('Max: ~')).toBeTruthy();
     expect(queryByText('You are staking in "{{poolName}}" pool (index: {{poolId}}).')).toBeTruthy();
     expect(amountInput?.hasAttribute('disabled')).toBeFalsy();
@@ -196,7 +195,6 @@ describe('Testing EasyStaking component', () => {
 
     expect(queryByLabelText('Amount')).toBeTruthy();
     expect(queryByText('Min:')).toBeTruthy();
-    expect(queryByText('Max: ~')).toBeTruthy();
     expect(queryByText('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.')).toBeTruthy();
     expect(amountInput?.hasAttribute('disabled')).toBeTruthy();
   });
