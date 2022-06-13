@@ -52,7 +52,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const [nextButtonCaption, setNextButtonCaption] = useState<string>(t('Next'));
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
   const [minStakeable, setMinStakeable] = useState<BN>(BN_ZERO);
-  const [minStakeableAsNumber, setMinStakeableAsNumber] = useState<number>(0);
   const [maxStakeable, setMaxStakeable] = useState<BN>(BN_ZERO);
   const [maxStakeableAsNumber, setMaxStakeableAsNumber] = useState<number>(0);
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
@@ -83,7 +82,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [api, decimals, maxStakeable, minStakeable, staker?.balanceInfo?.available, t]);
+  }, [api, currentlyStaked, decimals, maxStakeable, minStakeable, staker?.balanceInfo?.available, t]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -98,7 +97,8 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const handleCreatePool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
       setCreatePoolModalOpen(true);
-      if (!state) setState('createPool');
+
+      if (!state) { setState('createPool'); }
     }
   }, [staker?.balanceInfo?.available, state, setState]);
 
@@ -132,20 +132,18 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [poolStakingConsts, existentialDeposit, staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (!decimals) return;
+    if (!decimals) { return; }
 
-    const minStakeableAsNumber = Number(amountToHuman(minStakeable.toString(), decimals));
     const maxStakeableAsNumber = Number(amountToHuman(maxStakeable.toString(), decimals));
 
-    setMinStakeableAsNumber(minStakeableAsNumber);
     setMaxStakeableAsNumber(maxStakeableAsNumber);
-  }, [minStakeable, maxStakeable, decimals]);
+  }, [minStakeable, maxStakeable, decimals, currentlyStaked]);
 
   useEffect(() => {
-    if (stakeAmountInHuman && minStakeableAsNumber <= Number(stakeAmountInHuman) && Number(stakeAmountInHuman) <= maxStakeableAsNumber) {
+    if (stakeAmountInHuman && Number(stakeAmountInHuman) <= maxStakeableAsNumber) {
       setNextToStakeButtonDisabled(false);
     }
-  }, [maxStakeableAsNumber, minStakeableAsNumber, stakeAmountInHuman]);
+  }, [maxStakeableAsNumber, stakeAmountInHuman]);
 
   useEffect(() => {
     if (!decimals) { return; }
@@ -167,17 +165,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     if (Number(stakeAmountInHuman) && balanceIsInsufficient) {
       setNextButtonCaption(t('Insufficient Balance'));
     }
-
-    if (Number(stakeAmountInHuman) && Number(stakeAmountInHuman) < minStakeableAsNumber) {
-      setNextToStakeButtonDisabled(true);
-    }
-  }, [stakeAmountInHuman, t, minStakeableAsNumber, staker?.balanceInfo?.available, decimals]);
-
-  const handleMinStakeClicked = useCallback(() => {
-    if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
-
-    handleStakeAmountInput(String(minStakeableAsNumber));
-  }, [handleStakeAmountInput, minStakeableAsNumber, myPool?.bondedPool?.state]);
+  }, [stakeAmountInHuman, t, staker?.balanceInfo?.available, decimals]);
 
   const handleMaxStakeClicked = useCallback(() => {
     if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
@@ -279,13 +267,8 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
             </Grid>
             <Grid container sx={{ height: '160px' }}>
               {!zeroBalanceAlert && token &&
-                <Grid container item justifyContent='space-between' sx={{ px: '30px' }} xs={12}>
-                  <Grid item sx={{ fontSize: 12 }}>
-                    {t('Min')}:
-                    <MuiButton onClick={handleMinStakeClicked} variant='text'>
-                      <FormatBalance api={api} value={minStakeable} />
-                    </MuiButton>
-                  </Grid>
+                <Grid container item justifyContent='flex-end' sx={{ px: '30px' }} xs={12}>
+
                   <Grid item sx={{ fontSize: 12 }}>
                     {t('Max')}{': ~ '}
                     <MuiButton onClick={handleMaxStakeClicked} variant='text'>
