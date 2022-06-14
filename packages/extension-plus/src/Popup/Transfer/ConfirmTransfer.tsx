@@ -12,7 +12,7 @@ import type { KeypairType } from '@polkadot/util-crypto/types';
 
 import { ArrowForwardRounded, InfoTwoTone as InfoTwoToneIcon, RefreshRounded } from '@mui/icons-material';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
-import { Alert, Avatar, Box, CircularProgress, Divider, Grid, IconButton } from '@mui/material';
+import { Alert, Avatar, Box, CircularProgress, Divider, Grid, IconButton, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
@@ -25,7 +25,6 @@ import { AccountContext } from '../../../../extension-ui/src/components/contexts
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
-import Hint from '../../components/Hint';
 import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { AccountsBalanceType, TransactionDetail } from '../../util/plusTypes';
@@ -114,6 +113,8 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
   }, [confirmDisabled, sender.address, transfer, transferAmount]);
 
   const handleConfirm = useCallback(async () => {
+    if (['confirming', 'success', 'failed'].includes(state)) { return; }
+
     setState('confirming');
 
     try {
@@ -129,7 +130,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
       const currentTransactionDetail: TransactionDetail = {
         action: 'send',
         amount: amountToHuman(String(transferAmount), decimals),
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: sender.address,
@@ -180,7 +181,6 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
   return (
     <Popup handleClose={handleConfirmModaClose} showModal={confirmModalOpen}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={'Confirm Transfer'} />
-
       <Grid alignItems='center' container justifyContent='space-around' sx={{ paddingTop: '10px' }}>
         <Grid alignItems='center' container item justifyContent='flex-end' xs={5}>
           {addressWithIdenticon(sender.name, sender.address)}
@@ -196,13 +196,12 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           {addressWithIdenticon(recepient.name, recepient.address)}
         </Grid>
       </Grid>
-
       <Grid alignItems='center' container data-testid='infoInMiddle' justifyContent='space-around' sx={{ paddingTop: '20px' }}>
         <Grid container item sx={{ backgroundColor: '#f7f7f7', padding: '25px 40px 25px' }} xs={12}>
-          <Grid item sx={{ padding: '5px 10px 5px', borderRadius: '5px', border: '2px double grey', justifyContent: 'flex-start', fontSize: 15, textAlign: 'center', fontVariant: 'small-caps' }} xs={3}>
+          <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', padding: '5px 10px 5px', textAlign: 'center' }} xs={3}>
             {t('transfer of')}
           </Grid>
-          <Grid container item justifyContent='center' spacing={1} sx={{ fontSize: 18, fontFamily: 'fantasy', textAlign: 'center' }} xs={12} >
+          <Grid container item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 18, textAlign: 'center' }} xs={12}>
             <Grid item>
               {transferAmountInHuman}
             </Grid>
@@ -217,16 +216,16 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
               {t('Network Fee')}
             </Grid>
             <Grid item sx={{ fontSize: 13, marginLeft: '5px', textAlign: 'left' }}>
-              <Hint id='networkFee1' tip={t<string>('Network fees are paid to network validators who process transactions on the network. This wallet does not profit from fees. Fees are set by the network and fluctuate based on network traffic and transaction complexity.')}>
+              <Tooltip title={t<string>('Network fees are paid to network validators who process transactions on the network. This wallet does not profit from fees. Fees are set by the network and fluctuate based on network traffic and transaction complexity.')}>
                 <InfoTwoToneIcon color='action' fontSize='small' />
-              </Hint>
+              </Tooltip>
             </Grid>
             <Grid item sx={{ alignItems: 'center', fontSize: 13, textAlign: 'left' }}>
-              <Hint id='networkFee2' tip={t<string>('get newtwork fee now')}>
+              <Tooltip title={t<string>('get newtwork fee now')}>
                 <IconButton onClick={refreshNetworkFee} sx={{ top: -7 }}>
                   <RefreshRounded color='action' fontSize='small' />
                 </IconButton>
-              </Hint>
+              </Tooltip>
             </Grid>
           </Grid>
           <Grid item sx={{ fontSize: 13, textAlign: 'right' }} xs={6}>
@@ -244,11 +243,10 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
             {t('Total')}
           </Grid>
           <Grid item sx={{ height: '20px', p: '0px 10px' }} xs={6}>
-            {transferAllAlert
-              ? <Alert severity='warning' sx={{ fontSize: 12, p: 0, textAlign: 'center' }}>{t('Transfering {{type}} amount', { type: transferAllType })}!</Alert>
-              : ''}
+            {transferAllAlert &&
+              <Alert severity='warning' sx={{ fontSize: 12, p: 0, textAlign: 'center' }}>{t('Transfering {{type}} amount', { type: transferAllType })}!</Alert>
+            }
           </Grid>
-
           <Grid container item justifyContent='flex-end' spacing={1} sx={{ fontSize: 13, fontWeight: '600', textAlign: 'right' }} xs={3}>
             <Grid item>
               {total || ' ... '}
@@ -259,7 +257,6 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           </Grid>
         </Grid>
       </Grid>
-
       <Grid container item sx={{ p: '35px 20px' }} xs={12}>
         <Password
           autofocus={true}
@@ -269,7 +266,6 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           setPassword={setPassword}
           setPasswordStatus={setPasswordStatus}
         />
-
         <ConfirmButton
           handleBack={handleConfirmModaClose}
           handleConfirm={handleConfirm}

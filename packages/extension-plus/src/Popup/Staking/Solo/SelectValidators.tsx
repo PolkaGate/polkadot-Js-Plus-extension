@@ -22,7 +22,7 @@ import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/type
 import { Chain } from '../../../../../extension-chains/src/types';
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Hint,PlusHeader, Popup } from '../../../components';
+import { Hint, PlusHeader, Popup } from '../../../components';
 import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
 import { AccountsBalanceType, StakingConsts, Validators } from '../../../util/plusTypes';
 import ConfirmStaking from './ConfirmStaking';
@@ -277,6 +277,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
                     isSelected={isSelected}
                     showSwitch={true}
                     stakingConsts={stakingConsts}
+                    t={t}
                     validator={combined[index]}
                     validatorsIdentities={validatorsIdentities}
                   />

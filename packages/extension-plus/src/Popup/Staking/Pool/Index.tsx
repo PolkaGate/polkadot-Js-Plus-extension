@@ -301,7 +301,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
     [setStakingModalOpen]
   );
 
-  const handleConfirmStakingModaOpen = useCallback((state?: string, amount?: BN): void => {
+  const handleConfirmStakingModalOpen = useCallback((state?: string, amount?: BN): void => {
     if (amount?.gtn(0) && state) {
       setState(state);
       setAmount(amount);
@@ -317,10 +317,10 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   }, []);
 
   const handleStopNominating = useCallback((): void => {
-    handleConfirmStakingModaOpen();
+    handleConfirmStakingModalOpen();
 
     if (!state) { setState('stopNominating'); }
-  }, [handleConfirmStakingModaOpen, state]);
+  }, [handleConfirmStakingModalOpen, state]);
 
   const getAmountToConfirm = useCallback(() => {
     switch (state) {
@@ -377,7 +377,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           <Overview
             api={api}
             availableBalance={staker?.balanceInfo?.available ? new BN(String(staker.balanceInfo.available)) : BN_ZERO}
-            handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+            handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
             myPool={myPool}
             redeemable={redeemable}
             unlockingAmount={unlockingAmount}
@@ -400,7 +400,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
               api={api}
               chain={chain}
               currentlyStaked={currentlyStaked}
-              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
               myPool={myPool}
               nextPoolId={nextPoolId}
               poolStakingConsts={poolStakingConsts}
@@ -418,7 +418,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
               api={api}
               availableBalance={staker?.balanceInfo?.available ? new BN(String(staker.balanceInfo.available)) : BN_ZERO}
               currentlyStaked={currentlyStaked}
-              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
               pool={myPool}
               poolStakingConsts={poolStakingConsts}
               staker={staker}
@@ -428,7 +428,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
             <PoolTab
               api={api}
               chain={chain}
-              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
               newPool={newPool}
               pool={myPool}
               poolsMembers={poolsMembers}
@@ -466,7 +466,6 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           </TabPanel>
         </Grid>
       </Grid>
-
       {stakingConsts && validatorsInfo && showSelectValidatorsModal &&
         <SelectValidators
           api={api}

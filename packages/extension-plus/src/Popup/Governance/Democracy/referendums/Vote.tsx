@@ -116,7 +116,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
       const currentTransactionDetail: TransactionDetail = {
         action: 'democracy_vote',
         amount: voteValueInHuman,
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,

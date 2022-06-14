@@ -7,8 +7,8 @@
  * @description this component is used to propose a treasury tip
 */
 
-import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
-import { Grid, TextField } from '@mui/material';
+import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon, Help as HelpIcon } from '@mui/icons-material';
+import { Grid, TextField, Tooltip } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { Balance } from '@polkadot/types/interfaces';
@@ -97,13 +97,13 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
       const currentTransactionDetail: TransactionDetail = {
         action: 'Propose_tip',
         amount: '',
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,
         hash: txHash || '',
         status: failureText || status,
-        to: beneficiaryAddress
+        to: String(beneficiaryAddress)
       };
 
       updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
@@ -140,7 +140,6 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
   return (
     <Popup handleClose={handleProposeTipModalClose} showModal={showProposeTipModal}>
       <PlusHeader action={handleProposeTipModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Propose tip')} />
-
       <Participator
         address={address}
         availableBalance={availableBalance}
@@ -151,11 +150,9 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
         setAvailableBalance={setAvailableBalance}
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
-
-      <Grid item sx={{ p: '24px 40px 1px' }} xs={12}>
+      <Grid item sx={{ p: '30px 40px 1px' }} xs={12}>
         <AddressInput api={chainInfo.api} chain={chain} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
       </Grid>
-
       <Grid item sx={{ p: '10px 40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
@@ -176,14 +173,20 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
           variant='outlined'
         />
       </Grid>
-
-      <Grid item sx={{ fontSize: 13, p: '15px 50px', textAlign: 'right' }} xs={12}>
-        <Hint icon={true} id='reportDeposit' place='left' tip={t('held on deposit for placing the tip report')}>
+      <Grid alignItems='center' spacing={0.5} item container sx={{ fontSize: 13, p: '15px 50px', textAlign: 'left' }} xs={12}>
+        <Grid item sx={{ mt: '5px' }}>
+          <Tooltip placement='top-end' title={t('held on deposit for placing the tip report')}>
+            <HelpIcon
+              color='disabled'
+              fontSize='small'
+            />
+          </Tooltip>
+        </Grid>
+        <Grid item>
           {`${t('Report deposit')}: ${reportDeposit.toHuman()}`}
-        </Hint>
+        </Grid>
       </Grid>
-
-      <Grid container item sx={{ p: '15px 30px', textAlign: 'center' }} xs={12}>
+      <Grid container item sx={{ p: '25px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
           password={password}
@@ -199,6 +202,6 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
           state={state}
         />
       </Grid>
-    </Popup>
+    </Popup >
   );
 }

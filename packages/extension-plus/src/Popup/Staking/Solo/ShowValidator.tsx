@@ -77,7 +77,7 @@ function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwit
         <Grid alignItems='center' container item justifyContent='center' xs={2}>
           <Grid item sx={{ textAlign: 'right' }} xs={2}>
             {!!nominatorCount && isActive &&
-              <Tooltip placement='left' title={t('Active')}>
+              <Tooltip placement='left' title={t && t('Active')}>
                 <DirectionsRunIcon color='primary' sx={{ fontSize: '17px' }} />
               </Tooltip>
             }
@@ -87,7 +87,7 @@ function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwit
           </Grid>
           <Grid item sx={{ textAlign: 'left' }} xs={2}>
             {!!nominatorCount && isOverSubscribed &&
-              <Tooltip placement='left' title={t('Oversubscribed')}>
+              <Tooltip placement='left' title={t && t('Oversubscribed')}>
                 <ReportProblemOutlinedIcon color='warning' sx={{ fontSize: '17px' }} />
               </Tooltip>
             }

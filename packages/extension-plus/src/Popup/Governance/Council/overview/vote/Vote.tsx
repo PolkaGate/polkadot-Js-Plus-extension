@@ -111,7 +111,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
       const currentTransactionDetail: TransactionDetail = {
         action: 'council_vote',
         amount: voteValueInHuman,
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,

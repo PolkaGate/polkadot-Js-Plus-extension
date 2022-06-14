@@ -278,6 +278,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
                     isSelected={isSelected}
                     showSwitch={true}
                     stakingConsts={stakingConsts}
+                    t={t}
                     validator={combined[index]}
                     validatorsIdentities={validatorsIdentities}
                   />

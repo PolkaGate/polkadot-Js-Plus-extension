@@ -53,7 +53,7 @@ export async function signAndSend (
               const queryInfo = await api.rpc.payment.queryInfo(ex.toHex(), signedBlock.block.hash);
               const fee = queryInfo.partialFee.toString();
 
-              resolve({ block: Number(blockNumber), failureText: failureText, fee: fee, status: txFailed ? 'failed' : 'success', txHash: txHash });
+              resolve({ block: Number(blockNumber), failureText, fee, status: txFailed ? 'failed' : 'success', txHash });
             }
           }
         });

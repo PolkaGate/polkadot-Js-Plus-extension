@@ -37,13 +37,13 @@ interface Props extends ThemeProps {
   staker: AccountsBalanceType;
   setCreatePoolModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   nextPoolId: BN;
-  handleConfirmStakingModaOpen: () => void;
+  handleConfirmStakingModalOpen: () => void;
   setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
   poolStakingConsts: PoolStakingConsts | undefined;
   setStakeAmount: React.Dispatch<React.SetStateAction<BN>>
 }
 
-function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolStakingConsts, setNewPool, handleConfirmStakingModaOpen, setState, setCreatePoolModalOpen, showCreatePoolModal, staker }: Props): React.ReactElement<Props> {
+function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolStakingConsts, setNewPool, handleConfirmStakingModalOpen, setState, setCreatePoolModalOpen, showCreatePoolModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [alert, setAlert] = useState<string | undefined>();
@@ -211,7 +211,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
       <Popup handleClose={handlePoolStakingModalClose} showModal={showCreatePoolModal}>
         <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<PoolIcon fontSize='small' />} title={'Create Pool'} />
         <Grid container sx={{ pt: 2 }}>
-
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px 1px' }}>
             <Grid item sx={{ pr: '5px' }} xs={9}>
               <TextField
@@ -245,7 +244,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
               />
             </Grid>
           </Grid>
-
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '15px 40px 1px' }}>
             <Grid item sx={{ pr: '5px' }} xs={9}>
               <TextField
@@ -265,7 +263,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
                 variant='outlined'
               />
             </Grid>
-
             <Grid alignItems='center' color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 11 }} xs>
               <Grid item>
                 {t('Fee')}:
@@ -275,7 +272,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
               </Grid>
             </Grid>
           </Grid>
-
           {maxStakeable === 0
             ? <Grid item sx={{ color: 'red', fontSize: 12, height: '40px', p: '0px 40px 25px' }} xs={12}>
               {alert}
@@ -295,7 +291,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
               </Grid>
             </Grid>
           }
-
           <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '45px 40px 5px' }}>
             <Grid item xs={12}>
               <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
@@ -310,7 +305,6 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
               <AddressInput api={api} chain={chain} freeSolo selectedAddress={stateTogglerId} setSelectedAddress={setStateTogglerId} title={t('State toggler')} />
             </Grid>
           </Grid>
-
           <Grid container item sx={{ p: '10px 34px' }} xs={12}>
             <Grid item xs={1}>
               <BackButton onClick={handlePoolStakingModalClose} />
@@ -320,7 +314,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
                 data-button-action='next to stake'
                 // isBusy={nextToStakeButtonBusy}
                 isDisabled={!rootId || !nominatorId || !stateTogglerId || !poolName || nextToStakeButtonDisabled}
-                onClick={handleConfirmStakingModaOpen}
+                onClick={handleConfirmStakingModalOpen}
               >
                 {t('Next')}
               </NextStepButton>

@@ -28,10 +28,10 @@ interface Props {
   myPool: MyPoolInfo | undefined | null;
   redeemable: BN | undefined;
   unlockingAmount: BN | undefined;
-  handleConfirmStakingModaOpen: (state?: string | undefined, amount?: BN | undefined) => void;
+  handleConfirmStakingModalOpen: (state?: string | undefined, amount?: BN | undefined) => void;
 }
 
-export default function Overview({ api, availableBalance, handleConfirmStakingModaOpen, myPool, redeemable, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalance, handleConfirmStakingModalOpen, myPool, redeemable, unlockingAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const staked = myPool === undefined ? undefined : new BN(myPool?.member?.points ?? 0);
@@ -41,8 +41,8 @@ export default function Overview({ api, availableBalance, handleConfirmStakingMo
   const open = Boolean(anchorEl);
 
   const handleWithdrawUnbounded = useCallback(() => {
-    handleConfirmStakingModaOpen('withdrawUnbound', redeemable);
-  }, [redeemable, handleConfirmStakingModaOpen]);
+    handleConfirmStakingModalOpen('withdrawUnbound', redeemable);
+  }, [redeemable, handleConfirmStakingModalOpen]);
 
   const handleRewardsMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -54,13 +54,13 @@ export default function Overview({ api, availableBalance, handleConfirmStakingMo
 
   const handleClaim = useCallback(() => {
     handleClose();
-    claimable?.gtn(0) && handleConfirmStakingModaOpen('withdrawClaimable', claimable);
-  }, [claimable, handleClose, handleConfirmStakingModaOpen]);
+    claimable?.gtn(0) && handleConfirmStakingModalOpen('withdrawClaimable', claimable);
+  }, [claimable, handleClose, handleConfirmStakingModalOpen]);
 
   const handleStakeClaimable = useCallback(() => {
     handleClose();
-    claimable?.gtn(0) && handleConfirmStakingModaOpen('bondExtraRewards', claimable);
-  }, [claimable, handleClose, handleConfirmStakingModaOpen]);
+    claimable?.gtn(0) && handleConfirmStakingModalOpen('bondExtraRewards', claimable);
+  }, [claimable, handleClose, handleConfirmStakingModalOpen]);
 
   return (
     <>
