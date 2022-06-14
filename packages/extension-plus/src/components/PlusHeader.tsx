@@ -48,9 +48,7 @@ function PlusHeader({ action, chain, closeText, icon, title }: Props): React.Rea
             text={t<string>(closeText)}
           />
         </Grid>
-
       </Grid>
-
       <Grid item xs={12}>
         <Divider />
       </Grid>
