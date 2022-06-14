@@ -255,7 +255,6 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   return (
     <Container sx={{ padding: '5px 10px', width: '100%' }}>
       <TableToolbar numSelected={selected.length} setSearchedValidators={setSearchedValidators} setSearching={setSearching} setSelected={setSelected} stakingConsts={stakingConsts} validators={notSelected} validatorsIdentities={validatorsIdentities} />
-
       <TableHeader />
       <Container disableGutters sx={{ height: 325 }}>
         {!!combined?.length && api &&
@@ -277,6 +276,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
                     isSelected={isSelected}
                     showSwitch={true}
                     stakingConsts={stakingConsts}
+                    t={t}
                     validator={combined[index]}
                     validatorsIdentities={validatorsIdentities}
                   />

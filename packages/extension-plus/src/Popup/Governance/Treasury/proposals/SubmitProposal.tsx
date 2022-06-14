@@ -116,7 +116,7 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
       const currentTransactionDetail: TransactionDetail = {
         action: 'submit_proposal',
         amount: amountToHuman(value, decimals),
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,

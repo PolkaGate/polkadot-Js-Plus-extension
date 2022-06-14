@@ -314,13 +314,13 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
         history.push({
           action: alreadyBondedAmount ? 'bond_extra' : 'bond',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: staker.address
         });
 
         if (status === 'failed' || localState === 'stakeKeepNominated') {
@@ -361,7 +361,7 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
         history.push({
           action: 'nominate',
           amount: '',
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -405,7 +405,7 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
         history.push({
           action: 'unbond',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -428,7 +428,7 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
         history.push({
           action: 'redeem',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -446,7 +446,7 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
 
         history.push({
           action: 'stop_nominating',
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -465,7 +465,7 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
 
         history.push({
           action: 'tuneUp',
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,

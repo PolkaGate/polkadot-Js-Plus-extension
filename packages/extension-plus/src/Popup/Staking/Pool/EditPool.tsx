@@ -31,13 +31,13 @@ interface Props extends ThemeProps {
   showEditPoolModal: boolean;
   staker: AccountsBalanceType;
   setEditPoolModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleConfirmStakingModaOpen: () => void;
+  handleConfirmStakingModalOpen: () => void;
   pool: MyPoolInfo;
   setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>;
   newPool: MyPoolInfo | undefined;
 }
 
-function EditPool({ api, chain, handleConfirmStakingModaOpen, newPool, pool, setEditPoolModalOpen, setNewPool, setState, showEditPoolModal, staker }: Props): React.ReactElement<Props> {
+function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, setEditPoolModalOpen, setNewPool, setState, showEditPoolModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [metaData, setMetaData] = useState<string | undefined>(pool?.metadata);
@@ -131,7 +131,7 @@ function EditPool({ api, chain, handleConfirmStakingModaOpen, newPool, pool, set
               <NextStepButton
                 data-button-action='next to stake'
                 isDisabled={JSON.stringify(pool) === JSON.stringify(newPool)}
-                onClick={handleConfirmStakingModaOpen}
+                onClick={handleConfirmStakingModalOpen}
               >
                 {t('Next')}
               </NextStepButton>

@@ -90,7 +90,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
       const currentTransactionDetail: TransactionDetail = {
         action: 'endorse',
         amount: '0',
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,

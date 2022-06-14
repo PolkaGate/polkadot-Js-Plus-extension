@@ -12,7 +12,7 @@ import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { AccountsBalanceType, NominatorInfo, PutInFrontInfo, RebagInfo, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { MoveUpRounded as MoveUpRoundedIcon, StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
-import { Button as MuiButton, Grid } from '@mui/material';
+import { Button as MuiButton, Grid, Tooltip } from '@mui/material';
 import React, { useCallback } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -21,7 +21,7 @@ import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/type
 import { Chain } from '../../../../../extension-chains/src/types';
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, Progress } from '../../../components';
+import { Progress } from '../../../components';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
@@ -65,7 +65,6 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
               validatorsInfo={nominatedValidators}
             />
           </Grid>
-
           <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
             <Grid item xs={5}>
               <MuiButton
@@ -78,9 +77,8 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
                 {t('Stop nominating')}
               </MuiButton>
             </Grid>
-
             <Grid item sx={{ textAlign: 'center' }} xs={3}>
-              <Hint id='rebag' place='top' tip='Rebag/putInFrontOf if needed'>
+              <Tooltip placement='top' title={'rebag or putInFrontOf if needed'}>
                 <MuiButton
                   color='primary'
                   disabled={!tuneUpButtonEnable}
@@ -92,9 +90,8 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
                 >
                   {t('Tune up')}
                 </MuiButton>
-              </Hint>
+              </Tooltip>
             </Grid>
-
             <Grid item sx={{ textAlign: 'right' }} xs={4}>
               <MuiButton
                 color='warning'

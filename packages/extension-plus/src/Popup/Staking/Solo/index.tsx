@@ -14,7 +14,7 @@ import type { AccountId } from '@polkadot/types/interfaces';
 import type { AccountsBalanceType, NominatorInfo, PutInFrontInfo, RebagInfo, SavedMetaData, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { AddCircleOutlineOutlined, CheckOutlined, CircleOutlined as CircleOutlinedIcon, InfoOutlined as InfoOutlinedIcon, NotificationImportantOutlined as NotificationImportantOutlinedIcon, NotificationsActive as NotificationsActiveIcon, RemoveCircleOutlineOutlined, ReportOutlined as ReportOutlinedIcon } from '@mui/icons-material';
-import { Badge, Box, CircularProgress, Grid, Tab, Tabs } from '@mui/material';
+import { Badge, Box, CircularProgress, Grid, Tab, Tabs, Tooltip } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
@@ -25,7 +25,6 @@ import { Chain } from '@polkadot/extension-chains/types';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
 import { PlusHeader, Popup } from '../../../components';
-import Hint from '../../../components/Hint';
 import useEndPoint from '../../../hooks/useEndPoint';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
@@ -336,7 +335,7 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
       setStakingModalOpen(false);
     }, [setStakingModalOpen]);
 
-  const handleConfirmStakingModaOpen = useCallback((): void => {
+  const handleConfirmStakingModalOpen = useCallback((): void => {
     setConfirmStakingModalOpen(true);
   }, []);
 
@@ -350,26 +349,26 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
 
   const handleNextToUnstake = useCallback((): void => {
     if (!state) setState('unstake');
-    handleConfirmStakingModaOpen();
-  }, [handleConfirmStakingModaOpen, state]);
+    handleConfirmStakingModalOpen();
+  }, [handleConfirmStakingModalOpen, state]);
 
   const handleStopNominating = useCallback((): void => {
-    handleConfirmStakingModaOpen();
+    handleConfirmStakingModalOpen();
 
     if (!state) setState('stopNominating');
-  }, [handleConfirmStakingModaOpen, state]);
+  }, [handleConfirmStakingModalOpen, state]);
 
   const handleRebag = useCallback((): void => {
-    handleConfirmStakingModaOpen();
+    handleConfirmStakingModalOpen();
 
     if (!state) setState('tuneUp');
-  }, [handleConfirmStakingModaOpen, state]);
+  }, [handleConfirmStakingModalOpen, state]);
 
   const handleWithdrowUnbound = useCallback(() => {
     if (!redeemable) return;
     if (!state) setState('withdrawUnbound');
-    handleConfirmStakingModaOpen();
-  }, [handleConfirmStakingModaOpen, redeemable, state]);
+    handleConfirmStakingModalOpen();
+  }, [handleConfirmStakingModalOpen, redeemable, state]);
 
   const handleViewChart = useCallback(() => {
     if (!rewardSlashes) return;
@@ -401,19 +400,19 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
     gettingNominatedValidatorsInfoFromChain || !rebagInfo || !putInFrontInfo
       ? <CircularProgress size={12} sx={{ px: '5px' }} thickness={2} />
       : Number(currentlyStakedInHuman) && !nominatedValidators?.length
-        ? <Hint id='noNominees' place='top' tip={t('No validators nominated')}>
+        ? <Tooltip placement='top' title={t('No validators nominated')}>
           <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
-        </Hint>
+        </Tooltip>
         : !activeValidator && nominatedValidators?.length
-          ? <Hint id='noActive' place='top' tip={t('No active validator in this era')}>
+          ? <Tooltip placement='top' title={t('No active validator in this era')}>
             <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
-          </Hint>
+          </Tooltip>
           : oversubscribedsCount
-            ? <Hint id='overSubscribeds' place='top' tip={t('oversubscribed nominees')}>
+            ? <Tooltip placement='top' title={t('oversubscribed nominees')}>
               <Badge anchorOrigin={{ horizontal: 'left', vertical: 'top' }} badgeContent={oversubscribedsCount} color='warning'>
                 <NotificationImportantOutlinedIcon color='action' fontSize='small' sx={{ pr: 1 }} />
               </Badge>
-            </Hint>
+            </Tooltip>
             : <CheckOutlined fontSize='small' />
   ), [gettingNominatedValidatorsInfoFromChain, rebagInfo, putInFrontInfo, currentlyStakedInHuman, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
 
@@ -449,7 +448,7 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
           <TabPanel index={0} value={tabValue}>
             <Stake
               api={api}
-              handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+              handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
               handleSelectValidatorsModalOpen={handleSelectValidatorsModalOpen}
               ledger={ledger}
               nextToStakeButtonBusy={!!stakeAmount && (!ledger || !(validatorsInfoIsUpdated || localStrorageIsUpdate)) && state !== ''}
@@ -504,7 +503,6 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
           </TabPanel>
         </Grid>
       </Grid>
-
       {stakingConsts && validatorsInfo && showSelectValidatorsModal &&
         <SelectValidators
           api={api}

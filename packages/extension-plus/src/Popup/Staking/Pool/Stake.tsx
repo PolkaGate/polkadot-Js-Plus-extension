@@ -30,13 +30,12 @@ interface Props {
   api: ApiPromise | undefined;
   chain: Chain;
   currentlyStaked: BN | undefined | null;
-  nextToStakeButtonBusy: boolean;
   setStakeAmount: React.Dispatch<React.SetStateAction<BN>>
   setState: React.Dispatch<React.SetStateAction<string>>;
   staker: AccountsBalanceType;
   state: string;
   poolStakingConsts: PoolStakingConsts | undefined;
-  handleConfirmStakingModaOpen: () => void;
+  handleConfirmStakingModalOpen: () => void;
   myPool: MyPoolInfo | undefined | null;
   nextPoolId: BN | undefined;
   poolsInfo: PoolInfo[] | undefined | null;
@@ -44,7 +43,7 @@ interface Props {
   poolsMembers: MembersMapEntry[] | undefined
 }
 
-export default function Stake({ api, chain, currentlyStaked, handleConfirmStakingModaOpen, myPool, nextPoolId, nextToStakeButtonBusy, poolStakingConsts, poolsInfo, poolsMembers, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, chain, currentlyStaked, handleConfirmStakingModalOpen, myPool, nextPoolId, poolStakingConsts, poolsInfo, poolsMembers, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -107,11 +106,11 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     if (!decimals) { return; }
 
     if (Number(stakeAmountInHuman)) {
-      handleConfirmStakingModaOpen();
+      handleConfirmStakingModalOpen();
 
       if (!state) { setState('bondExtra'); }
     }
-  }, [stakeAmountInHuman, decimals, handleConfirmStakingModaOpen, state, setState]);
+  }, [stakeAmountInHuman, decimals, handleConfirmStakingModalOpen, state, setState]);
 
   useEffect(() => {
     if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available) { return; }
@@ -294,7 +293,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
             <Grid item sx={{ px: '10px' }} xs={12}>
               <NextStepButton
                 data-button-action='next to stake'
-                isBusy={nextToStakeButtonBusy}
                 isDisabled={nextToStakeButtonDisabled}
                 onClick={handleNextToStake}
               >
@@ -307,7 +305,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
         <CreatePool
           api={api}
           chain={chain}
-          handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+          handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
           nextPoolId={nextPoolId}
           poolStakingConsts={poolStakingConsts}
           setCreatePoolModalOpen={setCreatePoolModalOpen}
@@ -322,7 +320,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
         <JoinPool
           api={api}
           chain={chain}
-          handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+          handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
           poolStakingConsts={poolStakingConsts}
           poolsInfo={poolsInfo}
           poolsMembers={poolsMembers}
@@ -334,7 +332,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
           staker={staker}
         />
       }
-
     </>
   );
 }

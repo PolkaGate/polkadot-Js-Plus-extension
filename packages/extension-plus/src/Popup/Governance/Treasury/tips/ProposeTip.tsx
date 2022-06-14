@@ -97,7 +97,7 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
       const currentTransactionDetail: TransactionDetail = {
         action: 'Propose_tip',
         amount: '',
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,

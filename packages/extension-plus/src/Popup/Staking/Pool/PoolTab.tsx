@@ -29,12 +29,12 @@ interface Props {
   pool: MyPoolInfo | undefined | null;
   poolsMembers: MembersMapEntry[] | undefined;
   setState: React.Dispatch<React.SetStateAction<string>>;
-  handleConfirmStakingModaOpen: () => void;
+  handleConfirmStakingModalOpen: () => void;
   setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>;
   newPool: MyPoolInfo | undefined;
 }
 
-function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
+function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showAction, setShowAction] = useState<boolean | undefined>();
   const [expanded, setExpanded] = useState<string>('roles');
@@ -49,8 +49,8 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
 
     console.log('going to change state to ', state);
     setState(state);
-    handleConfirmStakingModaOpen();
-  }, [api, handleConfirmStakingModaOpen, setState]);
+    handleConfirmStakingModalOpen();
+  }, [api, handleConfirmStakingModalOpen, setState]);
 
   const handleEditPool = useCallback(() => {
     console.log('going to edit pool ');
@@ -172,7 +172,7 @@ function PoolTab({ api, chain, handleConfirmStakingModaOpen, newPool, pool, pool
         <EditPool
           api={api}
           chain={chain}
-          handleConfirmStakingModaOpen={handleConfirmStakingModaOpen}
+          handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
           setEditPoolModalOpen={setEditPoolModalOpen}
           setState={setState}
           showEditPoolModal={showEditPoolModal}

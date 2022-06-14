@@ -25,13 +25,12 @@ interface Props {
   poolStakingConsts: PoolStakingConsts | undefined;
   currentlyStaked: BN | undefined | null;
   pool: MyPoolInfo | undefined | null;
-  nextToUnStakeButtonBusy: boolean;
   availableBalance: BN;
-  handleConfirmStakingModaOpen: (state?: string | undefined, amount?: BN | undefined) => void;
+  handleConfirmStakingModalOpen: (state?: string | undefined, amount?: BN | undefined) => void;
   staker: AccountsBalanceType;
 }
 
-export default function Unstake({ api, availableBalance, currentlyStaked, handleConfirmStakingModaOpen, nextToUnStakeButtonBusy, pool, poolStakingConsts, staker }: Props): React.ReactElement<Props> {
+export default function Unstake({ api, availableBalance, currentlyStaked, handleConfirmStakingModalOpen, pool, poolStakingConsts, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
@@ -60,8 +59,8 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
   }, [currentlyStaked, decimals, pool, poolStakingConsts, staker.address]);
 
   const handleNextToUnstake = useCallback((): void => {
-    handleConfirmStakingModaOpen('unstake', unstakeAmount);
-  }, [handleConfirmStakingModaOpen, unstakeAmount]);
+    handleConfirmStakingModalOpen('unstake', unstakeAmount);
+  }, [handleConfirmStakingModalOpen, unstakeAmount]);
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
     if (!decimals || !currentlyStaked || currentlyStaked?.isZero()) { return; }
@@ -134,7 +133,6 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
                 <Grid xs={12}>
                   {t('Fetching data from blockchain ...')}
                 </Grid>}
-
               {currentlyStaked?.isZero() &&
                 <Grid xs={12}>
                   {t('Nothing to unstake')}
@@ -185,11 +183,9 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
           }
         </Grid>
       </Grid>
-
       <Grid item sx={{ px: '10px' }} xs={12}>
         <NextStepButton
           data-button-action='next to unstake'
-          isBusy={nextToUnStakeButtonBusy}
           isDisabled={nextToUnStakeButtonDisabled || UnableToPayFee}
           onClick={handleNextToUnstake}
         >

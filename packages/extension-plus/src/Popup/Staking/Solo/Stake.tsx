@@ -32,11 +32,11 @@ interface Props {
   state: string;
   ledger: StakingLedger | null;
   stakingConsts: StakingConsts | undefined;
-  handleConfirmStakingModaOpen: () => void;
+  handleConfirmStakingModalOpen: () => void;
   handleSelectValidatorsModalOpen: (arg0?: boolean) => void;
 }
 
-export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
+export default function Stake({ api, handleConfirmStakingModalOpen, handleSelectValidatorsModalOpen, ledger, nextToStakeButtonBusy, nominatedValidators, setStakeAmount, setState, staker, stakingConsts, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>();
@@ -94,7 +94,7 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
     if (Number(stakeAmountInHuman) >= minStakeable) {
       switch (validatorSelectionType) {
         case ('Auto'):
-          handleConfirmStakingModaOpen();
+          handleConfirmStakingModalOpen();
           if (!state) setState('stakeAuto');
           break;
         case ('Manual'):
@@ -102,14 +102,14 @@ export default function Stake({ api, handleConfirmStakingModaOpen, handleSelectV
           if (!state) setState('stakeManual');
           break;
         case ('KeepNominated'):
-          handleConfirmStakingModaOpen();
+          handleConfirmStakingModalOpen();
           if (!state) setState('stakeKeepNominated');
           break;
         default:
           console.log('unknown validatorSelectionType !!');
       }
     }
-  }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModaOpen, state, setState, handleSelectValidatorsModalOpen]);
+  }, [stakeAmountInHuman, minStakeable, validatorSelectionType, handleConfirmStakingModalOpen, state, setState, handleSelectValidatorsModalOpen]);
 
   useEffect(() => {
     if (!stakingConsts || !decimals) return;
