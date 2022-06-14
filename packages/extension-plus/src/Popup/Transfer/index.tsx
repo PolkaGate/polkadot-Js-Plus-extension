@@ -84,7 +84,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api && api.registry.chainTokens[0];
-  const transfer = api && api.tx.balances.transfer;
+  const transfer = api && api.tx?.balances && api.tx.balances.transfer;
 
   useEffect(() => {
     if (!api || !transfer) { return; }
@@ -99,8 +99,9 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   }, [recepientAddressIsValid]);
 
   useEffect((): void => {
-    if (!api) return;
-    setED(BigInt(api.consts.balances.existentialDeposit.toString()));
+    if (!api) { return; }
+
+    api.consts?.balances && setED(BigInt(api.consts.balances.existentialDeposit.toString()));
   }, [api]);
 
   useEffect((): void => {
@@ -347,9 +348,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   return (
     <Popup handleClose={handleTransferModalClose} showModal={transferModalOpen}>
       <PlusHeader action={handleTransferModalClose} chain={chain} closeText={'Close'} icon={<SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />} title={'Transfer Funds'} />
-
       <Grid alignItems='center' container justifyContent='center' sx={{ padding: '5px 20px' }}>
-
         <Grid alignItems='center' container id='senderAddress' item justifyContent='flex-start' spacing={1} sx={{ opacity: senderAddressOpacity, padding: '20px 10px 50px' }} xs={12}>
           <Grid item sx={{ color: grey[800], fontSize: 13, textAlign: 'left' }} xs={1}>
             {t('Sender')}:
@@ -371,7 +370,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
             </Grid>
           </Grid>
         </Grid>
-
         <Grid item sx={{ paddingBottom: '20px' }} xs={12}>
           <TextField
             InputProps={{
@@ -408,7 +406,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
           }
         </Grid>
       </Grid>
-
       {!recepientAddressIsValid &&
         <Grid item sx={{ paddingLeft: '20px' }} xs={12}>
           <Button
@@ -420,11 +417,9 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
           >
             {transferBetweenMyAccountsButtonText}
           </Button>
-
           {acountList}
         </Grid>
       }
-
       {recepientAddressIsValid &&
         <div id='transferBody'>
           <Grid container item justifyContent='space-between' sx={{ padding: '30px 30px 20px' }} xs={12}>
@@ -446,7 +441,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                       {token || <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
                       }
                     </Grid>
-
                     <Grid container item justifyContent='space-between' xs={12}>
                       <Grid id='availableBalance' sx={{ fontSize: '12px', textAlign: 'left' }}>
                         {t('Available Balance')}: {availableBalance}
@@ -463,7 +457,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                 </Grid>
               </Box>
             </Grid>
-
             <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={3}>
               {t('Amount:')}
               <Grid data-testid='allButton' item>
@@ -482,7 +475,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                   </LoadingButton>
                 </Hint>
               </Grid>
-
               <Grid data-testid='safeMaxButton' item>
                 <Hint id='Max' tip={t<string>('Transfer max amount where the account remains active.')}>
                   <LoadingButton
@@ -499,7 +491,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                   </LoadingButton>
                 </Hint>
               </Grid>
-
             </Grid>
             <Grid container item justifyContent='flex-start' sx={{ marginTop: '20px' }} xs={9}>
               <Grid item sx={{ height: '20px' }} xs={12}>
@@ -525,7 +516,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
               </Grid>
             </Grid>
           </Grid>
-
           <Grid data-testid='nextButton' sx={{ padding: '35px 30px 10px' }}>
             <NextStepButton
               data-button-action=''
@@ -536,8 +526,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
               {nextButtonCaption}
             </NextStepButton>
           </Grid>
-
-          {recepient && api &&
+          {recepient && api && api?.tx?.transfer &&
             <ConfirmTransfer
               api={api}
               chain={chain}
