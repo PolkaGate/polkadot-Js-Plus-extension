@@ -1354,7 +1354,7 @@ export const chain = (name = 'Polkadot'): Chain => {
     hasMetadata: false,
     icon: 'polkadot',
     isUnknown: false,
-    name: name.toLowerCase() === 'polkadot' ? 'Polkadot Relay Chain' : 'Kusama Relay Chain',
+    name: name.toLowerCase() === 'polkadot' ? 'polkadot' : 'kusama',
     registry: {},
     specVersion: 0,
     ss58Format: name.toLowerCase() === 'polkadot' ? 0 : 2,

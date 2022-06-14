@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { Button } from '@mui/material';
 import '@polkadot/extension-mocks/chrome';
 
 import { cleanup, Matcher, render } from '@testing-library/react';
