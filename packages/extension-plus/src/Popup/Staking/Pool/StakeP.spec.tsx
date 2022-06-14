@@ -28,7 +28,6 @@ const chain: Chain = {
 };
 const availableBalance = '5.4321';
 let chainInfo: ChainInfo;
-const nextToStakeButtonBusy = false;
 const state = '';
 let staker: AccountsBalanceType;
 
@@ -51,7 +50,6 @@ describe('Testing EasyStaking component', () => {
         handleConfirmStakingModaOpen={setState}
         myPool={undefined} // don't care
         nextPoolId={undefined} // don't care
-        nextToStakeButtonBusy={nextToStakeButtonBusy}
         poolStakingConsts={poolStakingConst} // don't care
         poolsInfo={undefined} // don't care
         poolsMembers={undefined} // don't care
@@ -67,7 +65,7 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('When account hasn\'t staked', () => {
-    const { queryByText, queryAllByTestId } = render(
+    const { queryAllByTestId, queryByText } = render(
       <Stake
         api={chainInfo.api}
         chain={chain}
@@ -75,7 +73,6 @@ describe('Testing EasyStaking component', () => {
         handleConfirmStakingModaOpen={setState}
         myPool={null}
         nextPoolId={undefined} // don't care
-        nextToStakeButtonBusy={nextToStakeButtonBusy}
         poolStakingConsts={poolStakingConst}
         poolsInfo={undefined} // don't care
         poolsMembers={undefined} // don't care
@@ -105,9 +102,9 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('Pool state is OPEN or BLOCKED also available balance > 0', () => {
-    const currentlyStaked = pool().member.points;
+    const currentlyStaked = pool().member?.points;
 
-    const { debug, queryByLabelText, queryByRole, queryByText } = render(
+    const { queryByLabelText, queryByRole, queryByText } = render(
       <Stake
         api={chainInfo.api}
         chain={chain}
@@ -115,7 +112,6 @@ describe('Testing EasyStaking component', () => {
         handleConfirmStakingModaOpen={setState}
         myPool={pool('joinPool')} // pool state open
         nextPoolId={undefined}
-        nextToStakeButtonBusy={nextToStakeButtonBusy}
         poolStakingConsts={poolStakingConst}
         poolsInfo={undefined}
         poolsMembers={undefined}
@@ -135,7 +131,7 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('Available balance == 0', () => {
-    const currentlyStaked = pool().member.points;
+    const currentlyStaked = pool().member?.points;
 
     staker.balanceInfo.available = 0n;
 
@@ -147,7 +143,6 @@ describe('Testing EasyStaking component', () => {
         handleConfirmStakingModaOpen={setState}
         myPool={pool('joinPool')}
         nextPoolId={undefined}
-        nextToStakeButtonBusy={nextToStakeButtonBusy}
         poolStakingConsts={poolStakingConst}
         poolsInfo={undefined}
         poolsMembers={undefined}
@@ -168,7 +163,7 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('Pool state is DESTROYING', () => {
-    const currentlyStaked = pool().member.points;
+    const currentlyStaked = pool().member?.points;
 
     staker.balanceInfo.available = amountToMachine(availableBalance, chainInfo.decimals);
 
@@ -180,7 +175,6 @@ describe('Testing EasyStaking component', () => {
         handleConfirmStakingModaOpen={setState}
         myPool={pool()}
         nextPoolId={undefined}
-        nextToStakeButtonBusy={nextToStakeButtonBusy}
         poolStakingConsts={poolStakingConst}
         poolsInfo={undefined}
         poolsMembers={undefined}
