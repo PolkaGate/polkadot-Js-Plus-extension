@@ -13,13 +13,12 @@
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { BarChart as BarChartIcon, MoreVert as MoreVertIcon, Redeem as RedeemIcon } from '@mui/icons-material';
-import { Grid, Menu, MenuItem, Paper, Skeleton } from '@mui/material';
+import { Grid, Menu, MenuItem, Paper, Skeleton, Tooltip } from '@mui/material';
 import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import Hint from '../../../components/Hint';
 import { amountToHuman } from '../../../util/plusUtils';
 
 interface Props {
@@ -93,15 +92,14 @@ export default function Overview({ api, availableBalanceInHuman, currentlyStaked
                         {t('Rewards')}
                       </Grid>
                       <Grid item>
-                        <Hint id='rewards' place='top' tip={t('View chart')}>
+                        <Tooltip id='rewards' placement='top' title={t('View chart')}>
                           <BarChartIcon color={rewardSlashes?.length ? 'warning' : 'disabled'} onClick={handleViewChart} sx={{ cursor: 'pointer', fontSize: 15 }} />
-                        </Hint>
+                        </Tooltip>
                       </Grid>
                     </Grid>
                   }
                 />
               </Grid>
-
               <Grid container item justifyContent='center' xs={4}>
                 <Grid container item justifyContent='center' xs={12}>
                   <Balance
@@ -113,25 +111,24 @@ export default function Overview({ api, availableBalanceInHuman, currentlyStaked
                           {t('Redeemable')}
                         </Grid>
                         <Grid item>
-                          <Hint id='redeem' place='top' tip={t('Withdraw unbounded')}>
+                          <Tooltip placement='top' title={t('Withdraw unbounded')}>
                             <RedeemIcon color={redeemable ? 'warning' : 'disabled'} onClick={handleWithdrowUnbound} sx={{ cursor: 'pointer', fontSize: 15 }} />
-                          </Hint>
+                          </Tooltip>
                         </Grid>
                       </Grid>
                     }
                   />
                 </Grid>
               </Grid>
-
               <Grid item xs={4}>
                 <Balance amount={amountToHuman(String(unlockingAmount), decimals)} coin={token} label={t('Unstaking')} />
               </Grid>
             </Grid>
           </Grid>
           {/* <Grid alignItems='center' direction='column' item>
-            <Hint id='advancedMenu' place='top' tip={t('Advanced')}>
+            <Tooltip placement='top' title={t('Advanced')}>
               <MoreVertIcon onClick={handleAdvanceMenuClick} sx={{ cursor: 'pointer', fontSize: 15 }} />
-            </Hint>
+            </Tooltip>
           </Grid> */}
         </Grid>
       </Paper>

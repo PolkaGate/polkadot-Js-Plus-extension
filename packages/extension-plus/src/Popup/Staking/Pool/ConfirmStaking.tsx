@@ -374,7 +374,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'pool_join',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -393,13 +393,13 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'pool_bond_extra',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: pool?.accounts?.stashId || ''
         });
 
         setConfirmingState(status);
@@ -411,7 +411,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'pool_create',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -429,7 +429,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'edit_create',
           amount: '',
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -458,7 +458,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'pool_nominate',
           amount: '',
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -504,7 +504,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           history.push({
             action: 'pool_unbond',
             amount: amountToHuman(String(surAmount), decimals),
-            block: block,
+            block,
             date: Date.now(),
             fee: fee || '',
             from: staker.address,
@@ -528,7 +528,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
           history.push({
             action: 'pool_unbond2',
             amount: amountToHuman(String(surAmount), decimals),
-            block: block,
+            block,
             date: Date.now(),
             fee: fee || '',
             from: staker.address,
@@ -551,7 +551,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'pool_redeem',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -569,7 +569,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'pool_claim',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -588,7 +588,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         history.push({
           action: 'pool_setState',
           amount: amountToHuman(String(surAmount), decimals),
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
           from: staker.address,
@@ -605,7 +605,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
       //   history.push({
       //     action: 'stop_nominating',
-      //     block: block,
+      //     block,
       //     date: Date.now(),
       //     fee: fee || '',
       //     from: staker.address,

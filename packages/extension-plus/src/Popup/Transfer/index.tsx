@@ -17,7 +17,7 @@ import type { AccountJson, AccountWithChildren } from '../../../../extension-bas
 import { ArrowBackIosRounded, CheckRounded as CheckRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { Alert, Avatar, Box, Button, Divider, Grid, IconButton, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Skeleton, TextField } from '@mui/material';
+import { Alert, Avatar, Box, Button, Divider, Grid, IconButton, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Skeleton, TextField, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -31,7 +31,6 @@ import { AccountContext, SettingsContext } from '../../../../extension-ui/src/co
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { DEFAULT_TYPE } from '../../../../extension-ui/src/util/defaultType';
 import { PlusHeader, Popup } from '../../components';
-import Hint from '../../components/Hint';
 import getLogo from '../../util/getLogo';
 import { AccountsBalanceType } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
@@ -84,7 +83,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api && api.registry.chainTokens[0];
-  const transfer = api && api.tx.balances.transfer;
+  const transfer = api && api.tx?.balances && api.tx.balances.transfer;
 
   useEffect(() => {
     if (!api || !transfer) { return; }
@@ -99,8 +98,9 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   }, [recepientAddressIsValid]);
 
   useEffect((): void => {
-    if (!api) return;
-    setED(BigInt(api.consts.balances.existentialDeposit.toString()));
+    if (!api) { return; }
+
+    api.consts?.balances && setED(BigInt(api.consts.balances.existentialDeposit.toString()));
   }, [api]);
 
   useEffect((): void => {
@@ -347,9 +347,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   return (
     <Popup handleClose={handleTransferModalClose} showModal={transferModalOpen}>
       <PlusHeader action={handleTransferModalClose} chain={chain} closeText={'Close'} icon={<SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />} title={'Transfer Funds'} />
-
       <Grid alignItems='center' container justifyContent='center' sx={{ padding: '5px 20px' }}>
-
         <Grid alignItems='center' container id='senderAddress' item justifyContent='flex-start' spacing={1} sx={{ opacity: senderAddressOpacity, padding: '20px 10px 50px' }} xs={12}>
           <Grid item sx={{ color: grey[800], fontSize: 13, textAlign: 'left' }} xs={1}>
             {t('Sender')}:
@@ -371,7 +369,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
             </Grid>
           </Grid>
         </Grid>
-
         <Grid item sx={{ paddingBottom: '20px' }} xs={12}>
           <TextField
             InputProps={{
@@ -408,7 +405,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
           }
         </Grid>
       </Grid>
-
       {!recepientAddressIsValid &&
         <Grid item sx={{ paddingLeft: '20px' }} xs={12}>
           <Button
@@ -420,11 +416,9 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
           >
             {transferBetweenMyAccountsButtonText}
           </Button>
-
           {acountList}
         </Grid>
       }
-
       {recepientAddressIsValid &&
         <div id='transferBody'>
           <Grid container item justifyContent='space-between' sx={{ padding: '30px 30px 20px' }} xs={12}>
@@ -446,7 +440,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                       {token || <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
                       }
                     </Grid>
-
                     <Grid container item justifyContent='space-between' xs={12}>
                       <Grid id='availableBalance' sx={{ fontSize: '12px', textAlign: 'left' }}>
                         {t('Available Balance')}: {availableBalance}
@@ -463,11 +456,10 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                 </Grid>
               </Box>
             </Grid>
-
             <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={3}>
               {t('Amount:')}
               <Grid data-testid='allButton' item>
-                <Hint id='transferAll' tip={t<string>('Transfer all amount and deactivate the account.')}>
+                <Tooltip placement='right' title={t<string>('Transfer all amount and deactivate the account.')}>
                   <LoadingButton
                     color='primary'
                     disabled={safeMaxAmountLoading || !transfer}
@@ -480,11 +472,10 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                   >
                     {t('All')}
                   </LoadingButton>
-                </Hint>
+                </Tooltip>
               </Grid>
-
               <Grid data-testid='safeMaxButton' item>
-                <Hint id='Max' tip={t<string>('Transfer max amount where the account remains active.')}>
+                <Tooltip placement='right' title={t<string>('Transfer max amount where the account remains active.')}>
                   <LoadingButton
                     color='primary'
                     disabled={allAmountLoading || !transfer}
@@ -497,9 +488,8 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                   >
                     {t('Max')}
                   </LoadingButton>
-                </Hint>
+                </Tooltip>
               </Grid>
-
             </Grid>
             <Grid container item justifyContent='flex-start' sx={{ marginTop: '20px' }} xs={9}>
               <Grid item sx={{ height: '20px' }} xs={12}>
@@ -525,7 +515,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
               </Grid>
             </Grid>
           </Grid>
-
           <Grid data-testid='nextButton' sx={{ padding: '35px 30px 10px' }}>
             <NextStepButton
               data-button-action=''
@@ -536,8 +525,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
               {nextButtonCaption}
             </NextStepButton>
           </Grid>
-
-          {recepient && api &&
+          {recepient && api && api?.tx?.balances &&
             <ConfirmTransfer
               api={api}
               chain={chain}

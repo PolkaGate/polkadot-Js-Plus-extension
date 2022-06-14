@@ -15,7 +15,7 @@ interface Props {
   passwordStatus: number;
   setPasswordStatus: React.Dispatch<React.SetStateAction<number>>;
   setPassword: React.Dispatch<React.SetStateAction<string>>;
-  handleIt: () => void;
+  handleIt: () => Promise<void>;
   isDisabled?: boolean;
   autofocus?: boolean;
   helper?: string;
@@ -42,14 +42,13 @@ export default function Password({ autofocus = false, handleIt, helper = 'Please
         InputLabelProps={{
           style: { fontSize: 14 }
         }}
-
         InputProps={{
           endAdornment: (
             <InputAdornment position='end'>
               <IconButton
                 onClick={handleClearPassword}
               >
-                {password !== '' ? <Clear /> : ''}
+                {password !== '' && passwordStatus !== PASS_MAP.CORRECT ? <Clear /> : ''}
               </IconButton>
             </InputAdornment>
           ),

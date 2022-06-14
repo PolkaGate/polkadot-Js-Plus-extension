@@ -37,7 +37,7 @@ interface Props extends ThemeProps {
   showJoinPoolModal: boolean;
   staker: AccountsBalanceType;
   setJoinPoolModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  handleConfirmStakingModaOpen: () => void;
+  handleConfirmStakingModalOpen: () => void;
   setPool: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>
   poolStakingConsts: PoolStakingConsts | undefined;
   poolsInfo: PoolInfo[];
@@ -45,10 +45,8 @@ interface Props extends ThemeProps {
   poolsMembers: MembersMapEntry[] | undefined
 }
 
-function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmount, poolStakingConsts, setPool, handleConfirmStakingModaOpen, setState, setJoinPoolModalOpen, showJoinPoolModal, staker }: Props): React.ReactElement<Props> {
+function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmount, poolStakingConsts, setPool, handleConfirmStakingModalOpen, setState, setJoinPoolModalOpen, showJoinPoolModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const chainName = chain?.name.replace(' Relay Chain', '');
-
   const defaultPool = useMemo((): PoolInfo | undefined => poolsInfo?.find((p) => p?.metadata?.trim() === PREFERED_POOL_NAME && p?.bondedPool?.state === 'Open'), [poolsInfo]);
 
   const [alert, setAlert] = useState<string | undefined>();
@@ -96,7 +94,8 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   }, [decimals, realStakingAmount, setStakeAmount]);
 
   useEffect(() => {
-    if (!realStakingAmount) return;
+    if (!realStakingAmount) { return; }
+    
     api && api.tx.nominationPools.join(String(realStakingAmount), selectedPool?.poolId ?? BN_ONE).paymentInfo(staker.address).then((i) => {
       setEstimatedFee(api.createType('Balance', i?.partialFee));
     });
@@ -177,7 +176,6 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
       <Popup handleClose={handlePoolStakingModalClose} showModal={showJoinPoolModal}>
         <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<SettingsAccessibilityIcon fontSize='small' />} title={'Join Pool'} />
         <Grid container sx={{ pt: 2 }}>
-
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px 1px' }}>
             <Grid item sx={{ pr: '5px' }} xs={9}>
               <TextField
@@ -195,7 +193,6 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
                 variant='outlined'
               />
             </Grid>
-
             <Grid alignItems='center' color={grey[500]} container item justifyContent='space-between' sx={{ fontSize: 11 }} xs>
               <Grid item>
                 {t('Fee')}:
@@ -224,12 +221,10 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
               </Grid>
             </Grid>
           }
-
           <Grid item sx={{ p: '20px 35px 10px 20px' }} xs={12}>
             <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '0px 50px 5px', textAlign: 'center' }} xs={12}>
               {t('Choose a pool to join')}
             </Grid>
-
             <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', py: '5px', width: '100%' }}>
               <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
@@ -253,23 +248,20 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
               </Grid>
             </Paper>
           </Grid>
-
           <Grid container item spacing={'10px'} sx={{ height: '270px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '5px 20px 5px' }}>
             {selectedPool &&
               <Grid container item sx={{ fontSize: 11, pt: '5px' }}>
                 <Pool api={api} chain={chain} pool={selectedPool} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} />
               </Grid>
             }
-
             {poolsInfo?.length
-              ? poolsInfo.map((p, i) => p?.bondedPool?.state === 'Open' && p?.poolId !== selectedPool?.poolId &&
+              ? poolsInfo.map((p, i) => p?.bondedPool?.state == 'Open' && p?.poolId !== selectedPool?.poolId &&
                 <Grid container item key={i} sx={{ fontSize: 11, pt: '5px' }}>
                   <Pool api={api} chain={chain} pool={p} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} />
                 </Grid>)
               : <Progress title={t('Loading ...')} />
             }
           </Grid>
-
           <Grid container item sx={{ p: '20px 24px' }} xs={12}>
             <Grid item xs={1}>
               <BackButton onClick={handlePoolStakingModalClose} />
@@ -279,7 +271,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
                 data-button-action='next to stake'
                 // isBusy={nextToStakeButtonBusy}
                 isDisabled={nextToStakeButtonDisabled}
-                onClick={handleConfirmStakingModaOpen}
+                onClick={handleConfirmStakingModalOpen}
               >
                 {t('Next')}
               </NextStepButton>

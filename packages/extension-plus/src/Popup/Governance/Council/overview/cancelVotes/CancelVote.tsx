@@ -102,7 +102,7 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
       const currentTransactionDetail: TransactionDetail = {
         action: 'cancel_vote',
         amount: '',
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,

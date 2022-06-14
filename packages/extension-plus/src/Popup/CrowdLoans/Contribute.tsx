@@ -92,7 +92,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
       const history: TransactionDetail = {
         action: 'contribute',
         amount: contributionAmountInHuman,
-        block: block,
+        block,
         date: Date.now(),
         fee: fee || '',
         from: encodedAddressInfo.address,
