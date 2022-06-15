@@ -484,7 +484,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           validatorsInfo={validatorsInfo}
         />
       }
-      {((showConfirmStakingModal && staker && (selectedValidators || nominatedValidators) && state !== '') || state === 'stopNominating') && api && (myPool || newPool) &&
+      {((showConfirmStakingModal && staker && state !== '') || state === 'stopNominating') && api && (myPool || newPool) &&
         <ConfirmStaking
           amount={getAmountToConfirm()}
           api={api}

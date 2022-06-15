@@ -9,7 +9,7 @@
  * */
 
 import { Alert, Button as MuiButton, Grid, InputAdornment, TextField } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { BN, BN_ZERO } from '@polkadot/util';
@@ -39,14 +39,17 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
   const [minDeposit, setMinDeposit] = useState<BN>(BN_ZERO);
   const [unstakeAmount, setUnstakeAmount] = useState<BN>(BN_ZERO);
 
+  const stakerIsDepositor = useMemo(() => staker.address === String(pool?.bondedPool?.roles?.depositor), [staker, pool]);
+  const poolIsDestroying = useMemo(() => pool?.bondedPool?.state?.toLowerCase() === 'destroying', [pool]);
+
   const UnableToPayFee = availableBalance === BN_ZERO;
   const decimals = api?.registry?.chainDecimals[0];
   const token = api?.registry?.chainTokens[0];
 
   useEffect(() => {
-    if (!currentlyStaked || !decimals || !pool || !poolStakingConsts) { return; }
+    if (!currentlyStaked || !pool || !poolStakingConsts) { return; }
 
-    if (staker.address === String(pool.bondedPool.roles.depositor) && pool.bondedPool.state.toLowerCase() !== 'destroying') {
+    if (stakerIsDepositor && !poolIsDestroying) {
       const minDeposit = poolStakingConsts.minCreationBond;
 
       setMinDeposit(minDeposit);
@@ -56,7 +59,7 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
     } else {
       setMaxUnstake(currentlyStaked);
     }
-  }, [currentlyStaked, decimals, pool, poolStakingConsts, staker.address]);
+  }, [currentlyStaked, pool, poolIsDestroying, poolStakingConsts, stakerIsDepositor]);
 
   const handleNextToUnstake = useCallback((): void => {
     handleConfirmStakingModalOpen('unstake', unstakeAmount);
@@ -81,11 +84,11 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
 
     const remainStaked = currentlyStaked.sub(new BN(String(amountToMachine(value, decimals))));
 
-    // to remove dust from just comparision
-    const remainStakedInHuman = Number(amountToHuman(remainStaked.toString(), decimals));
+    if (remainStaked.gtn(0) &&
+      ((minDeposit.gtn(0) && remainStaked.lt(minDeposit)) || (!stakerIsDepositor && poolStakingConsts?.minJoinBond && remainStaked.lt(poolStakingConsts?.minJoinBond)))) {
+      const minShouldRemain = minDeposit.gtn(0) ? minDeposit : poolStakingConsts?.minJoinBond ?? BN_ZERO;
 
-    if (remainStakedInHuman > 0 && remainStakedInHuman < Number(amountToHuman(poolStakingConsts?.minNominatorBond, decimals))) {
-      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} should not be less than ${amountToHuman(minDeposit.toString(), decimals)} ${token}`);
+      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} should not be less than ${amountToHuman(minShouldRemain.toString(), decimals)} ${token}`);
 
       return;
     }
@@ -98,7 +101,7 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
     }
 
     setNextToUnStakeButtonDisabled(false);
-  }, [decimals, currentlyStaked, poolStakingConsts?.minNominatorBond, t, minDeposit, token, maxUnstake, setUnstakeAmount]);
+  }, [decimals, currentlyStaked, minDeposit, stakerIsDepositor, poolStakingConsts?.minJoinBond, t, token, maxUnstake]);
 
   const handleUnstakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     setNextToUnStakeButtonDisabled(true);

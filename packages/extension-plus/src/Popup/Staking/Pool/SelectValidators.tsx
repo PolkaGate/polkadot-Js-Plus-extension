@@ -256,7 +256,6 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   return (
     <Container sx={{ padding: '5px 10px', width: '100%' }}>
       <TableToolbar numSelected={selected.length} setSearchedValidators={setSearchedValidators} setSearching={setSearching} setSelected={setSelected} stakingConsts={stakingConsts} validators={notSelected} validatorsIdentities={validatorsIdentities} />
-
       <TableHeader />
       <Container disableGutters sx={{ height: 325 }}>
         {!!combined?.length && api &&
@@ -289,7 +288,6 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
           </List>
         }
       </Container>
-
       {showValidatorInfoModal && info && api &&
         <ValidatorInfo
           api={api}
@@ -304,8 +302,6 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
     </Container>
   );
 }
-
-
 
 export default function SelectValidators({ api, chain, poolsMembers, nominatedValidators, pool, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -387,9 +383,7 @@ export default function SelectValidators({ api, chain, poolsMembers, nominatedVa
   return (
     <Popup handleClose={handleCancel} showModal={showSelectValidatorsModal}>
       <PlusHeader action={handleCancel} chain={chain} closeText={'Cancel'} icon={<RecommendOutlinedIcon fontSize='small' />} title={'Select Validators'} />
-
       <Grid alignItems='center' container>
-
         <Grid item sx={{ textAlign: 'left' }} xs={12}>
           {validatorsInfo &&
             <SelectionTable
@@ -409,7 +403,6 @@ export default function SelectValidators({ api, chain, poolsMembers, nominatedVa
             />
           }
         </Grid>
-
         <Grid container id='filteringItems' item justifyContent='space-between' sx={{ p: '5px 28px' }} xs={12}>
           <Grid item sx={{ fontSize: 13, textAlign: 'right' }}>
             <FormControlLabel
@@ -460,7 +453,6 @@ export default function SelectValidators({ api, chain, poolsMembers, nominatedVa
             />
           </Grid>
         </Grid>
-
         <Grid item sx={{ p: '7px 28px' }} xs={12}>
           <NextStepButton
             data-button-action='select validators manually'
@@ -470,9 +462,7 @@ export default function SelectValidators({ api, chain, poolsMembers, nominatedVa
             {!selected.length ? t('Select validators') : t('Next')}
           </NextStepButton>
         </Grid>
-
       </Grid>
-
       {!!selected.length && showConfirmStakingModal && api && pool &&
         <ConfirmStaking
           amount={['changeValidators', 'setNominees'].includes(state) ? BN_ZERO : stakeAmount}
