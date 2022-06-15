@@ -13,7 +13,7 @@ import type { Balance } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { MembersMapEntry, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
 
-import { BlockRounded as BlockRoundedIcon, MoreVert as MoreVertIcon, PlayArrowRounded as PlayArrowRoundedIcon, StopRounded as StopRoundedIcon } from '@mui/icons-material';
+import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { Grid, Paper, Switch } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -21,7 +21,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, Progress } from '../../../components';
+import { Progress } from '../../../components';
 import PoolMoreInfo from './PoolInfo';
 
 interface Props {

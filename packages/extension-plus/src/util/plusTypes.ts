@@ -3,12 +3,11 @@
 /* eslint-disable header/header */
 /* eslint-disable camelcase */
 
-// eslint-disable-next-line simple-import-sort/imports
-import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveReferendumExt, DeriveStakingQuery } from '@polkadot/api-derive/types';
-import type { Option } from '@polkadot/types';
-import type { BN } from '@polkadot/util';
-import type { FrameSystemAccountInfo, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveReferendumExt, DeriveStakingAccount, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
+// import type { Option } from '@polkadot/types';
+import type { BN } from '@polkadot/util';
 
 import { ApiPromise } from '@polkadot/api';
 import { Balance } from '@polkadot/types/interfaces';
@@ -347,8 +346,8 @@ export interface MyPoolInfo extends PoolInfo {
   redeemable?: BN;
   rewardClaimable?: BN;
   ledger?: StakingLedger | null;
-  rewardIdBalance?: any;
-  stashIdAccount?: any;
+  rewardIdBalance?: DeriveStakingAccount;
+  stashIdAccount?: DeriveStakingAccount;
 }
 
 export interface PoolAccounts {

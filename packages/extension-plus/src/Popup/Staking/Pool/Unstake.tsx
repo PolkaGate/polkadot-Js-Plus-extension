@@ -25,12 +25,11 @@ interface Props {
   poolStakingConsts: PoolStakingConsts | undefined;
   currentlyStaked: BN | undefined | null;
   pool: MyPoolInfo | undefined | null;
-  availableBalance: BN;
   handleConfirmStakingModalOpen: (state?: string | undefined, amount?: BN | undefined) => void;
   staker: AccountsBalanceType;
 }
 
-export default function Unstake({ api, availableBalance, currentlyStaked, handleConfirmStakingModalOpen, pool, poolStakingConsts, staker }: Props): React.ReactElement<Props> {
+export default function Unstake({ api, currentlyStaked, handleConfirmStakingModalOpen, pool, poolStakingConsts, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
@@ -40,9 +39,9 @@ export default function Unstake({ api, availableBalance, currentlyStaked, handle
   const [unstakeAmount, setUnstakeAmount] = useState<BN>(BN_ZERO);
 
   const stakerIsDepositor = useMemo(() => staker.address === String(pool?.bondedPool?.roles?.depositor), [staker, pool]);
-  const poolIsDestroying = useMemo(() => pool?.bondedPool?.state?.toLowerCase() === 'destroying', [pool]);
+  const poolIsDestroying = useMemo(() => pool?.bondedPool?.state && String(pool.bondedPool.state).toLowerCase() === 'destroying', [pool]);
 
-  const UnableToPayFee = availableBalance === BN_ZERO;
+  const UnableToPayFee = staker?.balanceInfo?.available && staker.balanceInfo.available === 0n;
   const decimals = api?.registry?.chainDecimals[0];
   const token = api?.registry?.chainTokens[0];
 

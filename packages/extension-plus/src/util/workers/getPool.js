@@ -75,10 +75,10 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
   }
 
   const poolInfo = {
-    accounts: accounts,
+    accounts,
     bondedPool: unwrappedBondedPool,
     ledger: stashIdAccount?.stakingLedger,
-    member: member,
+    member,
     metadata: metadata.length
       ? metadata.isUtf8
         ? metadata.toUtf8()
@@ -90,8 +90,8 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
     redeemable: Number(stashIdAccount?.redeemable),
     rewardClaimable: Number(poolRewardClaimable),
     rewardIdBalance: rewardIdBalance.data,
-    rewardPool: rewardPool,
-    stashIdAccount: stashIdAccount
+    rewardPool,
+    stashIdAccount
   };
 
   return JSON.stringify(poolInfo);

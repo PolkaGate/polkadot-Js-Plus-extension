@@ -161,7 +161,6 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
   return (
     <Popup handleClose={handleSubmitProposalModalClose} showModal={showSubmitProposalModal}>
       <PlusHeader action={handleSubmitProposalModalClose} chain={chain} closeText={'Close'} icon={<AddCircleOutlineRoundedIcon fontSize='small' />} title={t('Submit proposal')} />
-
       <Participator
         address={address}
         availableBalance={availableBalance}
@@ -172,11 +171,9 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
         setAvailableBalance={setAvailableBalance}
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
-
       <Grid item sx={{ p: '24px 40px 1px' }} xs={12}>
         <AddressInput api={chainInfo.api} chain={chain} freeSolo selectedAddress={beneficiaryAddress} setSelectedAddress={setBeneficiaryAddress} title={t('Beneficiary')} />
       </Grid>
-
       <Grid item sx={{ p: '15px 40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
@@ -196,33 +193,30 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
           variant='outlined'
         />
       </Grid>
-
       <Grid item sx={{ fontSize: 12, fontWeight: 600, p: '20px 40px 0px' }} xs={12}>
-        <Hint icon={true} id='Collateral' place='right' tip='value would need to be put up as collateral, calculated based on value '>
+        <Hint icon={true} id='Collateral' tip='value would need to be put up as collateral, calculated based on value '>
           {`${t('Collateral')}: ${collateral?.toHuman() ?? 0} `}
         </Hint>
       </Grid>
-
       <Grid container item justifyContent='space-between' sx={{ fontSize: 10, p: '0px 40px 0px' }} xs={12}>
         <Grid item>
-          <Hint icon={true} id='pBond' place='right' tip='% of value would need to be put up as collateral'>
+          <Hint icon={true} id='pBond' tip='% of value would need to be put up as collateral'>
             {`${t('Proposal bond')}: ${bondPercentage.toFixed(2)} %`}
           </Hint>
         </Grid>
         <Grid container item justifyContent='space-between'>
           <Grid item>
-            <Hint icon={true} id='minBond' place='left' tip='the minimum to put up as collateral'>
+            <Hint icon={true} id='minBond' tip='the minimum to put up as collateral'>
               {`${t('Minimum bond')}: ${proposalBondMinimum.toHuman()}`}
             </Hint>
           </Grid>
           <Grid item>
-            <Hint icon={true} id='maxBond' place='left' tip='the maximum to put up as collateral'>
+            <Hint icon={true} id='maxBond' tip={t('the maximum to put up as collateral')}>
               {`${t('Maximum bond')}: ${proposalBondMaximum.toHuman()}`}
             </Hint>
           </Grid>
         </Grid>
       </Grid>
-
       <Grid container item sx={{ p: '10px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}

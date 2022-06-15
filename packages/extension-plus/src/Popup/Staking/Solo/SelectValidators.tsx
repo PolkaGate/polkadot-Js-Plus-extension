@@ -143,7 +143,7 @@ const TableToolbar = (props: ToolbarProps) => {
         </Grid>
         <Grid item sx={{ pl: 1 }}>
           {!!numSelected &&
-            <Hint id='delete' place='right' tip='Delete'>
+            <Hint id='delete' place='right' tip={t('Remove selected')}>
               <DeleteSweepRoundedIcon onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
             </Hint>
           }

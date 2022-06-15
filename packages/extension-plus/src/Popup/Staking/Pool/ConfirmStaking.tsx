@@ -701,10 +701,8 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmStakingModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={'Confirm'} />
-
       <Grid alignItems='center' container>
         <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
-
           <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center' }}>
             {stateInHuman(confirmingState || state)}
           </Grid>
@@ -716,7 +714,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
               {!surAmount?.isZero() && token}
             </Grid>
           </Grid>
-
           <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12}>
             <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
@@ -731,7 +728,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
                 }{' '}{token}
               </Grid>
             </Grid>
-
             <Grid container item justifyContent='center' xs={4}>
               <Grid item sx={{ color: grey[500], fontWeight: '600' }} xs={12}>
                 {t('Fee')}
@@ -743,7 +739,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
                 }
               </Grid>
             </Grid>
-
             <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Total staked')}
@@ -800,7 +795,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           </Grid>
         }
       </Grid>
-
       <Grid container item sx={{ p: '25px 25px' }} xs={12}>
         <Password
           autofocus={!confirmingState}
@@ -812,7 +806,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           setPasswordStatus={setPasswordStatus}
         />
         <Grid alignItems='center' container item xs={12}>
-
           <Grid container item xs={amountNeedsAdjust ? 11 : 12}>
             <ConfirmButton
               handleBack={handleBack}
@@ -823,10 +816,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
               text={confirmButtonText}
             />
           </Grid>
-
           {amountNeedsAdjust &&
             <Grid item sx={{ textAlign: 'left' }} xs={1}>
-              <Hint id='adjustAmount' place='left' tip={t('Auto adjust the staking amount')}>
+              <Hint id='adjustAmount' tip={t('Auto adjust the staking amount')}>
                 <IconButton aria-label='Adjust' color='warning' onClick={handleAutoAdjust} size='medium'>
                   <BuildCircleRoundedIcon sx={{ fontSize: 40 }} />
                 </IconButton>

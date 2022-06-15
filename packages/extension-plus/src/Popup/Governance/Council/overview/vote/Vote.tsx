@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 import { HowToReg as HowToRegIcon } from '@mui/icons-material';
-import { Grid, InputAdornment, TextField } from '@mui/material';
+import { Grid, InputAdornment, TextField, Tooltip } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { updateMeta } from '@polkadot/extension-ui/messaging';
@@ -14,7 +14,7 @@ import keyring from '@polkadot/ui-keyring';
 import { Chain } from '../../../../../../../extension-chains/src/types';
 import { AccountContext } from '../../../../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Hint, Participator, Password, PlusHeader, Popup, Progress, ShowBalance } from '../../../../../components';
+import { ConfirmButton, Participator, Password, PlusHeader, Popup, Progress, ShowBalance } from '../../../../../components';
 import broadcast from '../../../../../util/api/broadcast';
 import getVotingBond from '../../../../../util/api/getVotingBond';
 import { PASS_MAP } from '../../../../../util/constants';
@@ -153,7 +153,6 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
   return (
     <Popup handleClose={handleClose} showModal={showVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<HowToRegIcon fontSize='small' />} title={'Vote'} />
-
       <Participator
         address={address}
         availableBalance={availableBalance}
@@ -164,18 +163,16 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
         setAvailableBalance={setAvailableBalance}
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
-
       <Grid container item justifyContent='space-between' sx={{ pl: '115px', pr: '48px' }} xs={12}>
         <Grid item sx={{ fontSize: 11 }}>
-          <Hint icon={true} id='votingBond' place='bottom' tip={t('will be reserved for the duration of your vote')}>
+          <Tooltip id='votingBond' placement='bottom' title={t('will be reserved for the duration of your vote')}>
             <ShowBalance balance={votingBond} chainInfo={chainInfo} decimalDigits={5} title={t('Voting bond')} />
-          </Hint>
+          </Tooltip>
         </Grid>
         <Grid item sx={{ fontSize: 11 }}>
           <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />
         </Grid>
       </Grid>
-
       <Grid item sx={{ fontSize: 11, px: '40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
@@ -194,14 +191,11 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
           variant='outlined'
         />
       </Grid>
-
       {allCouncilInfo
         ? <Grid container sx={{ padding: '0px 30px' }}>
-
           <Grid id='scrollArea' item sx={{ height: '200px', overflowY: 'auto' }} xs={12}>
             <VoteMembers chain={chain} chainInfo={chainInfo} membersType={t('Accounts to vote')} personsInfo={allCouncilInfo} setSelectedCandidates={setSelectedCandidates} />
           </Grid>
-
           <Grid container item sx={{ paddingTop: '10px' }} xs={12}>
             <Password
               handleIt={handleVote}
@@ -210,7 +204,6 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
               setPassword={setPassword}
               setPasswordStatus={setPasswordStatus}
             />
-
             <ConfirmButton
               handleBack={handleClose}
               handleConfirm={handleVote}

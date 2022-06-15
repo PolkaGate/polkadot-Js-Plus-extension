@@ -5,58 +5,45 @@
 import type { ThemeProps } from '../../../extension-ui/src/types';
 
 import { Help as HelpIcon } from '@mui/icons-material';
-import { Grid } from '@mui/material';
+import { Grid, Tooltip, TooltipProps } from '@mui/material';
 import React from 'react';
-import ReactTooltip, { TooltipProps } from 'react-tooltip';
 import styled from 'styled-components';
 
 export interface Props {
   children: React.ReactNode;
-  effect?: TooltipProps['effect'];
   tip: string;
-  place?: TooltipProps['place'];
-  id: string;
+  place?: TooltipProps['placement'];
+  id?: string;
   icon?: boolean;
 }
 
-function Hint({ children, effect = 'float', icon = false, id, place = 'right', tip }: Props): React.ReactElement<Props> {
+function Hint({ children, icon = false, id, place, tip }: Props): React.ReactElement<Props> {
   return (
-    <>
-      <a
-        data-for={id}
-        data-iscapture='true'
-        data-tip={tip}
+    <Tooltip
+      id={id}
+      placement={place}
+      title={tip}
+    >
+      <Grid
+        container
+        item
+        spacing={icon ? 0.2 : 0}
       >
-
-        <Grid
-          container
-          item
-          spacing={icon ? 0.2 : 0}
-        >
-          <Grid item>
-            {icon && <HelpIcon
-              color='disabled'
-              fontSize='small'
-              sx={{ pr: '3px' }}
-            />}
-          </Grid>
-          <Grid
-            item
-            sx={icon ? { pb: '7px' } : {}}
-          >
-            {children}
-          </Grid>
+        <Grid item>
+          {icon && <HelpIcon
+            color='disabled'
+            fontSize='small'
+            sx={{ pr: '3px' }}
+          />}
         </Grid>
-
-      </a>
-      <ReactTooltip
-        effect={effect}
-        id={id}
-        multiline={true}
-        place={place}
-      />
-    </>
-
+        <Grid
+          item
+          sx={icon ? { pb: '7px' } : {}}
+        >
+          {children}
+        </Grid>
+      </Grid>
+    </Tooltip>
   );
 }
 
