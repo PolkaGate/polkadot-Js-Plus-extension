@@ -51,10 +51,10 @@ interface Props {
   validatorsIdentities: DeriveAccountInfo[] | undefined;
   poolsMembers: MembersMapEntry[] | undefined;
   setNewPool?: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>
-  basePool: MyPoolInfo | undefined;
+  basePool?: MyPoolInfo | undefined;
 }
 
-export default function ConfirmStaking({ amount, api, chain, handlePoolStakingModalClose, basePool, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setNewPool, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, basePool, chain, handlePoolStakingModalClose, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setNewPool, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string | undefined>();
@@ -182,13 +182,11 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
 
         params = [pool.member.poolId, getRole('root'), getRole('nominator'), getRole('stateToggler')];
 
-        console.log('basePool.bondedPool.roles ', basePool.bondedPool.roles)
-        console.log('Pool.bondedPool.roles ', pool.bondedPool.roles)
         // eslint-disable-next-line no-void
         basePool && JSON.stringify(basePool.bondedPool.roles) !== JSON.stringify(pool.bondedPool.roles) &&
+          // eslint-disable-next-line no-void
           void updateRoles(...params).paymentInfo(staker.address).then((i) => {
             setEstimatedFee((prevEstimatedFee) => api.createType('Balance', (prevEstimatedFee ?? BN_ZERO).add(i?.partialFee)));
-            console.log('updateRoles fee set')
           });
 
         break;
@@ -249,6 +247,7 @@ export default function ConfirmStaking({ amount, api, chain, handlePoolStakingMo
         break;
       default:
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, basePool, bondExtra, claim, create, getRole, joined, maxUnlockingChunks, nominated, pool.bondedPool.roles, pool.member?.poolId, pool.metadata, pool.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen, updateRoles]);
 
   const setTotalStakedInHumanBasedOnStates = useCallback(() => {
