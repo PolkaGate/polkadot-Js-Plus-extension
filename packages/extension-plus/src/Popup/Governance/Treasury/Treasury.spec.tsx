@@ -46,7 +46,7 @@ let api: ApiPromise;
 
 describe('Testing Treasury component', () => {
   beforeAll(async () => {
-    chainInfo = await getChainInfo(chain.name);
+    chainInfo = await getChainInfo(chain().name);
     api = chainInfo.api;
 
     extension = await createExtension();
@@ -69,7 +69,7 @@ describe('Testing Treasury component', () => {
 
     reportDeposit = api.createType('Balance', (api.consts.tips.tipReportDepositBase).add((api.consts.tips.dataDepositPerByte).muln(reason.length)));
 
-    const res = await getTips(chain.name, 0, 10);
+    const res = await getTips(chain().name, 0, 10);
 
     tips = res?.data?.list;
     if (tips?.length) tip = tips[0];
@@ -79,7 +79,7 @@ describe('Testing Treasury component', () => {
     const { queryByText } = render(
       <ProposalsOverview
         address={''}
-        chain={chain}
+        chain={chain()}
         chainInfo={chainInfo}
         proposalsInfo={null}
       />
@@ -92,7 +92,7 @@ describe('Testing Treasury component', () => {
     const { getByRole, queryAllByText, queryByText } = render(
       <ProposalsOverview
         address={''}
-        chain={chain}
+        chain={chain()}
         chainInfo={chainInfo}
         proposalsInfo={proposalsInfo}
       />
@@ -124,7 +124,7 @@ describe('Testing Treasury component', () => {
         >
           <SubmitProposal
             address={address}
-            chain={chain}
+            chain={chain()}
             chainInfo={chainInfo}
             showSubmitProposalModal={true}
           />
@@ -164,7 +164,7 @@ describe('Testing Treasury component', () => {
         >
           <TipsOverview
             address={address}
-            chain={chain}
+            chain={chain()}
             chainInfo={chainInfo}
             tips={null}
           />
@@ -186,7 +186,7 @@ describe('Testing Treasury component', () => {
         >
           <TipsOverview
             address={address}
-            chain={chain}
+            chain={chain()}
             chainInfo={chainInfo}
             tips={tips}
           />
@@ -222,7 +222,7 @@ describe('Testing Treasury component', () => {
         >
           <ProposeTip
             address={address}
-            chain={chain}
+            chain={chain()}
             chainInfo={chainInfo}
             showProposeTipModal={true}
           />

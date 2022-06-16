@@ -19,7 +19,7 @@ configure({ adapter: new Adapter() });
 
 const Props = {
   address: '5FkGthTZn2eNkNX5eN7Rac8KNsE9QvBejwrzaDiBV3UrQgYQ',
-  chain: chain,
+  chain: chain(),
   formattedAddress: '5FkGthTZn2eNkNX5eN7Rac8KNsE9QvBejwrzaDiBV3UrQgYQ',
   name: 'amir khan'
 };
@@ -29,7 +29,7 @@ describe('Testing AddressQRcode component', () => {
     const wrapper = shallow(
       <AddressQRcode
         address={Props.address}
-        chain={chain}
+        chain={Props.chain}
         name={Props.name}
         showQRcodeModalOpen={true}
       />).dive();

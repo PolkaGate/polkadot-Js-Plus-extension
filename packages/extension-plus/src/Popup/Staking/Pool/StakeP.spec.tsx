@@ -126,7 +126,6 @@ describe('Testing EasyStaking component', () => {
     const amountInput = queryByRole('spinbutton');
 
     expect(queryByLabelText('Amount')).toBeTruthy();
-    expect(queryByText('Min:')).toBeTruthy();
     expect(queryByText('Max: ~')).toBeTruthy();
     expect(queryByText('You are staking in "{{poolName}}" pool (index: {{poolId}}).')).toBeTruthy();
     expect(amountInput?.hasAttribute('disabled')).toBeFalsy();
@@ -169,7 +168,7 @@ describe('Testing EasyStaking component', () => {
 
     staker.balanceInfo.available = amountToMachine(availableBalance, chainInfo.decimals);
 
-    const { debug, queryByLabelText, queryByRole, queryByText } = render(
+    const { queryByLabelText, queryByRole, queryByText } = render(
       <Stake
         api={chainInfo.api}
         chain={chain}
@@ -190,7 +189,6 @@ describe('Testing EasyStaking component', () => {
     const amountInput = queryByRole('spinbutton');
 
     expect(queryByLabelText('Amount')).toBeTruthy();
-    expect(queryByText('Min:')).toBeTruthy();
     expect(queryByText('Max: ~')).toBeTruthy();
     expect(queryByText('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.')).toBeTruthy();
     expect(amountInput?.hasAttribute('disabled')).toBeTruthy();
