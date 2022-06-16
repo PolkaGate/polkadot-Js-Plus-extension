@@ -61,7 +61,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [currentlyStaked, setCurrentlyStaked] = useState<BN | undefined>();
-  const [totalStakedInHuman, setTotalStakedInHuman] = useState<string>('');
+  const [totalStaked, setTotalStaked] = useState<BN | undefined>();
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean>(false);
   const [confirmButtonText, setConfirmButtonText] = useState<string>(t('Confirm'));
@@ -97,7 +97,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const updateRoles = api.tx.nominationPools.updateRoles;//(poolId, root, nominator, stateToggler)
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
-    if (!history.length) return false;
+    if (!history.length) {
+      return false;
+    }
 
     const accountSubstrateAddress = getSubstrateAddress(address);
     const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
@@ -108,7 +110,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   }
 
   useEffect(() => {
-    if (staker?.balanceInfo?.available) { setAvailableBalance(new BN(String(staker.balanceInfo.available))); }
+    if (staker?.balanceInfo?.available) {
+      setAvailableBalance(new BN(String(staker.balanceInfo.available)));
+    }
   }, [staker?.balanceInfo?.available]);
 
   useEffect(() => {
@@ -134,17 +138,27 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   }, [selectedValidatorsAccountId, state, nominatedValidatorsId, t, confirmingState]);
 
   const getRole = useCallback((role) => {
-    if (!basePool) { return; }
+    if (!basePool?.bondedPool || !pool?.bondedPool) {
+      return;
+    }
 
-    if (!pool.bondedPool.roles[role]) return 'Remove';
-    if (pool.bondedPool.roles[role] === basePool.bondedPool.roles[role]) return 'Noop';
+    if (!pool.bondedPool.roles[role]) {
+      return 'Remove';
+    }
+
+    if (pool.bondedPool.roles[role] === basePool.bondedPool.roles[role]) {
+      return 'Noop';
+    }
 
     return { set: pool.bondedPool.roles[role] };
   }, [basePool, pool]);
 
   const setFee = useCallback(() => {
     let params;
-    if (estimatedFee?.gtn(0)) return;
+
+    if (estimatedFee?.gtn(0)) {
+      return;
+    }
 
     switch (state) {
       case ('bondExtra'):
@@ -160,6 +174,8 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         void joined(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
         break;
       case ('createPool'):
+        if (!pool?.bondedPool) { return; }
+
         params = [surAmount, ...Object.values(pool.bondedPool.roles).slice(1)];
 
         // eslint-disable-next-line no-void
@@ -173,6 +189,8 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
         break;
       case ('editPool'):
+        if (!pool?.bondedPool || !pool?.member || !basePool?.bondedPool) { return; }
+
         params = [pool.member.poolId, pool.metadata];
         // eslint-disable-next-line no-void
         basePool && basePool.metadata !== pool.metadata && void setMetadata(...params).paymentInfo(staker.address).then((i) => {
@@ -247,8 +265,8 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         break;
       default:
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [api, basePool, bondExtra, claim, create, getRole, joined, maxUnlockingChunks, nominated, pool.bondedPool.roles, pool.member?.poolId, pool.metadata, pool.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen, updateRoles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api, basePool, bondExtra, claim, create, getRole, joined, maxUnlockingChunks, nominated, pool?.bondedPool?.roles, pool?.member?.poolId, pool.metadata, pool.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen, updateRoles]);
 
   const setTotalStakedInHumanBasedOnStates = useCallback(() => {
     const lastStaked = currentlyStaked ?? BN_ZERO;
@@ -259,17 +277,17 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       case ('joinPool'):
       case ('createPool'):
 
-        setTotalStakedInHuman(amountToHuman((lastStaked.add(surAmount)).toString(), decimals));
+        setTotalStaked(lastStaked.add(surAmount));
         break;
 
       case ('unstake'):
 
-        !lastStaked.isZero() && setTotalStakedInHuman(amountToHuman((lastStaked.sub(surAmount)).toString(), decimals));
+        !lastStaked.isZero() && setTotalStaked(lastStaked.sub(surAmount));
         break;
       default:
-        setTotalStakedInHuman(amountToHuman(String(lastStaked), decimals)); // as default for states like setState
+        setTotalStaked(lastStaked); // as default for states like setState
     }
-  }, [currentlyStaked, decimals, state, surAmount]);
+  }, [currentlyStaked, state, surAmount]);
 
   useEffect(() => {
     if (confirmingState || !api) {
@@ -282,7 +300,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   }, [api, confirmingState, estimatedFee, setFee, setTotalStakedInHumanBasedOnStates]);
 
   useEffect(() => {
-    if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) { return; }
+    if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !existentialDeposit) {
+      return;
+    }
 
     if (confirmingState) {
       // do not run following code while confirming
@@ -291,7 +311,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
     let partialSubtrahend = surAmount;
 
-    if (['withdrawUnbound', 'unstake', 'withdrawClaimable'].includes(state)) { partialSubtrahend = BN_ZERO; }
+    if (['withdrawUnbound', 'unstake', 'withdrawClaimable'].includes(state)) {
+      partialSubtrahend = BN_ZERO;
+    }
 
     const fee = new BN(estimatedFee.toString());
 
@@ -405,6 +427,10 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       }
 
       if (localState === 'createPool' && surAmount !== BN_ZERO) {
+        if (!pool?.bondedPool?.roles) {
+          return setConfirmingState('failed');
+        }
+
         const { block, failureText, fee, status, txHash } = await createPool(api, staker.address, signer, surAmount, poolId, pool.bondedPool.roles, pool?.metadata ?? '');
 
         history.push({
@@ -426,7 +452,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         const { block, failureText, fee, status, txHash } = await editPool(api, staker.address, signer, pool, basePool);
 
         history.push({
-          action: 'edit_create',
+          action: 'pool_edit',
           amount: '',
           block,
           date: Date.now(),
@@ -624,15 +650,21 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       setState(localState);
       setConfirmingState('');
     }
-  }, [api, bondExtra, chain, claim, decimals, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool?.bondedPool?.roles, pool?.metadata, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
+  }, [api, basePool, bondExtra, chain, claim, decimals, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
 
   const handleReject = useCallback((): void => {
     setState('');
     setConfirmingState('');
-    if (setSelectValidatorsModalOpen) setSelectValidatorsModalOpen(false);
+
+    if (setSelectValidatorsModalOpen) {
+      setSelectValidatorsModalOpen(false);
+    }
 
     handleCloseModal();
-    if (handlePoolStakingModalClose) handlePoolStakingModalClose();
+
+    if (handlePoolStakingModalClose) {
+      handlePoolStakingModalClose();
+    }
   }, [handleCloseModal, handlePoolStakingModalClose, setSelectValidatorsModalOpen, setState]);
 
   const writeAppropiateMessage = useCallback((state: string, note?: string): React.ReactNode => {
@@ -681,7 +713,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   }, [surAmount, token, decimals, estimatedFee, stakingConsts?.unbondingDuration, t]);
 
   const handleAutoAdjust = useCallback((): void => {
-    if (!existentialDeposit) { return; }
+    if (!existentialDeposit) {
+      return;
+    }
 
     const fee = new BN(String(estimatedFee));
     const adjustedAmount = availableBalance.sub(existentialDeposit.add(fee));
@@ -690,8 +724,8 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
     setAmountNeedsAdjust(false);
     setConfirmButtonDisabled(false);
 
-    if (pool.bondedPool.state === 'Creating') {
-      const modifiedPool = pool;
+    if (String(pool?.bondedPool?.state) === 'Creating') {
+      const modifiedPool = JSON.parse(JSON.stringify(pool)) as MyPoolInfo;
 
       modifiedPool.bondedPool.points = adjustedAmount;
       setNewPool && setNewPool(modifiedPool);
@@ -701,37 +735,26 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmStakingModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={'Confirm'} />
-
       <Grid alignItems='center' container>
         <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
-
           <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center' }}>
             {stateInHuman(confirmingState || state)}
           </Grid>
-          <Grid container data-testid='amount' item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 20, height: '25px', textAlign: 'center' }} xs={12}>
-            <Grid item>
-              {!surAmount?.isZero() && amountToHuman(surAmount.toString(), decimals)}
-            </Grid>
-            <Grid item>
-              {!surAmount?.isZero() && token}
-            </Grid>
+          <Grid data-testid='amount' item sx={{ fontSize: 20, fontWeight: 600, height: '20px', textAlign: 'center' }} xs={12}>
+            {!surAmount?.isZero() && <FormatBalance api={api} value={surAmount} />}
           </Grid>
-
           <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12}>
             <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Currently staked')}
               </Grid>
               <Grid item xs={12}>
-                {!pool
+                {!currentlyStaked
                   ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
-                  : <>
-                    {currentlyStaked !== undefined ? amountToHuman(currentlyStaked.toString(), decimals) : '0.00'}
-                  </>
-                }{' '}{token}
+                  : <FormatBalance api={api} value={currentlyStaked} />
+                }
               </Grid>
             </Grid>
-
             <Grid container item justifyContent='center' xs={4}>
               <Grid item sx={{ color: grey[500], fontWeight: '600' }} xs={12}>
                 {t('Fee')}
@@ -743,18 +766,15 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
                 }
               </Grid>
             </Grid>
-
             <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={4}>
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Total staked')}
               </Grid>
               <Grid item xs={12}>
-                {!pool
+                {!totalStaked
                   ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
-                  : <>
-                    {totalStakedInHuman !== '0' ? totalStakedInHuman : '0.00'}
-                  </>
-                }{' '}{token}
+                  : <FormatBalance api={api} value={totalStaked} />
+                }
               </Grid>
             </Grid>
           </Grid>
@@ -800,7 +820,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           </Grid>
         }
       </Grid>
-
       <Grid container item sx={{ p: '25px 25px' }} xs={12}>
         <Password
           autofocus={!confirmingState}
@@ -812,7 +831,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           setPasswordStatus={setPasswordStatus}
         />
         <Grid alignItems='center' container item xs={12}>
-
           <Grid container item xs={amountNeedsAdjust ? 11 : 12}>
             <ConfirmButton
               handleBack={handleBack}
@@ -823,10 +841,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
               text={confirmButtonText}
             />
           </Grid>
-
           {amountNeedsAdjust &&
             <Grid item sx={{ textAlign: 'left' }} xs={1}>
-              <Hint id='adjustAmount' place='left' tip={t('Auto adjust the staking amount')}>
+              <Hint id='adjustAmount' tip={t('Auto adjust the staking amount')}>
                 <IconButton aria-label='Adjust' color='warning' onClick={handleAutoAdjust} size='medium'>
                   <BuildCircleRoundedIcon sx={{ fontSize: 40 }} />
                 </IconButton>

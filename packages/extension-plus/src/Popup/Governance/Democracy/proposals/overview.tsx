@@ -5,12 +5,11 @@
 
 import type { DeriveProposal } from '@polkadot/api-derive/types';
 
-import { Avatar, Button, Divider, Grid, Link, Paper } from '@mui/material';
+import { Avatar, Button, Divider, Grid, Link, Paper, Tooltip } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 
 import { Chain } from '../../../../../../extension-chains/src/types';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import Hint from '../../../../components/Hint';
 import Identity from '../../../../components/Identity';
 import getLogo from '../../../../util/getLogo';
 import { ChainInfo, ProposalsInfo } from '../../../../util/plusTypes';
@@ -44,7 +43,7 @@ export default function Proposals({ address, chain, chainInfo, proposalsInfo }: 
     setShowVoteProposalModal(false);
   }, []);
 
-  if (!proposalsInfo) return (<></>);
+  if (!proposalsInfo) { return (<></>); }
 
   const { accountsInfo, proposals } = proposalsInfo;
 
@@ -68,7 +67,6 @@ export default function Proposals({ address, chain, chainInfo, proposalsInfo }: 
                 <Grid item sx={{ fontSize: 12, textAlign: 'center' }} xs={4}>
                   #{String(p?.index)} {' '}
                 </Grid>
-
                 <Grid container item justifyContent='flex-end' xs={4}>
                   <Grid item>
                     <Link
@@ -100,11 +98,9 @@ export default function Proposals({ address, chain, chainInfo, proposalsInfo }: 
                   </Grid>
                 </Grid>
               </Grid>
-
               <Grid item>
                 <Divider />
               </Grid>
-
               <Grid container justifyContent='space-between' sx={{ fontSize: 11, paddingTop: 1, color: 'red' }}>
                 <Grid item>
                   {t('Locked')}{': '}{Number(amountToHuman(p.balance.toString(), decimals)).toLocaleString()} {' '}{coin}
@@ -116,36 +112,26 @@ export default function Proposals({ address, chain, chainInfo, proposalsInfo }: 
                   {t('Seconds')}{': '}{p.seconds.length - 1}
                 </Grid>
               </Grid>
-
               <Grid item sx={{ fontSize: 12, fontWeight: '600', margin: '20px 0px 30px' }} xs={12}>
                 {description}
               </Grid>
-
               <Grid item sx={{ fontSize: 12 }} xs={12}>
                 {p?.proposer &&
                   <Identity accountInfo={accountsInfo[index]} chain={chain} showAddress title={t('Proposer')} />
                 }
               </Grid>
-
-
-              {/* <Grid item xs={12} sx={{ border: '1px dotted', borderRadius: '10px', padding: 1, margin: '20px 1px 20px' }}>
-                {t('Hash')}<br />
-                {p.imageHash.toString()}
-              </Grid> */}
-
               <Grid container justifyContent='center' sx={{ paddingTop: 2 }}>
-                <Hint id='seconding' place='top' tip={secondToolTip}>
+                <Tooltip id='seconding' placement='top' title={secondToolTip}>
                   <Button color='warning' onClick={() => handleSecond(p)} variant='contained'>
                     {t('Endorse')}
                   </Button>
-                </Hint>
+                </Tooltip>
               </Grid>
             </Paper>);
         })
         : <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
           {t('No active proposal')}
         </Grid>}
-
       {selectedProposal && showVoteProposalModal &&
         <Second
           address={address}
@@ -156,7 +142,6 @@ export default function Proposals({ address, chain, chainInfo, proposalsInfo }: 
           showVoteProposalModal={showVoteProposalModal}
         />
       }
-
     </>
   );
 }

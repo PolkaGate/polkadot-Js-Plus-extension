@@ -7,7 +7,7 @@
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { CheckRounded as CheckRoundedIcon, ContentCopy as ContentCopyIcon, Clear as ClearIcon, Lock as LockIcon, LockOpen as LockOpenIcon } from '@mui/icons-material';
-import { Alert, Button, Container, Divider, Grid, IconButton, InputAdornment, Link, Tab, Tabs, TextField } from '@mui/material';
+import { Alert, Button, Container, Divider, Grid, IconButton, InputAdornment, Link, Tab, Tabs, TextField, Tooltip } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -24,7 +24,6 @@ import { PASS_MAP } from '../../util/constants';
 import { toShortAddress } from '../../util/plusUtils';
 import isValidAddress from '../../util/validateAddress';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import Hint from '../../components/Hint';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -148,20 +147,18 @@ function EnDecrypt({ className }: Props): React.ReactElement<Props> {
           </Grid>
         </Grid>
       } />
-
       <Container>
-
-        <Grid item xs={12} sx={{ margin: '0px 30px' }}>
+        <Grid item sx={{ margin: '0px 30px' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
             <Tab icon={<LockIcon fontSize='small' />} iconPosition='start' label='Encryption' sx={{ fontSize: 11 }} value='encrypt' />
             <Tab icon={<LockOpenIcon fontSize='small' />} iconPosition='start' label='Decryption' sx={{ fontSize: 11 }} value='decrypt' />
           </Tabs>
         </Grid>
-
         {tabValue === 'encrypt' &&
           <>
-            <Grid item xs={12} sx={{ p: '15px 10px' }}>
+            <Grid item sx={{ p: '15px 10px' }} xs={12}>
               <TextField
+                autoFocus
                 id='enPlainText'
                 label='Plain text'
                 multiline
@@ -170,10 +167,8 @@ function EnDecrypt({ className }: Props): React.ReactElement<Props> {
                 rows={4}
                 sx={{ flexShrink: 0, width: '100%' }}
                 value={enPlainText}
-                autoFocus
               />
             </Grid>
-
             <Grid item sx={{ p: '5px 10px' }} xs={12}>
               <TextField
                 InputProps={{
@@ -192,22 +187,20 @@ function EnDecrypt({ className }: Props): React.ReactElement<Props> {
 
                   style: { fontSize: 14 }
                 }}
-                fullWidth
+                error={!recepientAddressIsValid && !!recipient}
                 // helperText={t('Reciever and sender must be on the same network')}
-                label={t('Recipient')}
+                fullWidth
                 // eslint-disable-next-line react/jsx-no-bind
+                label={t('Recipient')}
                 onChange={(event) => setRecipient(event.target.value)}
                 placeholder={t('enter recipient address')}
                 size='medium'
                 type='string'
                 value={recipient}
                 variant='outlined'
-                error={!recepientAddressIsValid && !!recipient}
               />
-
             </Grid>
-
-            <Grid container item alignItems='center' justifyContent='space-between' sx={{ pt: '5px' }} xs={12}>
+            <Grid alignItems='center' container item justifyContent='space-between' sx={{ pt: '5px' }} xs={12}>
               <Grid item xs={9}>
                 <Password
                   // handleClearPassword={handleClearPassword}
@@ -232,18 +225,17 @@ function EnDecrypt({ className }: Props): React.ReactElement<Props> {
                 </Button>
               </Grid>
             </Grid>
-
-            <Grid item xs={12} sx={{ p: '30px 10px' }}>
+            <Grid item sx={{ p: '30px 10px' }} xs={12}>
               <TextField
                 InputProps={{
                   endAdornment: <InputAdornment position='end'>
-                    <Hint id='onlyReciient' place='left' tip={'Only the recipient can decrypt this text'}>
+                    <Tooltip id='onlyReciient' placement='left' title={'Only the recipient can decrypt this text'}>
                       <CopyToClipboard text={enCipherText}>
                         <ContentCopyIcon color='action' sx={{ cursor: 'pointer' }}
                         // onClick={_onCopy}
                         />
                       </CopyToClipboard>
-                    </Hint>
+                    </Tooltip>
                   </InputAdornment>
                 }}
                 id='enCipherText'
@@ -256,11 +248,9 @@ function EnDecrypt({ className }: Props): React.ReactElement<Props> {
               />
             </Grid>
           </>}
-
-
         {tabValue === 'decrypt' &&
           <>
-            <Grid item xs={12} sx={{ p: '15px 10px' }}>
+            <Grid item sx={{ p: '15px 10px' }} xs={12}>
               <TextField
                 autoFocus
                 id='deCipherText'
@@ -303,8 +293,7 @@ function EnDecrypt({ className }: Props): React.ReactElement<Props> {
                 variant='outlined'
               />
             </Grid>
-
-            <Grid container item alignItems='center' justifyContent='space-between' sx={{ pt: '5px' }} xs={12}>
+            <Grid alignItems='center' container item justifyContent='space-between' sx={{ pt: '5px' }} xs={12}>
               <Grid item xs={9}>
                 <Password
                   // handleClearPassword={handleClearPassword}
@@ -329,7 +318,7 @@ function EnDecrypt({ className }: Props): React.ReactElement<Props> {
                 </Button>
               </Grid>
             </Grid>
-            <Grid item xs={12} sx={{ p: '30px 10px' }}>
+            <Grid item sx={{ p: '30px 10px' }} xs={12}>
               <TextField
                 id='dePlainText'
                 label='Plain text'

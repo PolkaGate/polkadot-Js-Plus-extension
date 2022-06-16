@@ -6,7 +6,7 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
 import { CheckCircleRounded as CheckCircleRoundedIcon, Email as EmailIcon, LaunchRounded as LaunchRoundedIcon, RemoveCircleRounded as RemoveCircleRoundedIcon, Twitter as TwitterIcon } from '@mui/icons-material';
-import { Grid, Link, Skeleton } from '@mui/material';
+import { Grid, Link, Skeleton, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React from 'react';
 
@@ -14,7 +14,6 @@ import Identicon from '@polkadot/react-identicon';
 
 import { Chain } from '../../../extension-chains/src/types';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
-import Hint from './Hint';
 import { ShortAddress } from '.';
 
 interface Props {
@@ -42,7 +41,6 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, show
             {title}
           </Grid>
         }
-
         {accountInfo
           ? <Grid alignItems='center' container item justifyContent='flex-start' xs={12}>
             <Grid item xs={1}>
@@ -54,15 +52,13 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, show
                   value={String(accountInfo?.accountId)}
                 />}
             </Grid>
-
             <Grid alignItems='center' container item sx={{ paddingLeft: '5px' }} xs={11}>
               <Grid alignItems='center' container id='namesAndSocials' item justifyContent='flex-start' spacing={0.3} xs={12}>
-
                 <Grid container id='names' item sx={{ flexWrap: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={hasSocial && showSocial ? 9 : 12}>
                   <Grid item sx={{ pr: '5px' }}>
                     {judgement
-                      ? <Hint id='judgement' tip={judgement}><CheckCircleRoundedIcon color='success' sx={{ fontSize: 15 }} /></Hint>
-                      : <Hint id='noJudgement' tip={judgement}><RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15 }} /></Hint>
+                      ? <Tooltip id='judgement' title={judgement}><CheckCircleRoundedIcon color='success' sx={{ fontSize: 15 }} /></Tooltip>
+                      : <RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15 }} />
                     }
                   </Grid>
                   {accountInfo?.identity.displayParent &&
@@ -80,9 +76,7 @@ function Identity({ accountInfo, chain, iconSize = 24, showAddress = false, show
                       {accountInfo?.accountId && <ShortAddress address={String(accountInfo?.accountId)} fontSize={11} />}
                     </Grid>
                   }
-
                 </Grid>
-
                 {showSocial && <Grid container id='socials' item justifyContent='flex-start' xs={hasSocial ? 3 : 0}>
                   {accountInfo?.identity.twitter &&
                     <Grid item>

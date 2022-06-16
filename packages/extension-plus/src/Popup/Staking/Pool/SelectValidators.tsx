@@ -9,7 +9,7 @@
  **/
 import type { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MembersMapEntry, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded as DeleteSweepRoundedIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
@@ -42,7 +42,7 @@ interface Props {
   setState: React.Dispatch<React.SetStateAction<string>>;
   state: string;
   validatorsIdentities: DeriveAccountInfo[] | undefined;
-  pool: any | undefined;
+  pool: MyPoolInfo;
   poolsMembers: MembersMapEntry[] | undefined;
 }
 
@@ -144,7 +144,7 @@ const TableToolbar = (props: ToolbarProps) => {
         </Grid>
         <Grid item sx={{ pl: 1 }}>
           {!!numSelected &&
-            <Hint id='delete' place='right' tip='Delete'>
+            <Hint id='delete' place='right' tip={t('Remove selected')}>
               <DeleteSweepRoundedIcon onClick={() => setSelected([])} sx={{ color: pink[500], cursor: 'pointer', fontSize: 18 }} />
             </Hint>
           }
@@ -156,10 +156,8 @@ const TableToolbar = (props: ToolbarProps) => {
           autoComplete='off'
           color='warning'
           fullWidth
-          // label={t('Search')}
           name='search'
           onChange={handleValidatorSearch}
-          // placeholder='Filter with Address/Name'
           size='small'
           sx={{ fontSize: 11 }}
           type='text'
@@ -303,7 +301,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, poolsMembers, nominatedValidators, pool, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function SelectValidators({ api, chain, nominatedValidators, pool, poolsMembers, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);

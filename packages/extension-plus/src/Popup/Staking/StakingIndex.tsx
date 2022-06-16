@@ -146,7 +146,7 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const nominatorInfo: NominatorInfo = e.data;
 
-      console.log('nominatorInfo:', nominatorInfo);
+      console.log('nominatorInfo for solo:', nominatorInfo);
 
       setNominatorInfo(nominatorInfo);
       getNominatorInfoWorker.terminate();

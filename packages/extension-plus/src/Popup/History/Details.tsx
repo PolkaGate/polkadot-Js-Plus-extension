@@ -10,15 +10,15 @@
 
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { BubbleChart as BubbleChartIcon, LaunchRounded } from '@mui/icons-material';
-import { Avatar, Box, Chip, Container, Divider, Grid, Link, Paper } from '@mui/material';
+import { BubbleChart as BubbleChartIcon } from '@mui/icons-material';
+import { Box, Chip, Container, Divider, Grid, Link, Paper, Stack } from '@mui/material';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { Chain } from '@polkadot/extension-chains/types';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup } from '../../components';
+import { Hint, PlusHeader, Popup } from '../../components';
 import { SHORT_ADDRESS_CHARACTERS } from '../../util/constants';
 import getLogo from '../../util/getLogo';
 import { TransactionDetail } from '../../util/plusTypes';
@@ -99,7 +99,7 @@ export default function Details({
   return (
     <Popup handleClose={handleDetailsModalClose} id='scrollArea' showModal={showDetailModal}>
       <PlusHeader action={handleDetailsModalClose} chain={chain} closeText={'Close'} icon={<BubbleChartIcon fontSize='small' />} title={'Transaction Detail'} />
-      <Container data-testid='details' sx={{ p: '0px 20px' }} >
+      <Container data-testid='details' sx={{ p: '0px 20px' }}>
         <Grid item sx={{ p: '15px 15px 8px' }} xs={12}>
           <Paper elevation={3}>
             <Grid container item justifyContent='center' sx={{ fontSize: 12, textAlign: 'center', p: '30px 10px 20px' }}>
@@ -114,15 +114,17 @@ export default function Details({
               <Grid id='transactionStatus' item sx={{ fontSize: 15, fontWeight: 'bold', p: '5px 1px 10px', color: ['success'].includes(transaction.status.toLowerCase()) ? 'green' : 'red' }} xs={12}>
                 {['success'].includes(transaction.status.toLowerCase()) ? t('Success') : t('Failed')}
               </Grid>
-              <Grid id='failureText' item sx={{ color: 'gray' }} xs={12}>
-                {!['success'].includes(transaction.status.toLowerCase()) ? transaction.status : ''}
-              </Grid>
-
+              {transaction.status.toLowerCase() !== 'success' &&
+                <Stack id='failureText' justifyContent='center' sx={{ color: 'gray', overflow: 'hidden', whiteSpace: 'nowrap', textAlign: 'center', textOverflow: 'ellipsis' }}>
+                  <Hint tip={transaction.status}>
+                    {transaction.status}
+                  </Hint>
+                </Stack>
+              }
               <Grid container item justifyContent='flex-end' sx={{ paddingTop: '10px' }} xs={12}>
                 <Grid item xs={10}>
                   {new Date(transaction.date).toDateString()}{' '}{new Date(transaction.date).toLocaleTimeString()}
                 </Grid>
-
                 <Grid item xs={1}>
                   <Link
                     href={`${subscanLink(transaction.hash)}`}
@@ -130,17 +132,15 @@ export default function Details({
                     target='_blank'
                     underline='none'
                   >
-                    <Avatar
+                    <Grid
                       alt={'subscan'}
+                      component='img'
                       src={getLogo('subscan')}
-                      sx={{ height: 15, width: 15 }}
+                      sx={{ height: 20, width: 20 }}
                     />
                   </Link>
                 </Grid>
-
               </Grid>
-
-
             </Grid>
           </Paper>
         </Grid>
@@ -156,14 +156,12 @@ export default function Details({
               <Grid item sx={{ fontWeight: 'bold', pb: '10px', textAlign: 'right' }} xs={6}>
                 {transaction.amount || 'N/A'} {' '}{coin}
               </Grid>
-
               <Grid item sx={{ textAlign: 'left' }} xs={2}>
                 {t('From')}
               </Grid>
               <Grid item sx={{ textAlign: 'right', pb: '10px' }} xs={10}>
                 {showAddress(transaction.from)}
               </Grid>
-
               <Grid item sx={{ textAlign: 'left' }} xs={2}>
                 {t('To')}
               </Grid>
@@ -173,7 +171,6 @@ export default function Details({
             </Grid>
           </Paper>
         </Grid>
-
         <Grid item sx={{ p: '10px 15px 10px' }} xs={12}>
           <Paper elevation={3}>
             <Grid container justifyContent='space-between' sx={{ fontSize: 12, p: '30px 10px 20px' }}>
@@ -183,14 +180,12 @@ export default function Details({
               <Grid item sx={{ fontWeight: '600', textAlign: 'right', pb: '10px' }} xs={6}>
                 {amountToHuman(transaction.fee, decimals, 6)} {' '}{coin}
               </Grid>
-
               <Grid item sx={{ textAlign: 'left' }} xs={2}>
                 {t('Block')}
               </Grid>
               <Grid item sx={{ textAlign: 'right', pb: '10px' }} xs={10}>
                 # {transaction.block || 'N/A'}
               </Grid>
-
               <Grid item sx={{ textAlign: 'left' }} xs={1}>
                 {t('Hash')}
               </Grid>
@@ -211,21 +206,9 @@ export default function Details({
             </Grid>
           </Paper>
         </Grid>
-
         <Grid item sx={{ pb: '20px' }} xs={12}>
           <Divider light />
         </Grid>
-
-        {/* <Grid item sx={{ textAlign: 'center' }} xs={12}>
-          <Link
-            href={`${subscanLink(transaction.hash)}`}
-            rel='noreferrer'
-            target='_blank'
-          >
-            {'Subscan   '}
-            <LaunchRounded color='primary' sx={{ fontSize: 12 }} />
-          </Link>
-        </Grid> */}
       </Container>
     </Popup>
   );
