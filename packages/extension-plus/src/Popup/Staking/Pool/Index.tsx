@@ -142,13 +142,13 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
 
       const parsedInfo = JSON.parse(info) as MyPoolInfo;
 
-      setNoNominatedValidators(!parsedInfo.stashIdAccount.nominators.length);
+      setNoNominatedValidators(!parsedInfo?.stashIdAccount?.nominators?.length);
 
       console.log('*** My pool info returned from worker is:', parsedInfo);
 
       // id ? setSelectedPool(parsedInfo) :
       setMyPool(parsedInfo);
-      !id && setNominatedValidatorsId(parsedInfo.stashIdAccount.nominators);
+      !id && setNominatedValidatorsId(parsedInfo?.stashIdAccount?.nominators);
       getPoolWorker.terminate();
     };
   };
@@ -177,13 +177,13 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
 
       setNextPoolId(new BN(parsedPoolsInfo.nextPoolId));
 
-      // info?.forEach((p: PoolInfo) => {
-      //   if (p?.bondedPool?.points) {
-      //     p.bondedPool.points = new BN(String(p.bondedPool.points));
-      //   }
+      info?.forEach((p: PoolInfo) => {
+        if (p?.bondedPool?.points) {
+          p.bondedPool.points = new BN(String(p.bondedPool.points));
+        }
 
-      //   p.poolId = new BN(p.poolId);
-      // });
+        p.poolId = new BN(p.poolId);
+      });
 
       setPoolsInfo(info);
 

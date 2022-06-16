@@ -47,7 +47,7 @@ interface Props extends ThemeProps {
 
 function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmount, poolStakingConsts, setPool, handleConfirmStakingModalOpen, setState, setJoinPoolModalOpen, showJoinPoolModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const defaultPool = useMemo((): PoolInfo | undefined => poolsInfo?.find((p) => p?.metadata?.trim() === PREFERED_POOL_NAME && p?.bondedPool?.state === 'Open'), [poolsInfo]);
+  const defaultPool = useMemo((): PoolInfo | undefined => poolsInfo?.find((p) => p?.metadata?.includes(PREFERED_POOL_NAME) && String(p?.bondedPool?.state) === 'Open'), [poolsInfo]);
 
   const [alert, setAlert] = useState<string | undefined>();
   const [stakeAmountInHuman, setStakeAmountInHuman] = useState<string>('0');
@@ -56,7 +56,6 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   const [maxStakeable, setMaxStakeable] = useState<number>(0);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [estimatedMaxFee, setEstimatedMaxFee] = useState<Balance | undefined>();
-
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
   const [selectedPool, setSelectedPool] = useState<PoolInfo | undefined>(defaultPool);
 
@@ -78,7 +77,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
       setNextToStakeButtonDisabled(true);
     }
 
-    const balanceIsInsufficient = staker?.balanceInfo?.available <= amountToMachine(stakeAmountInHuman, decimals);
+    const balanceIsInsufficient = !!staker?.balanceInfo?.available && staker?.balanceInfo?.available <= amountToMachine(stakeAmountInHuman, decimals);
 
     if (balanceIsInsufficient || !Number(stakeAmountInHuman)) {
       setNextToStakeButtonDisabled(true);
@@ -95,7 +94,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
 
   useEffect(() => {
     if (!realStakingAmount) { return; }
-    
+
     api && api.tx.nominationPools.join(String(realStakingAmount), selectedPool?.poolId ?? BN_ONE).paymentInfo(staker.address).then((i) => {
       setEstimatedFee(api.createType('Balance', i?.partialFee));
     });
@@ -106,7 +105,8 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   }, [api, staker.address, realStakingAmount, selectedPool, staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) return;
+    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) { return; }
+
     const max = new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedMaxFee));
     const min = poolStakingConsts.minJoinBond;
 
@@ -248,14 +248,14 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
               </Grid>
             </Paper>
           </Grid>
-          <Grid container item spacing={'10px'} sx={{ height: '270px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '5px 20px 5px' }}>
+          <Grid container item spacing={'10px'} sx={{ height: '270px', overflowY: 'auto', p: '5px 20px 5px', scrollbarWidth: 'none', width: '100%' }}>
             {selectedPool &&
               <Grid container item sx={{ fontSize: 11, pt: '5px' }}>
                 <Pool api={api} chain={chain} pool={selectedPool} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} />
               </Grid>
             }
             {poolsInfo?.length
-              ? poolsInfo.map((p, i) => p?.bondedPool?.state == 'Open' && p?.poolId !== selectedPool?.poolId &&
+              ? poolsInfo.map((p, i) => String(p?.bondedPool?.state) === 'Open' && p?.poolId !== selectedPool?.poolId &&
                 <Grid container item key={i} sx={{ fontSize: 11, pt: '5px' }}>
                   <Pool api={api} chain={chain} pool={p} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} />
                 </Grid>)

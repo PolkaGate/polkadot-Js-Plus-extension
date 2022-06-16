@@ -53,7 +53,7 @@ interface Props {
   rebagInfo?: RebagInfo | undefined;
 }
 
-export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, handleSoloStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string | undefined>();
@@ -90,8 +90,10 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
   const rebaged = renameConsistentApi.rebag;
   const putInFrontOf = renameConsistentApi.putInFrontOf;
 
-  async function saveHistory (chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
-    if (!history.length) return false;
+  async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
+    if (!history.length) {
+      return false;
+    }
 
     const accountSubstrateAddress = getSubstrateAddress(address);
     const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
@@ -102,7 +104,9 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
   }
 
   useEffect(() => {
-    if (staker?.balanceInfo?.available) { setAvailableBalance(staker.balanceInfo.available); }
+    if (staker?.balanceInfo?.available) {
+      setAvailableBalance(staker.balanceInfo.available);
+    }
   }, [staker?.balanceInfo?.available]);
 
   useEffect(() => {
@@ -171,7 +175,9 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
           if (surAmount === currentlyStaked) {
             // eslint-disable-next-line no-void
             void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
-          } else { setEstimatedFee(fee); }
+          } else {
+            setEstimatedFee(fee);
+          }
         });
         break;
       case ('stopNominating'):
@@ -236,11 +242,15 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
   }, [api, confirmingState, decimals, estimatedFee, setFee, setTotalStakedInHumanBasedOnStates]);
 
   useEffect(() => {
-    if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !stakingConsts?.existentialDeposit || confirmingState) { return; }
+    if (!estimatedFee || estimatedFee?.isEmpty || !availableBalance || !stakingConsts?.existentialDeposit || confirmingState) {
+      return;
+    }
 
     let partialSubtrahend = BigInt(surAmount);
 
-    if (['withdrawUnbound', 'unstake'].includes(state)) { partialSubtrahend = 0n; }
+    if (['withdrawUnbound', 'unstake'].includes(state)) {
+      partialSubtrahend = 0n;
+    }
 
     const fee = BigInt(estimatedFee.toString());
 
@@ -258,7 +268,9 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
   }, [surAmount, estimatedFee, availableBalance, stakingConsts?.existentialDeposit, state, t, confirmingState]);
 
   useEffect(() => {
-    if (!ledger) { return; }
+    if (!ledger) {
+      return;
+    }
 
     setCurrentlyStaked(BigInt(String(ledger.active)));
   }, [ledger]);
@@ -491,10 +503,15 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
   const handleReject = useCallback((): void => {
     setState('');
     setConfirmingState(undefined);
-    if (setSelectValidatorsModalOpen) setSelectValidatorsModalOpen(false);
+
+    if (setSelectValidatorsModalOpen) {
+      setSelectValidatorsModalOpen(false);
+    }
 
     handleCloseModal();
-    if (handleSoloStakingModalClose) handleSoloStakingModalClose();
+    if (handleSoloStakingModalClose) {
+      handleSoloStakingModalClose();
+    }
   }, [handleCloseModal, handleSoloStakingModalClose, setSelectValidatorsModalOpen, setState]);
 
   const writeAppropiateMessage = useCallback((state: string, note: string): React.ReactNode => {
@@ -571,7 +588,9 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
   const handleAutoAdjust = useCallback((): void => {
     const ED = stakingConsts?.existentialDeposit;
 
-    if (!ED) { return; }
+    if (!ED) {
+      return;
+    }
 
     const fee = BigInt(String(estimatedFee));
     const adjustedAmount = availableBalance - (ED + fee);
@@ -589,13 +608,8 @@ export default function ConfirmStaking ({ amount, api, chain, handleSoloStakingM
           <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center' }}>
             {stateInHuman(confirmingState || state)}
           </Grid>
-          <Grid container data-testid='amount' item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 20, height: '25px', textAlign: 'center' }} xs={12}>
-            <Grid item>
-              {!!surAmount && amountToHuman(surAmount.toString(), decimals)}
-            </Grid>
-            <Grid item>
-              {!!surAmount && token}
-            </Grid>
+          <Grid data-testid='amount' item sx={{ fontSize: 20, fontWeight: 600, height: '20px', textAlign: 'center' }} xs={12}>
+            {!!surAmount && amountToHuman(surAmount.toString(), decimals)} {!!surAmount && token}
           </Grid>
           <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12}>
             <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={4}>
