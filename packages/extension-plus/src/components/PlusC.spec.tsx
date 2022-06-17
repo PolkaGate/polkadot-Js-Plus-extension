@@ -59,7 +59,7 @@ describe('Testing Plus component', () => {
     const wrapper = shallow(
       <Plus
         address={Props.address}
-        chain={chain}
+        chain={chain()}
         formattedAddress={Props.formattedAddress}
         givenType={Props.givenType}
         name={Props.name}
