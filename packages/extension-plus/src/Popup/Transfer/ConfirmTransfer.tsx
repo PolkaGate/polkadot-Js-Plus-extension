@@ -77,7 +77,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
   }, [lastFee]);
 
   useEffect(() => {
-    if (!newFee) return;
+    if (!newFee) { return; }
 
     const total = amountToHuman((newFee.toBigInt() + transferAmount).toString(), decimals);
 
@@ -148,6 +148,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chain, api, decimals, hierarchy, password, recepient.address, sender.address, transfer, transferAllType, transferAmount]);
 
   // function disable(flag: boolean) {
@@ -201,7 +202,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', padding: '5px 10px 5px', textAlign: 'center' }} xs={3}>
             {t('transfer of')}
           </Grid>
-          <Grid container item justifyContent='center' spacing={1} sx={{ fontFamily: 'fantasy', fontSize: 18, textAlign: 'center' }} xs={12}>
+          <Grid container item justifyContent='center' spacing={1} sx={{ fontSize: 20, fontWeight: 600, textAlign: 'center' }} xs={12}>
             <Grid item>
               {transferAmountInHuman}
             </Grid>

@@ -63,7 +63,9 @@ interface Props {
 
 const workers: Worker[] = [];
 
-BigInt.prototype.toJSON = function () { return this.toString(); };
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
 
 const OPT_ENTRIES = {
   transform: (entries: [StorageKey<[AccountId32]>, Option<PalletNominationPoolsPoolMember>][]): MembersMapEntry[] =>
@@ -140,13 +142,13 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
 
       const parsedInfo = JSON.parse(info) as MyPoolInfo;
 
-      setNoNominatedValidators(!parsedInfo.stashIdAccount.nominators.length);
+      setNoNominatedValidators(!parsedInfo?.stashIdAccount?.nominators?.length);
 
       console.log('*** My pool info returned from worker is:', parsedInfo);
 
       // id ? setSelectedPool(parsedInfo) :
       setMyPool(parsedInfo);
-      !id && setNominatedValidatorsId(parsedInfo.stashIdAccount.nominators);
+      !id && setNominatedValidatorsId(parsedInfo?.stashIdAccount?.nominators);
       getPoolWorker.terminate();
     };
   };
@@ -176,7 +178,10 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
       setNextPoolId(new BN(parsedPoolsInfo.nextPoolId));
 
       info?.forEach((p: PoolInfo) => {
-        p.bondedPool.points = p?.bondedPool?.points ? new BN(p.bondedPool.points as string) : BN_ZERO;
+        if (p?.bondedPool?.points) {
+          p.bondedPool.points = new BN(String(p.bondedPool.points));
+        }
+
         p.poolId = new BN(p.poolId);
       });
 
@@ -187,15 +192,20 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   };
 
   useEffect(() => {
-    if (myPool === undefined || !api || !currentEraIndex) { return; }
+    if (myPool === undefined || !api || !currentEraIndex) {
+      return;
+    }
 
     let unlockingValue = BN_ZERO;
     let redeemValue = BN_ZERO;
 
-    if (myPool !== null) { // if pool is fetched but account belongs to no pool then pool===null
+    if (myPool !== null && myPool.member?.unbondingEras) { // if pool is fetched but account belongs to no pool then pool===null
       for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
-        if (currentEraIndex > Number(era)) { redeemValue = redeemValue.add(new BN(unbondingPoint as string)); }
-        else { unlockingValue = unlockingValue.add(new BN(unbondingPoint as string)); }
+        if (currentEraIndex > Number(era)) {
+          redeemValue = redeemValue.add(new BN(unbondingPoint as string));
+        } else {
+          unlockingValue = unlockingValue.add(new BN(unbondingPoint as string));
+        }
       }
     }
 
@@ -210,13 +220,21 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   }, [endpoint, staker.address]);
 
   useEffect(() => {
-    if (myPool === undefined) { return; }
+    if (myPool === undefined) {
+      return;
+    }
 
-    if (myPool === null) { return setCurrentlyStaked(null); }
+    if (myPool === null) {
+      return setCurrentlyStaked(null);
+    }
 
-    if (myPool?.bondedPool?.points === 0) { return setCurrentlyStaked(BN_ZERO); }
+    if (myPool?.bondedPool?.points && Number(myPool?.bondedPool?.points) === 0) {
+      return setCurrentlyStaked(BN_ZERO);
+    }
 
-    const staked = new BN(myPool.member.points).mul(new BN(myPool.stashIdAccount.stakingLedger.active)).div(new BN(myPool.bondedPool.points));
+    const staked = myPool?.member?.points && myPool?.stashIdAccount && myPool?.bondedPool
+      ? new BN(myPool.member.points).mul(new BN(String(myPool.stashIdAccount.stakingLedger.active))).div(new BN(myPool.bondedPool.points))
+      : BN_ZERO;
 
     setCurrentlyStaked(staked);
   }, [myPool]);
@@ -233,10 +251,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
     const nominatedValidatorsInfoFromLocalStrorage: SavedMetaData = account?.poolNominatedValidators ? JSON.parse(account.poolNominatedValidators) : null;
 
     if (nominatedValidatorsInfoFromLocalStrorage && nominatedValidatorsInfoFromLocalStrorage?.chainName === chainName) {
-      // *** TODO: remove if after next version, because of inconsistency in the stored data formats
-      if (!String((nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[])[0]?.stakingLedger?.total)?.includes('.')) {
-        setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
-      }
+      setNominatedValidatorsInfo(nominatedValidatorsInfoFromLocalStrorage.metaData as DeriveStakingQuery[]);
     }
   }, [account, chainName]);
 
@@ -273,7 +288,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   }, [stakingConsts, validatorsInfo]);
 
   useEffect(() => {
-    const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
+    const oversubscribeds = nominatedValidators?.filter((v) => stakingConsts?.maxNominatorRewardedPerValidator && v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
 
     setOversubscribedsCount(oversubscribeds?.length);
   }, [nominatedValidators, stakingConsts]);
@@ -319,7 +334,9 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   const handleStopNominating = useCallback((): void => {
     handleConfirmStakingModalOpen();
 
-    if (!state) { setState('stopNominating'); }
+    if (!state) {
+      setState('stopNominating');
+    }
   }, [handleConfirmStakingModalOpen, state]);
 
   const getAmountToConfirm = useCallback(() => {
@@ -338,7 +355,9 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   }, [state, amount]);
 
   useEffect(() => {
-    if (!myPool?.accounts?.stashId) { return; }
+    if (!myPool?.accounts?.stashId) {
+      return;
+    }
 
     const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === myPool.accounts.stashId));
 
@@ -416,7 +435,6 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           <TabPanel index={1} value={tabValue}>
             <Unstake
               api={api}
-              availableBalance={staker?.balanceInfo?.available ? new BN(String(staker.balanceInfo.available)) : BN_ZERO}
               currentlyStaked={currentlyStaked}
               handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
               pool={myPool}
@@ -466,7 +484,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           </TabPanel>
         </Grid>
       </Grid>
-      {stakingConsts && validatorsInfo && showSelectValidatorsModal &&
+      {stakingConsts && validatorsInfo && showSelectValidatorsModal && myPool &&
         <SelectValidators
           api={api}
           chain={chain}

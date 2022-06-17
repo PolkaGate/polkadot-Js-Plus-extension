@@ -7,8 +7,8 @@
  * @description this component is used to propose a treasury tip
 */
 
-import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon, Help as HelpIcon } from '@mui/icons-material';
-import { Grid, TextField, Tooltip } from '@mui/material';
+import { AddCircleOutlineRounded as AddCircleOutlineRoundedIcon } from '@mui/icons-material';
+import { Grid, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { Balance } from '@polkadot/types/interfaces';
@@ -173,18 +173,10 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
           variant='outlined'
         />
       </Grid>
-      <Grid alignItems='center' spacing={0.5} item container sx={{ fontSize: 13, p: '15px 50px', textAlign: 'left' }} xs={12}>
-        <Grid item sx={{ mt: '5px' }}>
-          <Tooltip placement='top-end' title={t('held on deposit for placing the tip report')}>
-            <HelpIcon
-              color='disabled'
-              fontSize='small'
-            />
-          </Tooltip>
-        </Grid>
-        <Grid item>
+      <Grid alignItems='center' container item spacing={0.5} sx={{ fontSize: 13, p: '15px 50px', textAlign: 'left' }} xs={12}>
+        <Hint icon place='bottom' tip={t('held on deposit for placing the tip report')}>
           {`${t('Report deposit')}: ${reportDeposit.toHuman()}`}
-        </Grid>
+        </Hint>
       </Grid>
       <Grid container item sx={{ p: '25px 30px', textAlign: 'center' }} xs={12}>
         <Password
