@@ -11,7 +11,10 @@ async function getPools(endpoint) {
   const lastPoolId = await api.query.nominationPools.lastPoolId();
 
   console.log('gepools for lastPoolId.toNumber()', lastPoolId.toNumber());
-  if (!lastPoolId) return null;
+
+  if (!lastPoolId) { 
+    return null;
+  }
 
   const queries = [];
 
@@ -37,7 +40,9 @@ async function getPools(endpoint) {
         poolId: index + 1,
         rewardPool: i[2]?.isSome ? i[2].unwrap() : null
       };
-    } else return undefined;
+    } else {
+       return undefined; 
+      }
   })?.filter((f) => f !== undefined);
 
   return JSON.stringify({ info: poolsInfo, nextPoolId: lastPoolId.addn(1).toString() });
