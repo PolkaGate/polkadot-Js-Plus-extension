@@ -37,12 +37,7 @@ interface Props {
 function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showAction, setShowAction] = useState<boolean | undefined>();
-  const [expanded, setExpanded] = useState<string>('roles');
   const [showEditPoolModal, setEditPoolModalOpen] = useState<boolean>(false);
-
-  const handleAccordionChange = useCallback((panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : '');
-  }, []);
 
   const handleStateChange = useCallback((state: string) => {
     if (!api) { return; }
@@ -61,9 +56,9 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
   useEffect(() => {
     if (!pool) { return; }
 
-    const hasPriviledge = [pool.bondedPool.roles.root, pool.bondedPool.roles.stateToggler].includes(staker.address);
+    const hasPriviledge = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address);
 
-    setShowAction(hasPriviledge);
+    setShowAction(!!hasPriviledge);
   }, [api, pool, staker.address]);
 
   return (
@@ -71,47 +66,13 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
       {api && pool !== undefined
         ? pool
           ? <>
-            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} />
-            <Grid container sx={{ height: showAction && 180, pt: 1 }}>
-              <Grid item xs={12}>
-                <Accordion disableGutters expanded={expanded === 'roles'} onChange={handleAccordionChange('roles')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>
-                  <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11 }}>
-                    {t('Roles')}
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
-                    <Grid item xs={12}>
-                      <Paper elevation={3} sx={{ p: '10px' }}>
-                        {pool.bondedPool.roles.root && <ShowAddress address={pool.bondedPool.roles.root} chain={chain} role={'Root'} />}
-                        {pool.bondedPool.roles.depositor && <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />}
-                        {pool.bondedPool.roles.nominator && <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />}
-                        {pool.bondedPool.roles.stateToggler && <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />}
-                      </Paper>
-                    </Grid>
-                  </AccordionDetails>
-                </Accordion>
-              </Grid>
-              {!showAction &&
-                <Accordion disableGutters expanded={expanded === 'ids'} onChange={handleAccordionChange('ids')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>
-                  <AccordionSummary sx={{ fontSize: 11 }} expandIcon={<ExpandMore sx={{ fontSize: 15 }} />}>
-                    {t('Ids')}
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
-                    <Grid item xs={12}>
-                      <Paper elevation={3} sx={{ p: '10px' }}>
-                        <ShowAddress address={pool.accounts.stashId} chain={chain} role={'Stash id'} />
-                        <ShowAddress address={pool.accounts.rewardId} chain={chain} role={'Reward id'} />
-                      </Paper>
-                    </Grid>
-                  </AccordionDetails>
-                </Accordion>
-              }
-            </Grid>
+            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showRoles />
             {showAction &&
               <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
                 <Grid container item xs={8}>
                   <Grid item>
                     <Button
-                      disabled={pool?.bondedPool?.state?.toLowerCase() === 'destroying'}
+                      disabled={pool?.bondedPool?.state && String(pool.bondedPool.state).toLowerCase() === 'destroying'}
                       onClick={() => handleStateChange('destroying')}
                       size='small'
                       startIcon={<AutoDeleteRoundedIcon fontSize='small' />}
@@ -123,7 +84,7 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                   </Grid>
                   <Grid item>
                     <Button
-                      disabled={['blocked', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
+                      disabled={['blocked', 'destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
                       onClick={() => handleStateChange('blocked')}
                       size='small'
                       startIcon={<BlockRoundedIcon />}
@@ -136,7 +97,7 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                   <Grid item>
                     <Button
                       color='warning'
-                      disabled={['open', 'destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
+                      disabled={['open', 'destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
                       onClick={() => handleStateChange('open')}
                       size='small'
                       startIcon={<PlayCircleOutlinedIcon />}
@@ -150,7 +111,7 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                 <Grid item>
                   <Button
                     color='warning'
-                    disabled={['destroying'].includes(pool?.bondedPool?.state?.toLowerCase())}
+                    disabled={['destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
                     onClick={handleEditPool}
                     size='medium'
                     startIcon={<SettingsApplicationsOutlinedIcon />}
@@ -173,13 +134,13 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
           api={api}
           chain={chain}
           handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
+          newPool={newPool}
+          pool={pool}
           setEditPoolModalOpen={setEditPoolModalOpen}
+          setNewPool={setNewPool}
           setState={setState}
           showEditPoolModal={showEditPoolModal}
           staker={staker}
-          pool={pool}
-          setNewPool={setNewPool}
-          newPool={newPool}
         />
       }
     </Grid>

@@ -792,6 +792,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
                     chain={chain}
                     pool={pool}
                     poolsMembers={poolsMembers}
+                    showMore={!!(pool?.bondedPool && String(pool.bondedPool.state) !== 'Creating')}
                   />
                   <Grid item sx={{ m: '30px 30px', textAlign: 'center' }} xs={12}>
                     {writeAppropiateMessage(state)}

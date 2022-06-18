@@ -28,7 +28,7 @@ interface Props extends ThemeProps {
   text?: React.ReactNode;
 }
 
-function Header ({ children, className = '', onFilter, showAdd, showBackArrow, showSearch, showSettings, smallMargin = false, text }: Props): React.ReactElement<Props> {
+function Header({ children, className = '', onFilter, showAdd, showBackArrow, showSearch, showSettings, smallMargin = false, text }: Props): React.ReactElement<Props> {
   const [isAddOpen, setShowAdd] = useState(false);
   const [isSettingsOpen, setShowSettings] = useState(false);
   const [isSearchOpen, setShowSearch] = useState(false);
@@ -99,7 +99,8 @@ function Header ({ children, className = '', onFilter, showAdd, showBackArrow, s
               />
             )
           }
-          <span className='logoText'>{text || 'polkadot{.js}'}</span>
+           {/* added for plus */}
+          <span className='logoText'>{text || 'polkadot{.js+}'}</span>
         </div>
         {showSearch && (
           <div className={`searchBarWrapper ${isSearchOpen ? 'selected' : ''}`}>

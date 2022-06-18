@@ -24,6 +24,7 @@ import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation
 import { PlusHeader, Popup, ShortAddress, ShowAddress } from '../../../components';
 import { SELECTED_COLOR } from '../../../util/constants';
 import getPoolAccounts from '../../../util/getPoolAccounts';
+import Pool from './Pool';
 
 interface Props {
   chain: Chain;
@@ -43,75 +44,11 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
   const myPoolMembers = poolsMembers && pool ? poolsMembers[poolId] : undefined;
   const roleIds = useMemo(() => Object.values(pool?.bondedPool?.roles), [pool]);
 
-  const stashId = pool?.accounts?.stashId ?? getPoolAccounts(api, poolId).stashId;
-  const rewardId = pool?.accounts?.rewardId ?? getPoolAccounts(api, poolId).rewardId;
-
   return (
     <Popup handleClose={handleMorePoolInfoClose} id='scrollArea' showModal={showPoolInfo}>
       <PlusHeader action={handleMorePoolInfoClose} chain={chain} closeText={'Close'} icon={<BubbleChartIcon fontSize='small' />} title={'Pool Info'} />
       <Container sx={{ p: '0px 20px' }}>
-        <Grid item sx={{ p: 1 }} xs={12}>
-
-          <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', p: '5px 0px 5px 5px', width: '100%' }}>
-            <Grid alignItems='center' container id='header' sx={{ fontSize: 11 }}>
-              <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                {t('Index')}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={4}>
-                {t('Name')}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                {t('State')}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={4}>
-                {t('Staked')}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                {t('Members')}
-              </Grid>
-            </Grid>
-          </Paper>
-
-          <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
-            <Grid alignItems='center' container sx={{ fontSize: 12 }}>
-              <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                {String(poolId)}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={4}>
-                {pool.metadata ?? t('no name')}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                {pool.bondedPool.state}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={4}>
-                {staked?.toHuman() ?? 0}
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={2}>
-                {pool.bondedPool.memberCounter}
-              </Grid>
-            </Grid>
-          </Paper>
-
-          <Grid item xs={12} sx={{ fontSize: 12, p: '25px 10px 5px' }}>
-            {t('Roles')}
-          </Grid>
-          <Grid item xs={12}>
-            <Paper elevation={3} sx={{ p: '10px' }}>
-              {pool.bondedPool.roles.root && <ShowAddress address={pool.bondedPool.roles.root} chain={chain} role={'Root'} />}
-              {pool.bondedPool.roles.depositor && <ShowAddress address={pool.bondedPool.roles.depositor} chain={chain} role={'Depositor'} />}
-              {pool.bondedPool.roles.nominator && <ShowAddress address={pool.bondedPool.roles.nominator} chain={chain} role={'Nominator'} />}
-              {pool.bondedPool.roles.stateToggler && <ShowAddress address={pool.bondedPool.roles.stateToggler} chain={chain} role={'State toggler'} />}
-            </Paper>
-          </Grid>
-          <Grid item xs={12}>
-            <Paper elevation={3} sx={{ px: '10px' }}>
-              <ShowAddress address={stashId} chain={chain} role={'Stash id'} />
-              <ShowAddress address={rewardId} chain={chain} role={'Reward id'} />
-            </Paper>
-          </Grid>
-
-        </Grid>
-
+        <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds showMore={false} showRoles showRewards />
         <Grid item xs={12} sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, textAlign: 'center', p: '10px 0px 1px' }}>
           {t('Members')} ({myPoolMembers?.length ?? 0})
         </Grid>

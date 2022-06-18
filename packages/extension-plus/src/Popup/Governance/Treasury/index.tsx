@@ -175,7 +175,6 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
             />
           </Tabs>
         </Grid>
-
         {tabValue === 'proposals' &&
           <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && proposals !== undefined
@@ -183,7 +182,6 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
               : <Progress title={t('Loading proposals ...')} />}
           </Grid>
         }
-
         {tabValue === 'tips' &&
           <Grid item sx={{ height: 450, overflowY: 'auto' }} xs={12}>
             {chainInfo && tips !== undefined
@@ -191,7 +189,6 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
               : <Progress title={t('Loading tips ...')} />}
           </Grid>
         }
-
         {tabValue === 'info' &&
           <Grid container item sx={{ fontSize: 12, pt: 8 }} xs={12}>
             <Grid item sx={{ textAlign: 'center' }} xs={6}>
@@ -224,10 +221,8 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
                     <ShowBalance2 api={api} balance={approved} />
                   </Grid>
                 </Grid>
-
               </Grid>
             </Grid>
-
             <Grid container item justifyContent='center' sx={{ textAlign: 'center' }} xs={6}>
               <Grid item sx={{ textAlign: 'center' }} xs={12}>
                 <CircularProgressWithValue value={remainingSpendPeriodPrecent ?? 0} Kolor={chainName === 'Polkadot' ? POLKADOT_COLOR : 'black'} />
@@ -262,8 +257,6 @@ export default function Treasury({ address, chainInfo, setTreasuryModalOpen, sho
                   <ShowBalance2 api={api} balance={nextBurn} />
                 </Grid>
               </Grid>
-
-
             </Grid>
           </Grid>
         }

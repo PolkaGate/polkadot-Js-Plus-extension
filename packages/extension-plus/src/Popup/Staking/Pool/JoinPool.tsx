@@ -251,13 +251,13 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
           <Grid container item spacing={'10px'} sx={{ height: '270px', overflowY: 'auto', p: '5px 20px 5px', scrollbarWidth: 'none', width: '100%' }}>
             {selectedPool &&
               <Grid container item sx={{ fontSize: 11, pt: '5px' }}>
-                <Pool api={api} chain={chain} pool={selectedPool} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} />
+                <Pool api={api} chain={chain} pool={selectedPool} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} showRewards />
               </Grid>
             }
             {poolsInfo?.length
               ? poolsInfo.map((p, i) => String(p?.bondedPool?.state) === 'Open' && p?.poolId !== selectedPool?.poolId &&
                 <Grid container item key={i} sx={{ fontSize: 11, pt: '5px' }}>
-                  <Pool api={api} chain={chain} pool={p} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} />
+                  <Pool api={api} chain={chain} pool={p} poolsMembers={poolsMembers} selectedPool={selectedPool} setSelectedPool={setSelectedPool} showCheck={true} showHeader={false} showRewards />
                 </Grid>)
               : <Progress title={t('Loading ...')} />
             }
