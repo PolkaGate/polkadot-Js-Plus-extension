@@ -22,9 +22,6 @@ import Unstake from './Unstake';
 
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
-const chain: Chain = {
-  name: 'westend'
-};
 const availableBalance = '4';
 let chainInfo: ChainInfo;
 let staker: AccountsBalanceType;

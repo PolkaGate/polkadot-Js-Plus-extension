@@ -16,7 +16,7 @@ import { Chain } from '../../../../../extension-chains/src/types';
 import { FormatBalance } from '../../../components';
 import getChainInfo from '../../../util/getChainInfo';
 import { BalanceType, MyPoolInfo } from '../../../util/plusTypes';
-import { amountToHuman, amountToMachine } from '../../../util/plusUtils';
+import { amountToMachine } from '../../../util/plusUtils';
 import { pool, poolsMembers, stakingConsts, state, validatorsIdentities, validatorsList } from '../../../util/test/testHelper';
 import ConfirmStaking from './ConfirmStaking';
 
@@ -25,7 +25,6 @@ ReactDOM.createPortal = jest.fn((modal) => modal);
 
 let api: ApiPromise | undefined;
 let decimals: number | undefined = 12;
-let coin: string | undefined;
 const validAmountToStake = 10;
 const availableBalanceInHuman = 15; // WND
 const balanceInfo: BalanceType = {
@@ -56,7 +55,6 @@ describe('Testing ConfirmStaking component', () => {
 
     api = chainInfo?.api;
     decimals = chainInfo?.decimals;
-    coin = chainInfo?.coin;
 
     formatBalance = (value: BN) => {
       return render(
@@ -83,7 +81,7 @@ describe('Testing ConfirmStaking component', () => {
         selectedValidators={validatorsList}
         setConfirmStakingModalOpen={setConfirmStakingModalOpen}
         setState={setState}
-        showConfirmStakingModal={true} // join pool
+        showConfirmStakingModal={true}
         staker={staker}
         stakingConsts={stakingConsts}
         state={state[13]}
@@ -140,7 +138,7 @@ describe('Testing ConfirmStaking component', () => {
         selectedValidators={validatorsList}
         setConfirmStakingModalOpen={setConfirmStakingModalOpen}
         setState={setState}
-        showConfirmStakingModal={true} // join pool
+        showConfirmStakingModal={true}
         staker={staker}
         stakingConsts={stakingConsts}
         state={state[12]}
@@ -189,7 +187,7 @@ describe('Testing ConfirmStaking component', () => {
         selectedValidators={validatorsList}
         setConfirmStakingModalOpen={setConfirmStakingModalOpen}
         setState={setState}
-        showConfirmStakingModal={true} // join pool
+        showConfirmStakingModal={true}
         staker={staker}
         stakingConsts={stakingConsts}
         state={state[11]}
@@ -240,7 +238,7 @@ describe('Testing ConfirmStaking component', () => {
         selectedValidators={validatorsList}
         setConfirmStakingModalOpen={setConfirmStakingModalOpen}
         setState={setState}
-        showConfirmStakingModal={true} // join pool
+        showConfirmStakingModal={true}
         staker={staker}
         stakingConsts={stakingConsts}
         state={state[10]}
@@ -357,7 +355,7 @@ describe('Testing ConfirmStaking component', () => {
     const justAPool: MyPoolInfo = pool('');
     const editPool: MyPoolInfo = pool('', true, true); // metaData and roles going to change
 
-    const { queryAllByText, queryByTestId, queryByText } = render(
+    const { queryByTestId, queryByText } = render(
       <ConfirmStaking
         amount={new BN('0')}
         api={api}

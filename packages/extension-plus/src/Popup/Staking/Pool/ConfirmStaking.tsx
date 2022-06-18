@@ -752,7 +752,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Currently staked')}
               </Grid>
-              <Grid item xs={12}>
+              <Grid data-testid='currentlyStaked' item xs={12}>
                 {!currentlyStaked
                   ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
                   : <FormatBalance api={api} value={currentlyStaked} />
@@ -774,7 +774,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
               <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
                 {t('Total staked')}
               </Grid>
-              <Grid item xs={12}>
+              <Grid data-testid='totalStaked' item xs={12}>
                 {!totalStaked
                   ? <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '60px' }} />
                   : <FormatBalance api={api} value={totalStaked} />
