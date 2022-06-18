@@ -33,7 +33,7 @@ export default function ShowAddress({ address, chain, role }: Props): React.Reac
       </Grid>
       {address &&
         <Grid alignItems='center' container item xs={9}>
-          <Grid alignItems='center' container item  xs={1}>
+          <Grid alignItems='center' container item xs={1}>
             <Identicon
               prefix={chain?.ss58Format ?? 42}
               size={20}
