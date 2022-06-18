@@ -116,6 +116,10 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   }, [staker?.balanceInfo?.available]);
 
   useEffect(() => {
+    setConfirmButtonDisabled(!stakingConsts || !estimatedFee || !availableBalance || !api);
+  }, [api, availableBalance, estimatedFee, stakingConsts]);
+
+  useEffect(() => {
     if (confirmingState) {
       // do not run following code while are in these states
       return;
@@ -825,7 +829,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         <Password
           autofocus={!confirmingState}
           handleIt={handleConfirm}
-          isDisabled={!stakingConsts || confirmButtonDisabled || !estimatedFee}
+          isDisabled={confirmButtonDisabled || !!confirmingState}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
@@ -837,7 +841,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!stakingConsts || confirmButtonDisabled || !estimatedFee || !availableBalance || !api}
+              isDisabled={confirmButtonDisabled}
               state={confirmingState ?? ''}
               text={confirmButtonText}
             />

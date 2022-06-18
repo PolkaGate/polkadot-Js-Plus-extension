@@ -48,12 +48,17 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
   const [voteValue, setVoteValue] = useState<Balance | undefined>();
   const [votingBalance, setVotingBalance] = useState<Balance | undefined>();
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
+  const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean | undefined>();
 
   const { api, coin, decimals } = chainInfo;
   const params = useMemo(() => [selectedCandidates, voteValue], [selectedCandidates, voteValue]);
 
   const electionApi = api.tx.phragmenElection ?? api.tx.electionsPhragmen ?? api.tx.elections;
   const tx = electionApi.vote;
+
+  useEffect(() => {
+    setConfirmButtonDisabled(!votingBalance || !estimatedFee || !votingBond || !voteValue?.gtn(0) || voteValue.add(estimatedFee).add(votingBond).gt(votingBalance));
+  }, [estimatedFee, voteValue, votingBalance, votingBond]);
 
   useEffect(() => {
     if (!encodedAddressInfo) { return; }
@@ -65,7 +70,8 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
   }, [api.derive.balances, encodedAddressInfo]);
 
   useEffect(() => {
-    if (!encodedAddressInfo) return;
+    if (!encodedAddressInfo) { return; }
+
     // eslint-disable-next-line no-void
     void tx(...params).paymentInfo(encodedAddressInfo.address)
       .then((i) => setEstimatedFee(i?.partialFee))
@@ -92,7 +98,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
     setShowVotesModal(false);
   }, [setShowVotesModal]);
 
-  const handleVote = async () => {
+  const handleVote = useCallback(async () => {
     try {
       if (!encodedAddressInfo?.address) {
         console.log('no encoded address');
@@ -128,7 +134,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  };
+  }, [api, chain, encodedAddressInfo?.address, hierarchy, params, password, tx, voteValueInHuman]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
@@ -199,6 +205,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
           <Grid container item sx={{ paddingTop: '10px' }} xs={12}>
             <Password
               handleIt={handleVote}
+              isDisabled={!!state || confirmButtonDisabled}
               password={password}
               passwordStatus={passwordStatus}
               setPassword={setPassword}
@@ -208,8 +215,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
               handleBack={handleClose}
               handleConfirm={handleVote}
               handleReject={handleClose}
-              isDisabled={!votingBalance || !estimatedFee || !votingBond || !voteValue?.gtn(0) ||
-                voteValue.add(estimatedFee).add(votingBond).gt(votingBalance)}
+              isDisabled={confirmButtonDisabled}
               state={state}
               text='Vote'
             />

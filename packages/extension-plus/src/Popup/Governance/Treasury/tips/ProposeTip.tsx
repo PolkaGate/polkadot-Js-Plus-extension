@@ -58,7 +58,7 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
   const maximumReasonLength = api.consts.tips.maximumReasonLength.toNumber();
 
   useEffect(() => {
-    if (!tx || !encodedAddressInfo?.address || !beneficiaryAddress) return;
+    if (!tx || !encodedAddressInfo?.address || !beneficiaryAddress) { return; }
     const params = [reason, beneficiaryAddress];
 
     setParams(params);
@@ -181,6 +181,7 @@ export default function ProposeTip({ address, chain, chainInfo, handleProposeTip
       <Grid container item sx={{ p: '25px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
+          isDisabled={isDisabled || !!state}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}

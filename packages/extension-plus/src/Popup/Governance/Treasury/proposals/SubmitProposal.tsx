@@ -122,7 +122,7 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
         from: encodedAddressInfo.address,
         hash: txHash || '',
         status: failureText || status,
-        to: beneficiaryAddress
+        to: beneficiaryAddress ?? ''
       };
 
       updateMeta(...saveHistory(chain, hierarchy, encodedAddressInfo.address, currentTransactionDetail)).catch(console.error);
@@ -220,6 +220,7 @@ export default function SubmitProposal({ address, chain, chainInfo, handleSubmit
       <Grid container item sx={{ p: '10px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
+          isDisabled={isDisabled || !!state}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
