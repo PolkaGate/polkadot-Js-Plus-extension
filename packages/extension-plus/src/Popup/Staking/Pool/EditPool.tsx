@@ -50,7 +50,7 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
   }, [pool, setNewPool]);
 
   useEffect(() => {
-    if (!newPool) return;
+    if (!newPool) { return; }
 
     const tempPool = { ...newPool };
 
