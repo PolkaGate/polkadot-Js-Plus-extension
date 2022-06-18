@@ -54,10 +54,10 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
     api.tx.democracy.second.meta.args.length === 2
       ? [selectedProposal.index, selectedProposal.seconds.length]
       : [selectedProposal.index],
-  [api.tx.democracy.second.meta.args.length, selectedProposal.index, selectedProposal.seconds.length]);
+    [api.tx.democracy.second.meta.args.length, selectedProposal.index, selectedProposal.seconds.length]);
 
   useEffect(() => {
-    if (!chainInfo || !tx || !encodedAddressInfo) return;
+    if (!chainInfo || !tx || !encodedAddressInfo) { return; }
 
     // eslint-disable-next-line no-void
     void tx(...params).paymentInfo(encodedAddressInfo.address)
@@ -140,6 +140,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
       <Grid container item sx={{ p: '0px 30px', textAlign: 'center' }} xs={12}>
         <Password
           handleIt={handleConfirm}
+          isDisabled={!!state || !availableBalance || availableBalance?.isZero()}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
@@ -149,6 +150,7 @@ export default function Second({ address, chain, chainInfo, handleVoteProposalMo
           handleBack={handleReject}
           handleConfirm={handleConfirm}
           handleReject={handleReject}
+          isDisabled={!availableBalance || availableBalance?.isZero()}
           state={state}
         />
       </Grid>

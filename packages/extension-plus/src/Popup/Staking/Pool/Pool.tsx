@@ -39,7 +39,7 @@ interface Props {
   showRewards?: boolean;
 }
 
-export default function Pool({ api, chain, pool, poolsMembers, selectedPool, setSelectedPool, showCheck = false, showHeader = true, showIds, showRewards, showMore = true, showRoles }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, pool, poolsMembers, selectedPool, setSelectedPool, showCheck = false, showHeader = true, showIds, showMore = true, showRewards, showRoles }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [staked, setStaked] = useState<Balance | undefined>();
@@ -138,8 +138,8 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                 }
               </Grid>
             </Paper>
-            {(showIds || showRoles) &&
-              <Grid container sx={{ height: !showIds && 180, pt: 1 }}>
+            {(showIds || showRoles || showRewards) &&
+              <Grid container sx={{ pt: 1 }}>
                 {showRoles &&
                   <Grid item xs={12}>
                     <Accordion disableGutters expanded={expanded === 'roles'} onChange={handleAccordionChange('roles')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>

@@ -31,53 +31,40 @@ export default function ShowAddress({ address, chain, role }: Props): React.Reac
       <Grid item sx={{ color: grey[600], fontSize: 11, fontWeight: '600', textAlign: 'left', pr: 1 }} xs={3}>
         {role}:
       </Grid>
-      <Grid item xs={9}>
-        {address &&
-          <Grid alignItems='center' container item xs={12}>
-
-            <Grid item xs={1}>
-              <Identicon
-                prefix={chain?.ss58Format ?? 42}
-                size={20}
-                theme={chain?.icon || 'polkadot'}
-                value={address}
-              />
-            </Grid>
-
-            <Grid container item justifyContent='flex-start' xs={9}>
-              <Grid item sx={{ textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
-                <ShortAddress address={address} fontSize={11} />
-                {/* can fetch on-chain identity later */}
-              </Grid>
-
-              {/* <Grid item sx={{ color: grey[500], fontSize: 13, textAlign: 'left' }} xs={7}>
-                    <ShortAddress address={address} />
-                  </Grid> */}
-
-            </Grid>
-
-            <Grid item xs={1}>
-              <Link
-                href={`https://${chainName}.subscan.io/account/${address}`}
-                rel='noreferrer'
-                target='_blank'
-                underline='none'
-              >
-                <Avatar
-                  alt={'subscan'}
-                  src={getLogo('subscan')}
-                  sx={{ height: 15, width: 15 }}
-                />
-              </Link>
-            </Grid>
-            <Grid item xs={1}>
-              <CopyToClipboard text={address}>
-                <ContentCopyOutlinedIcon color='primary' sx={{ cursor: 'pointer', fontSize: 12 }} />
-              </CopyToClipboard>
-            </Grid>
+      {address &&
+        <Grid alignItems='center' container item xs={9}>
+          <Grid alignItems='center' container item xs={1}>
+            <Identicon
+              prefix={chain?.ss58Format ?? 42}
+              size={20}
+              theme={chain?.icon || 'polkadot'}
+              value={address}
+            />
           </Grid>
-        }
-      </Grid>
+          <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={9}>
+            <ShortAddress address={address} fontSize={11} />
+          </Grid>
+          <Grid item xs={1}>
+            <Link
+              href={`https://${chainName}.subscan.io/account/${address}`}
+              rel='noreferrer'
+              target='_blank'
+              underline='none'
+            >
+              <Avatar
+                alt={'subscan'}
+                src={getLogo('subscan')}
+                sx={{ height: 15, width: 15 }}
+              />
+            </Link>
+          </Grid>
+          <Grid item xs={1}>
+            <CopyToClipboard text={address}>
+              <ContentCopyOutlinedIcon color='primary' sx={{ cursor: 'pointer', fontSize: 12 }} />
+            </CopyToClipboard>
+          </Grid>
+        </Grid>
+      }
     </Grid>
   );
 }

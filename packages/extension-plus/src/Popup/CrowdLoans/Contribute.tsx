@@ -48,11 +48,11 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
   const [confirmingState, setConfirmingState] = useState<string>('');
   const [contributionAmountInHuman, setContributionAmountInHuman] = useState<string>('');
   const [contributionAmount, setContributionAmount] = useState<Balance | undefined>();
-
   const [encodedAddressInfo, setEncodedAddressInfo] = useState<nameAddress | undefined>();
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
+  const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean | undefined>();
 
   const { api, coin, decimals } = chainInfo;
   const tx = api.tx.crowdloan.contribute;
@@ -67,11 +67,15 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
     void tx(...dummyParams).paymentInfo(encodedAddressInfo.address).then((i) => setEstimatedFee(i?.partialFee)).catch(console.error);
   }, [auction.minContribution, encodedAddressInfo, tx, contributionAmount]);
 
+  useEffect(() => {
+    setConfirmButtonDisabled(!estimatedFee || !availableBalance || !contributionAmount || contributionAmount.lt(minContribution) || contributionAmount.add(estimatedFee).gt(availableBalance));
+  }, [availableBalance, contributionAmount, estimatedFee, minContribution]);
+
   const handleConfirmModaClose = useCallback((): void => {
     setContributeModalOpen(false);
   }, [setContributeModalOpen]);
 
-  const handleConfirm = async (): Promise<void> => {
+  const handleConfirm = useCallback(async (): Promise<void> => {
     try {
       if (!encodedAddressInfo) {
         console.log(' No encoded address');
@@ -109,7 +113,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
       setPasswordStatus(PASS_MAP.INCORRECT);
       setConfirmingState('');
     }
-  };
+  }, [api, chain, contributionAmount, contributionAmountInHuman, crowdloan.fund.paraId, encodedAddressInfo, hierarchy, password, tx]);
 
   const handleReject = useCallback((): void => {
     setConfirmingState('');
@@ -216,6 +220,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
       >
         <Password
           handleIt={handleConfirm}
+          isDisabled={!!confirmingState || confirmButtonDisabled}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
@@ -225,9 +230,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
           handleBack={handleBack}
           handleConfirm={handleConfirm}
           handleReject={handleBack}
-          isDisabled={!estimatedFee || !availableBalance || !contributionAmount || contributionAmount.lt(minContribution) ||
-            contributionAmount.add(estimatedFee).gt(availableBalance)
-          }
+          isDisabled={confirmButtonDisabled}
           state={confirmingState}
         />
       </Grid>

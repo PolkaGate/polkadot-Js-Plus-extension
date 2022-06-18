@@ -8,14 +8,13 @@
  *  here users can double check their transfer information before submitting it to the blockchain 
  * */
 
-import type { KeypairType } from '@polkadot/util-crypto/types';
-
 import { ArrowForwardRounded, InfoTwoTone as InfoTwoToneIcon, RefreshRounded } from '@mui/icons-material';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import { Alert, Avatar, Box, CircularProgress, Divider, Grid, IconButton, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
+import { ApiPromise } from '@polkadot/api';
 import Identicon from '@polkadot/react-identicon';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
@@ -29,7 +28,6 @@ import broadcast from '../../util/api/broadcast';
 import { PASS_MAP } from '../../util/constants';
 import { AccountsBalanceType, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
-import { ApiPromise } from '@polkadot/api';
 
 interface Props {
   api: ApiPromise;
@@ -262,6 +260,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
         <Password
           autofocus={true}
           handleIt={handleConfirm}
+          isDisabled={['confirming', 'success', 'failed'].includes(state)}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}

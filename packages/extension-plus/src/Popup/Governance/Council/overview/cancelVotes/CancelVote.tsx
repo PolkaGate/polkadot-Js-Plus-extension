@@ -45,13 +45,19 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [state, setState] = useState<string>('');
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
+  const [confirmButtonDisabled, setConfirmButtonDisabled] = useState<boolean | undefined>();
 
   const { api } = chainInfo;
   const electionApi = api.tx.phragmenElection ?? api.tx.electionsPhragmen ?? api.tx.elections;
   const tx = electionApi.removeVoter;
 
   useEffect(() => {
-    if (!encodedAddressInfo) return;
+    setConfirmButtonDisabled(!votesInfo?.votes?.length || !estimatedFee || !availableBalance || estimatedFee.gt(availableBalance));
+  }, [availableBalance, estimatedFee, votesInfo?.votes?.length]);
+
+  useEffect(() => {
+    if (!encodedAddressInfo) { return; }
+
     // eslint-disable-next-line no-void
     void tx().paymentInfo(encodedAddressInfo.address)
       .then((i) => setEstimatedFee(i?.partialFee))
@@ -71,7 +77,8 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
   }, [setShowMyVotesModal]);
 
   useEffect(() => {
-    if (!votesInfo || !allCouncilInfo) return;
+    if (!votesInfo || !allCouncilInfo) { return; }
+
     const voted: PersonsInfo = { backed: [], infos: [] };
 
     allCouncilInfo.infos.forEach((p, index) => {
@@ -83,7 +90,7 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
     setVotedPersonsInfo(voted);
   }, [votesInfo, allCouncilInfo]);
 
-  const handleCancelVotes = async () => {
+  const handleCancelVotes = useCallback(async () => {
     try {
       if (!encodedAddressInfo?.address) {
         console.log('no encoded address');
@@ -119,12 +126,11 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState('');
     }
-  };
+  }, [api, chain, encodedAddressInfo?.address, hierarchy, password, tx]);
 
   return (
     <Popup handleClose={handleClose} showModal={showMyVotesModal}>
       <PlusHeader action={handleClose} chain={chain} closeText={'Close'} icon={<GroupRemoveIcon fontSize='small' />} title={'My Votes'} />
-
       <Participator
         address={address}
         availableBalance={availableBalance}
@@ -135,7 +141,6 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
         setAvailableBalance={setAvailableBalance}
         setEncodedAddressInfo={setEncodedAddressInfo}
       />
-
       <Grid container justifyContent='space-between' sx={{ color: grey[600], fontSize: 12, p: '0px 47px 10px 95px', textAlign: 'right' }}>
         <Grid item>
           <ShowBalance balance={votesInfo?.stake} chainInfo={chainInfo} title={t('Staked')} />
@@ -144,28 +149,25 @@ export default function CancelVote({ address, allCouncilInfo, chain, chainInfo, 
           <ShowBalance balance={estimatedFee} chainInfo={chainInfo} title={t('Fee')} />
         </Grid>
       </Grid>
-
       <Container id='scrollArea' sx={{ height: '280px', overflowY: 'auto' }}>
         {votesInfo && votedPersonsInfo
           ? <Members chain={chain} chainInfo={chainInfo} membersType={t('Votes')} personsInfo={votedPersonsInfo} />
           : <Progress title={t('Loading votes ...')} />
         }
       </Container>
-
       <Grid container item sx={{ padding: '5px 30px' }} xs={12}>
         <Password
           handleIt={handleCancelVotes}
-          isDisabled={!votesInfo?.votes.length}
+          isDisabled={confirmButtonDisabled || !!state}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
           setPasswordStatus={setPasswordStatus} />
-
         <ConfirmButton
           handleBack={handleClose}
           handleConfirm={handleCancelVotes}
           handleReject={handleClose}
-          isDisabled={!votesInfo?.votes.length || !estimatedFee || !availableBalance || estimatedFee.gt(availableBalance)}
+          isDisabled={confirmButtonDisabled}
           state={state}
           text='Cancel votes'
         />

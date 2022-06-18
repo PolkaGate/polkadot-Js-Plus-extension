@@ -57,7 +57,7 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
             const points = api.createType('Balance', member.points); // FIXME: it is pointsnot balance!!
 
             return (
-              <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(String(accountId)) ? SELECTED_COLOR : '', my: 1, p: '5px' }}>
+              <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(String(accountId)) ? SELECTED_COLOR : '', my: 1, p: '1px' }}>
                 <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
                   <Grid item xs={1}>
                     <Identicon

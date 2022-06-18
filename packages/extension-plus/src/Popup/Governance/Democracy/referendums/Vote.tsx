@@ -260,6 +260,7 @@ export default function VoteReferendum({ address, chain, chainInfo, convictions,
       >
         <Password
           handleIt={handleConfirm}
+          isDisabled={isDisabled || !!state}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
