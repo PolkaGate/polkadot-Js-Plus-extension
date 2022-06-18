@@ -12,13 +12,12 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, ExpandMore, PlayCircleOutlined as PlayCircleOutlinedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Button, Grid, Paper } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, PlayCircleOutlined as PlayCircleOutlinedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
+import { Button, Grid } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Progress, ShowAddress } from '../../../components';
+import { Progress } from '../../../components';
 import EditPool from './EditPool';
 import Pool from './Pool';
 
@@ -66,7 +65,7 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
       {api && pool !== undefined
         ? pool
           ? <>
-            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showRoles />
+            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!showAction} showRoles />
             {showAction &&
               <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
                 <Grid container item xs={8}>
