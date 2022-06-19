@@ -63,7 +63,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   const token = api ? api.registry.chainTokens[0] : '';
   const existentialDeposit = useMemo(() => api ? new BN(api.consts.balances.existentialDeposit.toString()) : BN_ZERO, [api]);
   const realStakingAmount = useMemo(() => {
-    const amount = new BN(String(amountToMachine(stakeAmountInHuman, decimals))).sub(existentialDeposit)
+    const amount = new BN(String(amountToMachine(stakeAmountInHuman, decimals))).sub(existentialDeposit);
 
     return amount.lt(BN_ZERO) ? BN_ZERO : amount;
   }, [decimals, existentialDeposit, stakeAmountInHuman]);// an ED goes to rewardId
@@ -77,7 +77,9 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   }, [minStakeable, maxStakeable, stakeAmountInHuman]);
 
   useEffect(() => {
-    if (!decimals) { return; }
+    if (!decimals) {
+      return;
+    }
 
     const balanceIsInsufficient = staker?.balanceInfo?.available && staker.balanceInfo.available <= amountToMachine(stakeAmountInHuman, decimals);
 
@@ -99,7 +101,9 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   }, [decimals, realStakingAmount, setStakeAmount]);
 
   useEffect(() => {
-    if (!realStakingAmount) { return; }
+    if (!realStakingAmount) {
+      return;
+    }
 
     api && api.tx.nominationPools.create(String(realStakingAmount), rootId, nominatorId, stateTogglerId).paymentInfo(staker.address).then((i) => {
       const createFee = i?.partialFee;
@@ -119,7 +123,9 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   }, [api, nextPoolId, nominatorId, poolName, rootId, staker.address, realStakingAmount, stateTogglerId, staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) { return; }
+    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) {
+      return;
+    }
 
     const max = new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedMaxFee));
     const min = poolStakingConsts.minCreationBond;
@@ -158,7 +164,9 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   }, [nominatorId, poolName, rootId, setNewPool, staker.address, stateTogglerId, realStakingAmount, nextPoolId]);
 
   useEffect(() => {
-    if (!staker?.balanceInfo?.available) { return; }
+    if (!staker?.balanceInfo?.available) {
+      return;
+    }
 
     setAvailableBalanceInHuman(balanceToHuman(staker, 'available'));
   }, [staker, staker?.balanceInfo?.available]);
