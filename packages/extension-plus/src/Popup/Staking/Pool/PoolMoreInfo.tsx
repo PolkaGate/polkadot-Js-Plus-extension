@@ -8,12 +8,13 @@
  *  this component shows a pool's info in a page including its members/roles list and links to subscan
  * */
 
+import type { AccountId32 } from '@polkadot/types/interfaces';
 import type { MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
 import { BubbleChart as BubbleChartIcon } from '@mui/icons-material';
 import { Container, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { Dispatch, SetStateAction, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -21,10 +22,10 @@ import Identicon from '@polkadot/react-identicon';
 import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, ShortAddress, ShowAddress } from '../../../components';
+import { PlusHeader, Popup, ShortAddress } from '../../../components';
 import { SELECTED_COLOR } from '../../../util/constants';
-import getPoolAccounts from '../../../util/getPoolAccounts';
 import Pool from './Pool';
+import type { PalletNominationPoolsPoolMember } from '@polkadot/types/lookup';
 
 interface Props {
   chain: Chain;
@@ -36,11 +37,11 @@ interface Props {
   poolsMembers: MembersMapEntry[] | undefined
 }
 
-export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, poolId, poolsMembers, showPoolInfo }: Props): React.ReactElement<Props> {
+export default function PoolMoreInfo({ api, chain, handleMorePoolInfoClose, pool, poolId, poolsMembers, showPoolInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const myPoolMembers = poolsMembers && pool ? poolsMembers[Number(poolId)] as unknown as MembersMapEntry : undefined;
-  const roleIds = useMemo(() => Object.values(pool?.bondedPool?.roles), [pool]);
+  const roleIds = useMemo(() => pool?.bondedPool ? Object.values(pool.bondedPool.roles) as unknown as AccountId32[] : [], [pool]);
 
   return (
     <Popup handleClose={handleMorePoolInfoClose} id='scrollArea' showModal={showPoolInfo}>
@@ -52,10 +53,10 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
         </Grid>
         <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '10px 15px' }} xs={12}>
           {myPoolMembers?.map(({ accountId, member }, index: number) => {
-            const points = api.createType('Balance', member.points); // FIXME: it is pointsnot balance!!
+            const points = api.createType('Balance', member.points); // FIXME: it is points not balance!!
 
             return (
-              <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(String(accountId)) ? SELECTED_COLOR : '', my: 1, p: '1px' }}>
+              <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(accountId) ? SELECTED_COLOR : '', my: 1, p: '1px' }}>
                 <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
                   <Grid item xs={1}>
                     <Identicon
