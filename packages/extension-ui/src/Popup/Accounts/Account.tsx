@@ -161,7 +161,8 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
         </>
       )}
     </>
-  ), [_onChangeGenesis, _toggleEdit, address, genesisHash, genesisOptions, isExternal, isHardware, t, type]);
+    // added for plus,'_onChangeEndpoint', 'endpointOptions', and 'selectedEndpoint'
+  ), [_onChangeEndpoint, _onChangeGenesis, _toggleEdit, address, endpointOptions, genesisHash, genesisOptions, isExternal, isHardware, selectedEndpoint, t, type]);
 
   return (
     <div className={className}>
