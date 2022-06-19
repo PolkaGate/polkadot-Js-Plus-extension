@@ -14,7 +14,7 @@ import type { Chain } from '../../../../../extension-chains/src/types';
 import type { MembersMapEntry, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
 
 import { ExpandMore, MoreVert as MoreVertIcon } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Grid, Paper, Switch } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Grid, Paper, Switch, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -117,9 +117,11 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
                   {String(poolId)}
                 </Grid>
-                <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={4}>
-                  {pool.metadata ?? t('no name')}
-                </Grid>
+                <Tooltip title={pool?.metadata ?? t('no name')}>
+                  <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={4}>
+                    {pool?.metadata ?? t('no name')}
+                  </Grid>
+                </Tooltip>
                 {!showCheck &&
                   <Grid item sx={{ textAlign: 'center' }} xs={1}>
                     {pool?.bondedPool?.state}
