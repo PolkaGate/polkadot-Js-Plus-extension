@@ -22,7 +22,7 @@ import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress, ShowAddress, ShowBalance2 } from '../../../components';
-import PoolMoreInfo from './PoolInfo';
+import PoolMoreInfo from './PoolMoreInfo';
 
 interface Props {
   chain: Chain;
@@ -226,7 +226,6 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
           pool={pool}
           poolId={poolId}
           poolsMembers={poolsMembers}
-          setShowPoolInfo={setShowPoolInfo}
           showPoolInfo={showPoolInfo}
         />
       }

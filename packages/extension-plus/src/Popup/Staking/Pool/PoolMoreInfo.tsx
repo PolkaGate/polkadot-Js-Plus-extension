@@ -31,29 +31,27 @@ interface Props {
   api: ApiPromise;
   showPoolInfo: boolean;
   handleMorePoolInfoClose: () => void;
-  setShowPoolInfo: Dispatch<SetStateAction<boolean>>;
   pool: MyPoolInfo | undefined;
   poolId: BN;
   poolsMembers: MembersMapEntry[] | undefined
 }
 
-export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, poolId, poolsMembers, setShowPoolInfo, showPoolInfo }: Props): React.ReactElement<Props> {
+export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, poolId, poolsMembers, showPoolInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
-  const staked = (pool?.ledger || pool?.bondedPool?.points) && api ? api.createType('Balance', pool?.ledger?.active || pool?.bondedPool?.points) : undefined;
-  const myPoolMembers = poolsMembers && pool ? poolsMembers[poolId] : undefined;
+  const myPoolMembers = poolsMembers && pool ? poolsMembers[Number(poolId)] as unknown as MembersMapEntry : undefined;
   const roleIds = useMemo(() => Object.values(pool?.bondedPool?.roles), [pool]);
 
   return (
     <Popup handleClose={handleMorePoolInfoClose} id='scrollArea' showModal={showPoolInfo}>
       <PlusHeader action={handleMorePoolInfoClose} chain={chain} closeText={'Close'} icon={<BubbleChartIcon fontSize='small' />} title={'Pool Info'} />
       <Container sx={{ p: '0px 20px' }}>
-        <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds showMore={false} showRoles showRewards />
-        <Grid item xs={12} sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, textAlign: 'center', p: '10px 0px 1px' }}>
+        <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds showMore={false} showRewards showRoles />
+        <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, p: '10px 0px 1px', textAlign: 'center' }} xs={12}>
           {t('Members')} ({myPoolMembers?.length ?? 0})
         </Grid>
         <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '10px 15px' }} xs={12}>
-          {myPoolMembers?.map(({ accountId, member }, index) => {
+          {myPoolMembers?.map(({ accountId, member }, index: number) => {
             const points = api.createType('Balance', member.points); // FIXME: it is pointsnot balance!!
 
             return (
@@ -64,11 +62,11 @@ export default function PoolInfo({ api, chain, handleMorePoolInfoClose, pool, po
                       prefix={chain?.ss58Format ?? 42}
                       size={30}
                       theme={chain?.icon || 'polkadot'}
-                      value={accountId}
+                      value={String(accountId)}
                     />
                   </Grid>
                   <Grid item sx={{ textAlign: 'left' }} xs={6}>
-                    <ShortAddress address={accountId} charsCount={8} fontSize={12} />
+                    <ShortAddress address={String(accountId)} charsCount={8} fontSize={12} />
                   </Grid>
                   <Grid item sx={{ textAlign: 'right' }} xs={5}>
                     {points.toHuman()}
