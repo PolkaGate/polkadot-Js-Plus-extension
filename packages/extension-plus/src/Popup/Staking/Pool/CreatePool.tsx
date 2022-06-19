@@ -15,7 +15,7 @@ import type { ThemeProps } from '../../../../../extension-ui/src/types';
 import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Pool as PoolIcon } from '@mui/icons-material';
-import { Button, Grid, InputAdornment, TextField } from '@mui/material';
+import { Button, Divider, Grid, InputAdornment, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
@@ -79,15 +79,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   useEffect(() => {
     if (!decimals) { return; }
 
-    // if (!staker?.balanceInfo?.available) {
-    //   return setZeroBalanceAlert(true);
-    // } else {
-    //   setZeroBalanceAlert(false);
-    // }
-
-    // setNextButtonCaption(t('Next'));
-
-    const balanceIsInsufficient = staker?.balanceInfo?.available <= amountToMachine(stakeAmountInHuman, decimals);
+    const balanceIsInsufficient = staker?.balanceInfo?.available && staker.balanceInfo.available <= amountToMachine(stakeAmountInHuman, decimals);
 
     if (balanceIsInsufficient || !Number(stakeAmountInHuman)) {
       setNextToStakeButtonDisabled(true);
@@ -107,7 +99,8 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   }, [decimals, realStakingAmount, setStakeAmount]);
 
   useEffect(() => {
-    if (!realStakingAmount) return;
+    if (!realStakingAmount) { return; }
+
     api && api.tx.nominationPools.create(String(realStakingAmount), rootId, nominatorId, stateTogglerId).paymentInfo(staker.address).then((i) => {
       const createFee = i?.partialFee;
 
@@ -126,7 +119,8 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   }, [api, nextPoolId, nominatorId, poolName, rootId, staker.address, realStakingAmount, stateTogglerId, staker?.balanceInfo?.available]);
 
   useEffect(() => {
-    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) return;
+    if (!poolStakingConsts || !decimals || existentialDeposit === undefined || !estimatedMaxFee || !staker?.balanceInfo?.available) { return; }
+
     const max = new BN(staker.balanceInfo.available.toString()).sub(existentialDeposit.muln(2)).sub(new BN(estimatedMaxFee));
     const min = poolStakingConsts.minCreationBond;
 
@@ -161,7 +155,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
       poolId: nextPoolId,
       rewardPool: null
     });
-  }, [nominatorId, poolName, rootId, setNewPool, staker.address, stateTogglerId, realStakingAmount]);
+  }, [nominatorId, poolName, rootId, setNewPool, staker.address, stateTogglerId, realStakingAmount, nextPoolId]);
 
   useEffect(() => {
     if (!staker?.balanceInfo?.available) { return; }
@@ -211,7 +205,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
       <Popup handleClose={handlePoolStakingModalClose} showModal={showCreatePoolModal}>
         <PlusHeader action={handlePoolStakingModalClose} chain={chain} closeText={'Close'} icon={<PoolIcon fontSize='small' />} title={'Create Pool'} />
         <Grid container sx={{ pt: 2 }}>
-          <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '5px 40px 1px' }}>
+          <Grid container item justifyContent='space-between' sx={{ fontSize: 12, px: '40px' }}>
             <Grid item sx={{ pr: '5px' }} xs={9}>
               <TextField
                 InputLabelProps={{ shrink: true }}
@@ -291,7 +285,10 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
               </Grid>
             </Grid>
           }
-          <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '45px 40px 5px' }}>
+          <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '18px 40px 5px' }}>
+            <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, pl: '40px', textAlign: 'center' }} xs={12}>
+              <Divider textAlign='left'> {t('Roles')}</Divider>
+            </Grid>
             <Grid item xs={12}>
               <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={staker?.address} title={t('Depositor')} />
             </Grid>
