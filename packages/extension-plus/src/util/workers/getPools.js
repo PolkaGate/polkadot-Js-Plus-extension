@@ -3,7 +3,6 @@
 /* eslint-disable header/header */
 
 import getApi from '../getApi.ts';
-import { BN } from '@polkadot/util';
 
 async function getPools(endpoint) {
   const api = await getApi(endpoint);
@@ -41,8 +40,8 @@ async function getPools(endpoint) {
         rewardPool: i[2]?.isSome ? i[2].unwrap() : null
       };
     } else {
-       return undefined; 
-      }
+      return undefined; 
+    }
   })?.filter((f) => f !== undefined);
 
   return JSON.stringify({ info: poolsInfo, nextPoolId: lastPoolId.addn(1).toString() });

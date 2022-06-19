@@ -29,12 +29,10 @@ import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
 import { PlusHeader, Popup } from '../../../components';
 import { useMapEntries } from '../../../hooks';
-import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
-import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
+import { prepareMetaData } from '../../../util/plusUtils';
 import Nominations from '../Pool/Nominations';
 import Unstake from '../pool/Unstake';
-import RewardChart from '../Solo/RewardChart';
 import TabPanel from '../Solo/TabPanel';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
@@ -95,8 +93,6 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   const [poolsInfo, setPoolsInfo] = useState<PoolInfo[] | undefined | null>(undefined);
   const [myPool, setMyPool] = useState<MyPoolInfo | undefined | null>(undefined);
   const [newPool, setNewPool] = useState<MyPoolInfo | undefined>(); // new or edited Pool
-  const [redeemable, setRedeemable] = useState<BN | undefined>();
-  const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
   const [nextPoolId, setNextPoolId] = useState<BN | undefined>();
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
   const [showSelectValidatorsModal, setSelectValidatorsModalOpen] = useState<boolean>(false);
@@ -190,28 +186,6 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
       getPoolsWorker.terminate();
     };
   };
-
-  useEffect(() => {
-    if (myPool === undefined || !api || !currentEraIndex) {
-      return;
-    }
-
-    let unlockingValue = BN_ZERO;
-    let redeemValue = BN_ZERO;
-
-    if (myPool !== null && myPool.member?.unbondingEras) { // if pool is fetched but account belongs to no pool then pool===null
-      for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
-        if (currentEraIndex > Number(era)) {
-          redeemValue = redeemValue.add(new BN(unbondingPoint as string));
-        } else {
-          unlockingValue = unlockingValue.add(new BN(unbondingPoint as string));
-        }
-      }
-    }
-
-    setRedeemable(redeemValue);
-    setUnlockingAmount(unlockingValue);
-  }, [myPool, api, currentEraIndex]);
 
   useEffect(() => {
     endpoint && getPoolInfo(endpoint, staker.address);
@@ -396,10 +370,9 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           <Overview
             api={api}
             availableBalance={staker?.balanceInfo?.available ? new BN(String(staker.balanceInfo.available)) : BN_ZERO}
+            currentEraIndex={currentEraIndex}
             handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
             myPool={myPool}
-            redeemable={redeemable}
-            unlockingAmount={unlockingAmount}
           />
         </Grid>
         <Grid item xs={12}>

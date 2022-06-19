@@ -14,10 +14,10 @@ import type { MyPoolInfo } from '../../../util/plusTypes';
 
 import { AddCircleOutline as AddCircleOutlineIcon, MoreHoriz as MoreHorizIcon, Redeem as RedeemIcon, SystemUpdateAltOutlined as SystemUpdateAltOutlinedIcon } from '@mui/icons-material';
 import { Grid, Grow, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper, Tooltip, Typography } from '@mui/material';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { BN } from '@polkadot/util';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ShowBalance2 } from '../../../components';
@@ -26,19 +26,42 @@ interface Props {
   availableBalance: BN,
   api: ApiPromise | undefined;
   myPool: MyPoolInfo | undefined | null;
-  redeemable: BN | undefined;
-  unlockingAmount: BN | undefined;
   handleConfirmStakingModalOpen: (state?: string | undefined, amount?: BN | undefined) => void;
+  currentEraIndex: number | undefined;
 }
 
-export default function Overview({ api, availableBalance, handleConfirmStakingModalOpen, myPool, redeemable, unlockingAmount }: Props): React.ReactElement<Props> {
+export default function Overview({ api, availableBalance, currentEraIndex, handleConfirmStakingModalOpen, myPool }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const [redeemable, setRedeemable] = useState<BN | undefined>();
+  const [unlockingAmount, setUnlockingAmount] = useState<BN | undefined>();
 
   const staked = myPool === undefined ? undefined : new BN(myPool?.member?.points ?? 0);
   const claimable = useMemo(() => myPool === undefined ? undefined : new BN(myPool?.myClaimable ?? 0), [myPool]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    if (myPool === undefined || !api || !currentEraIndex) {
+      return;
+    }
+
+    let unlockingValue = BN_ZERO;
+    let redeemValue = BN_ZERO;
+
+    if (myPool !== null && myPool.member?.unbondingEras) { // if pool is fetched but account belongs to no pool then pool===null
+      for (const [era, unbondingPoint] of Object.entries(myPool.member?.unbondingEras)) {
+        if (currentEraIndex > Number(era)) {
+          redeemValue = redeemValue.add(new BN(unbondingPoint as string));
+        } else {
+          unlockingValue = unlockingValue.add(new BN(unbondingPoint as string));
+        }
+      }
+    }
+
+    setRedeemable(redeemValue);
+    setUnlockingAmount(unlockingValue);
+  }, [myPool, api, currentEraIndex]);
 
   const handleWithdrawUnbounded = useCallback(() => {
     handleConfirmStakingModalOpen('withdrawUnbound', redeemable);
