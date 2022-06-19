@@ -613,7 +613,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
             {stateInHuman(confirmingState || state)}
           </Grid>
           <Grid data-testid='amount' item sx={{ fontSize: 20, fontWeight: 600, height: '20px', textAlign: 'center' }} xs={12}>
-            {!!surAmount && amountToHuman(surAmount.toString(), decimals)} {!!surAmount && token}
+            {!!surAmount && amountToHuman(surAmount.toString(), decimals) + ' ' + token}
           </Grid>
           <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, paddingTop: '15px', textAlign: 'center' }} xs={12}>
             <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={4}>

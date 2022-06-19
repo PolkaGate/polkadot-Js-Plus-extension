@@ -185,7 +185,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                       <Grid item xs={12}>
                         <Paper elevation={3} sx={{ p: '10px' }}>
                           {pool?.rewardClaimable &&
-                            <Grid color={grey[700]} container item justifyContent='space-between' sx={{ fontSize: 11 }} xs={12}>
+                            <Grid color={grey[600]} container item justifyContent='space-between' sx={{ fontSize: 11, fontWeight: '600' }} xs={12}>
                               <Grid item>
                                 {t('Pool claimable')}:
                               </Grid>
@@ -194,7 +194,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                               </Grid>
                             </Grid>}
                           {pool?.rewardPool?.totalEarnings &&
-                            <Grid color={grey[700]} container item justifyContent='space-between' sx={{ fontSize: 11 }} xs={12}>
+                            <Grid color={grey[600]} container item justifyContent='space-between' sx={{ fontSize: 11, fontWeight: '600' }} xs={12}>
                               <Grid item>
                                 {t('Pool total earnings')}:
                               </Grid>

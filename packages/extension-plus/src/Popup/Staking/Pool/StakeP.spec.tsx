@@ -28,7 +28,6 @@ const chain: Chain = {
 };
 const availableBalance = '5.4321';
 let chainInfo: ChainInfo;
-const nextToStakeButtonBusy = false;
 const state = '';
 let staker: AccountsBalanceType;
 
@@ -66,7 +65,7 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('When account hasn\'t staked', () => {
-    const { queryByText, queryAllByTestId } = render(
+    const { queryAllByTestId, queryByText } = render(
       <Stake
         api={chainInfo.api}
         chain={chain}
@@ -103,9 +102,9 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('Pool state is OPEN or BLOCKED also available balance > 0', () => {
-    const currentlyStaked = pool().member.points;
+    const currentlyStaked = pool().member?.points;
 
-    const { debug, queryByLabelText, queryByRole, queryByText } = render(
+    const { queryByLabelText, queryByRole, queryByText } = render(
       <Stake
         api={chainInfo.api}
         chain={chain}
@@ -132,7 +131,7 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('Available balance == 0', () => {
-    const currentlyStaked = pool().member.points;
+    const currentlyStaked = pool().member?.points;
 
     staker.balanceInfo.available = 0n;
 
@@ -164,7 +163,7 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('Pool state is DESTROYING', () => {
-    const currentlyStaked = pool().member.points;
+    const currentlyStaked = pool().member?.points;
 
     staker.balanceInfo.available = amountToMachine(availableBalance, chainInfo.decimals);
 

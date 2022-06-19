@@ -5,7 +5,7 @@ import '@polkadot/extension-mocks/chrome';
 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
-import { fireEvent, render, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { fireEvent, Matcher, render, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -84,7 +84,7 @@ describe('Testing ConfirmStaking component', () => {
     const confirmButton = queryAllByText('Confirm')[1];
 
     expect(queryByText('STAKING OF')).toBeTruthy();
-    expect(queryByTestId('amount').textContent).toEqual(`${amountToStakeInHuman}${coin}`);
+    expect(queryByTestId('amount')?.textContent).toEqual(`${amountToStakeInHuman} ${coin}`);
     expect(queryByText('Currently staked')).toBeTruthy();
     expect(queryByText(`${currentlyStaked} ${coin}`)).toBeTruthy();
     expect(queryByText('Fee')).toBeTruthy();
@@ -101,14 +101,14 @@ describe('Testing ConfirmStaking component', () => {
     for (const validator of validatorsList) {
       const total = api.createType('Balance', validator.exposure.total);
 
-      expect(queryByText(validatorsIdentities[validatorsList.indexOf(validator)].identity.display)).toBeTruthy();
+      expect(queryByText(validatorsIdentities[validatorsList.indexOf(validator)].identity.display as Matcher)).toBeTruthy();
       expect(queryAllByText(total.toHuman())).toBeTruthy();
       expect(queryAllByText(`${validator.validatorPrefs.commission / (10 ** 7)}%`)).toBeTruthy();
       expect(queryAllByText(validator.exposure.others.length)).toBeTruthy();
     }
 
     expect(queryByLabelText('Password')).toBeTruthy();
-    fireEvent.change(queryByLabelText('Password'), { target: { value: 'invalidPassword' } });
+    fireEvent.change(queryByLabelText('Password') as Element, { target: { value: 'invalidPassword' } });
     expect(queryByText('Please enter the account password')).toBeTruthy();
     fireEvent.click(confirmButton);
     await waitFor(() => queryByText('Password is not correct'), { timeout: 5000 });
@@ -138,7 +138,7 @@ describe('Testing ConfirmStaking component', () => {
     expect(queryByText('Account reap issue, consider fee!')).toBeTruthy();
 
     expect(queryByLabelText('Adjust')).toBeTruthy();
-    fireEvent.click(queryByLabelText('Adjust'));
+    fireEvent.click(queryByLabelText('Adjust') as Element);
     expect(queryAllByText('Confirm')).toHaveLength(2);
   });
 
@@ -163,7 +163,7 @@ describe('Testing ConfirmStaking component', () => {
     );
 
     expect(queryByText('STOP NOMINATING')).toBeTruthy();
-    expect(queryByTestId('amount').textContent).toBeFalsy();
+    expect(queryByTestId('amount')?.textContent).toBeFalsy();
     expect(queryByText('Declaring no desire to nominate validators')).toBeTruthy();
   });
 
@@ -188,7 +188,7 @@ describe('Testing ConfirmStaking component', () => {
     );
 
     expect(queryByText('NOMINATING')).toBeTruthy();
-    expect(queryByTestId('amount').textContent).toBeFalsy();
+    expect(queryByTestId('amount')?.textContent).toBeFalsy();
   });
 
   test('when state is unstake', () => {
@@ -215,7 +215,7 @@ describe('Testing ConfirmStaking component', () => {
     const amountToUnstakeInHuman = amountToHuman(amount.toString(), decimals);
 
     expect(queryByText('UNSTAKING')).toBeTruthy();
-    expect(queryByTestId('amount').textContent).toEqual(`${amountToUnstakeInHuman}${coin}`);
+    expect(queryByTestId('amount')?.textContent).toEqual(`${amountToUnstakeInHuman} ${coin}`);
     expect(queryByText('Note: The unstaked amount will be redeemable after {{days}} days')).toBeTruthy();
   });
 
@@ -295,8 +295,8 @@ describe('Testing ConfirmStaking component', () => {
     expect(queryByText('TUNEUP')).toBeTruthy();
     expect(queryByText('Changing your accout\'s position to a better one')).toBeTruthy();
     expect(queryByText('Current bag threshold')).toBeTruthy();
-    expect(queryByText(rebagFalse.currentBagThreshold)).toBeTruthy();
+    expect(queryByText(rebagFalse.currentBagThreshold as Matcher)).toBeTruthy();
     expect(queryByText('Account to overtake')).toBeTruthy();
-    expect(queryByText(makeShortAddr(putInFront.lighter))).toBeTruthy();
+    expect(queryByText(makeShortAddr(putInFront.lighter) as Matcher)).toBeTruthy();
   });
 });
