@@ -59,7 +59,6 @@ export default function VoteMembers({ chain, chainInfo, membersType, personsInfo
         xs={12}>
         {membersType}
       </Grid>
-
       {candidates.map((p, index) => (
         <Member
           backed={p.backed}
