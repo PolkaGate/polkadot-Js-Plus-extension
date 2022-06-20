@@ -28,6 +28,7 @@ interface Props {
   freeSolo?: boolean;
   title?: string;
   disabled?: boolean;
+  setIsValid?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface nameAddress {
@@ -35,7 +36,7 @@ interface nameAddress {
   address: string;
 }
 
-export default function AddressInput({ api, availableBalance, chain, disabled = false, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
+export default function AddressInput({ api, availableBalance, chain, disabled = false, setIsValid, freeSolo = false, selectedAddress, setAvailableBalance, setSelectedAddress, text, title = 'Account' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
@@ -43,7 +44,7 @@ export default function AddressInput({ api, availableBalance, chain, disabled = 
 
   const decimals = api && api.registry.chainDecimals[0];
 
-  function showAlladdressesOnThisChain(prefix: number): void {
+  const showAlladdressesOnThisChain = useCallback((prefix: number): void => {
     const allAddresesOnSameChain = accounts.map((acc): nameAddress => {
       const publicKey = decodeAddress(acc.address);
 
@@ -51,20 +52,20 @@ export default function AddressInput({ api, availableBalance, chain, disabled = 
     });
 
     setAllAddresesOnThisChain(allAddresesOnSameChain);
-  }
+  }, [accounts]);
 
   useEffect(() => {
     const prefix: number = chain ? chain.ss58Format : (settings.prefix === -1 ? 42 : settings.prefix);
 
     if (prefix !== undefined) { showAlladdressesOnThisChain(prefix); }
-  }, [chain, settings]);
+  }, [chain, settings, showAlladdressesOnThisChain]);
 
   useEffect(() => {
     if (allAddresesOnThisChain.length && !freeSolo) { setSelectedAddress && setSelectedAddress(allAddresesOnThisChain[0].address); }
-  }, [allAddresesOnThisChain]);
+  }, [allAddresesOnThisChain, freeSolo, setSelectedAddress]);
 
   useEffect(() => {
-    if (!selectedAddress || !setAvailableBalance || !api) return;
+    if (!selectedAddress || !setAvailableBalance || !api) { return; }
 
     setAvailableBalance(undefined);
 
@@ -79,10 +80,13 @@ export default function AddressInput({ api, availableBalance, chain, disabled = 
   const handleAddress = useCallback((value: string | null) => {
     const indexOfDots = value?.indexOf(':');
     let mayBeAddress = value?.slice(indexOfDots + 1)?.trim();
-    mayBeAddress = isValidAddress(mayBeAddress) ? mayBeAddress : undefined;
+    const isValid = isValidAddress(mayBeAddress);
+
+    setIsValid && setIsValid(mayBeAddress ? isValid : true);
+    mayBeAddress = isValid ? mayBeAddress : undefined;
 
     setSelectedAddress && setSelectedAddress(mayBeAddress);
-  }, [setSelectedAddress]);
+  }, [setIsValid, setSelectedAddress]);
 
   const handleAutoComplateChange = useCallback((_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
     setSelectedAddress && handleAddress(value);
@@ -90,6 +94,7 @@ export default function AddressInput({ api, availableBalance, chain, disabled = 
 
   const handleChange = useCallback((_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = _event.target.value;
+
     setSelectedAddress && handleAddress(value);
   }, [handleAddress, setSelectedAddress]);
 
