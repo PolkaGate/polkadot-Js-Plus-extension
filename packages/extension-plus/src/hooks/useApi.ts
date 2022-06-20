@@ -32,6 +32,8 @@ export default function (endpoint: string | undefined): ApiPromise | undefined {
       ? new ScProvider(getWellKnownChain(endpoint.replace('light://substrate-connect/', '')))
       : new WsProvider(endpoint);
 
+    isLight && wsProvider.connect();
+
     ApiPromise.create({ provider: wsProvider }).then((api) => setApi(api)).catch(console.error);
   }, [endpoint, isLight]);
 
