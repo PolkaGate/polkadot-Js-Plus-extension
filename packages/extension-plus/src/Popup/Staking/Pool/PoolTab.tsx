@@ -35,7 +35,8 @@ interface Props {
 
 function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [showAction, setShowAction] = useState<boolean | undefined>();
+  const [canChangePoolState, setCanChangePoolState] = useState<boolean | undefined>();
+  const [canEditPool, setCanEditPool] = useState<boolean | undefined>();
   const [showEditPoolModal, setEditPoolModalOpen] = useState<boolean>(false);
 
   const handleStateChange = useCallback((state: string) => {
@@ -55,9 +56,11 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
   useEffect(() => {
     if (!pool) { return; }
 
-    const hasPriviledge = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address);
+    const canChangeState = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address);
+    const canEdit = pool?.bondedPool && staker?.address && String(pool.bondedPool.roles.root) === staker.address;
 
-    setShowAction(!!hasPriviledge);
+    setCanChangePoolState(!!canChangeState);
+    setCanEditPool(!!canEdit);
   }, [api, pool, staker.address]);
 
   return (
@@ -65,8 +68,8 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
       {api && pool !== undefined
         ? pool
           ? <>
-            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!showAction} showRoles />
-            {showAction &&
+            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!canChangePoolState && !canEditPool} showRoles />
+            {canChangePoolState &&
               <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
                 <Grid container item xs={8}>
                   <Grid item>
@@ -107,19 +110,21 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                     </Button>
                   </Grid>
                 </Grid>
-                <Grid item>
-                  <Button
-                    color='warning'
-                    disabled={['destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
-                    onClick={handleEditPool}
-                    size='medium'
-                    startIcon={<SettingsApplicationsOutlinedIcon />}
-                    sx={{ textTransform: 'none' }}
-                    variant='text'
-                  >
-                    {t('Edit')}
-                  </Button>
-                </Grid>
+                {canEditPool &&
+                  <Grid item>
+                    <Button
+                      color='warning'
+                      disabled={['destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
+                      onClick={handleEditPool}
+                      size='medium'
+                      startIcon={<SettingsApplicationsOutlinedIcon />}
+                      sx={{ textTransform: 'none' }}
+                      variant='text'
+                    >
+                      {t('Edit')}
+                    </Button>
+                  </Grid>
+                }
               </Grid>
             }
           </>
