@@ -130,7 +130,7 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
             <Grid item sx={{ pl: 1 }} xs>
               <NextStepButton
                 data-button-action='next to stake'
-                isDisabled={{ JSON.stringify(pool) === JSON.stringify(newPool) }
+                isDisabled={ JSON.stringify(pool) === JSON.stringify(newPool) }
                 onClick={handleConfirmStakingModalOpen}
               >
                 {t('Next')}
@@ -144,14 +144,14 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
 }
 
 export default styled(EditPool)`
-       height: calc(100vh - 2px);
-       overflow: auto;
-       scrollbar - width: none;
- 
-       &:: -webkit - scrollbar {
-         display: none;
-       width:0,
-        }
-       .empty-list {
-         text - align: center;
-   }`;
+      height: calc(100vh - 2px);
+      overflow: auto;
+      scrollbar - width: none;
+
+      &:: -webkit - scrollbar {
+        display: none;
+      width:0,
+      }
+      .empty-list {
+        text - align: center;
+  }`;
