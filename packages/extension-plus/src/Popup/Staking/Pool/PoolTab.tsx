@@ -65,8 +65,8 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
       {api && pool !== undefined
         ? pool
           ? <>
-            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!canChangePoolState && !canEditPool} showRoles />
-            {canChangePoolState &&
+            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!showAction} showRoles />
+            {showAction &&
               <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
                 <Grid container item xs={8}>
                   <Grid item>
@@ -107,43 +107,44 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                     </Button>
                   </Grid>
                 </Grid>
-                {canEditPool &&
-                  <Grid item>
-                    <Button
-                      color='warning'
-                      disabled={['destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
-                      onClick={handleEditPool}
-                      size='medium'
-                      startIcon={<SettingsApplicationsOutlinedIcon />}
-                      sx={{ textTransform: 'none' }}
-                      variant='text'
-                    >
-                      {t('Edit')}
-                    </Button>
-                  </Grid>
-                }
+                <Grid item>
+                  <Button
+                    color='warning'
+                    disabled={['destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
+                    onClick={handleEditPool}
+                    size='medium'
+                    startIcon={<SettingsApplicationsOutlinedIcon />}
+                    sx={{ textTransform: 'none' }}
+                    variant='text'
+                  >
+                    {t('Edit')}
+                  </Button>
+                </Grid>
               </Grid>
             }
-          </>
-          : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
-            {t('No active pool found')}
           </Grid>
+            }
+    </>
+          : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
+    {t('No active pool found')}
+  </Grid>
         : <Progress title={t('Loading ...')} />
-      }
-      {showEditPoolModal && pool &&
-        <EditPool
-          api={api}
-          chain={chain}
-          handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
-          newPool={newPool}
-          pool={pool}
-          setEditPoolModalOpen={setEditPoolModalOpen}
-          setNewPool={setNewPool}
-          setState={setState}
-          showEditPoolModal={showEditPoolModal}
-        />
-      }
-    </Grid>
+}
+{
+  showEditPoolModal && pool &&
+  <EditPool
+    api={api}
+    chain={chain}
+    handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
+    newPool={newPool}
+    pool={pool}
+    setEditPoolModalOpen={setEditPoolModalOpen}
+    setNewPool={setNewPool}
+    setState={setState}
+    showEditPoolModal={showEditPoolModal}
+  />
+}
+    </Grid >
 
   );
 }
