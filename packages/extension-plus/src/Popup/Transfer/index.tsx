@@ -273,7 +273,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
 
   const acountList = (
     transferBetweenMyAccountsButtonText === t('Back to all')
-      ? <Box sx={{ bgcolor: 'background.paper', height: '270px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%' }}>
+      ? <Box sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%' }}>
         <nav aria-label='acount list'>
           <List subheader={<ListSubheader component='div' sx={{ textAlign: 'left' }}> {t('My Accounts')} </ListSubheader>}>
             {!allAddresesOnThisChain
