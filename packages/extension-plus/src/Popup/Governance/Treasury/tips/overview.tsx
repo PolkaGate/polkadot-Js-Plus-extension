@@ -86,7 +86,6 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
           </Button>
         </Grid>
       </Grid>
-
       {tips
         ? tips.map((tip, index) => {
           const finderAccountInfo = { accountId: tip.finder.address, identity: { display: tip.finder.display, judgements: tip.finder.judgements } } as unknown as DeriveAccountInfo;
@@ -96,23 +95,21 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
 
           return (
             <Paper elevation={4} key={index} sx={{ bgcolor: [finderAddress, beneficiaryAddres].includes(encodedAddress) ? SELECTED_COLOR : '', borderRadius: '10px', margin: '10px 30px 10px' }}>
-
               <Accordion disableGutters expanded={expanded === index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Grid container justifyContent='space-between'>
                     <Grid item>
                       {`${t('Status')}: ${tip.status}`}
                     </Grid>
-                    <Grid item>
+                    {/* <Grid item>
                       {`${t('Amount')}: ${toHuman(api, tip.amount)}`}
-                    </Grid>
+                    </Grid> */}
                     <Grid item>
                       {`${t('Tippers')}: ${tip.tipper_num}`}
                     </Grid>
                   </Grid>
                 </AccordionSummary>
                 <AccordionDetails sx={{ backgroundColor: grey[200], p: 0 }}>
-
                   {tippers && !!tippers[index]?.length && tippers[index]?.map((t: [DeriveAccountInfo, u128], index: number) => (
                     <Grid container justifyContent='space-between' key={index} xs={12}>
                       <Grid item sx={{ textAlign: 'left' }} xs={9}>
@@ -125,9 +122,7 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
                   ))}
                 </AccordionDetails>
               </Accordion>
-
               <Grid alignItems='center' container justifyContent='space-between' sx={{ p: '10px 20px' }}>
-
                 <Grid container item justifyContent='flex-end' spacing={1} xs={12}>
                   <Grid item>
                     <Link
@@ -158,23 +153,19 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
                     </Link>
                   </Grid>
                 </Grid>
-
                 <Grid item sx={{ fontSize: 12 }} xs={12}>
                   <strong>{t('Reason')}</strong><br />{tip.reason}
                 </Grid>
-
                 <Grid item sx={{ fontSize: 12, pt: '15px', textAlign: 'left' }} xs={12}>
                   {tip?.finder &&
                     <Identity accountInfo={finderAccountInfo} chain={chain} showAddress title={t('Finder')} />
                   }
                 </Grid>
-
                 <Grid item sx={{ fontSize: 12, pt: 1, textAlign: 'left' }} xs={12}>
                   {tip?.beneficiary &&
                     <Identity accountInfo={beneficiaryAccountInfo} chain={chain} showAddress title={t('Beneficiary')} />
                   }
                 </Grid>
-
               </Grid>
             </Paper>);
         })
@@ -182,7 +173,6 @@ export default function Overview({ address, chain, chainInfo, tips }: Props): Re
           {t('No active tips')}
         </Grid>
       }
-
       {showProposeTipModal &&
         <ProposeTip
           address={address}

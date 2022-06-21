@@ -179,7 +179,7 @@ export default function Vote({ address, allCouncilInfo, chain, chainInfo, setSho
           <ShowBalance balance={votingBalance} chainInfo={chainInfo} decimalDigits={5} title={t('Voting balance')} />
         </Grid>
       </Grid>
-      <Grid item sx={{ fontSize: 11, px: '40px' }} xs={12}>
+      <Grid item sx={{ fontSize: 11, p: '5px 40px' }} xs={12}>
         <TextField
           InputLabelProps={{ shrink: true }}
           InputProps={{ style: { fontSize: 13 }, endAdornment: (<InputAdornment position='end' sx={{ fontSize: 10 }}>{coin}</InputAdornment>) }}

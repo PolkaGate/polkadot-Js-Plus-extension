@@ -58,7 +58,7 @@ export default function ShowAddress({ address, chain, role }: Props): React.Reac
               />
             </Link>
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={1} sx={{textAlign: 'center' }}>
             <CopyToClipboard text={address}>
               <ContentCopyOutlinedIcon color='primary' sx={{ cursor: 'pointer', fontSize: 12 }} />
             </CopyToClipboard>
