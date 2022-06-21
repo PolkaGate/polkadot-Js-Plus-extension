@@ -11,7 +11,6 @@ import { render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Chain } from '@polkadot/extension-chains/types';
 import { BN } from '@polkadot/util';
 
 import getChainInfo from '../../../util/getChainInfo';
@@ -26,7 +25,7 @@ const availableBalance = '4';
 let chainInfo: ChainInfo;
 let staker: AccountsBalanceType;
 
-describe('Testing EasyStaking component', () => {
+describe('Testing Unstake component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = { balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
@@ -36,7 +35,6 @@ describe('Testing EasyStaking component', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
         api={undefined} // Don't care
-        availableBalance={new BN('0')} // Don't care
         currentlyStaked={undefined}
         pool={undefined} // Don't care
         poolStakingConsts={poolStakingConst} // Don't care
@@ -55,7 +53,6 @@ describe('Testing EasyStaking component', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
         api={undefined} // Don't care
-        availableBalance={new BN('0')} // Don't care
         currentlyStaked={null}
         pool={undefined} // Don't care
         poolStakingConsts={poolStakingConst} // Don't care
@@ -76,7 +73,6 @@ describe('Testing EasyStaking component', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
         api={chainInfo.api} // Don't care
-        availableBalance={new BN('400000000000')}
         currentlyStaked={new BN(pool().member?.points.toString() as string)}
         pool={pool()}
         poolStakingConsts={poolStakingConst}
@@ -95,7 +91,6 @@ describe('Testing EasyStaking component', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
         api={undefined} // Don't care
-        availableBalance={new BN('0')} // Don't care
         currentlyStaked={new BN('0')}
         pool={undefined} // Don't care
         poolStakingConsts={poolStakingConst} // Don't care

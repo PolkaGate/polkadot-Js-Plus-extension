@@ -23,7 +23,7 @@ let chainInfo: ChainInfo;
 const availableBalance = '5.4321';
 let staker: AccountsBalanceType;
 
-describe('Testing EasyStaking component', () => {
+describe('Testing PoolTab  component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = { address: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ', chain: 'westend', name: 'Amir khan', balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
