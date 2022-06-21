@@ -4,151 +4,154 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description This component shows my selected pool's information
+ * @description here a pool metaData and roles can be edited by root!
  *
  * */
 
 import type { ApiPromise } from '@polkadot/api';
-import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
+import type { Chain } from '@polkadot/extension-chains/types';
+import type { ThemeProps } from '../../../../../extension-ui/src/types';
+import type { AccountsBalanceType, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, PlayCircleOutlined as PlayCircleOutlinedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
-import { Button, Grid } from '@mui/material';
+import { SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
+import { Divider, Grid, TextField } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
+import styled from 'styled-components';
 
+import { BackButton, NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Progress } from '../../../components';
-import EditPool from './EditPool';
-import Pool from './Pool';
+import { AddressInput, PlusHeader, Popup } from '../../../components';
 
-interface Props {
-  chain: Chain;
+interface Props extends ThemeProps {
   api: ApiPromise | undefined;
-  staker: AccountsBalanceType;
-  pool: MyPoolInfo | undefined | null;
-  poolsMembers: MembersMapEntry[] | undefined;
+  chain: Chain;
+  className?: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
+  showEditPoolModal: boolean;
+  staker: AccountsBalanceType;
+  setEditPoolModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleConfirmStakingModalOpen: () => void;
+  pool: MyPoolInfo;
   setNewPool: React.Dispatch<React.SetStateAction<MyPoolInfo | undefined>>;
   newPool: MyPoolInfo | undefined;
 }
 
-function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
+function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, setEditPoolModalOpen, setNewPool, setState, showEditPoolModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [canChangePoolState, setCanChangePoolState] = useState<boolean | undefined>();
-  const [canEditPool, setCanEditPool] = useState<boolean | undefined>();
-  const [showEditPoolModal, setEditPoolModalOpen] = useState<boolean>(false);
 
-  const handleStateChange = useCallback((state: string) => {
-    if (!api) { return; }
-
-    console.log('going to change state to ', state);
-    setState(state);
-    handleConfirmStakingModalOpen();
-  }, [api, handleConfirmStakingModalOpen, setState]);
-
-  const handleEditPool = useCallback(() => {
-    console.log('going to edit pool ');
-    setState('editPool');
-    setEditPoolModalOpen(true);
-  }, [setState]);
+  const [metaData, setMetaData] = useState<string | undefined>(pool?.metadata);
+  const [root, setRoot] = useState<string>(pool?.bondedPool?.roles?.root);
+  const [nominator, setNominator] = useState<string>(pool?.bondedPool?.roles?.nominator);
+  const [stateToggler, setStateToggler] = useState<string>(pool?.bondedPool?.roles?.stateToggler);
 
   useEffect(() => {
-    if (!pool) { return; }
+    setNewPool(JSON.parse(JSON.stringify(pool)) as MyPoolInfo);
+  }, [pool, setNewPool]);
 
-    const canChangeState = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address);
-    const canEdit = pool?.bondedPool && staker?.address && String(pool.bondedPool.roles.root) === staker.address;
+  useEffect(() => {
+    if (!newPool) { return; }
 
-    setCanChangePoolState(!!canChangeState);
-    setCanEditPool(!!canEdit);
-  }, [api, pool, staker.address]);
+    const tempPool = { ...newPool };
+
+    tempPool.metadata = metaData;
+    tempPool.bondedPool.roles.root = root;
+    tempPool.bondedPool.roles.nominator = nominator;
+    tempPool.bondedPool.roles.stateToggler = stateToggler;
+
+    setNewPool(tempPool);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nominator, metaData, root, stateToggler, pool, setNewPool]);
+
+  const handleEditPoolModalClose = useCallback(() => {
+    setEditPoolModalOpen(false);
+    setState('');
+  }, [setEditPoolModalOpen, setState]);
 
   return (
-    <Grid container sx={{ px: '25px' }}>
-      {api && pool !== undefined
-        ? pool
-          ? <>
-            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!canChangePoolState && !canEditPool} showRoles />
-            {canChangePoolState &&
-              <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
-                <Grid container item xs={8}>
-                  <Grid item>
-                    <Button
-                      disabled={pool?.bondedPool?.state && String(pool.bondedPool.state).toLowerCase() === 'destroying'}
-                      onClick={() => handleStateChange('destroying')}
-                      size='small'
-                      startIcon={<AutoDeleteRoundedIcon fontSize='small' />}
-                      sx={{ color: 'red', textTransform: 'none' }}
-                      variant='text'
-                    >
-                      {t('Destroy')}
-                    </Button>
-                  </Grid>
-                  <Grid item>
-                    <Button
-                      disabled={['blocked', 'destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
-                      onClick={() => handleStateChange('blocked')}
-                      size='small'
-                      startIcon={<BlockRoundedIcon />}
-                      sx={{ color: 'black', textTransform: 'none' }}
-                      variant='text'
-                    >
-                      {t('Block')}
-                    </Button>
-                  </Grid>
-                  <Grid item>
-                    <Button
-                      color='warning'
-                      disabled={['open', 'destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
-                      onClick={() => handleStateChange('open')}
-                      size='small'
-                      startIcon={<PlayCircleOutlinedIcon />}
-                      sx={{ textTransform: 'none' }}
-                      variant='text'
-                    >
-                      {t('Open')}
-                    </Button>
-                  </Grid>
-                </Grid>
-                {canEditPool &&
-                  <Grid item>
-                    <Button
-                      color='warning'
-                      disabled={['destroying'].includes(String(pool?.bondedPool?.state).toLowerCase())}
-                      onClick={handleEditPool}
-                      size='medium'
-                      startIcon={<SettingsApplicationsOutlinedIcon />}
-                      sx={{ textTransform: 'none' }}
-                      variant='text'
-                    >
-                      {t('Edit')}
-                    </Button>
-                  </Grid>
-                }
-              </Grid>
-            }
-          </>
-          : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
-            {t('No active pool found')}
+    <>
+      <Popup handleClose={handleEditPoolModalClose} showModal={showEditPoolModal}>
+        <PlusHeader action={handleEditPoolModalClose} chain={chain} closeText={'Close'} icon={<SettingsApplicationsOutlinedIcon fontSize='small' />} title={'Edit Pool'} />
+        <Grid container sx={{ pt: 2 }}>
+          <Grid container item justifyContent='space-between' sx={{ fontSize: 12, p: '20px 40px 1px' }}>
+            <Grid item sx={{ pr: '5px' }} xs={10}>
+              <TextField
+                InputLabelProps={{ shrink: true }}
+                autoFocus
+                color='warning'
+                fullWidth
+                helperText={''}
+                inputProps={{ style: { padding: '12px' } }}
+                label={t('Pool metadata')}
+                name='metaData'
+                onChange={(e) => setMetaData(e.target.value)}
+                placeholder='enter pool metadata'
+                sx={{ height: '20px' }}
+                type='text'
+                value={metaData}
+                variant='outlined'
+              />
+            </Grid>
+            <Grid item xs>
+              <TextField
+                InputLabelProps={{ shrink: true }}
+                disabled
+                fullWidth
+                inputProps={{ style: { padding: '12px', textAlign: 'center' } }}
+                label={t('Pool Id')}
+                name='nextPoolId'
+                type='text'
+                value={String(pool?.member?.poolId ?? 0)}
+                variant='outlined'
+              />
+            </Grid>
           </Grid>
-        : <Progress title={t('Loading ...')} />
-      }
-      {showEditPoolModal && pool &&
-        <EditPool
-          api={api}
-          chain={chain}
-          handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
-          newPool={newPool}
-          pool={pool}
-          setEditPoolModalOpen={setEditPoolModalOpen}
-          setNewPool={setNewPool}
-          setState={setState}
-          showEditPoolModal={showEditPoolModal}
-        />
-      }
-    </Grid>
-
+          <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '40px 40px 1px', textAlign: 'center' }} xs={12}>
+            <Divider textAlign='left'> {t('Roles')}</Divider>
+          </Grid>
+          <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '20px 40px 5px' }}>
+            <Grid item xs={12}>
+              <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={pool?.bondedPool?.roles?.depositor} title={t('Depositor')} />
+            </Grid>
+            <Grid item xs={12}>
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={root} setSelectedAddress={setRoot} title={t('Root')} />
+            </Grid>
+            <Grid item xs={12}>
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={nominator} setSelectedAddress={setNominator} title={t('Nominator')} />
+            </Grid>
+            <Grid item xs={12}>
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={stateToggler} setSelectedAddress={setStateToggler} title={t('State toggler')} />
+            </Grid>
+          </Grid>
+          <Grid container item sx={{ p: '50px 34px' }} xs={12}>
+            <Grid item xs={1}>
+              <BackButton onClick={handleEditPoolModalClose} />
+            </Grid>
+            <Grid item sx={{ pl: 1 }} xs>
+              <NextStepButton
+                data-button-action='next to stake'
+                isDisabled={JSON.stringify(pool) === JSON.stringify(newPool)}
+                onClick={handleConfirmStakingModalOpen}
+              >
+                {t('Next')}
+              </NextStepButton>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Popup>
+    </>
   );
 }
 
-export default React.memo(PoolTab);
+export default styled(EditPool)`
+      height: calc(100vh - 2px);
+      overflow: auto;
+      scrollbar - width: none;
+
+      &:: -webkit - scrollbar {
+        display: none;
+      width:0,
+       }
+      .empty-list {
+        text - align: center;
+  }`;
