@@ -90,7 +90,6 @@ export default function AddressInput({ api, availableBalance, chain, disabled = 
 
   const handleChange = useCallback((_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = _event.target.value;
-
     setSelectedAddress && handleAddress(value);
   }, [handleAddress, setSelectedAddress]);
 
