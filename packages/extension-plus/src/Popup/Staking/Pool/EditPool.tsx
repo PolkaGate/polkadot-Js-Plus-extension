@@ -29,6 +29,7 @@ interface Props extends ThemeProps {
   className?: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
   showEditPoolModal: boolean;
+  staker: AccountsBalanceType;
   setEditPoolModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleConfirmStakingModalOpen: () => void;
   pool: MyPoolInfo;
@@ -36,11 +37,11 @@ interface Props extends ThemeProps {
   newPool: MyPoolInfo | undefined;
 }
 
-function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, setEditPoolModalOpen, setNewPool, setState, showEditPoolModal }: Props): React.ReactElement<Props> {
+function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, setEditPoolModalOpen, setNewPool, setState, showEditPoolModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
-  const [metaData, setMetaData] = useState<string | null>(pool.metadata);
-  const [root, setRoot] = useState<string | undefined>(pool.bondedPool?.roles?.root ? String(pool.bondedPool.roles.root) : undefined);
+  const [metaData, setMetaData] = useState<string | undefined>(pool?.metadata);
+  const [root, setRoot] = useState<string>(pool?.bondedPool?.roles?.root);
   const [nominator, setNominator] = useState<string | undefined>(pool.bondedPool?.roles?.nominator ? String(pool.bondedPool.roles.nominator) : undefined);
   const [stateToggler, setStateToggler] = useState<string | undefined>(pool.bondedPool?.roles?.stateToggler ? String(pool.bondedPool.roles.stateToggler) : undefined);
   const [nextToEditButtonDisabled, setNextToEditButtonDisabled] = useState<boolean>(true);
