@@ -42,8 +42,8 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
 
   const [metaData, setMetaData] = useState<string | undefined>(pool?.metadata);
   const [root, setRoot] = useState<string>(pool?.bondedPool?.roles?.root);
-  const [nominator, setNominator] = useState<string | undefined>(pool.bondedPool?.roles?.nominator ? String(pool.bondedPool.roles.nominator) : undefined);
-  const [stateToggler, setStateToggler] = useState<string | undefined>(pool.bondedPool?.roles?.stateToggler ? String(pool.bondedPool.roles.stateToggler) : undefined);
+  const [nominator, setNominator] = useState<string>(pool?.bondedPool?.roles?.nominator);
+  const [stateToggler, setStateToggler] = useState<string>(pool?.bondedPool?.roles?.stateToggler);
   const [nextToEditButtonDisabled, setNextToEditButtonDisabled] = useState<boolean>(true);
   const [isRootValid, setIsRootValid] = useState<boolean>(true);
   const [isNominatorValid, setIsNominatorValid] = useState<boolean>(true);
@@ -52,12 +52,6 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
   useEffect(() => {
     setNewPool(JSON.parse(JSON.stringify(pool)) as MyPoolInfo);
   }, [pool, setNewPool]);
-
-  useEffect(() => {
-    const validAddresses = isRootValid && isNominatorValid && isStateTogglerValid;
-
-    setNextToEditButtonDisabled(JSON.stringify(pool) === JSON.stringify(newPool) || !validAddresses);
-  }, [isNominatorValid, isRootValid, isStateTogglerValid, newPool, pool, root]);
 
   useEffect(() => {
     if (!newPool) { return; }
