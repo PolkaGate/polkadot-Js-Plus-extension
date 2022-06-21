@@ -101,7 +101,7 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
                 label={t('Pool Id')}
                 name='nextPoolId'
                 type='text'
-                value={String(pool.member.poolId ?? 0)}
+                value={String(pool?.member?.poolId ?? 0)}
                 variant='outlined'
               />
             </Grid>
@@ -111,16 +111,16 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
           </Grid>
           <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '20px 40px 5px' }}>
             <Grid item xs={12}>
-              <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={pool.bondedPool?.roles?.depositor ? String(pool.bondedPool.roles.depositor) : undefined} title={t('Depositor')} />
+              <AddressInput api={api} chain={chain} disabled freeSolo selectedAddress={pool?.bondedPool?.roles?.depositor} title={t('Depositor')} />
             </Grid>
             <Grid item xs={12}>
-              <AddressInput api={api} chain={chain} freeSolo selectedAddress={root} setIsValid={setIsRootValid} setSelectedAddress={setRoot} title={t('Root')} />
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={root} setSelectedAddress={setRoot} title={t('Root')} />
             </Grid>
             <Grid item xs={12}>
-              <AddressInput api={api} chain={chain} freeSolo selectedAddress={nominator} setIsValid={setIsNominatorValid} setSelectedAddress={setNominator} title={t('Nominator')} />
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={nominator} setSelectedAddress={setNominator} title={t('Nominator')} />
             </Grid>
             <Grid item xs={12}>
-              <AddressInput api={api} chain={chain} freeSolo selectedAddress={stateToggler} setIsValid={setIsStateTogglerValid} setSelectedAddress={setStateToggler} title={t('State toggler')} />
+              <AddressInput api={api} chain={chain} freeSolo selectedAddress={stateToggler} setSelectedAddress={setStateToggler} title={t('State toggler')} />
             </Grid>
           </Grid>
           <Grid container item sx={{ p: '50px 34px' }} xs={12}>
@@ -130,7 +130,7 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
             <Grid item sx={{ pl: 1 }} xs>
               <NextStepButton
                 data-button-action='next to stake'
-                isDisabled={nextToEditButtonDisabled}
+                isDisabled={{ JSON.stringify(pool) === JSON.stringify(newPool) }
                 onClick={handleConfirmStakingModalOpen}
               >
                 {t('Next')}
@@ -142,7 +142,6 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
     </>
   );
 }
-
 
 export default styled(EditPool)`
        height: calc(100vh - 2px);
