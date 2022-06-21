@@ -44,10 +44,6 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
   const [root, setRoot] = useState<string>(pool?.bondedPool?.roles?.root);
   const [nominator, setNominator] = useState<string>(pool?.bondedPool?.roles?.nominator);
   const [stateToggler, setStateToggler] = useState<string>(pool?.bondedPool?.roles?.stateToggler);
-  const [nextToEditButtonDisabled, setNextToEditButtonDisabled] = useState<boolean>(true);
-  const [isRootValid, setIsRootValid] = useState<boolean>(true);
-  const [isNominatorValid, setIsNominatorValid] = useState<boolean>(true);
-  const [isStateTogglerValid, setIsStateTogglerValid] = useState<boolean>(true);
 
   useEffect(() => {
     setNewPool(JSON.parse(JSON.stringify(pool)) as MyPoolInfo);
@@ -105,7 +101,7 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
                 label={t('Pool Id')}
                 name='nextPoolId'
                 type='text'
-                value={String(pool.member?.poolId ?? 0)}
+                value={String(pool.member.poolId ?? 0)}
                 variant='outlined'
               />
             </Grid>
