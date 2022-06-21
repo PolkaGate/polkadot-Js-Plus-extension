@@ -3,185 +3,131 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
-
-import { AddCircleRounded as AddCircleRoundedIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Avatar, Button, Grid, Link, Paper } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { GroupRemove as GroupRemoveIcon, HowToReg as HowToRegIcon } from '@mui/icons-material';
+import { Button, Container, Divider, Grid, Paper } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 
-import { AccountId32 } from '@polkadot/types/interfaces/runtime';
-import { PalletTipsOpenTip } from '@polkadot/types/lookup';
-import { Option, u128 } from '@polkadot/types-codec';
-
-import { Chain } from '../../../../../../extension-chains/src/types';
+import useMetadata from '../../../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../../../extension-ui/src/hooks/useTranslation';
-import Identity from '../../../../components/Identity';
-import useEncodedAddress from '../../../../hooks/useEncodedAddress';
-import getCouncilMembersInfo from '../../../../util/api/getCouncilMembersInfo';
-import { SELECTED_COLOR } from '../../../../util/constants';
-import getLogo from '../../../../util/getLogo';
-import { ChainInfo, Tip } from '../../../../util/plusTypes';
-import { toHuman } from '../../../../util/plusUtils';
-import ProposeTip from './ProposeTip';
+import { ChainInfo, CouncilInfo } from '../../../../util/plusTypes';
+import CancelVote from './cancelVotes/CancelVote';
+import Vote from './vote/Vote';
+import Members from './Members';
 
 interface Props {
   address: string;
-  tips: Tip[] | null;
-  chain: Chain;
+  councilInfo: CouncilInfo;
   chainInfo: ChainInfo;
 }
 
-export default function Overview({ address, chain, chainInfo, tips }: Props): React.ReactElement<Props> {
+export default function Overview({ address, chainInfo, councilInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const encodedAddress = useEncodedAddress(address, chain);
-  const chainName = chain?.name.replace(' Relay Chain', '');
-  const [showProposeTipModal, setShowProposeTipModal] = useState<boolean>(false);
-  const [expanded, setExpanded] = useState<number>(-1);
-  const [tippers, setTippers] = useState<[DeriveAccountInfo, u128][][]>();
+  const chain = useMetadata(chainInfo.genesisHash, true);
+  const [showMyVotesModal, setShowMyVotesModal] = useState<boolean>(false);
+  const [showVotesModal, setShowVotesModal] = useState<boolean>(false);
 
-  const { api } = chainInfo;
+  const { accountInfos, candidateCount, candidates, desiredRunnersUp, desiredSeats, members, runnersUp } = councilInfo;
 
-  const handleProposeTip = useCallback(() => { setShowProposeTipModal(true); }, []);
-  const handleProposeTipModalClose = useCallback(() => { setShowProposeTipModal(false); }, []);
+  const membersInfo = {
+    backed: members.map((m) => m[1].toString()),
+    // desiredSeats: Number(desiredSeats),
+    infos: accountInfos.slice(0, members.length)
+  };
 
-  const handleAccordionChange = useCallback((panel: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : -1);
+  const runnersUpInfo = {
+    backed: runnersUp.map((m) => m[1].toString()),
+    // desiredSeats: Number(desiredRunnersUp),
+    infos: accountInfos.slice(members.length, members.length + runnersUp.length)
+  };
+
+  const candidatesInfo = {
+    backed: candidates.map((m) => '0'), // TODO: is 0 a good default for candidates backup amount?!
+    // desiredSeats: Number(candidateCount),
+    infos: accountInfos.slice(members.length + runnersUp.length)
+  };
+
+  const allCouncilInfo = {
+    backed: membersInfo.backed.concat(runnersUpInfo.backed, candidatesInfo.backed),
+    infos: accountInfos
+  };
+
+  const handleShowMyVotes = useCallback(() => {
+    setShowMyVotesModal(true);
   }, []);
 
-  // eslint-disable-next-line no-void
-  void React.useMemo(async () => {
-    if (!tips) return;
-
-    const wrappedTips: Option<PalletTipsOpenTip>[] = await Promise.all(tips.map((tip) => api.query.tips.tips(tip.hash)));
-    const councilMembersInfo: DeriveAccountInfo[] = await getCouncilMembersInfo(chainName);
-
-    if (!councilMembersInfo.length) return;
-
-    const unWrappedTips = wrappedTips?.map((t) => t.isSome && t.unwrap());
-
-    const tipInfos = unWrappedTips?.map((tip: PalletTipsOpenTip): [DeriveAccountInfo, u128][] => {
-      return tip?.tips?.map((accountVal: [AccountId32, u128]): [DeriveAccountInfo, u128] => {
-        return [councilMembersInfo.find((c) => c.accountId.toString() === accountVal[0].toString()), api.createType('Balance', accountVal[1])];
-      });
-    });
-
-    setTippers(tipInfos);
-  }, [api, chainName, tips]);
-
-  // if (!tips) {
-  //   return (
-  //     <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
-  //       {t('No active tips')}
-  //     </Grid>
-  //   );
-  // }
+  const handleShowVotes = useCallback(() => {
+    setShowVotesModal(true);
+  }, []);
 
   return (
-    <>
-      <Grid container justifyContent='flex-end'>
-        <Grid item sx={{ p: '10px 30px' }}>
-          <Button color='warning' onClick={handleProposeTip} size='small' startIcon={<AddCircleRoundedIcon />} variant='outlined'>
-            {t('Propose tip')}
-          </Button>
+    <Container disableGutters maxWidth='md'>
+      <Paper elevation={4} sx={{ borderRadius: '10px', fontSize: 12, margin: '20px 30px 10px', p: '10px 40px' }}>
+        <Grid container justifyContent='space-between' sx={{ textAlign: 'center' }}>
+          <Grid item>
+            {t('Seats')}
+            <br />
+            {members.length}/{councilInfo.desiredSeats.toString()}
+          </Grid>
+          <Grid item>
+            {t('Runners up')}
+            <br />
+            {councilInfo.runnersUp.length}/{councilInfo.desiredRunnersUp.toString()}
+          </Grid>
+          <Grid item>
+            {t('Candidates')}
+            <br />
+            {councilInfo.candidateCount.toString()}
+          </Grid>
         </Grid>
-      </Grid>
-      {tips
-        ? tips.map((tip, index) => {
-          const finderAccountInfo = { accountId: tip.finder.address, identity: { display: tip.finder.display, judgements: tip.finder.judgements } } as unknown as DeriveAccountInfo;
-          const beneficiaryAccountInfo = { accountId: tip.beneficiary.address, identity: { display: tip.beneficiary.display, judgements: tip.beneficiary.judgements } } as unknown as DeriveAccountInfo;
-          const finderAddress = tip.finder.address;
-          const beneficiaryAddres = tip.beneficiary.address;
 
-          return (
-            <Paper elevation={4} key={index} sx={{ bgcolor: [finderAddress, beneficiaryAddres].includes(encodedAddress) ? SELECTED_COLOR : '', borderRadius: '10px', margin: '10px 30px 10px' }}>
-              <Accordion disableGutters expanded={expanded === index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Grid container justifyContent='space-between'>
-                    <Grid item>
-                      {`${t('Status')}: ${tip.status}`}
-                    </Grid>
-                    {/* <Grid item>
-                      {`${t('Amount')}: ${toHuman(api, tip.amount)}`}
-                    </Grid> */}
-                    <Grid item>
-                      {`${t('Tippers')}: ${tip.tipper_num}`}
-                    </Grid>
-                  </Grid>
-                </AccordionSummary>
-                <AccordionDetails sx={{ backgroundColor: grey[200], p: 0 }}>
-                  {tippers && !!tippers[index]?.length && tippers[index]?.map((t: [DeriveAccountInfo, u128], index: number) => (
-                    <Grid container justifyContent='space-between' key={index} xs={12}>
-                      <Grid item sx={{ textAlign: 'left' }} xs={9}>
-                        <Identity accountInfo={t[0]} chain={chain} showSocial={false} />
-                      </Grid>
-                      <Grid item sx={{ pr: 1, textAlign: 'right' }} xs={3}>
-                        {t[1].toHuman()}
-                      </Grid>
-                    </Grid>
-                  ))}
-                </AccordionDetails>
-              </Accordion>
-              <Grid alignItems='center' container justifyContent='space-between' sx={{ p: '10px 20px' }}>
-                <Grid container item justifyContent='flex-end' spacing={1} xs={12}>
-                  <Grid item>
-                    <Link
-                      href={`https://${chainName}.subscan.io/treasury_tip/${tip?.hash}`}
-                      rel='noreferrer'
-                      target='_blank'
-                      underline='none'
-                    >
-                      <Avatar
-                        alt={'subscan'}
-                        src={getLogo('subscan')}
-                        sx={{ height: 15, width: 15 }}
-                      />
-                    </Link>
-                  </Grid>
-                  <Grid item>
-                    <Link
-                      href={`https://${chainName}.polkassembly.io/tip/${tip?.hash}`}
-                      rel='noreferrer'
-                      target='_blank'
-                      underline='none'
-                    >
-                      <Avatar
-                        alt={'polkassembly'}
-                        src={getLogo('polkassembly')}
-                        sx={{ height: 15, width: 15 }}
-                      />
-                    </Link>
-                  </Grid>
-                </Grid>
-                <Grid item sx={{ fontSize: 12 }} xs={12}>
-                  <strong>{t('Reason')}</strong><br />{tip.reason}
-                </Grid>
-                <Grid item sx={{ fontSize: 12, pt: '15px', textAlign: 'left' }} xs={12}>
-                  {tip?.finder &&
-                    <Identity accountInfo={finderAccountInfo} chain={chain} showAddress title={t('Finder')} />
-                  }
-                </Grid>
-                <Grid item sx={{ fontSize: 12, pt: 1, textAlign: 'left' }} xs={12}>
-                  {tip?.beneficiary &&
-                    <Identity accountInfo={beneficiaryAccountInfo} chain={chain} showAddress title={t('Beneficiary')} />
-                  }
-                </Grid>
-              </Grid>
-            </Paper>);
-        })
-        : <Grid item sx={{ fontSize: 12, paddingTop: 3, textAlign: 'center' }} xs={12}>
-          {t('No active tips')}
+        <Grid item sx={{ padding: '20px 0px 10px ' }}>
+          <Divider />
+        </Grid>
+
+        <Grid container justifyContent='space-between' sx={{ textAlign: 'center' }}>
+          <Grid item>
+            <Button color='warning' onClick={handleShowVotes} size='small' startIcon={<HowToRegIcon />} variant='contained'>
+              {t('Vote')}
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button onClick={handleShowMyVotes} size='small' startIcon={<GroupRemoveIcon />} sx={{ borderColor: 'black', color: 'black' }} variant='outlined'>
+              {t('Cancel votes')}
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {councilInfo
+        ? <Container id='scrollArea' sx={{ height: '300px', overflowY: 'auto' }}>
+          <Members chain={chain} chainInfo={chainInfo} membersType={t('Members')} personsInfo={membersInfo} />
+          <Members chain={chain} chainInfo={chainInfo} membersType={t('Runners up')} personsInfo={runnersUpInfo} />
+          <Members chain={chain} chainInfo={chainInfo} membersType={t('Candidates')} personsInfo={candidatesInfo} />
+        </Container>
+        : <Grid sx={{ paddingTop: 3, textAlign: 'center' }} xs={12}>
+          {t('No data')}
         </Grid>
       }
-      {showProposeTipModal &&
-        <ProposeTip
+
+      {showMyVotesModal &&
+        <CancelVote
           address={address}
+          allCouncilInfo={allCouncilInfo}
           chain={chain}
           chainInfo={chainInfo}
-          handleProposeTipModalClose={handleProposeTipModalClose}
-          showProposeTipModal={showProposeTipModal}
-        />
+          setShowMyVotesModal={setShowMyVotesModal}
+          showMyVotesModal={showMyVotesModal} />
       }
-    </>
+
+      {showVotesModal &&
+        <Vote
+          address={address}
+          allCouncilInfo={allCouncilInfo}
+          chain={chain}
+          chainInfo={chainInfo}
+          setShowVotesModal={setShowVotesModal}
+          showVotesModal={showVotesModal} />
+      }
+    </Container>
   );
 }
