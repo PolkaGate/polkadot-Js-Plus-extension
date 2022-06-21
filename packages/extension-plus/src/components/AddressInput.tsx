@@ -61,10 +61,10 @@ export default function AddressInput({ api, availableBalance, chain, disabled = 
 
   useEffect(() => {
     if (allAddresesOnThisChain.length && !freeSolo) { setSelectedAddress && setSelectedAddress(allAddresesOnThisChain[0].address); }
-  }, [allAddresesOnThisChain, freeSolo, setSelectedAddress]);
+  }, [allAddresesOnThisChain]);
 
   useEffect(() => {
-    if (!selectedAddress || !setAvailableBalance || !api) { return; }
+    if (!selectedAddress || !setAvailableBalance || !api) return;
 
     setAvailableBalance(undefined);
 
@@ -79,13 +79,10 @@ export default function AddressInput({ api, availableBalance, chain, disabled = 
   const handleAddress = useCallback((value: string | null) => {
     const indexOfDots = value?.indexOf(':');
     let mayBeAddress = value?.slice(indexOfDots + 1)?.trim();
-    const isValid = isValidAddress(mayBeAddress);
-
-    setIsValid && setIsValid(mayBeAddress ? isValid : true);
-    mayBeAddress = isValid ? mayBeAddress : undefined;
+    mayBeAddress = isValidAddress(mayBeAddress) ? mayBeAddress : undefined;
 
     setSelectedAddress && setSelectedAddress(mayBeAddress);
-  }, [setIsValid, setSelectedAddress]);
+  }, [setSelectedAddress]);
 
   const handleAutoComplateChange = useCallback((_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
     setSelectedAddress && handleAddress(value);
