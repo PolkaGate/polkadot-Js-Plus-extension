@@ -68,7 +68,9 @@ interface RewardInfo {
 
 const workers: Worker[] = [];
 
-BigInt.prototype.toJSON = function () { return this.toString() };
+BigInt.prototype.toJSON = function () {
+  return this.toString()
+};
 
 export default function SoloStaking({ account, api, chain, currentEraIndex, endpoint, gettingNominatedValidatorsInfoFromChain, ledger, localStrorageIsUpdate, nominatorInfo, setStakingModalOpen, showStakingModal, staker, stakingConsts, validatorsIdentities, validatorsInfo, validatorsInfoIsUpdated }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -142,15 +144,17 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const lighter: string | undefined = e.data;
 
-      console.log('lighter:', lighter);
+      lighter && console.log('lighter to runPutInFrontOf:', lighter);
 
-      setPutInFrontOfInfo({ lighter: lighter, shouldPutInFront: !!lighter });
+      setPutInFrontOfInfo({ lighter, shouldPutInFront: !!lighter });
       needsPutInFrontOf.terminate();
     };
   };
 
   const getRedeemable = useCallback((): void => {
-    if (!endpoint || !staker.address) { return; }
+    if (!endpoint || !staker.address) {
+      return;
+    }
 
     const address = staker.address;
     const getRedeemableWorker: Worker = new Worker(new URL('../../../util/workers/getRedeemable.js', import.meta.url));
@@ -168,7 +172,11 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
       const stakingAccount: string = e.data;
       const rcvdRedeemable = JSON.parse(stakingAccount)?.redeemable as string;
 
-      if (rcvdRedeemable) { setRedeemable(BigInt(rcvdRedeemable)); } else { setRedeemable(0n); }
+      if (rcvdRedeemable) {
+        setRedeemable(BigInt(rcvdRedeemable));
+      } else {
+        setRedeemable(0n);
+      }
 
       getRedeemableWorker.terminate();
     };
@@ -215,6 +223,7 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
       if (rewardsFromSubscan?.length) {
         setRewardSlashes((getRewardsSlashes) => getRewardsSlashes.concat(rewardsFromSubscan));
       }
+
       console.log('rewards from subscan:', r);
     });
   }, [api, chainName, staker.address]);
@@ -228,25 +237,35 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
   }, [checkNeedsTuneUp, endpoint, staker.address]);
 
   useEffect(() => {
-    if (!api || !decimals) return;
+    if (!api || !decimals) {
+      return;
+    }
+
     /** get staking reward from subscan, can use onChain data, TODO */
     // eslint-disable-next-line no-void
     void getStakingReward(chain, staker.address).then((reward) => {
-      if (!reward) reward = '0';
+      if (!reward) {
+        reward = '0';
+      }
+
       reward = amountToHuman(String(reward), decimals) === '0' ? '0.00' : amountToHuman(reward, decimals);
       setTotalReceivedReward(reward);
     });
   }, [chain, api, staker.address, decimals]);
 
   useEffect(() => {
-    if (!ledger || !api || !decimals) { return; }
+    if (!ledger || !api || !decimals) {
+      return;
+    }
 
     setCurrentlyStakedInHuman(amountToHuman(String(ledger.active), decimals));
 
     // set unlocking
     let unlockingValue = 0n;
 
-    ledger?.unlocking?.forEach((u) => { unlockingValue += BigInt(String(u.value)); });
+    ledger?.unlocking?.forEach((u) => {
+      unlockingValue += BigInt(String(u.value));
+    });
 
     setUnlockingAmount(redeemable ? unlockingValue - redeemable : unlockingValue);
   }, [ledger, api, redeemable, decimals]);
@@ -306,7 +325,9 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
   }, [stakingConsts, validatorsInfo]);
 
   useEffect(() => {
-    if (!stakingConsts) return;
+    if (!stakingConsts) {
+      return;
+    }
 
     const oversubscribeds = nominatedValidators?.filter((v) => v.exposure.others.length > stakingConsts.maxNominatorRewardedPerValidator);
 
@@ -348,30 +369,46 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
   }, [state]);
 
   const handleNextToUnstake = useCallback((): void => {
-    if (!state) setState('unstake');
+    if (!state) {
+      setState('unstake');
+    }
+
     handleConfirmStakingModalOpen();
   }, [handleConfirmStakingModalOpen, state]);
 
   const handleStopNominating = useCallback((): void => {
     handleConfirmStakingModalOpen();
 
-    if (!state) setState('stopNominating');
+    if (!state) {
+      setState('stopNominating');
+    }
   }, [handleConfirmStakingModalOpen, state]);
 
   const handleRebag = useCallback((): void => {
     handleConfirmStakingModalOpen();
 
-    if (!state) setState('tuneUp');
+    if (!state) {
+      setState('tuneUp');
+    }
   }, [handleConfirmStakingModalOpen, state]);
 
   const handleWithdrowUnbound = useCallback(() => {
-    if (!redeemable) return;
-    if (!state) setState('withdrawUnbound');
+    if (!redeemable) {
+      return;
+    }
+
+    if (!state) {
+      setState('withdrawUnbound');
+    }
+
     handleConfirmStakingModalOpen();
   }, [handleConfirmStakingModalOpen, redeemable, state]);
 
   const handleViewChart = useCallback(() => {
-    if (!rewardSlashes) return;
+    if (!rewardSlashes) {
+      return;
+    }
+
     setChartModalOpen(true);
   }, [setChartModalOpen, rewardSlashes]);
 
