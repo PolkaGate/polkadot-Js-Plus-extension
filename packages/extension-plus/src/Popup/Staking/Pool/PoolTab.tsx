@@ -55,9 +55,9 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
   useEffect(() => {
     if (!pool) { return; }
 
-    const hasPriviledge = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address)
-    setCanChangePoolState(!!canChangeState);
-    setCanEditPool(!!canEdit);
+    const hasPriviledge = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address);
+
+    setShowAction(!!hasPriviledge);
   }, [api, pool, staker.address]);
 
   return (
