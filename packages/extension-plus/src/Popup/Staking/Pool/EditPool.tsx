@@ -152,6 +152,7 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
   );
 }
 
+
 export default styled(EditPool)`
        height: calc(100vh - 2px);
        overflow: auto;
