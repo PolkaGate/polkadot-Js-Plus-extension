@@ -1194,12 +1194,12 @@ export const winners = auction.crowdloans.filter((c) => c.fund.hasLeased);
 export const display = (c: Crowdloan): string => c.identity.info.display || c.identity.info.legal || getText(c.fund.paraId) || '';
 export const getText = (paraId: string): string | undefined => (endpoints.find((e) => e?.paraId === Number(paraId))?.text as string);
 
-export function makeShortAddr (address: string | undefined, count = SHORT_ADDRESS_CHARACTERS) {
+export function makeShortAddr(address: string | undefined) {
   if (!address) {
     return;
   }
 
-  return `${address?.slice(0, count)}...${address?.slice(-1 * count)}`;
+  return `${address?.slice(0, SHORT_ADDRESS_CHARACTERS)}...${address?.slice(-1 * SHORT_ADDRESS_CHARACTERS)}`;
 }
 
 export const validatorsName: ValidatorsName[] = [
@@ -1274,7 +1274,7 @@ export const nominatedValidators: DeriveStakingQuery[] = [
   { accountId: validatorsName[9].address, exposure: { others, total: 123456 }, validatorPrefs: { commission: 750000000 } }
 ];
 
-export async function createAcc (suri: string, genesisHash: string, extension: Extension): Promise<string> {
+export async function createAcc(suri: string, genesisHash: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash,
     name: 'Amir khan',
@@ -1288,7 +1288,7 @@ export async function createAcc (suri: string, genesisHash: string, extension: E
   return address;
 }
 
-export async function createAccount (suri: string, extension: Extension): Promise<string> {
+export async function createAccount(suri: string, extension: Extension): Promise<string> {
   await extension.handle('id', 'pri(accounts.create.suri)', {
     genesisHash: westendGenesisHash,
     name: 'Amir khan',
@@ -1302,7 +1302,7 @@ export async function createAccount (suri: string, extension: Extension): Promis
   return address;
 }
 
-export async function createExtension (): Promise<Extension> {
+export async function createExtension(): Promise<Extension> {
   try {
     return new Promise((resolve) => {
       cryptoWaitReady()
@@ -1430,7 +1430,7 @@ export const pool = (states = '', nameEdited = false, rolesEdited = false): MyPo
     bondedPool: {
       points: 13195788507322,
       state: ['bondExtra', 'joinPool', 'bondExtraRewards', 'withdrawClaimable', 'open'].includes(states) ? 'Open' : states === 'block' ? 'blocked' : 'Destroying',
-      memberCounter: ['bondExtra', 'joinPool', 'open'].includes(states) ? 12 : 0,
+      memberCounter: ['bondExtra', 'joinPool'].includes(states) ? 12 : 0,
       roles: {
         depositor: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
         root: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
@@ -1545,11 +1545,7 @@ export const pool = (states = '', nameEdited = false, rolesEdited = false): MyPo
       points: states === 'joinPool' ? 0 : 1267100000000,
       poolId: 57,
       rewardPoolTotalEarnings: 0,
-      unbondingEras: {
-        5235: 50000000000,
-        5245: 700000000000,
-        5290: 310000000000
-      }
+      unbondingEras: {}
     },
     metadata: !nameEdited ? 'Polkadot js plus' : 'Polkadot js plus ❤',
     myClaimable: new BN('16844370676'),
@@ -1837,11 +1833,11 @@ export const poolsMembers: MembersMapEntry[] | undefined = {
       }
     }
   ],
-  6: [
+  5: [
     {
       accountId: 'DE1QQkVPp8XVksN4v6qnQYWUjMBBrPGLkHtHM4zZ8N9Vmoc',
       member: {
-        poolId: 6,
+        poolId: 5,
         points: 1000000000000,
         rewardPoolTotalEarnings: 0,
         unbondingEras: {}
@@ -1850,7 +1846,7 @@ export const poolsMembers: MembersMapEntry[] | undefined = {
     {
       accountId: 'GcDZZCVPwkPqoWxx8vfLb4Yfpz9yQ1f4XEyqngSH8ygsL9p',
       member: {
-        poolId: 6,
+        poolId: 5,
         points: 0,
         rewardPoolTotalEarnings: 0,
         unbondingEras: {
