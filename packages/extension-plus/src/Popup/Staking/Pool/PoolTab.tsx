@@ -35,8 +35,7 @@ interface Props {
 
 function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [canChangePoolState, setCanChangePoolState] = useState<boolean | undefined>();
-  const [canEditPool, setCanEditPool] = useState<boolean | undefined>();
+  const [showAction, setShowAction] = useState<boolean | undefined>();
   const [showEditPoolModal, setEditPoolModalOpen] = useState<boolean>(false);
 
   const handleStateChange = useCallback((state: string) => {
@@ -56,9 +55,7 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
   useEffect(() => {
     if (!pool) { return; }
 
-    const canChangeState = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address);
-    const canEdit = pool?.bondedPool && staker?.address && String(pool.bondedPool.roles.root) === staker.address;
-
+    const hasPriviledge = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address)
     setCanChangePoolState(!!canChangeState);
     setCanEditPool(!!canEdit);
   }, [api, pool, staker.address]);
