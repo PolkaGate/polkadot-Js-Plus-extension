@@ -125,28 +125,26 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
           </>
           : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
             {t('No active pool found')}
-            : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
-              {t('No active pool found')}
-            </Grid>
-            : <Progress title={t('Loading ...')} />
-}
-            {
-              showEditPoolModal && pool &&
-              <EditPool
-                api={api}
-                chain={chain}
-                handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
-                newPool={newPool}
-                pool={pool}
-                setEditPoolModalOpen={setEditPoolModalOpen}
-                setNewPool={setNewPool}
-                setState={setState}
-                showEditPoolModal={showEditPoolModal}
-              />
-            }
-          </Grid >
+          </Grid>
+        : <Progress title={t('Loading ...')} />
+      }
+      {showEditPoolModal && pool &&
+        <EditPool
+          api={api}
+          chain={chain}
+          handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
+          newPool={newPool}
+          pool={pool}
+          setEditPoolModalOpen={setEditPoolModalOpen}
+          setNewPool={setNewPool}
+          setState={setState}
+          showEditPoolModal={showEditPoolModal}
+          staker={staker}
+        />
+      }
+    </Grid>
 
   );
 }
 
-      export default React.memo(PoolTab);
+export default React.memo(PoolTab);
