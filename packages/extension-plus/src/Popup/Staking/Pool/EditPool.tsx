@@ -49,6 +49,7 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
   const [isStateTogglerValid, setIsStateTogglerValid] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log('hello from here');
     setNewPool(JSON.parse(JSON.stringify(pool)) as MyPoolInfo);
   }, [pool, setNewPool]);
 
@@ -76,7 +77,8 @@ function EditPool({ api, chain, handleConfirmStakingModalOpen, newPool, pool, se
     setEditPoolModalOpen(false);
     setState('');
   }, [setEditPoolModalOpen, setState]);
-
+  console.log('newPool', newPool)
+  console.log('nextToEditButtonDisabled', nextToEditButtonDisabled)
   return (
     <>
       <Popup handleClose={handleEditPoolModalClose} showModal={showEditPoolModal}>

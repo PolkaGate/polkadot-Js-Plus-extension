@@ -31,15 +31,20 @@ const useStateNewPool = jest.fn();
 describe('Testing CreatePool component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
-    staker = { address: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ', chain: 'westend', name: 'Amir khan', balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
+    staker = {
+      address: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
+      balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals },
+      chain: 'westend',
+      name: 'Amir khan'
+    };
   });
 
   test('Checking the existance of elements', () => {
-    const { queryByLabelText, queryByText,queryAllByTestId,queryByTestId, getByRole, debug } = render(
+    const { debug, getAllByRole, getByRole, queryByLabelText, queryByText } = render(
       <EditPool
         api={chainInfo.api}
         chain={chain}
-        newPool={undefined}
+        newPool={pool('')}
         pool={pool('')}
         setNewPool={useStateNewPool}
         setState={setState}
@@ -47,33 +52,39 @@ describe('Testing CreatePool component', () => {
         staker={staker}
       />
     );
-    debug(undefined, 30000)
+    // debug(undefined, 30000)
 
+    expect(getByRole('textbox', { hidden: true, name: 'Pool metadata' })).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool metadata' })?.hasAttribute('disabled')).toBeFalsy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool metadata' }).getAttribute('value')).toEqual(pool('').metadata);
 
-    console.log('queryAllByTestId(input)', queryByTestId('autoCompleteDepositor'))
-    expect(queryByLabelText('Pool metadata')).toBeTruthy();
-    expect(queryByLabelText('Pool metadata')?.hasAttribute('disabled')).toBeFalsy();
-    expect(queryByLabelText('Pool Id')).toBeTruthy();
-    expect(queryByLabelText('Pool Id')?.hasAttribute('disabled')).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool Id' })).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool Id' })?.hasAttribute('disabled')).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool Id' })?.getAttribute('value')).toEqual(pool('').poolId.toString());
 
     expect(queryByText('Roles')).toBeTruthy();
 
+    expect(getAllByRole('combobox', { hidden: true }).length).toBe(4);
+
     expect(queryByLabelText('Depositor')).toBeTruthy();
-    expect(queryByLabelText('Depositor')?.closest('input')?.value).toEqual(pool('').bondedPool?.roles.depositor);
-    fireEvent.change(queryByLabelText('Depositor')?.closest('input') as Element, { target: { value: 'invalidPassword' } });
-    expect(queryByLabelText('Depositor')?.closest('input')?.value).toEqual('invalidPassword');
-    // debug(undefined,30000)
+    expect(getAllByRole('combobox', { hidden: true })[0]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);
+    expect(getAllByRole('combobox', { hidden: true })[0]?.hasAttribute('disabled')).toBe(true);
 
-    // expect(queryByLabelText('Root')?.closest('input')).toBeTruthy();
-    // expect(queryByLabelText('Root')?.closest('input')?.value).toEqual(pool('').bondedPool?.roles.root);
+    expect(queryByLabelText('Root')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })[1]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);
+    expect(getAllByRole('combobox', { hidden: true })[1]?.hasAttribute('disabled')).toBe(false);
 
-    // expect(queryByLabelText('Nominator')?.closest('input')).toBeTruthy();
-    // expect(queryByLabelText('Nominator')?.closest('input')?.value).toEqual(pool('').bondedPool?.roles.nominator);
+    expect(queryByLabelText('Nominator')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })[2]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);
+    expect(getAllByRole('combobox', { hidden: true })[2]?.hasAttribute('disabled')).toBe(false);
 
-    // expect(queryByLabelText('State toggler')?.closest('input')).toBeTruthy();
-    // expect(queryByLabelText('State toggler')?.closest('input')?.value).toEqual(pool('').bondedPool?.roles.stateToggler);
+    expect(queryByLabelText('State toggler')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })[3]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);
+    expect(getAllByRole('combobox', { hidden: true })[3]?.hasAttribute('disabled')).toBe(false);
 
     expect(queryByText('Next')).toBeTruthy();
-    expect(queryByText('Next')?.hasAttribute('disabled')).toBeTruthy();
+    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBe(true);
+    // fireEvent.change(queryByLabelText('Depositor') as Element, { target: { value: 'invalidPassword' } });
+    // expect(queryByLabelText('Depositor')?.value).toEqual('invalidPassword');
   });
 });
