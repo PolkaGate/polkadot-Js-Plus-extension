@@ -1,21 +1,21 @@
 
 # ![polkadot{.js} plus extension](packages/extension-plus/docs/logo.jpg)
 
-A user-friendly wallet to interact with the Polkadot/Substrate based blockchains through a browser. It allows users to access their Polkadot account(s), which can also be used to interact with decentralized apps.
+A user-friendly wallet to interact with the Polkadot/Substrate based blockchains through a browser. It allows users to access their Polkadot/Kusama ecosystem account(s), which can also be used to interact with decentralized apps. It is based on polkadot js extension, which injects a [@polkadot/api](https://github.com/polkadot-js/api) signer into a page, along with any associated accounts.
 
-It is based on polkadot js extension, which injects a [@polkadot/api](https://github.com/polkadot-js/api) signer into a page, along with any associated accounts.
+PPolkadot js Plus extension not only has all the abilities of the original Polkadot extension, but also many new functionalities as listed below are available, where more features are coming.
 
-Polkadot js plus extension is actually the original polkadot js extension, plus some new functionalities.
+## New functionalities
 
-## New functinalities
-
-Currently, the following features are added:
-  - View balances
+Currently, the following features are available:
+  - View balances (crypto/USD)
   - Transfer funds
+  - View transaction history
   - View an address as QR code
-  - Staking / unstaking / redeem funds and edit nominated validator list
-  - Contribute in crowdloans
-
+  - Easy staking (Solo and Pool Staking)
+  - Crowdloans (View Auctions and contribute to Crowdloans)
+  - Governance (vote referendums, second proposals, vote/unvote councils, propose treasury proposals and tips, etc.)
+  
 
 # ![polkadot{.js} plus extension intro](packages/extension-plus/docs/intro.png)
 
