@@ -12,7 +12,7 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
 import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
 import { AccountsStore } from '../../../../extension-base/src/stores';
-import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
 import { SHORT_ADDRESS_CHARACTERS } from '../constants';
 import { Auction } from '../plusTypes';
 
@@ -1857,10 +1857,10 @@ export const poolsMembers: MembersMapEntry[] | undefined = {
   ]
 };
 
-export const poolsInfo: PoolInfo[] = {
-  1: {
+export const poolsInfo: PoolInfo[] = [
+  {
     bondedPool: {
-      points: '2975b5e3150a',
+      points: 81151449765707,
       state: 'Open',
       memberCounter: 12,
       roles: {
@@ -1871,16 +1871,16 @@ export const poolsInfo: PoolInfo[] = {
       }
     },
     metadata: 'FIRST POOL',
-    poolId: '01',
+    poolId: new BN('01'),
     rewardPool: {
       balance: 549515523642,
       totalEarnings: 866142815559,
       points: '0x0000000000000000000000000000000000000000001451e512e007bb6c0f02a8'
     }
   },
-  2: {
+  {
     bondedPool: {
-      points: '014a9e987800',
+      points: 71151449765707,
       state: 'Open',
       memberCounter: 1,
       roles: {
@@ -1891,16 +1891,16 @@ export const poolsInfo: PoolInfo[] = {
       }
     },
     metadata: 'super pool',
-    poolId: '02',
+    poolId: new BN('02'),
     rewardPool: {
       balance: 0,
       totalEarnings: 0,
       points: 0
     }
   },
-  3: {
+  {
     bondedPool: {
-      points: '038d7ea4c68000',
+      points: 61151449765707,
       state: 'Destroying',
       memberCounter: 3,
       roles: {
@@ -1911,16 +1911,16 @@ export const poolsInfo: PoolInfo[] = {
       }
     },
     metadata: 'I AM THE FIRST POOL ',
-    poolId: '03',
+    poolId: new BN('03'),
     rewardPool: {
       balance: 1158933840359,
       totalEarnings: 2501461741151,
       points: '0x000000000000000000000000000000000000000003c0909d3ba099d67aad8000'
     }
   },
-  4: {
+  {
     bondedPool: {
-      points: '01c6bf52634000',
+      points: 51151449765707,
       state: 'Open',
       memberCounter: 1,
       roles: {
@@ -1931,16 +1931,16 @@ export const poolsInfo: PoolInfo[] = {
       }
     },
     metadata: 'Ape Yacht Club’s Pool',
-    poolId: '04',
+    poolId: new BN('04'),
     rewardPool: {
       balance: 0,
       totalEarnings: 0,
       points: 0
     }
   },
-  5: {
+  {
     bondedPool: {
-      points: '3d2990eb0371',
+      points: 11514497657073,
       state: 'Open',
       memberCounter: 3,
       roles: {
@@ -1951,16 +1951,16 @@ export const poolsInfo: PoolInfo[] = {
       }
     },
     metadata: 'Just playing',
-    poolId: '05',
+    poolId: new BN('05'),
     rewardPool: {
       balance: 2715491290,
       totalEarnings: 1151449765707,
       points: '0x00000000000000000000000000000000000000000000260aa24ccbcd9fefd000'
     }
   },
-  6: {
+  {
     bondedPool: {
-      points: '0d7cb88dc197',
+      points: 91151449765707,
       state: 'Open',
       memberCounter: 28,
       roles: {
@@ -1971,11 +1971,11 @@ export const poolsInfo: PoolInfo[] = {
       }
     },
     metadata: 'Polkadot js plus ❤️ | http://polkadotjs.plus',
-    poolId: '06',
+    poolId: new BN('06'),
     rewardPool: {
       balance: 433614924637,
       totalEarnings: 1646342430175,
       points: '0x00000000000000000000000000000000000000000004f3c69e46247c9d281e14'
     }
   }
-};
+];

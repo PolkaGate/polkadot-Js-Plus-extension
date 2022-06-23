@@ -3,7 +3,7 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { cleanup, Matcher, render, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -17,7 +17,7 @@ import { poolsInfo, poolsMembers, poolStakingConst } from '../../../util/test/te
 import JoinPool from './JoinPool';
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
-jest.setTimeout(60000);
+jest.setTimeout(260000);
 const chain: Chain = {
   name: 'westend'
 };
@@ -35,8 +35,8 @@ describe('Testing JoinPool component', () => {
     staker = { address: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ', chain: 'westend', name: 'Amir khan', balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
   });
 
-  test('Checking the existance of elements', () => {
-    const { debug, queryByText, queryByRole } = render(
+  test('Checking the existance of elements', async () => {
+    const { debug, getAllByRole, queryByRole, queryByText } = render(
       <JoinPool
         api={chainInfo.api}
         chain={chain}
@@ -51,18 +51,42 @@ describe('Testing JoinPool component', () => {
       />
     );
 
-    debug(undefined, 30000);
+    let poolsLength = 0;
+
+    poolsInfo.map((p) => {
+      if (String(p?.bondedPool?.state) === 'Open') {
+        poolsLength++;
+      }
+    });
+    debug(undefined, 30000)
     expect(queryByText('Join Pool')).toBeTruthy();
-    expect(queryByRole('textbox', { name: 'Amount' })).toBeTruthy();
+    expect(queryByRole('spinbutton', { hidden: true, name: 'Amount' })).toBeTruthy();
     expect(queryByText('Fee:')).toBeTruthy();
-    expect(queryByText('Min:')).toBeTruthy();
-    expect(queryByText('Max: ~ ')).toBeTruthy();
+
+    await waitFor(() => expect(queryByText('min:')).toBeTruthy(), {
+      timeout: 20000
+    });
+
+    expect(queryByText('max', { exact: false })).toBeTruthy()
     expect(queryByText('Choose a pool to join')).toBeTruthy();
+
     expect(queryByText('More')).toBeTruthy();
     expect(queryByText('Index')).toBeTruthy();
     expect(queryByText('Name')).toBeTruthy();
     expect(queryByText('Staked')).toBeTruthy();
     expect(queryByText('Members')).toBeTruthy();
     expect(queryByText('Choose')).toBeTruthy();
+
+    expect(getAllByRole('checkbox', { hidden: true })).toHaveLength(poolsLength);
+    expect(getAllByRole('checkbox', { checked: true, hidden: true })).toHaveLength(1);
+
+    expect(queryByText('Next')).toBeTruthy();
+    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBe(true);
+
+    fireEvent.change(queryByRole('spinbutton', { hidden: true, name: 'Amount' }), { target: { value: 2 } });
+    // debug(undefined, 30000)
+
+    expect(queryByText('Next')).toBeTruthy();
+    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBe(false);
   });
 });

@@ -71,15 +71,15 @@ describe('Testing CreatePool component', () => {
     expect(getAllByRole('combobox', { hidden: true })[0]?.hasAttribute('disabled')).toBe(true);
 
     expect(queryByLabelText('Root')).toBeTruthy();
-    expect(getAllByRole('combobox', { hidden: true })[1]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);
+    expect(getAllByRole('combobox', { hidden: true })[1]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.root);
     expect(getAllByRole('combobox', { hidden: true })[1]?.hasAttribute('disabled')).toBe(false);
 
     expect(queryByLabelText('Nominator')).toBeTruthy();
-    expect(getAllByRole('combobox', { hidden: true })[2]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);
+    expect(getAllByRole('combobox', { hidden: true })[2]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.nominator);
     expect(getAllByRole('combobox', { hidden: true })[2]?.hasAttribute('disabled')).toBe(false);
 
     expect(queryByLabelText('State toggler')).toBeTruthy();
-    expect(getAllByRole('combobox', { hidden: true })[3]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);
+    expect(getAllByRole('combobox', { hidden: true })[3]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.stateToggler);
     expect(getAllByRole('combobox', { hidden: true })[3]?.hasAttribute('disabled')).toBe(false);
 
     expect(queryByText('Next')).toBeTruthy();
