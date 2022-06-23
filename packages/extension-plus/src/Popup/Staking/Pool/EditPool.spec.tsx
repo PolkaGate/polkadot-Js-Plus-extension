@@ -3,7 +3,7 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { cleanup, Matcher, render, fireEvent } from '@testing-library/react';
+import { cleanup, fireEvent, Matcher, render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -40,7 +40,7 @@ describe('Testing CreatePool component', () => {
   });
 
   test('Checking the existance of elements', () => {
-    const { debug, getAllByRole, getByRole, queryByLabelText, queryByText } = render(
+    const { getAllByRole, getByRole, queryByLabelText, queryByText } = render(
       <EditPool
         api={chainInfo.api}
         chain={chain}
@@ -52,7 +52,6 @@ describe('Testing CreatePool component', () => {
         staker={staker}
       />
     );
-    // debug(undefined, 30000)
 
     expect(getByRole('textbox', { hidden: true, name: 'Pool metadata' })).toBeTruthy();
     expect(getByRole('textbox', { hidden: true, name: 'Pool metadata' })?.hasAttribute('disabled')).toBeFalsy();
@@ -83,8 +82,61 @@ describe('Testing CreatePool component', () => {
     expect(getAllByRole('combobox', { hidden: true })[3]?.hasAttribute('disabled')).toBe(false);
 
     expect(queryByText('Next')).toBeTruthy();
-    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBe(true);
-    // fireEvent.change(queryByLabelText('Depositor') as Element, { target: { value: 'invalidPassword' } });
-    // expect(queryByLabelText('Depositor')?.value).toEqual('invalidPassword');
+    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBeTruthy();
+  });
+
+  test('When options change in valid way', () => {
+    const newPool = pool('');
+
+    newPool.bondedPool.roles.root = '';
+
+    const { getAllByRole, queryByText } = render(
+      <EditPool
+        api={chainInfo.api}
+        chain={chain}
+        newPool={newPool}
+        pool={pool('')}
+        setNewPool={useStateNewPool}
+        setState={setState}
+        showEditPoolModal={true}
+        staker={staker}
+      />
+    );
+
+    const emptyRole = '';
+
+    fireEvent.change(getAllByRole('combobox', { hidden: true })[1] as Element, { target: { value: emptyRole } });
+    expect(getAllByRole('combobox', { hidden: true })[1]?.getAttribute('value')).toEqual('');
+    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBeFalsy();
+  });
+
+  test('When options change in invalid way', () => {
+    const newPool = pool('');
+
+    const shityText = 'invalid account address';
+    const invalidAddress = '5sfkbjkdbfjkdfuhdsvfhdshgfvdshfvhdshvvhdsvhgdf';
+
+    newPool.bondedPool.roles.root = shityText;
+    newPool.bondedPool.roles.stateToggler = invalidAddress;
+
+    const { getAllByRole, queryByText } = render(
+      <EditPool
+        api={chainInfo.api}
+        chain={chain}
+        newPool={newPool}
+        pool={pool('')}
+        setNewPool={useStateNewPool}
+        setState={setState}
+        showEditPoolModal={true}
+        staker={staker}
+      />
+    );
+
+    fireEvent.change(getAllByRole('combobox', { hidden: true })[1] as Element, { target: { value: shityText } });
+    expect(getAllByRole('combobox', { hidden: true })[1]?.getAttribute('value')).toEqual(shityText);
+    fireEvent.change(getAllByRole('combobox', { hidden: true })[3] as Element, { target: { value: invalidAddress } });
+    expect(getAllByRole('combobox', { hidden: true })[3]?.getAttribute('value')).toEqual(invalidAddress);
+
+    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBeTruthy();
   });
 });
