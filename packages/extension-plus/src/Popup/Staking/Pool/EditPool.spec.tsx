@@ -3,17 +3,15 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { cleanup, fireEvent, Matcher, render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-import { BN } from '@polkadot/util';
 
 import { Chain } from '../../../../../extension-chains/src/types';
 import getChainInfo from '../../../util/getChainInfo';
 import { AccountsBalanceType, ChainInfo } from '../../../util/plusTypes';
 import { amountToMachine } from '../../../util/plusUtils';
-import { makeShortAddr, pool, poolStakingConst } from '../../../util/test/testHelper';
+import { pool } from '../../../util/test/testHelper';
 import EditPool from './EditPool';
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
@@ -63,7 +61,7 @@ describe('Testing CreatePool component', () => {
 
     expect(queryByText('Roles')).toBeTruthy();
 
-    expect(getAllByRole('combobox', { hidden: true }).length).toBe(4);
+    expect(getAllByRole('combobox', { hidden: true })).toHaveLength(4);
 
     expect(queryByLabelText('Depositor')).toBeTruthy();
     expect(getAllByRole('combobox', { hidden: true })[0]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.depositor);

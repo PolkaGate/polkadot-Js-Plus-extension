@@ -5,7 +5,7 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { cleanup, Matcher, render, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -14,7 +14,7 @@ import { BN } from '@polkadot/util';
 import getChainInfo from '../../../util/getChainInfo';
 import { AccountsBalanceType, ChainInfo } from '../../../util/plusTypes';
 import { amountToMachine } from '../../../util/plusUtils';
-import { chain, makeShortAddr, poolStakingConst } from '../../../util/test/testHelper';
+import { chain, poolStakingConst } from '../../../util/test/testHelper';
 import CreatePool from './CreatePool';
 
 ReactDOM.createPortal = jest.fn((modal) => modal);
@@ -25,6 +25,8 @@ let staker: AccountsBalanceType;
 const nextPoolId = new BN('105');
 const setStakeAmount = () => null;
 const setNewPool = () => null;
+const setState = () => null;
+const setCreatePoolModalOpen = () => true;
 
 describe('Testing CreatePool component', () => {
   beforeAll(async () => {
@@ -33,32 +35,96 @@ describe('Testing CreatePool component', () => {
   });
 
   test('Checking the existance of elements', async () => {
-    const { debug, queryByText, queryByLabelText } = render(
+    const { getAllByRole, getByLabelText, getByRole, getByText } = render(
       <CreatePool
-        api={chainInfo.api} // bob
+        api={chainInfo.api}
         chain={chain()}
         nextPoolId={nextPoolId}
-        poolStakingConsts={poolStakingConst} // bob
+        poolStakingConsts={poolStakingConst}
+        setCreatePoolModalOpen={setCreatePoolModalOpen}
         setNewPool={setNewPool}
         setStakeAmount={setStakeAmount}
+        setState={setState}
         showCreatePoolModal={true}
         staker={staker}
       />
     );
-    // debug(undefined, 30000);
 
-    expect(queryByText('Create Pool')).toBeTruthy();
-    expect(queryByLabelText('Pool name')).toBeTruthy();
-    expect(queryByLabelText('Pool Id')).toBeTruthy();
-    expect(queryByLabelText('Amount')).toBeTruthy();
-    expect(queryByText('Fee:')).toBeTruthy();
-    // expect(queryByText('Min:')).toBeTruthy();
+    expect(getByText('Create Pool')).toBeTruthy();
+    expect(getByLabelText('Pool name')).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool name' })).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool name' })?.hasAttribute('disabled')).toBe(false);
 
-    await waitFor(() => expect(queryByText('Min:')).toBeTruthy(), { timeout: 30000 });
-    expect(queryByText('Max: ~ ')).toBeTruthy();
-    expect(queryByLabelText('Depositor')).toBeTruthy();
-    expect(queryByLabelText('Root')).toBeTruthy();
-    expect(queryByLabelText('Nominator')).toBeTruthy();
-    expect(queryByLabelText('State toggler')).toBeTruthy();
+    expect(getByLabelText('Pool Id')).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool Id' })).toBeTruthy();
+    expect(getByRole('textbox', { hidden: true, name: 'Pool Id' })?.hasAttribute('disabled')).toBe(true);
+
+    expect(getByLabelText('Amount')).toBeTruthy();
+    expect(getByRole('spinbutton', { hidden: true, name: 'Amount' })).toBeTruthy();
+    expect(getByRole('spinbutton', { hidden: true, name: 'Amount' })?.hasAttribute('disabled')).toBe(false);
+
+    expect(getByText('Fee:')).toBeTruthy();
+
+    await waitFor(() => expect(getByRole('button', { hidden: true, name: 'min' })).toBeTruthy(), { timeout: 30000 });
+    expect(getByRole('button', { hidden: true, name: 'max' })).toBeTruthy();
+
+    expect(getByText('Roles')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })).toHaveLength(4);
+
+    expect(getByLabelText('Depositor')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })[0].getAttribute('value')).toEqual(staker.address);
+    expect(getAllByRole('combobox', { hidden: true })[0]?.hasAttribute('disabled')).toBe(true);
+
+    expect(getByLabelText('Root')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })[1].getAttribute('value')).toEqual(staker.address);
+    expect(getAllByRole('combobox', { hidden: true })[1]?.hasAttribute('disabled')).toBe(true);
+
+    expect(getByLabelText('Nominator')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })[2].getAttribute('value')).toEqual(staker.address);
+    expect(getAllByRole('combobox', { hidden: true })[2]?.hasAttribute('disabled')).toBe(false);
+
+    expect(getByLabelText('State toggler')).toBeTruthy();
+    expect(getAllByRole('combobox', { hidden: true })[3].getAttribute('value')).toEqual(staker.address);
+    expect(getAllByRole('combobox', { hidden: true })[3]?.hasAttribute('disabled')).toBe(false);
+
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+
+    fireEvent.click(getByRole('button', { hidden: true, name: 'max' }));
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(false);
+  });
+
+  test('when roles values are invalid', async () => {
+    const { getAllByRole, getByLabelText, getByRole } = render(
+      <CreatePool
+        api={chainInfo.api}
+        chain={chain()}
+        nextPoolId={nextPoolId}
+        poolStakingConsts={poolStakingConst}
+        setCreatePoolModalOpen={setCreatePoolModalOpen}
+        setNewPool={setNewPool}
+        setStakeAmount={setStakeAmount}
+        setState={setState}
+        showCreatePoolModal={true}
+        staker={staker}
+      />
+    );
+
+    const invalidAddress = '5sfkbjkdbfjkdfuhdsvfhdshgfvdshfvhdshvvhdsvhgdf';
+
+    await waitFor(() => expect(getByRole('button', { hidden: true, name: 'min' })).toBeTruthy(), { timeout: 30000 });
+    fireEvent.click(getByRole('button', { hidden: true, name: 'max' }));
+
+    expect(getByLabelText('Nominator')).toBeTruthy();
+    fireEvent.change(getAllByRole('combobox', { hidden: true })[2], { target: { value: '' } });
+    expect(getAllByRole('combobox', { hidden: true })[2].getAttribute('value')).toEqual('');
+
+    expect(getByLabelText('State toggler')).toBeTruthy();
+    fireEvent.change(getAllByRole('combobox', { hidden: true })[3], { target: { value: invalidAddress } });
+    expect(getAllByRole('combobox', { hidden: true })[3].getAttribute('value')).toEqual(invalidAddress);
+
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
   });
 });
