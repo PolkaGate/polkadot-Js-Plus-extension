@@ -83,7 +83,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const maxUnlockingChunks = api.consts.staking.maxUnlockingChunks?.toNumber();
 
   /** list of available trasactions */
-  const chilled = api.tx.staking.chill;
+  const chilled = api.tx.nominationPools.chill;
   const poolSetState = api.tx.nominationPools.setState; // (poolId, state)
   const create = api.tx.nominationPools.create;
   const setMetadata = api.tx.nominationPools.setMetadata;
@@ -238,10 +238,11 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         });
 
         break;
-      // case ('stopNominating'):
-      //   // eslint-disable-next-line no-void
-      //   void chilled().paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
-      //   break;
+      case ('stopNominating'):
+        params = [poolId];
+        // eslint-disable-next-line no-void
+        void chilled(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
+        break;
       case ('changeValidators'):
       case ('setNominees'):
         params = [poolId, selectedValidatorsAccountId];
@@ -629,22 +630,23 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         setConfirmingState(status);
       }
 
-      // if (localState === 'stopNominating') {
-      //   const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
+      if (localState === 'stopNominating') {
+        const params = [poolId];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, params, signer, staker.address);
 
-      //   history.push({
-      //     action: 'stop_nominating',
-      //     block,
-      //     date: Date.now(),
-      //     fee: fee || '',
-      //     from: staker.address,
-      //     hash: txHash || '',
-      //     status: failureText || status,
-      //     to: ''
-      //   });
+        history.push({
+          action: 'pool_stop_nominating',
+          block,
+          date: Date.now(),
+          fee: fee || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
 
-      //   setConfirmingState(status);
-      // }
+        setConfirmingState(status);
+      }
 
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, staker.address, history);
