@@ -151,10 +151,10 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                       <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
                         <Grid item xs={12}>
                           <Paper elevation={3} sx={{ p: '10px' }}>
-                            {pool?.bondedPool?.roles?.root && <ShowAddress address={String(pool.bondedPool.roles.root)} chain={chain} role={'Root'} />}
-                            {pool?.bondedPool?.roles?.depositor && <ShowAddress address={String(pool.bondedPool.roles.depositor)} chain={chain} role={'Depositor'} />}
-                            {pool?.bondedPool?.roles?.nominator && <ShowAddress address={String(pool.bondedPool.roles.nominator)} chain={chain} role={'Nominator'} />}
-                            {pool?.bondedPool?.roles?.stateToggler && <ShowAddress address={String(pool.bondedPool.roles.stateToggler)} chain={chain} role={'State toggler'} />}
+                            {pool?.bondedPool?.roles?.root && <ShowAddress api={api}  address={String(pool.bondedPool.roles.root)} chain={chain} role={'Root'} />}
+                            {pool?.bondedPool?.roles?.depositor && <ShowAddress api={api}  address={String(pool.bondedPool.roles.depositor)} chain={chain} role={'Depositor'} />}
+                            {pool?.bondedPool?.roles?.nominator && <ShowAddress api={api}  address={String(pool.bondedPool.roles.nominator)} chain={chain} role={'Nominator'} />}
+                            {pool?.bondedPool?.roles?.stateToggler && <ShowAddress api={api}  address={String(pool.bondedPool.roles.stateToggler)} chain={chain} role={'State toggler'} />}
                           </Paper>
                         </Grid>
                       </AccordionDetails>
@@ -170,8 +170,8 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                       <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
                         <Grid item xs={12}>
                           <Paper elevation={3} sx={{ p: '10px' }}>
-                            <ShowAddress address={pool.accounts.stashId} chain={chain} role={'Stash id'} />
-                            <ShowAddress address={pool.accounts.rewardId} chain={chain} role={'Reward id'} />
+                            <ShowAddress api={api}  address={pool.accounts.stashId} chain={chain} role={'Stash id'} />
+                            <ShowAddress api={api}  address={pool.accounts.rewardId} chain={chain} role={'Reward id'} />
                           </Paper>
                         </Grid>
                       </AccordionDetails>
