@@ -281,13 +281,13 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
             : <Grid container item justifyContent='space-between' sx={{ height: '40px', p: '0px 25px 10px 40px' }} xs={9}>
               <Grid item sx={{ fontSize: 12 }}>
                 {t('Min')}:
-                <Button onClick={handleMinStakeClicked} sx={{ p: '0px 0px 6px 8px' }} variant='text'>
+                <Button aria-label='min' onClick={handleMinStakeClicked} sx={{ p: '0px 0px 6px 8px' }} variant='text'>
                   {minStakeable}
                 </Button>
               </Grid>
               <Grid item sx={{ fontSize: 12 }}>
                 {t('Max')}{': ~ '}
-                <Button onClick={handleMaxStakeClicked} sx={{ p: '0px 0px 6px 8px' }} variant='text'>
+                <Button aria-label='max' onClick={handleMaxStakeClicked} sx={{ p: '0px 0px 6px 8px' }} variant='text'>
                   {maxStakeable}
                 </Button>
               </Grid>
