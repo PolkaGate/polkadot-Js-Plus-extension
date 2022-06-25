@@ -324,7 +324,7 @@ describe('Testing confirmStaking page', () => {
     expect(queryByText(withdrawClaimablePool.bondedPool?.memberCounter as unknown as Matcher)).toBeTruthy();
   });
 
-  test.only('when state is withdrawUnbound', async () => {
+  test('when state is withdrawUnbound', async () => {
     const withdrawUnboundPool: MyPoolInfo = pool(state[6]);
     let redeemValue = new BN('0');
     const currentlyStaked = withdrawUnboundPool.member?.points ? new BN(withdrawUnboundPool.member?.points.toString()) : BN_ZERO;
