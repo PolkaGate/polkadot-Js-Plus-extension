@@ -7,7 +7,7 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { cleanup, Matcher, render } from '@testing-library/react';
+import { cleanup, Matcher, render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -62,7 +62,7 @@ describe('Testing EasyStaking component', () => {
     expect(queryByText('No active pool found')).toBeTruthy();
   });
 
-  test('Active pool found', () => {
+  test('Active pool found', async () => {
     const Conditions = [
       ['open', '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD'],
       ['open', 'not the root or state toggler account address'],
@@ -108,7 +108,7 @@ describe('Testing EasyStaking component', () => {
       expect(queryByText('Depositor:')).toBeTruthy();
       expect(queryByText('Nominator:')).toBeTruthy();
       expect(queryByText('State toggler:')).toBeTruthy();
-      expect(queryAllByText(makeShortAddr(poolStates.bondedPool?.roles.root as unknown as string) as unknown as Matcher).length).toBe(4);
+      await waitFor(() => expect(queryAllByText(makeShortAddr(poolStates.bondedPool?.roles.root as unknown as string) as unknown as Matcher).length).toBe(4), { timeout: 30000 });
 
       if ([String(poolStates.bondedPool?.roles.stateToggler), String(poolStates.bondedPool?.roles.root)].includes(staker.address)) {
         expect(queryByText('Ids')).toBeFalsy();
@@ -141,10 +141,10 @@ describe('Testing EasyStaking component', () => {
         expect(queryByText('Ids')).toBeTruthy();
 
         expect(queryByText('Stash id:')).toBeTruthy();
-        expect(queryByText(makeShortAddr(poolStates.accounts?.stashId as string) as Matcher)).toBeTruthy();
+        await waitFor(() => expect(queryByText(makeShortAddr(poolStates.accounts?.stashId as string) as Matcher)).toBeTruthy(), { timeout: 30000 });
 
         expect(queryByText('Reward id:')).toBeTruthy();
-        expect(queryByText(makeShortAddr(poolStates.accounts?.rewardId as string) as Matcher)).toBeTruthy();
+        await waitFor(() => expect(queryByText(makeShortAddr(poolStates.accounts?.rewardId as string) as Matcher)).toBeTruthy(), { timeout: 30000 });
 
         expect(queryByText('Open', { selector: 'button' })).toBeFalsy();
         expect(queryByText('Block', { selector: 'button' })).toBeFalsy();
