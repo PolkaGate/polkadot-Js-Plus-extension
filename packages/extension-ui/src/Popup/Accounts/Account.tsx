@@ -3,18 +3,17 @@
 
 import type { AccountJson } from '@polkadot/extension-base/background/types';
 
-import React, { useCallback, useContext, useMemo, useState, useEffect } from 'react'; // added for plus,useEffect, useContext
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';// added for plus, useContext
 import styled from 'styled-components';
 
 import { canDerive } from '@polkadot/extension-base/utils';
 import { ThemeProps } from '@polkadot/extension-ui/types';
 
 import useEndpoints from '../../../../extension-plus/src/hooks/useEndpoints';// added for plus
-import { CROWDLOANS_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
+import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS, SOCIAL_RECOVERY_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
 import { SavedMetaData } from '../../../../extension-plus/src/util/plusTypes';// added for plus
 import { prepareMetaData } from '../../../../extension-plus/src/util/plusUtils';// added for plus
 import { AccountContext, Address, Dropdown, Link, MenuDivider } from '../../components';// added for plus, AccountContext
-
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useTranslation from '../../hooks/useTranslation';
 import { editAccount, tieAccount, updateMeta } from '../../messaging';// added for plus, updateMeta
@@ -103,6 +102,14 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
         to={`/governance/${genesisHash}/${address}`}
       >
         {t<string>('Governance')}
+      </Link>
+      <Link
+        className='newMenuItem'
+        isDisabled={!SOCIAL_RECOVERY_CHAINS.includes(genesisHash)}
+
+        to={`/socialRecovery/${genesisHash}/${address}`}
+      >
+        {t<string>('Social recovery')}
       </Link>
       <MenuDivider />
       <Link

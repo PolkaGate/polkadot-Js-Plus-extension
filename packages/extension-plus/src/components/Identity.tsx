@@ -40,7 +40,7 @@ function Identity({ accountInfo, address, api, chain, iconSize = 24, showAddress
   }, [address, accountInfo, api]);
 
   useEffect(() => {
-    setHasSocial(!!(info?.identity.twitter || info?.identity.web || info?.identity.email));
+    setHasSocial(!!(info?.identity?.twitter || info?.identity?.web || info?.identity?.email));
 
     // to check if the account has a judgement to set a verified green check
     setJudgement(info?.identity?.judgements && JSON.stringify(info?.identity?.judgements).match(/reasonable|knownGood/gi));
@@ -74,24 +74,24 @@ function Identity({ accountInfo, address, api, chain, iconSize = 24, showAddress
                       : <RemoveCircleRoundedIcon color='disabled' sx={{ fontSize: 15 }} />
                     }
                   </Grid>
-                  {info?.identity.displayParent &&
+                  {info?.identity?.displayParent &&
                     <Grid item sx={{ textOverflow: 'ellipsis' }}>
                       {info?.identity.displayParent} /
                     </Grid>
                   }
-                  {info?.identity.display &&
+                  {info?.identity?.display &&
                     <Grid item sx={info?.identity.displayParent && { color: grey[500], textOverflow: 'ellipsis' }}>
                       {info?.identity.display} { }
                     </Grid>
                   }
-                  {!(info?.identity.displayParent || info?.identity.display) &&
+                  {!(info?.identity?.displayParent || info?.identity?.display) &&
                     <Grid item sx={{ textAlign: 'letf' }}>
                       {info?.accountId && <ShortAddress address={String(info?.accountId)} fontSize={11} />}
                     </Grid>
                   }
                 </Grid>
                 {showSocial && <Grid container id='socials' item justifyContent='flex-start' xs={hasSocial ? 3 : 0}>
-                  {info?.identity.twitter &&
+                  {info?.identity?.twitter &&
                     <Grid item>
                       <Link href={`https://TwitterIcon.com/${info?.identity.twitter}`}>
                         <TwitterIcon
@@ -101,7 +101,7 @@ function Identity({ accountInfo, address, api, chain, iconSize = 24, showAddress
                       </Link>
                     </Grid>
                   }
-                  {info?.identity.email &&
+                  {info?.identity?.email &&
                     <Grid item>
                       <Link href={`mailto:${info?.identity.email}`}>
                         <EmailIcon
@@ -111,7 +111,7 @@ function Identity({ accountInfo, address, api, chain, iconSize = 24, showAddress
                       </Link>
                     </Grid>
                   }
-                  {info?.identity.web &&
+                  {info?.identity?.web &&
                     <Grid item>
                       <Link
                         href={info?.identity.web}
