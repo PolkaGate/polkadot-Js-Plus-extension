@@ -77,7 +77,7 @@ describe('Testing Nominations component', () => {
 
   test('user hasn\'t staked, chilled or doesn\'t set nominees', () => {
     for (let i = 1; i <= 4; i++) {
-      if (i > 2) staker.address = '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ';
+      if (i > 2) staker.address = '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD';
       const { queryByText } = render(
         <Nominations
           activeValidator={activeValidator} // don't care

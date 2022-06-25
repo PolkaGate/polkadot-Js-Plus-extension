@@ -30,7 +30,7 @@ describe('Testing CreatePool component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = {
-      address: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
+      address: '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD',
       balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals },
       chain: 'westend',
       name: 'Amir khan'
@@ -79,16 +79,16 @@ describe('Testing CreatePool component', () => {
     expect(getAllByRole('combobox', { hidden: true })[3]?.getAttribute('value')).toEqual(pool('').bondedPool?.roles.stateToggler);
     expect(getAllByRole('combobox', { hidden: true })[3]?.hasAttribute('disabled')).toBe(false);
 
-    expect(queryByText('Next')).toBeTruthy();
-    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBeTruthy();
   });
 
   test('When options change in valid way', () => {
     const newPool = pool('');
 
-    newPool.bondedPool.roles.root = '';
+    newPool.bondedPool.roles.nominator = '';
 
-    const { getAllByRole, queryByText } = render(
+    const { getAllByRole, getByRole } = render(
       <EditPool
         api={chainInfo.api}
         chain={chain}
@@ -103,9 +103,10 @@ describe('Testing CreatePool component', () => {
 
     const emptyRole = '';
 
-    fireEvent.change(getAllByRole('combobox', { hidden: true })[1] as Element, { target: { value: emptyRole } });
-    expect(getAllByRole('combobox', { hidden: true })[1]?.getAttribute('value')).toEqual('');
-    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBeFalsy();
+    fireEvent.change(getAllByRole('combobox', { hidden: true })[2] as Element, { target: { value: emptyRole } });
+    expect(getAllByRole('combobox', { hidden: true })[2]?.getAttribute('value')).toEqual('');
+
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBeFalsy();
   });
 
   test('When options change in invalid way', () => {
@@ -117,7 +118,7 @@ describe('Testing CreatePool component', () => {
     newPool.bondedPool.roles.root = shityText;
     newPool.bondedPool.roles.stateToggler = invalidAddress;
 
-    const { getAllByRole, queryByText } = render(
+    const { getAllByRole, getByRole } = render(
       <EditPool
         api={chainInfo.api}
         chain={chain}
@@ -135,6 +136,6 @@ describe('Testing CreatePool component', () => {
     fireEvent.change(getAllByRole('combobox', { hidden: true })[3] as Element, { target: { value: invalidAddress } });
     expect(getAllByRole('combobox', { hidden: true })[3]?.getAttribute('value')).toEqual(invalidAddress);
 
-    expect(queryByText('Next')?.parentNode?.hasAttribute('disabled')).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBeTruthy();
   });
 });

@@ -72,7 +72,7 @@ describe('Testing EasyStaking component', () => {
   });
 
   test('When account has staked', () => {
-    staker.address = '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ';
+    staker.address = '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD';
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
         api={chainInfo.api} // Don't care

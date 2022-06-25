@@ -5,7 +5,7 @@
 
 import '@polkadot/extension-mocks/chrome';
 
-import { cleanup, Matcher, render } from '@testing-library/react';
+import { cleanup, Matcher, render, waitFor } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -26,13 +26,14 @@ describe('Testing poolInfo component', () => {
     chainInfo = await getChainInfo('westend');
   });
 
-  test('Checking the existance of elements', () => {
+  test('Checking the existance of elements', async () => {
+    const poolId = new BN('3');
     const { queryAllByTestId, queryAllByText, queryByText } = render(
       <PoolMoreInfo
         api={chainInfo.api}
         chain={chain()}
         pool={pool('open')}
-        poolId={pool('open').poolId}
+        poolId={poolId}
         poolsMembers={poolsMembers}
         showPoolInfo={true}
       />
@@ -40,7 +41,7 @@ describe('Testing poolInfo component', () => {
 
     const mayPoolBalance = pool('open')?.ledger?.active ?? pool('open')?.bondedPool?.points;
     const staked = mayPoolBalance ? chainInfo.api.createType('Balance', mayPoolBalance) : undefined;
-    const myPoolMembers = poolsMembers && pool('open') ? poolsMembers[pool('open').poolId] : undefined;
+    const myPoolMembers = poolsMembers && pool('open') ? poolsMembers[Number(poolId)] : undefined;
 
     const formatBalance = (value: BN | undefined) => {
       return render(
@@ -68,7 +69,8 @@ describe('Testing poolInfo component', () => {
     expect(queryByText('Depositor:')).toBeTruthy();
     expect(queryByText('Nominator:')).toBeTruthy();
     expect(queryByText('State toggler:')).toBeTruthy();
-    expect(queryAllByText(makeShortAddr(pool('open').bondedPool?.roles.root as unknown as string) as unknown as Matcher).length).toBe(4);
+
+    await waitFor(() => expect(queryAllByText(makeShortAddr(pool('open').bondedPool?.roles.root as unknown as string) as unknown as Matcher).length).toBe(4), { timeout: 30000 });
 
     expect(queryByText('Ids')).toBeTruthy();
     expect(queryByText('Stash id:')).toBeTruthy();
@@ -83,14 +85,11 @@ describe('Testing poolInfo component', () => {
     expect(queryAllByTestId('ShowBalance2')[1].textContent).toEqual(formatBalance(pool('open').rewardPool?.totalEarnings));
 
     expect(queryByText(`Members (${myPoolMembers.length})`)).toBeTruthy();
-    myPoolMembers?.map(({ accountId, member }) => {
-      return expect(queryByText(makeShortAddr(accountId, 8) as Matcher)).toBeTruthy();
-    });
   });
 
   test('When something went wrong', () => {
     for (let i = 2; i <= 2; i++) {
-      const { debug, queryByText } = render(
+      const { queryByText } = render(
         <PoolMoreInfo
           api={chainInfo.api}
           chain={chain()}

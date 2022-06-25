@@ -31,7 +31,7 @@ const setCreatePoolModalOpen = () => true;
 describe('Testing CreatePool component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
-    staker = { address: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ', chain: 'westend', name: 'Amir khan', balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
+    staker = { address: '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD', chain: 'westend', name: 'Amir khan', balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
   });
 
   test('Checking the existance of elements', async () => {
