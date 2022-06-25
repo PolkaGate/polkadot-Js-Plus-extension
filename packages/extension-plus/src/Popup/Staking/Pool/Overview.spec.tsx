@@ -21,7 +21,7 @@ let chainInfo: ChainInfo;
 const availableBalance = new BN(400000000000);
 let currentEraIndex: number;
 
-describe('Testing poolInfo component', () => {
+describe('Testing overview component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     currentEraIndex = Number(await chainInfo.api.query.staking.currentEra());

@@ -26,7 +26,7 @@ const availableBalance = '4';
 let chainInfo: ChainInfo;
 let staker: AccountsBalanceType;
 
-describe('Testing EasyStaking component', () => {
+describe('Testing unstake tab', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = { balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
@@ -91,7 +91,7 @@ describe('Testing EasyStaking component', () => {
     expect(queryAllByRole('button')[1]?.hasAttribute('disabled')).toBeTruthy();
   });
 
-  test('When nothing more for unstake', () => {
+  test('When there is nothing to unstake', () => {
     const { queryAllByRole, queryByLabelText, queryByText } = render(
       <Unstake
         api={undefined} // Don't care

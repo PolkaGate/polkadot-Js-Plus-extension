@@ -27,7 +27,7 @@ const setStakeAmount = jest.fn();
 const setPool = jest.fn();
 const setState = jest.fn();
 
-describe('Testing JoinPool component', () => {
+describe('Testing joinPool component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = {
@@ -95,7 +95,7 @@ describe('Testing JoinPool component', () => {
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(false);
   });
 
-  test('Checking the existance of elements', async () => {
+  test('Checking the existance of elements when pools info is empty', async () => {
     const { getByRole, queryByText } = render(
       <JoinPool
         api={chainInfo.api}

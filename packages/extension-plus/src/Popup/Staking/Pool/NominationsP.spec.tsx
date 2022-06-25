@@ -30,7 +30,7 @@ const availableBalanceInHuman = 15; // WND
 jest.setTimeout(60000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
-describe('Testing Nominations component', () => {
+describe('Testing nomination pools tab', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
 
@@ -75,7 +75,7 @@ describe('Testing Nominations component', () => {
     }
   });
 
-  test('user hasn\'t staked, chilled or doesn\'t set nominees', () => {
+  test('user hasn\'t staked yet, chilled or didn\'t set nominees', () => {
     for (let i = 1; i <= 4; i++) {
       if (i > 2) staker.address = '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD';
       const { queryByText } = render(
