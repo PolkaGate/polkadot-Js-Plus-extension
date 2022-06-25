@@ -12,7 +12,7 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
 import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
 import { AccountsStore } from '../../../../extension-base/src/stores';
-import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
 import { SHORT_ADDRESS_CHARACTERS } from '../constants';
 import { Auction } from '../plusTypes';
 
@@ -1432,10 +1432,10 @@ export const pool = (states = '', nameEdited = false, rolesEdited = false): MyPo
       state: ['bondExtra', 'joinPool', 'bondExtraRewards', 'withdrawClaimable', 'open'].includes(states) ? 'Open' : states === 'block' ? 'blocked' : 'Destroying',
       memberCounter: ['bondExtra', 'joinPool'].includes(states) ? 12 : 0,
       roles: {
-        depositor: '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ',
-        root: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
-        nominator: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
-        stateToggler: !rolesEdited ? '5GBc8VPqhKhUzHBe7UoG9TSaH1UPFeydZZLVmY8f22s7sKyQ' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm'
+        depositor: '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD',
+        root: !rolesEdited ? '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
+        nominator: !rolesEdited ? '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm',
+        stateToggler: !rolesEdited ? '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD' : '5DaBEgUMNUto9krwGDzXfSAWcMTxxv7Xtst4Yjpq9nJue7tm'
       }
     },
     ledger: {
@@ -1543,13 +1543,13 @@ export const pool = (states = '', nameEdited = false, rolesEdited = false): MyPo
     },
     member: {
       points: states === 'joinPool' ? 0 : 1267100000000,
-      poolId: 57,
+      poolId: new BN('6'),
       rewardPoolTotalEarnings: 0,
       unbondingEras: {}
     },
     metadata: !nameEdited ? 'Polkadot js plus' : 'Polkadot js plus ❤',
     myClaimable: new BN('16844370676'),
-    poolId: new BN('06'),
+    poolId: new BN('6'),
     redeemable: new BN('500000000000'),
     rewardClaimable: new BN('523506206240'),
     rewardIdBalance: {
@@ -1856,3 +1856,126 @@ export const poolsMembers: MembersMapEntry[] | undefined = {
     }
   ]
 };
+
+export const poolsInfo: PoolInfo[] = [
+  {
+    bondedPool: {
+      points: 81151449765707,
+      state: 'Open',
+      memberCounter: 12,
+      roles: {
+        depositor: '5DiHoyQWyP4aW6PcHoY6djTPT9B7Cy5ZqDfMxnBKUhFv9FKy',
+        root: '5DiHoyQWyP4aW6PcHoY6djTPT9B7Cy5ZqDfMxnBKUhFv9FKy',
+        nominator: '5DiHoyQWyP4aW6PcHoY6djTPT9B7Cy5ZqDfMxnBKUhFv9FKy',
+        stateToggler: '5DiHoyQWyP4aW6PcHoY6djTPT9B7Cy5ZqDfMxnBKUhFv9FKy'
+      }
+    },
+    metadata: 'FIRST POOL',
+    poolId: new BN('01'),
+    rewardPool: {
+      balance: 549515523642,
+      totalEarnings: 866142815559,
+      points: '0x0000000000000000000000000000000000000000001451e512e007bb6c0f02a8'
+    }
+  },
+  {
+    bondedPool: {
+      points: 71151449765707,
+      state: 'Open',
+      memberCounter: 1,
+      roles: {
+        depositor: '5Gp8ykxb8wubVjfi4cEcb6zUC1uiDVtFPhyggNXHKMoiKzdU',
+        root: '5Gp8ykxb8wubVjfi4cEcb6zUC1uiDVtFPhyggNXHKMoiKzdU',
+        nominator: '5Gp8ykxb8wubVjfi4cEcb6zUC1uiDVtFPhyggNXHKMoiKzdU',
+        stateToggler: '5Gp8ykxb8wubVjfi4cEcb6zUC1uiDVtFPhyggNXHKMoiKzdU'
+      }
+    },
+    metadata: 'super pool',
+    poolId: new BN('02'),
+    rewardPool: {
+      balance: 0,
+      totalEarnings: 0,
+      points: 0
+    }
+  },
+  {
+    bondedPool: {
+      points: 61151449765707,
+      state: 'Destroying',
+      memberCounter: 3,
+      roles: {
+        depositor: '5FUDdxaaZfye6ogJgqHh3Usqd6WN6q8aApFH4XNjU9iDvC49',
+        root: '5FUDdxaaZfye6ogJgqHh3Usqd6WN6q8aApFH4XNjU9iDvC49',
+        nominator: '5FUDdxaaZfye6ogJgqHh3Usqd6WN6q8aApFH4XNjU9iDvC49',
+        stateToggler: '5FUDdxaaZfye6ogJgqHh3Usqd6WN6q8aApFH4XNjU9iDvC49'
+      }
+    },
+    metadata: 'I AM THE FIRST POOL ',
+    poolId: new BN('03'),
+    rewardPool: {
+      balance: 1158933840359,
+      totalEarnings: 2501461741151,
+      points: '0x000000000000000000000000000000000000000003c0909d3ba099d67aad8000'
+    }
+  },
+  {
+    bondedPool: {
+      points: 51151449765707,
+      state: 'Open',
+      memberCounter: 1,
+      roles: {
+        depositor: '5EWNeodpcQ6iYibJ3jmWVe85nsok1EDG8Kk3aFg8ZzpfY1qX',
+        root: '5EWNeodpcQ6iYibJ3jmWVe85nsok1EDG8Kk3aFg8ZzpfY1qX',
+        nominator: '5EWNeodpcQ6iYibJ3jmWVe85nsok1EDG8Kk3aFg8ZzpfY1qX',
+        stateToggler: '5EWNeodpcQ6iYibJ3jmWVe85nsok1EDG8Kk3aFg8ZzpfY1qX'
+      }
+    },
+    metadata: 'Ape Yacht Club’s Pool',
+    poolId: new BN('04'),
+    rewardPool: {
+      balance: 0,
+      totalEarnings: 0,
+      points: 0
+    }
+  },
+  {
+    bondedPool: {
+      points: 11514497657073,
+      state: 'Open',
+      memberCounter: 3,
+      roles: {
+        depositor: '5HeAYjXFNWrGmTnH35CuivoExNLFrHoeWf5CaQTWHM5qPxRW',
+        root: '5HeAYjXFNWrGmTnH35CuivoExNLFrHoeWf5CaQTWHM5qPxRW',
+        nominator: '5HeAYjXFNWrGmTnH35CuivoExNLFrHoeWf5CaQTWHM5qPxRW',
+        stateToggler: '5HeAYjXFNWrGmTnH35CuivoExNLFrHoeWf5CaQTWHM5qPxRW'
+      }
+    },
+    metadata: 'Just playing',
+    poolId: new BN('05'),
+    rewardPool: {
+      balance: 2715491290,
+      totalEarnings: 1151449765707,
+      points: '0x00000000000000000000000000000000000000000000260aa24ccbcd9fefd000'
+    }
+  },
+  {
+    bondedPool: {
+      points: 91151449765707,
+      state: 'Open',
+      memberCounter: 28,
+      roles: {
+        depositor: '5DRbuYvzokyX7X4QDxrk1BNRxYS6NP4V9CHiciPXdTe2vT4Z',
+        root: '5DRbuYvzokyX7X4QDxrk1BNRxYS6NP4V9CHiciPXdTe2vT4Z',
+        nominator: '5DRbuYvzokyX7X4QDxrk1BNRxYS6NP4V9CHiciPXdTe2vT4Z',
+        stateToggler: '5FnDqyWepbvAynavU2TVScCscsPmorsv2TFqDYokseGoncmE'
+      }
+    },
+    metadata: 'Polkadot js plus ❤️ | http://polkadotjs.plus',
+    poolId: new BN('06'),
+    rewardPool: {
+      balance: 433614924637,
+      totalEarnings: 1646342430175,
+      points: '0x00000000000000000000000000000000000000000004f3c69e46247c9d281e14'
+    }
+  }
+];
