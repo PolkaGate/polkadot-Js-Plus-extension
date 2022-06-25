@@ -13,10 +13,10 @@ import type { AccountsBalanceType, MyPoolInfo, PoolStakingConsts, StakingConsts,
 
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { TrackChanges as TrackChangesIcon } from '@mui/icons-material';
+import { StopCircle as StopCircleIcon, TrackChanges as TrackChangesIcon } from '@mui/icons-material';
 import { Button as MuiButton, Grid, Link } from '@mui/material';
 import { blue } from '@mui/material/colors';
-import React, { useCallback, useEffect,useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
@@ -84,8 +84,8 @@ function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handl
             />
           </Grid>
           {[myPool?.bondedPool?.roles?.root, myPool?.bondedPool?.roles?.nominator].includes(staker.address) &&
-            <Grid container item justifyContent='flex-end' sx={{ padding: '5px 10px 0px' }} xs={12}>
-              {/* <Grid item xs={5}>
+            <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
+              <Grid item>
                 <MuiButton
                   onClick={handleStopNominating}
                   size='medium'
@@ -95,8 +95,8 @@ function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handl
                 >
                   {t('Stop nominating')}
                 </MuiButton>
-              </Grid> */}
-              <Grid item sx={{ textAlign: 'right' }} xs={4}>
+              </Grid>
+              <Grid item sx={{ textAlign: 'right' }}>
                 <MuiButton
                   color='warning'
                   onClick={() => handleSelectValidatorsModalOpen()}

@@ -77,6 +77,11 @@ export function getTxIcon(action: string): React.ReactNode {
         color='warning'
         fontSize='small'
       />;
+    case ('pool_stop_nominating'):
+      return <StopCircleIcon
+        fontSize='small'
+        sx={{ color: 'black' }}
+      />;
     case ('stop_nominating'):
       return <StopCircleIcon
         fontSize='small'

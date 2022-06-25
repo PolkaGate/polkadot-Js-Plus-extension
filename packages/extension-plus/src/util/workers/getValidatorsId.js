@@ -7,7 +7,6 @@ import getApi from '../getApi.ts';
 async function getAllValidatorsId (endpoint, _accountIds) {
   try {
     const api = await getApi(endpoint);
-    // const accountInfo = await Promise.all(_accountIds.map((i) => api.derive.accounts.info(i)));
     let accountInfo = [];
     const page = 50;
     let totalFetched = 0;

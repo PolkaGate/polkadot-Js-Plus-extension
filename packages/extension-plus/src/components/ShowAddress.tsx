@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
-/* eslint-disable header/header */
-/* eslint-disable react/jsx-max-props-per-line */
+
+import type { ApiPromise } from '@polkadot/api';
 
 import { ContentCopyOutlined as ContentCopyOutlinedIcon } from '@mui/icons-material';
 import { Avatar, Grid, Link } from '@mui/material';
@@ -14,37 +14,51 @@ import Identicon from '@polkadot/react-identicon';
 import { Chain } from '../../../extension-chains/src/types';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import getLogo from '../util/getLogo';
+import Identity from './Identity';
 import ShortAddress from './ShortAddress';
 
 interface Props {
+  api: ApiPromise;
   address: string;
   chain: Chain;
   role?: string;
 }
 
-export default function ShowAddress({ address, chain, role }: Props): React.ReactElement<Props> {
+export default function ShowAddress({ address, api, chain, role }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   return (
-    <Grid container item xs={12}>
-      <Grid item sx={{ color: grey[600], fontSize: 11, fontWeight: '600', textAlign: 'left', pr: 1 }} xs={3}>
+    <Grid
+      container
+      item
+      xs={12}>
+      <Grid
+        item
+        sx={{ color: grey[600], fontSize: 11, fontWeight: '600', textAlign: 'left', pr: 1 }}
+        xs={3}>
         {role}:
       </Grid>
       {address &&
-        <Grid alignItems='center' container item xs={9}>
-          <Grid alignItems='center' container item xs={1}>
-            <Identicon
-              prefix={chain?.ss58Format ?? 42}
-              size={20}
-              theme={chain?.icon || 'polkadot'}
-              value={address}
-            />
+        <Grid
+          alignItems='center'
+          container
+          item
+          xs={9}>
+          <Grid
+            alignItems='center'
+            container
+            item
+            xs={10}
+            sx={{ fontSize: 11 }}>
+            <Identity
+              address={address}
+              api={api}
+              chain={chain} />
           </Grid>
-          <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={9}>
-            <ShortAddress address={address} fontSize={11} />
-          </Grid>
-          <Grid item xs={1}>
+          <Grid
+            item
+            xs={1}>
             <Link
               href={`https://${chainName}.subscan.io/account/${address}`}
               rel='noreferrer'
@@ -58,9 +72,14 @@ export default function ShowAddress({ address, chain, role }: Props): React.Reac
               />
             </Link>
           </Grid>
-          <Grid item xs={1} sx={{textAlign: 'center' }}>
+          <Grid
+            item
+            sx={{ textAlign: 'center' }}
+            xs={1}>
             <CopyToClipboard text={address}>
-              <ContentCopyOutlinedIcon color='primary' sx={{ cursor: 'pointer', fontSize: 12 }} />
+              <ContentCopyOutlinedIcon
+                color='primary'
+                sx={{ cursor: 'pointer', fontSize: 15 }} />
             </CopyToClipboard>
           </Grid>
         </Grid>
