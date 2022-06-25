@@ -7,6 +7,7 @@ import Memoize from 'memoize-one';
 
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { ScProvider, WellKnownChain } from '@polkadot/rpc-provider/substrate-connect';
+import * as smoldot from '@substrate/smoldot-light';
 
 function getWellKnownChain(chain = 'polkadot') {
   switch (chain) {
@@ -41,13 +42,13 @@ async function getApi(endpoint: string): Promise<ApiPromise> {
   //   }
   // })  }
 
-  const wsProvider = isLight
+  const provider = isLight
     ? new ScProvider(getWellKnownChain(endpoint.replace('light://substrate-connect/', '')))
     : new WsProvider(endpoint);
 
-  isLight && await wsProvider.connect();
+  isLight && await provider.connect();
 
-  return await ApiPromise.create({ provider: wsProvider });
+  return await ApiPromise.create({ provider });
 }
 
 export default Memoize(getApi);
