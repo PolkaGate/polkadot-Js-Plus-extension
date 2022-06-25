@@ -21,7 +21,7 @@ let api: ApiPromise | undefined;
 ReactDOM.createPortal = jest.fn((modal) => modal);
 jest.setTimeout(60000);
 
-describe('Testing Info component', () => {
+describe('Testing info tab', () => {
   beforeAll(async () => {
     const chainInfo = await getChainInfo('westend');
 

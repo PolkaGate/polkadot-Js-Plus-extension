@@ -35,13 +35,13 @@ const setStakeAmount = () => null;
 
 const setState = () => null;
 
-describe('Testing EasyStaking component', () => {
+describe('Testing stake tab', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = { balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
   });
 
-  test('Checking the exist component while loading', () => {
+  test('Checking the existence of components while loading', () => {
     const { queryByText } = render(
       <Stake
         api={chainInfo.api}

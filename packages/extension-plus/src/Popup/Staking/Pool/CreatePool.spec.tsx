@@ -28,7 +28,7 @@ const setNewPool = () => null;
 const setState = () => null;
 const setCreatePoolModalOpen = () => true;
 
-describe('Testing CreatePool component', () => {
+describe('Testing createPool component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = { address: '5Cqq9GQEV2UdRKdZo2FkKmmBU2ZyxJWYrEpwnqemgyfTZ1ZD', chain: 'westend', name: 'Amir khan', balanceInfo: { available: amountToMachine(availableBalance, chainInfo.decimals), decimals: chainInfo.decimals } };
@@ -95,7 +95,7 @@ describe('Testing CreatePool component', () => {
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(false);
   });
 
-  test('when roles values are invalid', async () => {
+  test('when roles are invalid', async () => {
     const { getAllByRole, getByLabelText, getByRole } = render(
       <CreatePool
         api={chainInfo.api}

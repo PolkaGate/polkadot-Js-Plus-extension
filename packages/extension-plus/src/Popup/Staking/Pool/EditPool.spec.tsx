@@ -26,7 +26,7 @@ let staker: AccountsBalanceType;
 
 const useStateNewPool = jest.fn();
 
-describe('Testing CreatePool component', () => {
+describe('Testing editPool component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend');
     staker = {
@@ -83,7 +83,7 @@ describe('Testing CreatePool component', () => {
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBeTruthy();
   });
 
-  test('When options change in valid way', () => {
+  test('When changes are valid', () => {
     const newPool = pool('');
 
     newPool.bondedPool.roles.nominator = '';
@@ -109,7 +109,7 @@ describe('Testing CreatePool component', () => {
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBeFalsy();
   });
 
-  test('When options change in invalid way', () => {
+  test('When changes are not valid', () => {
     const newPool = pool('');
 
     const shityText = 'invalid account address';

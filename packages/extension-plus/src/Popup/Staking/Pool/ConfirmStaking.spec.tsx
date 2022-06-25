@@ -49,7 +49,7 @@ const setConfirmStakingModalOpen = () => null;
 
 let amount: BN = new BN(String(amountToMachine(validAmountToStake.toString(), decimals)));
 
-describe('Testing ConfirmStaking component', () => {
+describe('Testing confirmStaking page', () => {
   beforeAll(async () => {
     const chainInfo = await getChainInfo('westend');
 
