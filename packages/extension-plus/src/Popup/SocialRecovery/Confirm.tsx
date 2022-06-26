@@ -9,19 +9,19 @@
 
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { Balance } from '@polkadot/types/interfaces';
-import { BN, BN_ZERO } from '@polkadot/util';
 import type { RecoveryConsts, TransactionDetail } from '../../util/plusTypes';
 
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Grid, Skeleton } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useContext, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import keyring from '@polkadot/ui-keyring';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -38,7 +38,7 @@ interface Props {
   state: string;
   setState: React.Dispatch<React.SetStateAction<string>>;
   account: DeriveAccountInfo;
-  friends: DeriveAccountInfo[];
+  friends?: DeriveAccountInfo[];
   recoveryThreshold: number;
   recoveryDelay: number;
   recoveryConsts: RecoveryConsts;
@@ -55,14 +55,15 @@ export default function Confirm({ account, api, chain, friends, recoveryConsts, 
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
 
-  const freindIds = friends.map((f) => f.accountId).sort(); // if not sorted, tx will retun an error!!
+  const freindIds = friends?.map((f) => f.accountId).sort(); // if not sorted, tx will retun an error!!
 
   /** list of available trasactions */
   const createRecovery = api.tx.recovery.createRecovery;// (friends: Vec<AccountId32>, threshold: u16, delay_period: u32)
   const removeRecovery = api.tx.recovery.removeRecovery;
+  const initiateRecovery = api.tx.recovery.initiateRecovery; // (lostAccount)
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
-    if (!history.length) return false;
+    if (!history.length) { return false; }
 
     const accountSubstrateAddress = getSubstrateAddress(address);
     const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
@@ -93,7 +94,7 @@ export default function Confirm({ account, api, chain, friends, recoveryConsts, 
     }
   }, [account.accountId, createRecovery, freindIds, recoveryDelay, recoveryThreshold, removeRecovery, state]);
 
-  const deposit = useMemo(() => {
+  const deposit = useMemo((): BN => {
     if (state === 'makeRecoverable') {
       return recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(freindIds.length));
     }
@@ -103,7 +104,7 @@ export default function Confirm({ account, api, chain, friends, recoveryConsts, 
     }
 
     return BN_ZERO;
-  }, [freindIds.length, recoveryConsts.configDepositBase, recoveryConsts.friendDepositFactor, recoveryConsts.recoveryDeposit, state]);
+  }, [freindIds?.length, recoveryConsts.configDepositBase, recoveryConsts.friendDepositFactor, recoveryConsts.recoveryDeposit, state]);
 
   useEffect(() => {
     if (!api) { return; }
@@ -116,6 +117,8 @@ export default function Confirm({ account, api, chain, friends, recoveryConsts, 
     const history: TransactionDetail[] = []; /** collects all records to save in the local history at the end */
 
     try {
+      if (!account?.accountId) { return; }
+
       setConfirmingState('confirming');
 
       const signer = keyring.getPair(account.accountId);
@@ -132,10 +135,10 @@ export default function Confirm({ account, api, chain, friends, recoveryConsts, 
         history.push({
           action: 'make_recoverable',
           amount: '0',
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
-          from: account.accountId,
+          from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
           to: ''
@@ -150,10 +153,10 @@ export default function Confirm({ account, api, chain, friends, recoveryConsts, 
         history.push({
           action: 'remove_recovery',
           amount: '0',
-          block: block,
+          block,
           date: Date.now(),
           fee: fee || '',
-          from: account.accountId,
+          from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
           to: ''

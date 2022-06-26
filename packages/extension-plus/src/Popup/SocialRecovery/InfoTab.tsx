@@ -8,15 +8,11 @@
  *  this component shows some general staking informathion including minNominatorBond, maxNominatorRewardedPerValidator, etc.  
  * */
 
-import type { Balance } from '@polkadot/types/interfaces';
-import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
+import type { ApiPromise } from '@polkadot/api';
 
 import { Divider, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React from 'react';
-
-import { ApiPromise } from '@polkadot/api';
-import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ShowBalance2, ShowValue } from '../../components';
@@ -25,10 +21,9 @@ import { RecoveryConsts } from '../../util/plusTypes';
 interface Props {
   api: ApiPromise | undefined;
   recoveryConsts: RecoveryConsts | undefined;
-  recoverable: PalletRecoveryRecoveryConfig | undefined;
 }
 
-function InfoTab({ api, recoverable, recoveryConsts }: Props): React.ReactElement<Props> {
+function InfoTab({ api, recoveryConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const token = api && api.registry.chainTokens[0];

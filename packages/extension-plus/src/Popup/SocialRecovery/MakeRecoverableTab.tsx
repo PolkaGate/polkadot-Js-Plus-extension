@@ -32,10 +32,10 @@ interface Props {
   recoveryDelay: number;
   handleRecoveryThreshold: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   handleNext: () => void;
-  recoverable: PalletRecoveryRecoveryConfig | undefined
+  recoveryInfo: PalletRecoveryRecoveryConfig | undefined
 }
 
-function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFreind, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoverable, recoveryDelay, recoveryThreshold }: Props): React.ReactElement<Props> {
+function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFreind, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryInfo, recoveryDelay, recoveryThreshold }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (
@@ -47,7 +47,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
           </Typography>
         </Grid>
         <Grid item>
-          {!recoverable &&
+          {!recoveryInfo &&
             <Hint id='addFreind' place='left' tip={t('add a freind')}>
               <IconButton aria-label='addFreind' color='warning' onClick={handleAddFreind} size='small'>
                 <AddCircleRoundedIcon sx={{ fontSize: 30 }} />
@@ -56,17 +56,14 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
           }
         </Grid>
       </Grid>
-
       <Grid container item sx={{ fontSize: 12, height: '190px', overflowY: 'auto', bgcolor: 'white' }} xs={12}>
         {friends?.length
           ? friends?.map((f, index) => (
             <Grid alignItems='flex-start' container item justifyContent='space-between' key={index} sx={{ pl: 1 }} xs={12}>
-
               <Grid item xs={11}>
                 <Identity accountInfo={f} chain={chain} showAddress />
               </Grid>
-
-              {!recoverable &&
+              {!recoveryInfo &&
                 <Grid item xs={1}>
                   <Hint id='deleteFreind' place='left' tip={t('add a freind')}>
                     <IconButton aria-label='deleteFreind' color='error' onClick={() => handleDeleteFreind(index)} size='small'>
@@ -83,19 +80,16 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
                 {t('No friends are added yet!')}
               </Typography>
             </Grid>
-
           </Grid>
         }
-
       </Grid>
-
       <Grid container item justifyContent='space-between' spacing={1.5} sx={{ pt: '20px' }} xs={12}>
         <Grid item xs={6}>
           <TextField
             InputLabelProps={{ shrink: true }}
             InputProps={{ endAdornment: (<InputAdornment position='end'>{t('freind(s)')}</InputAdornment>) }}
             color='warning'
-            disabled={!!recoverable}
+            disabled={!!recoveryInfo}
             error={!recoveryThreshold || recoveryThreshold > friends?.length}
             fullWidth
             helperText={
@@ -113,13 +107,12 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
             variant='outlined'
           />
         </Grid>
-
         <Grid item xs={6}>
           <TextField
             InputLabelProps={{ shrink: true }}
             InputProps={{ endAdornment: (<InputAdornment position='end'>{t('day(s)')}</InputAdornment>) }}
             color='warning'
-            disabled={!!recoverable}
+            disabled={!!recoveryInfo}
             fullWidth
             helperText={
               <Hint icon id='recoveryDelay' tip='The delay between vouching and the availability of the recovered account'>
@@ -143,7 +136,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
           isDisabled={!recoveryThreshold || !friends?.length || recoveryThreshold > friends?.length}
           onClick={handleNext}
         >
-          {recoverable ? t('Next to remove recovery') : t('Next')}
+          {recoveryInfo ? t('Next to remove recovery') : t('Next')}
         </NextStepButton>
       </Grid>
     </>

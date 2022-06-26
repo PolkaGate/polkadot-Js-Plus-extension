@@ -13,8 +13,8 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AddCircleRounded as AddCircleRoundedIcon } from '@mui/icons-material';
-import { Typography, Autocomplete, Grid, TextField, InputAdornment, IconButton } from '@mui/material';
+import { Support as SupportIcon } from '@mui/icons-material';
+import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -28,46 +28,34 @@ import isValidAddress from '../../util/validateAddress';
 import { SettingsContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, Progress } from '../../components';
+import { ConfirmButton, Password, PlusHeader, Popup, Progress } from '../../components';
+import type { ApiPromise } from '@polkadot/api';
+import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 
-import { AddressState, nameAddress } from '../../util/plusTypes';
+import { AddressState, RecoveryConsts } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
+import Confirm from './Confirm';
 
 interface Props extends ThemeProps {
+  api: ApiPromise | undefined;
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
   className?: string;
-  showAsRescuerModal: boolean;
-  addresesOnThisChain: nameAddress[];
   handleCloseAsRescuer: () => void
+  showAsRescuerModal: boolean;
+  recoveryConsts: RecoveryConsts | undefined;
+  recoveryInfo: PalletRecoveryRecoveryConfig | undefined;
 }
 
-
-function AsRescuer({ accountsInfo, account, addresesOnThisChain, handleCloseAsRescuer, showAsRescuerModal }: Props): React.ReactElement<Props> {
+function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryConsts, recoveryInfo, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [text, setText] = useState<string | undefined>();
   const [lostAccount, setLostAccount] = useState<string | undefined>();
-
-  const handleAddress = useCallback((value: string | null) => {
-    if (!value) {
-      // setNewAddress(undefined);
-      setText(undefined);
-
-      return;
-    }
-
-    const indexOfDots = value?.indexOf(':');
-    let mayBeAddress = value?.slice(indexOfDots + 1)?.trim();
-
-    mayBeAddress = mayBeAddress && isValidAddress(mayBeAddress) ? mayBeAddress : undefined;
-
-    if (mayBeAddress) {
-      setText(mayBeAddress);
-    }
-  }, []);
+  const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
+  const [state, setState] = useState<string | undefined>();
 
   const handleClearLostAccount = useCallback(() => {
     setLostAccount('');
@@ -77,15 +65,21 @@ function AsRescuer({ accountsInfo, account, addresesOnThisChain, handleCloseAsRe
   const handleLostAccountChange = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
 
+    setLostAccount('');
     setText(value);
-    // handleAddress(value);
   }, []);
 
-  // const handleBlur = useCallback(() => {
-  //   // handleAddress(event.target.value);
-  // }, []);
+  const handleConfirmLostAccount = useCallback(() => {
+    const lostAccount = accountInfo?.accountId || (isValidAddress(text) ? text : undefined);
+    console.log('text', text)
+    console.log('isValidAddress(text)', isValidAddress(text))
+    console.log('lostAccount', lostAccount)
+    console.log('accountInfo?.accountId', accountInfo?.accountId)
 
-  const handleSearchFreind = useCallback(() => {
+    lostAccount && setLostAccount(String(lostAccount));
+  }, [accountInfo?.accountId, text]);
+
+  const handleSearchIdentity = useCallback(() => {
     if (!accountsInfo?.length) {
       return;
     }
@@ -107,46 +101,28 @@ function AsRescuer({ accountsInfo, account, addresesOnThisChain, handleCloseAsRe
     setAccountInfo(null);
   }, [accountsInfo, text]);
 
+  const handleNextToInitiateRecovery = useCallback(() => {
+    setState('initiateRecovery');
+    setConfirmModalOpen(true);
+  }, []);
+
   useEffect(() => {
-    handleSearchFreind();
-  }, [handleSearchFreind, text]);
+    handleSearchIdentity();
+  }, [handleSearchIdentity, text]);
 
-  // const handleAddFreind = useCallback(() => {
-  //   const mayBeAddress = isValidAddress(text) ? text : undefined;
-
-  //   if (!mayBeAddress && !accountInfo?.accountId) return;
-
-  //   const mayBeNewFreind = mayBeAddress || accountInfo?.accountId?.toString();
-
-  //   if (!friends.find((i) => i.accountId === mayBeNewFreind)) {
-  //     const temp = [...friends];
-
-  //     accountInfo ? temp.push(accountInfo) : temp.push({ accountId: mayBeNewFreind, identity: undefined });
-
-  //     console.log('setting friends to ', [...temp]);
-  //     setFriends([...temp]);
-  //     // setShowAsRescuerModal(false);
-  //   }
-  // }, [accountInfo, friends, setFriends, setShowAddFreindModal, text]);
-
-  // const handleCloseModal = useCallback((): void => {
-  //   setShowAsRescuerModal(false);
-  // }, [setShowAsRescuerModal]);
-
-  const FreindTextBox = () => (
+  const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
-        {text &&
+        {lostAccount &&
           <Identicon
             prefix={chain?.ss58Format ?? 42}
             size={40}
             theme={chain?.icon || 'polkadot'}
-            value={text}
+            value={lostAccount}
           />}
       </Grid>
       <Grid item xs={11}>
         <TextField
-          autoFocus
           InputProps={{
             endAdornment: (
               <InputAdornment position='end'>
@@ -164,9 +140,10 @@ function AsRescuer({ accountsInfo, account, addresesOnThisChain, handleCloseAsRe
             ),
             style: { fontSize: 14 }
           }}
+          autoFocus
           fullWidth
-          helperText={t('Please enter the lost account information')}
-          label={t('Lost account')}
+          helperText={t<string>('Please enter the lost account information')}
+          label={t<string>('Account')}
           onChange={handleLostAccountChange}
           placeholder={'account Id / name / twitter / element Id / email / web site'}
           size='medium'
@@ -178,97 +155,89 @@ function AsRescuer({ accountsInfo, account, addresesOnThisChain, handleCloseAsRe
     </Grid>
   );
 
+  const ShowItem = ({ title, value }: { title: string, value: string | undefined }) => (
+    <Grid container item spacing={1} xs={12}>
+      <Grid item sx={{ fontWeight: 'bold' }}>
+        {title}:
+      </Grid>
+      <Grid item>
+        {value}
+      </Grid>
+    </Grid>
+  );
+
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
-      <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<AddCircleRoundedIcon fontSize='small' />} title={'Rescue account'} />
+      <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Rescue account'} />
       <Grid container sx={{ p: '35px 30px' }}>
-        <Grid item xs={12} sx={{ height: '100px' }}>
+        <Grid item sx={{ height: '100px' }} xs={12}>
           <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='caption'>
-            {t('Enter the lost account address ( or search it by its identity)')}:
+            {t<string>('Enter the lost account address ( or search it by its identity)')}:
           </Typography>
-          {accountsInfo?.length && <FreindTextBox />}
+          {accountsInfo?.length && <AccountTextBox />}
         </Grid>
-        <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
-          {accountInfo
-            ? <>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 'bold' }}>
-                  {t('Display')}:
+        {!lostAccount &&
+          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
+            {accountInfo
+              ? <>
+                <ShowItem title={t<string>('Display')} value={accountInfo.identity.display} />
+                <ShowItem title={t<string>('Legal')} value={accountInfo.identity.legal} />
+                <ShowItem title={t<string>('Email')} value={accountInfo.identity.email} />
+                <ShowItem title={t<string>('Element')} value={accountInfo.identity.riot} />
+                <ShowItem title={t<string>('Twitter')} value={accountInfo.identity.twitter} />
+                <ShowItem title={t<string>('Web')} value={accountInfo.identity.web} />
+                {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(accountInfo.accountId)} />}
+              </>
+              : accountInfo === null ?
+                <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
+                  {t<string>('No indetity found')}
                 </Grid>
-                <Grid item>
-                  {accountInfo.identity.display}
-                </Grid>
+                : !accountsInfo?.length && accountInfo === undefined &&
+                <Progress title={t<string>('Loading identities ...')} />
+            }
+            {(accountInfo || isValidAddress(text)) &&
+              <Grid container item justifyContent='center' sx={{ px: 7 }} xs={12}>
+                <MuiButton
+                  color='primary'
+                  onClick={handleConfirmLostAccount}
+                  variant='contained'
+                >
+                  {t<string>('Confirm your lost account')}
+                </MuiButton>
               </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Legal')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.legal}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Email')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.email}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Element')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.riot}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Twitter')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.twitter}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Web')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.web}
-                </Grid>
-              </Grid>
-              {!isValidAddress(text) &&
-                <Grid container item spacing={1} xs={12}>
-                  <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                    {t('Account Id')}:
-                  </Grid>
-                  <Grid item>
-                    {accountInfo.accountId}
-                  </Grid>
-                </Grid>
-              }
-            </>
-            : accountInfo === null ?
-              <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
-                {t('No indetity found')}
-              </Grid>
-              : !accountsInfo?.length && accountInfo === undefined &&
-              <Progress title={t('Loading identities ...')} />
-          }
-        </Grid>
+            }
+          </Grid>
+        }
+        {lostAccount &&
+          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
+
+          </Grid>
+        }
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''
-          // isBusy={isBusy} isDisabled={isDisabled}
-          // onClick={handleAddFreind}
+            disabled={!lostAccount}
+            onClick={handleNextToInitiateRecovery}
           >
-            {t('Add')}
+            {t<string>('Next')}
           </Button>
         </Grid>
-
       </Grid>
+      {showConfirmModal && api && chain && state && account && recoveryConsts &&
+        <Confirm
+          account={account}
+          api={api}
+          chain={chain}
+          recoveryConsts={recoveryConsts}
+          recoveryDelay={recoveryInfo.delayPeriod.toNumber()}
+          recoveryThreshold={recoveryInfo.threshold.toNumber()}
+          setConfirmModalOpen={setConfirmModalOpen}
+          setState={setState}
+          showConfirmModal={showConfirmModal}
+          state={state}
+        />
+      }
+
     </Popup>
   );
 }

@@ -35,7 +35,6 @@ import AddFreind from './AddFriend';
 import Confirm from './Confirm';
 import InfoTab from './InfoTab';
 import MakeRecoverableTab from './MakeRecoverableTab';
-import RemoveRecoveryTab from './RemoveRecoveryTab';
 import RecoveryTab from './RecoveryTab';
 
 interface Props extends ThemeProps {
@@ -63,7 +62,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const [account, setAccount] = useState<DeriveAccountInfo | undefined>();
   const [addresesOnThisChain, setAddresesOnThisChain] = useState<nameAddress[]>([]);
   const [recoveryConsts, setRecoveryConsts] = useState<RecoveryConsts | undefined>();
-  const [recoverable, setRecoverable] = useState<PalletRecoveryRecoveryConfig | undefined>();
+  const [recoveryInfo, setRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined>();
 
   const handleAlladdressesOnThisChain = useCallback((prefix: number): void => {
     const allAddresesOnSameChain = accounts.reduce(function (result: nameAddress[], acc): nameAddress[] {
@@ -90,19 +89,19 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   }, [chain, settings, handleAlladdressesOnThisChain]);
 
   useEffect(() => {
-    if (!recoverable) { return; }
-    setRecoveryThreshold(recoverable.threshold.toNumber());
-    const recoveryDelayInDays = recoverable.delayPeriod.toNumber() / (24 * 60 * 10);
+    if (!recoveryInfo) { return; }
+    setRecoveryThreshold(recoveryInfo.threshold.toNumber());
+    const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
 
     setRecoveryDelay(recoveryDelayInDays);
-    const onChainFreinds = recoverable.friends.map((f) => {
+    const onChainFreinds = recoveryInfo.friends.map((f) => {
       const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString())
 
       return accountInfo ?? { accountId: f, identity: undefined };
     });
 
     setFriends(onChainFreinds);
-  }, [recoverable, accountsInfo]);
+  }, [recoveryInfo, accountsInfo]);
 
 
   useEffect(() => {
@@ -112,7 +111,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
 
     // eslint-disable-next-line no-void
     void isRecoverable(account.accountId).then((r) => {
-      setRecoverable(r.isSome && r.unwrap());
+      setRecoveryInfo(r.isSome && r.unwrap());
       console.log('isRecoferable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
 
@@ -175,9 +174,9 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   }, [setRecoveryDelay]);
 
   const handleNext = useCallback(() => {
-    recoverable ? setState('removeRecovery') : setState('makeRecoverable');
+    recoveryInfo ? setState('removeRecovery') : setState('makeRecoverable');
     setConfirmModalOpen(true);
-  }, [recoverable]);
+  }, [recoveryInfo]);
 
   const handleAddFreind = useCallback(() => {
     setShowAddFreindModal(true);
@@ -194,8 +193,8 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
       <Grid alignItems='center' container sx={{ px: '30px' }}>
         <Grid item xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            {!recoverable && <Tab icon={<BeenhereIcon fontSize='small' />} iconPosition='start' label='Make recoverable' sx={{ fontSize: 11 }} value='makeRecoverable' />}
-            {recoverable && <Tab icon={<BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />} iconPosition='start' label='Remoe recovery' sx={{ fontSize: 11 }} value='makeRecoverable' />}
+            {!recoveryInfo && <Tab icon={<BeenhereIcon fontSize='small' />} iconPosition='start' label='Make recoverable' sx={{ fontSize: 11 }} value='makeRecoverable' />}
+            {recoveryInfo && <Tab icon={<BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />} iconPosition='start' label='Remoe recovery' sx={{ fontSize: 11 }} value='makeRecoverable' />}
             <Tab icon={<SaveAltIcon fontSize='small' />} iconPosition='start' label='Recover' sx={{ fontSize: 11 }} value='recover' />
             <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
           </Tabs>
@@ -209,8 +208,8 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             handleNext={handleNext}
             handleRecoveryDelay={handleRecoveryDelay}
             handleRecoveryThreshold={handleRecoveryThreshold}
-            recoverable={recoverable}
             recoveryDelay={recoveryDelay}
+            recoveryInfo={recoveryInfo}
             recoveryThreshold={recoveryThreshold}
           />
         }
@@ -218,22 +217,15 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
           <RecoveryTab
             account={account}
             accountsInfo={accountsInfo}
+            api={api}
             chain={chain}
-            friends={friends}
-            handleAddFreind={handleAddFreind}
-            handleDeleteFreind={handleDeleteFreind}
-            handleNext={handleNext}
-            handleRecoveryDelay={handleRecoveryDelay}
-            handleRecoveryThreshold={handleRecoveryThreshold}
-            recoverable={recoverable}
-            recoveryDelay={recoveryDelay}
-            recoveryThreshold={recoveryThreshold}
+            recoveryConsts={recoveryConsts}
+            recoveryInfo={recoveryInfo}
           />
         }
         {tabValue === 'info' &&
           <InfoTab
             api={api}
-            recoverable={recoverable}
             recoveryConsts={recoveryConsts}
           />
         }

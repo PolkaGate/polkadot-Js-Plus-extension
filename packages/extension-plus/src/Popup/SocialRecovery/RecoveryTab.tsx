@@ -18,28 +18,24 @@ import React, { useCallback, useState } from 'react';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, Identity, ShowBalance2 } from '../../components';
+import { RecoveryConsts } from '../../util/plusTypes';
 
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import { Chain } from '@polkadot/extension-chains/types';
 import { grey } from '@mui/material/colors';
 import AsResuer from './AsRescuer';
+import type { ApiPromise } from '@polkadot/api';
 
 interface Props {
+  api: ApiPromise | undefined;
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
-  handleAddFreind: () => void
-  friends: DeriveAccountInfo[];
   chain: Chain | null;
-  handleDeleteFreind: (index: number) => void;
-  recoveryThreshold: number;
-  handleRecoveryDelay: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
-  recoveryDelay: number;
-  handleRecoveryThreshold: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
-  handleNext: () => void;
-  recoverable: PalletRecoveryRecoveryConfig | undefined
+  recoveryConsts: RecoveryConsts | undefined;
+  recoveryInfo: PalletRecoveryRecoveryConfig | undefined;
 }
 
-function RecoveryTab({ account, accountsInfo, chain, friends, handleAddFreind, handleDeleteFreind, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoverable, recoveryDelay, recoveryThreshold }: Props): React.ReactElement<Props> {
+function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain, recoveryInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [recoverer, setRecoverer] = useState<string | undefined>();
@@ -71,10 +67,13 @@ function RecoveryTab({ account, accountsInfo, chain, friends, handleAddFreind, h
       {!recoverer && <RecovererChoice />}
       {recoverer === 'rescuer' &&
         <AsResuer
+          recoveryInfo={recoveryInfo}
           account={account}
           accountsInfo={accountsInfo}
+          api={api}
           handleCloseAsRescuer={handleCloseAsRescuer}
           showAsRescuerModal={showAsRescuerModal}
+          recoveryConsts={recoveryConsts}
         />
       }
     </>

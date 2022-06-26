@@ -359,3 +359,10 @@ export interface MembersMapEntry {
   accountId: string;
   member: PalletNominationPoolsPoolMember;
 }
+
+export interface RecoveryConsts {
+  configDepositBase: BN,
+  friendDepositFactor: BN,
+  maxFriends: number,
+  recoveryDeposit: BN
+}
