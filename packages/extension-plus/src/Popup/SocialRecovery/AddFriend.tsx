@@ -84,14 +84,17 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   }, []);
 
   const handleSearchFreind = useCallback(() => {
-    if (!accountsInfo?.length) return;
-    if (!text) return setAccountInfo(undefined);
+    if (!accountsInfo?.length) { return; }
+
+    if (!text) {
+      return setAccountInfo(undefined);
+    }
     let accountInfo;
 
     if (text) {
       accountInfo = accountsInfo.find((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
 
-      if (accountInfo) return setAccountInfo(accountInfo);
+      if (accountInfo) { return setAccountInfo(accountInfo); }
     }
 
     setAccountInfo(null);
@@ -104,7 +107,7 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   const handleAddFreind = useCallback(() => {
     const mayBeAddress = isValidAddress(text) ? text : undefined;
 
-    if (!mayBeAddress && !accountInfo?.accountId) return;
+    if (!mayBeAddress && !accountInfo?.accountId) { return; }
 
     const mayBeNewFreind = mayBeAddress || accountInfo?.accountId?.toString();
 
@@ -165,17 +168,13 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   return (
     <Popup handleClose={handleCloseModal} showModal={showAddFreindModal}>
       <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<AddCircleRoundedIcon fontSize='small' />} title={'Add Freind'} />
-
       <Grid container sx={{ p: '35px 30px' }}>
-
         <Grid item xs={12} sx={{ height: '100px' }}>
           <Typography sx={{ color: 'text.primary', pb: '15px' }} variant='body1'>
             {t('Add a friend account Id ( or search by their identity)')}:
           </Typography>
-
           {accountsInfo?.length && <FreindTextBox />}
         </Grid>
-
         <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
           {accountInfo
             ? <>
@@ -246,7 +245,6 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
               <Progress title={t('Loading identities ...')} />
           }
         </Grid>
-
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''

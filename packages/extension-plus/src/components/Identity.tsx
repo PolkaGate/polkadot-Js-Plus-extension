@@ -18,6 +18,7 @@ import { ShortAddress } from '.';
 interface Props {
   api?: ApiPromise;
   address?: string;
+  name?: string;
   accountInfo?: DeriveAccountInfo;
   chain: Chain;
   iconSize?: number;
@@ -27,7 +28,7 @@ interface Props {
   showSocial?: boolean;
 }
 
-function Identity({ accountInfo, address, api, chain, iconSize = 24, showAddress = false, showSocial = true, title = '', totalStaked = '' }: Props): React.ReactElement<Props> {
+function Identity({ accountInfo, address, api, chain, iconSize = 24, name, showAddress = false, showSocial = true, title = '', totalStaked = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [info, setInfo] = useState<DeriveAccountInfo | undefined>();
   const [hasSocial, setHasSocial] = useState<boolean | undefined>();
@@ -36,8 +37,14 @@ function Identity({ accountInfo, address, api, chain, iconSize = 24, showAddress
   useEffect(() => {
     if (accountInfo) { return setInfo(accountInfo); }
 
-    api && address && api.derive.accounts.info(address).then((i) => setInfo(i));
-  }, [address, accountInfo, api]);
+    api && address && api.derive.accounts.info(address).then((i) => {
+      if (!i?.identity && name) {
+        i.identity.display = name;
+      }
+
+      setInfo(i);
+    });
+  }, [address, accountInfo, api, name]);
 
   useEffect(() => {
     setHasSocial(!!(info?.identity?.twitter || info?.identity?.web || info?.identity?.email));

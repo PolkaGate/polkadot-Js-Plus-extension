@@ -32,10 +32,9 @@ interface Props {
   accountsInfo: DeriveAccountInfo[] | undefined;
   chain: Chain | null;
   recoveryConsts: RecoveryConsts | undefined;
-  recoveryInfo: PalletRecoveryRecoveryConfig | undefined;
 }
 
-function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain, recoveryInfo }: Props): React.ReactElement<Props> {
+function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [recoverer, setRecoverer] = useState<string | undefined>();
@@ -67,7 +66,6 @@ function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain, recove
       {!recoverer && <RecovererChoice />}
       {recoverer === 'rescuer' &&
         <AsResuer
-          recoveryInfo={recoveryInfo}
           account={account}
           accountsInfo={accountsInfo}
           api={api}

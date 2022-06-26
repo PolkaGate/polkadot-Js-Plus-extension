@@ -44,40 +44,38 @@ interface Props extends ThemeProps {
   handleCloseAsRescuer: () => void
   showAsRescuerModal: boolean;
   recoveryConsts: RecoveryConsts | undefined;
-  recoveryInfo: PalletRecoveryRecoveryConfig | undefined;
 }
 
-function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryConsts, recoveryInfo, showAsRescuerModal }: Props): React.ReactElement<Props> {
+function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [text, setText] = useState<string | undefined>();
-  const [lostAccount, setLostAccount] = useState<string | undefined>();
+  const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
+  const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
 
   const handleClearLostAccount = useCallback(() => {
-    setLostAccount('');
+    setLostAccount(undefined);
+    setLostAccountRecoveryInfo(undefined);
     setText('');
   }, []);
 
   const handleLostAccountChange = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
 
-    setLostAccount('');
+    setLostAccount(undefined);
+    setLostAccountRecoveryInfo(undefined);
     setText(value);
   }, []);
 
   const handleConfirmLostAccount = useCallback(() => {
-    const lostAccount = accountInfo?.accountId || (isValidAddress(text) ? text : undefined);
-    console.log('text', text)
-    console.log('isValidAddress(text)', isValidAddress(text))
-    console.log('lostAccount', lostAccount)
-    console.log('accountInfo?.accountId', accountInfo?.accountId)
+    const lostAccount = accountInfo ?? (isValidAddress(text) ? { accountId: text } : undefined);
 
-    lostAccount && setLostAccount(String(lostAccount));
-  }, [accountInfo?.accountId, text]);
+    lostAccount && setLostAccount(lostAccount);
+  }, [accountInfo, text]);
 
   const handleSearchIdentity = useCallback(() => {
     if (!accountsInfo?.length) {
@@ -110,6 +108,18 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     handleSearchIdentity();
   }, [handleSearchIdentity, text]);
 
+  useEffect(() => {
+    if (!api || !lostAccount) { return; }
+
+    const isRecoverable = api.query.recovery.recoverable;
+
+    // eslint-disable-next-line no-void
+    void isRecoverable(lostAccount.accountId).then((r) => {
+      setLostAccountRecoveryInfo(r.isSome && r.unwrap());
+      console.log('is lost account Recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+    });
+  }, [api, lostAccount]);
+
   const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
@@ -118,7 +128,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
             prefix={chain?.ss58Format ?? 42}
             size={40}
             theme={chain?.icon || 'polkadot'}
-            value={lostAccount}
+            value={lostAccount.accountId}
           />}
       </Grid>
       <Grid item xs={11}>
@@ -148,7 +158,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
           placeholder={'account Id / name / twitter / element Id / email / web site'}
           size='medium'
           type='string'
-          value={lostAccount || text}
+          value={lostAccount?.accountId || text}
           variant='outlined'
         />
       </Grid>
@@ -190,7 +200,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
               </>
               : accountInfo === null ?
                 <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
-                  {t<string>('No indetity found')}
+                  {t<string>('No indetity found for this account!')}
                 </Grid>
                 : !accountsInfo?.length && accountInfo === undefined &&
                 <Progress title={t<string>('Loading identities ...')} />
@@ -210,27 +220,37 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
         }
         {lostAccount &&
           <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
-
+            {!lostAccountRecoveryInfo &&
+              <Typography sx={{ color: 'text.secondary', pb: '10px' }} variant='subtitle1' >
+                {t<string>('Account is not recoverable')}
+              </Typography>
+            }
+            {lostAccountRecoveryInfo &&
+              <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1' >
+                {t<string>('Account is recoverable, proceed')}
+              </Typography>
+            }
           </Grid>
         }
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''
-            disabled={!lostAccount}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}
           </Button>
         </Grid>
       </Grid>
-      {showConfirmModal && api && chain && state && account && recoveryConsts &&
+      {showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts && lostAccountRecoveryInfo &&
         <Confirm
           account={account}
           api={api}
           chain={chain}
+          lostAccount={lostAccount}
           recoveryConsts={recoveryConsts}
-          recoveryDelay={recoveryInfo.delayPeriod.toNumber()}
-          recoveryThreshold={recoveryInfo.threshold.toNumber()}
+          recoveryDelay={lostAccountRecoveryInfo.delayPeriod.toNumber()}
+          recoveryThreshold={lostAccountRecoveryInfo.threshold.toNumber()}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}
           showConfirmModal={showConfirmModal}

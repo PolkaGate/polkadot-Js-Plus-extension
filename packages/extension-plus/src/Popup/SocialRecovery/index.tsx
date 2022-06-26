@@ -90,6 +90,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
 
   useEffect(() => {
     if (!recoveryInfo) { return; }
+
     setRecoveryThreshold(recoveryInfo.threshold.toNumber());
     const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
 
@@ -220,7 +221,6 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             api={api}
             chain={chain}
             recoveryConsts={recoveryConsts}
-            recoveryInfo={recoveryInfo}
           />
         }
         {tabValue === 'info' &&

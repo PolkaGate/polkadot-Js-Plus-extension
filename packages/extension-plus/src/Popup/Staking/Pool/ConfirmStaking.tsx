@@ -656,7 +656,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       setState(localState);
       setConfirmingState('');
     }
-  }, [api, basePool, bondExtra, chain, claim, decimals, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
+  }, [api, basePool, bondExtra, chain, chilled, claim, decimals, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
 
   const handleReject = useCallback((): void => {
     setState('');
