@@ -176,7 +176,7 @@ export default function Confirm({ account, api, chain, lostAccount, friends, rec
         const { block, failureText, fee, status, txHash } = await broadcast(api, initiateRecovery, params, signer, account.accountId);
 
         history.push({
-          action: 'remove_recovery',
+          action: 'initiate_recovery',
           amount: '0',
           block,
           date: Date.now(),
@@ -198,7 +198,7 @@ export default function Confirm({ account, api, chain, lostAccount, friends, rec
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, api, chain, createRecovery, freindIds, hierarchy, initiateRecovery, lostAccount.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, setState, state]);
+  }, [account.accountId, api, chain, createRecovery, freindIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);

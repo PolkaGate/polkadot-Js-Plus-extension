@@ -30,7 +30,7 @@ import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Password, PlusHeader, Popup, Progress } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
-import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
+import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
 import { AddressState, RecoveryConsts } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
@@ -56,6 +56,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
+  const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined>();
 
   const handleClearLostAccount = useCallback(() => {
     setLostAccount(undefined);
@@ -119,6 +120,24 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
       console.log('is lost account Recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
   }, [api, lostAccount]);
+
+  useEffect(() => {
+    if (!api || !account?.accountId || !lostAccount || !lostAccountRecoveryInfo) { return; }
+
+    const hasActiveRecoveries = api.query.recovery.activeRecoveries;
+
+    // eslint-disable-next-line no-void
+    void hasActiveRecoveries(lostAccount.accountId, account.accountId).then((r) => {
+      setHasActiveRecoveries(r.isSome && r.unwrap());
+      console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+    });
+
+    // eslint-disable-next-line no-void
+    void api.query.recovery.proxy(lostAccount.accountId).then((r) => {
+      console.log('proxy 0:', r);
+      console.log('proxy:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+    });
+  }, [account?.accountId, api, lostAccount, lostAccountRecoveryInfo]);
 
   const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
@@ -221,21 +240,28 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
         {lostAccount &&
           <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
             {!lostAccountRecoveryInfo &&
-              <Typography sx={{ color: 'text.secondary', pb: '10px' }} variant='subtitle1' >
+              <Typography sx={{ color: 'text.secondary', pb: '10px' }} variant='subtitle1'>
                 {t<string>('Account is not recoverable')}
               </Typography>
             }
             {lostAccountRecoveryInfo &&
-              <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1' >
-                {t<string>('Account is recoverable, proceed')}
-              </Typography>
+              <>
+                {hasActiveRecoveries
+                  ? <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='subtitle1'>
+                    {t<string>('Recovery is already initiated')}
+                  </Typography>
+                  : <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
+                    {t<string>('Account is recoverable, proceed')}
+                  </Typography>
+                }
+              </>
             }
           </Grid>
         }
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo || hasActiveRecoveries}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}
