@@ -57,6 +57,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined>();
+  const [isProxy, setIsProxy] = useState<boolean | undefined>();
 
   const handleClearLostAccount = useCallback(() => {
     setLostAccount(undefined);
@@ -133,9 +134,10 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     });
 
     // eslint-disable-next-line no-void
-    void api.query.recovery.proxy(lostAccount.accountId).then((r) => {
-      console.log('proxy 0:', r);
-      console.log('proxy:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+    void api.query.recovery.proxy(account.accountId).then((r) => {
+      const proxy = r.isSome ? r.unwrap().toString() : '';
+
+      setIsProxy(proxy === lostAccount.accountId);
     });
   }, [account?.accountId, api, lostAccount, lostAccountRecoveryInfo]);
 
@@ -250,9 +252,13 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
                   ? <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='subtitle1'>
                     {t<string>('Recovery is already initiated')}
                   </Typography>
-                  : <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
-                    {t<string>('Account is recoverable, proceed')}
-                  </Typography>
+                  : isProxy
+                    ? <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
+                      {t<string>('Account is already a proxy')}
+                    </Typography>
+                    : <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
+                      {t<string>('Account is recoverable, proceed')}
+                    </Typography>
                 }
               </>
             }
@@ -261,7 +267,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo || hasActiveRecoveries}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!hasActiveRecoveries || isProxy}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}

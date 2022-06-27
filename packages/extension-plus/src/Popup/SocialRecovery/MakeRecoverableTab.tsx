@@ -21,6 +21,7 @@ import { Hint, Identity } from '../../components';
 
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import { Chain } from '@polkadot/extension-chains/types';
+import { grey } from '@mui/material/colors';
 
 interface Props {
   handleAddFreind: () => void
@@ -43,7 +44,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
       <Grid container item justifyContent='space-between' sx={{ pt: '15px' }} xs={12}>
         <Grid item>
           <Typography sx={{ color: 'text.primary', p: '20px 0px 10px' }} variant='body2'>
-            {t('Your recovery friends:')}
+            {t('Your recovery friends')} {!!friends?.length && `(${friends?.length})`}:
           </Typography>
         </Grid>
         <Grid item>
@@ -56,7 +57,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
           }
         </Grid>
       </Grid>
-      <Grid container item sx={{ fontSize: 12, height: '190px', overflowY: 'auto', bgcolor: 'white' }} xs={12}>
+      <Grid alignItems='center' container justifyContent='center' item sx={{ bgcolor: 'white', border: '1px solid', borderColor:grey[600], borderRadius: 5, fontSize: 12, height: '190px', overflowY: 'auto' }} xs={12}>
         {friends?.length
           ? friends?.map((f, index) => (
             <Grid alignItems='flex-start' container item justifyContent='space-between' key={index} sx={{ pl: 1 }} xs={12}>
