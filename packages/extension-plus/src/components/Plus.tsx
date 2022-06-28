@@ -13,11 +13,11 @@ import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { ThemeProps } from '../../../extension-ui/src/types';
 
 import { faPaperPlane } from '@fortawesome/free-regular-svg-icons';
-import { faCoins, faQrcode, faShield, faSyncAlt, faTasks } from '@fortawesome/free-solid-svg-icons';
+import { faCoins, faQrcode, faShield, faShieldHalved, faSyncAlt, faTasks } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Backspace as BackspaceIcon, Beenhere as BeenhereIcon, InfoOutlined as InfoOutlinedIcon, SaveAlt as SaveAltIcon } from '@mui/icons-material';
 import { Container, Grid, Link } from '@mui/material';
-import { deepOrange, green, grey } from '@mui/material/colors';
+import { deepOrange, green, grey, red } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
@@ -76,6 +76,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const [price, setPrice] = useState<number>(0);
   const [ledger, setLedger] = useState<StakingLedger | null>(null);
   const [recoverable, setRecoverable] = useState<boolean | undefined>();
+  const [rescuer, setRescuer] = useState<string | undefined>();
 
   const getLedger = useCallback((): void => {
     if (!endpoint || !address) { return; }
@@ -97,6 +98,26 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       getLedgerWorker.terminate();
     };
   }, [address, endpoint]);
+
+  const hasRecovery = useCallback((): void => {
+    if (!endpoint || !address || !chain) { return; }
+
+    const hasRecoveryWorker: Worker = new Worker(new URL('../util/workers/hasRecovery.js', import.meta.url));
+
+    hasRecoveryWorker.postMessage({ address, chain, endpoint });
+
+    hasRecoveryWorker.onerror = (err) => {
+      console.log(err);
+    };
+
+    hasRecoveryWorker.onmessage = (e) => {
+      const rescuer: string | undefined = e.data as unknown as string | undefined;
+
+      setRescuer(rescuer);
+      rescuer && console.log(`${rescuer} is recovering ${address}`);
+      hasRecoveryWorker.terminate();
+    };
+  }, [address, chain, endpoint]);
 
   const subscribeToBalanceChanges = useCallback((): void => {
     if (!chain || !endpoint || !formattedAddress) { return; }
@@ -126,6 +147,10 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       setRefreshing(false);
     };
   }, [address, chain, formattedAddress, name, endpoint]);
+
+  useEffect((): void => {
+    address && chain && endpoint && hasRecovery(); //TOLO: filter just supported chain
+  }, [address, chain, endpoint, hasRecovery]);
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
@@ -286,7 +311,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
             : <>
               <Grid alignItems='flex-start' container item justifyContent='center' sx={{ textAlign: 'center', pl: 1 }} xs={2}>
                 <Grid item sx={{ cursor: 'pointer' }}>
-                  {recoverable &&
+                  {recoverable && !rescuer &&
                     <FontAwesomeIcon
                       color={green[600]}
                       icon={faShield}
@@ -294,6 +319,17 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                       onClick={handleOpenRecovery}
                       size='sm'
                       title={t && t('recoverable')}
+                    />
+                  }
+                  {rescuer &&
+                    <FontAwesomeIcon
+                      beat
+                      color={red[600]}
+                      icon={faShieldHalved}
+                      id='hasRecovery'
+                      onClick={handleOpenRecovery}
+                      size='lg'
+                      title={t && t('is recovering')}
                     />
                   }
                 </Grid>

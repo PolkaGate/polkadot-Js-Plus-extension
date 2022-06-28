@@ -140,13 +140,23 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
       console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
 
+    // let recoveries = [];
+
+    // // eslint-disable-next-line no-void
+    // void hasActiveRecoveries.entries().then((ars) => {
+    //   ars.map(([key, option]) => {
+    //     recoveries.push([encodeAddress('0x' + key.toString().slice(82, 146), chain?.ss58Format), encodeAddress('0x' + key.toString().slice(162), chain?.ss58Format)])
+    //   });
+    //   console.log('recoveries:',recoveries);
+    // });
+
     // eslint-disable-next-line no-void
     void api.query.recovery.proxy(account.accountId).then((r) => {
       const proxy = r.isSome ? r.unwrap().toString() : '';
 
       setIsProxy(proxy === lostAccount.accountId);
     });
-  }, [account?.accountId, api, lostAccount, lostAccountRecoveryInfo]);
+  }, [account.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
   const handleStep = (step: number) => () => {
     setActiveStep(step);
