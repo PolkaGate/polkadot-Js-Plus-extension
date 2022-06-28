@@ -14,7 +14,7 @@ import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Support as SupportIcon } from '@mui/icons-material';
-import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepLabel } from '@mui/material';
+import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepButton } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -148,6 +148,10 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     });
   }, [account?.accountId, api, lostAccount, lostAccountRecoveryInfo]);
 
+  const handleStep = (step: number) => () => {
+    setActiveStep(step);
+  };
+
   const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
@@ -181,7 +185,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
           autoFocus
           disabled={!accountsInfo?.length}
           fullWidth
-          helperText={t<string>('Please enter the lost account information')}
+          // helperText={t<string>('Please enter the lost account information')}
           label={t<string>('Account')}
           onChange={handleLostAccountChange}
           placeholder={'account Id / name / twitter / element Id / email / web site'}
@@ -210,21 +214,19 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
       <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Rescue account'} />
       <Grid container sx={{ p: '25px 30px' }}>
         <Grid item xs={12}>
-          <Stepper activeStep={activeStep}>
-            {steps.map((label, index) => {
-              const stepProps: { completed?: boolean } = {};
-
-              return (
-                <Step key={label} {...stepProps}>
-                  <StepLabel >{label}</StepLabel>
-                </Step>
-              );
-            })}
+          <Stepper activeStep={activeStep} nonLinear>
+            {steps.map((label, index) =>
+              <Step completed={completed[index]} key={label}>
+                <StepButton color='inherit' onClick={handleStep(index)}>
+                  {label}
+                </StepButton>
+              </Step>
+            )}
           </Stepper>
         </Grid>
         <Grid item pt='35px' xs={12}>
-          <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='subtitle2'>
-            {t<string>('Enter the lost account address ( or search it by its identity)')}:
+          <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
+            {t<string>('Enter the lost account address (or search by identity)')}:
           </Typography>
           <AccountTextBox />
         </Grid>
