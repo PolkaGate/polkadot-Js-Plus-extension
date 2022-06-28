@@ -47,15 +47,15 @@ function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain }: Prop
 
 
   const RecovererChoice = () => (
-    <Grid container justifyContent='center' sx={{ pt: 8 }}>
+    <Grid container justifyContent='center' sx={{ pt: 15 }}>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
-          <Avatar onClick={handleRescuer} sx={{ bgcolor: '#1c4a5a', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#ffb057', cursor: 'pointer', height: 110, width: 110 }}>{t('as Rescuer')}</Avatar>
+          <Avatar onClick={handleRescuer} sx={{ bgcolor: '#1c4a5a', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#ffb057', cursor: 'pointer', height: 120, width: 120 }}>{t('as Rescuer')}</Avatar>
         </Grid>
       </Grid>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
-          <Avatar onClick={handleFreind} sx={{ bgcolor: '#ffb057', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#1c4a5a', cursor: 'pointer', height: 110, width: 110 }}>{t('as Freind')}</Avatar>
+          <Avatar onClick={handleFreind} sx={{ bgcolor: '#ffb057', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>{t('as Freind')}</Avatar>
         </Grid>
       </Grid>
     </Grid>
@@ -70,8 +70,8 @@ function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain }: Prop
           accountsInfo={accountsInfo}
           api={api}
           handleCloseAsRescuer={handleCloseAsRescuer}
-          showAsRescuerModal={showAsRescuerModal}
           recoveryConsts={recoveryConsts}
+          showAsRescuerModal={showAsRescuerModal}
         />
       }
     </>

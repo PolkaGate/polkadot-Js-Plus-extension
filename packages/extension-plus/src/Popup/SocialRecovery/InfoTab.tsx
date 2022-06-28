@@ -29,7 +29,7 @@ function InfoTab({ api, recoveryConsts }: Props): React.ReactElement<Props> {
   const token = api && api.registry.chainTokens[0];
 
   return (
-    <Grid container data-testid='info' sx={{ paddingTop: '25px', textAlign: 'center' }}>
+    <Grid container data-testid='info' sx={{ paddingTop: '45px', textAlign: 'center' }}>
       <Grid sx={{ color: grey[600], fontSize: 15, fontWeight: '600' }} xs={12}>
         {t('Welcome to account recovery')}
       </Grid>
@@ -37,7 +37,7 @@ function InfoTab({ api, recoveryConsts }: Props): React.ReactElement<Props> {
         {t('Information you need to know about')}
         <Divider light />
       </Grid>
-      <Grid container item sx={{ px: '5px' }} xs={12}>
+      <Grid container item sx={{ p: '35px 5px' }} xs={12}>
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
             {t('The base {{token}}s needed to be reserved for creating a recovery', { replace: { token } })}:

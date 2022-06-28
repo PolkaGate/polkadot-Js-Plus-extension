@@ -14,7 +14,7 @@ import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Support as SupportIcon } from '@mui/icons-material';
-import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton } from '@mui/material';
+import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepLabel } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -46,6 +46,8 @@ interface Props extends ThemeProps {
   recoveryConsts: RecoveryConsts | undefined;
 }
 
+const steps = ['Initiating recovery', 'Claiming recovery', 'Close recovery'];
+
 function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
@@ -58,6 +60,11 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   const [state, setState] = useState<string | undefined>();
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined>();
   const [isProxy, setIsProxy] = useState<boolean | undefined>();
+
+  const [activeStep, setActiveStep] = React.useState(0);
+  const [completed, setCompleted] = React.useState<{
+    [k: number]: boolean;
+  }>({});
 
   const handleClearLostAccount = useCallback(() => {
     setLostAccount(undefined);
@@ -172,6 +179,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
             style: { fontSize: 14 }
           }}
           autoFocus
+          disabled={!accountsInfo?.length}
           fullWidth
           helperText={t<string>('Please enter the lost account information')}
           label={t<string>('Account')}
@@ -200,15 +208,28 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
       <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Rescue account'} />
-      <Grid container sx={{ p: '35px 30px' }}>
-        <Grid item sx={{ height: '100px' }} xs={12}>
-          <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='caption'>
+      <Grid container sx={{ p: '25px 30px' }}>
+        <Grid item xs={12}>
+          <Stepper activeStep={activeStep}>
+            {steps.map((label, index) => {
+              const stepProps: { completed?: boolean } = {};
+
+              return (
+                <Step key={label} {...stepProps}>
+                  <StepLabel >{label}</StepLabel>
+                </Step>
+              );
+            })}
+          </Stepper>
+        </Grid>
+        <Grid item pt='35px' xs={12}>
+          <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='subtitle2'>
             {t<string>('Enter the lost account address ( or search it by its identity)')}:
           </Typography>
-          {accountsInfo?.length && <AccountTextBox />}
+          <AccountTextBox />
         </Grid>
         {!lostAccount &&
-          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
+          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px', p: '20px 20px 20px 50px' }} xs={12}>
             {accountInfo
               ? <>
                 <ShowItem title={t<string>('Display')} value={accountInfo.identity.display} />
@@ -240,7 +261,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
           </Grid>
         }
         {lostAccount &&
-          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
+          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px', p: '20px 20px 20px 50px' }} xs={12}>
             {!lostAccountRecoveryInfo &&
               <Typography sx={{ color: 'text.secondary', pb: '10px' }} variant='subtitle1'>
                 {t<string>('Account is not recoverable')}
@@ -264,7 +285,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
             }
           </Grid>
         }
-        <Grid item sx={{ pt: 7 }} xs={12}>
+        <Grid item sx={{ pt: 3 }} xs={12}>
           <Button
             data-button-action=''
             isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!hasActiveRecoveries || isProxy}

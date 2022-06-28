@@ -41,9 +41,9 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
 
   return (
     <>
-      <Grid container item justifyContent='space-between' sx={{ pt: '15px' }} xs={12}>
-        <Grid item>
-          <Typography sx={{ color: 'text.primary', p: '20px 0px 10px' }} variant='body2'>
+      <Grid alignItems='center' container item justifyContent='space-between' sx={{ py: '15px' }} xs={12}>
+        <Grid item py='7px'>
+          <Typography sx={{ color: 'text.primary' }} variant='body2'>
             {t('Your recovery friends')} {!!friends?.length && `(${friends?.length})`}:
           </Typography>
         </Grid>
@@ -51,13 +51,13 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
           {!recoveryInfo &&
             <Hint id='addFreind' place='left' tip={t('add a freind')}>
               <IconButton aria-label='addFreind' color='warning' onClick={handleAddFreind} size='small'>
-                <AddCircleRoundedIcon sx={{ fontSize: 30 }} />
+                <AddCircleRoundedIcon sx={{ fontSize: 25 }} />
               </IconButton>
             </Hint>
           }
         </Grid>
       </Grid>
-      <Grid alignItems='center' container justifyContent='center' item sx={{ bgcolor: 'white', border: '1px solid', borderColor:grey[600], borderRadius: 5, fontSize: 12, height: '190px', overflowY: 'auto' }} xs={12}>
+      <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '190px', overflowY: 'auto' }} xs={12}>
         {friends?.length
           ? friends?.map((f, index) => (
             <Grid alignItems='flex-start' container item justifyContent='space-between' key={index} sx={{ pl: 1 }} xs={12}>
@@ -84,7 +84,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
           </Grid>
         }
       </Grid>
-      <Grid container item justifyContent='space-between' spacing={1.5} sx={{ pt: '20px' }} xs={12}>
+      <Grid container item justifyContent='space-between' spacing={1.5} sx={{ pt: '30px' }} xs={12}>
         <Grid item xs={6}>
           <TextField
             InputLabelProps={{ shrink: true }}
