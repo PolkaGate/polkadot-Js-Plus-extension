@@ -322,7 +322,6 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
           state={state}
         />
       }
-
     </Popup>
   );
 }

@@ -23,19 +23,20 @@ import styled from 'styled-components';
 
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
+import { BN } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../extension-ui/src/components/contexts';
 import { updateMeta } from '../../../extension-ui/src/messaging';
 import useApi from '../hooks/useApi';
-import useCleanUp from '../hooks/useCleanUp';
 import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
+import CloseRecovery from '../Popup/SocialRecovery/CloseRecovery';
 import StakingIndex from '../Popup/Staking/StakingIndex';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
 import { SUPPORTED_CHAINS } from '../util/constants';
-import { AccountsBalanceType, BalanceType, SavedMetaData } from '../util/plusTypes';
+import { AccountsBalanceType, BalanceType, Rescuer, SavedMetaData } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
 
@@ -60,9 +61,6 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const endpoint = useEndPoint(accounts, address, chain);
   const api = useApi(endpoint);
   const onAction = useContext(ActionContext);
-
-  // useCleanUp(accounts, address);
-
   const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
   const [balance, setBalance] = useState<AccountsBalanceType | null>(null);
   const [balanceChangeSubscribtion, setBalanceChangeSubscribtion] = useState<Subscription>(defaultSubscribtion);
@@ -70,13 +68,14 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const [showQRcodeModalOpen, setQRcodeModalOpen] = useState(false);
   const [showTxHistoryModal, setTxHistoryModalOpen] = useState(false);
   const [showStakingModal, setStakingModalOpen] = useState(false);
+  const [showCloseRecoveryModal, setCloseRecoveryModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [account, setAccount] = useState<AccountJson | null>(null);
   const [sender, setSender] = useState<AccountsBalanceType>({ address: String(address), chain: null, name: String(name) });
   const [price, setPrice] = useState<number>(0);
   const [ledger, setLedger] = useState<StakingLedger | null>(null);
   const [recoverable, setRecoverable] = useState<boolean | undefined>();
-  const [rescuer, setRescuer] = useState<string | undefined>();
+  const [rescuer, setRescuer] = useState<Rescuer | undefined>();
 
   const getLedger = useCallback((): void => {
     if (!endpoint || !address) { return; }
@@ -99,25 +98,30 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
     };
   }, [address, endpoint]);
 
-  const hasRecovery = useCallback((): void => {
-    if (!endpoint || !address || !chain) { return; }
+  const isRecovering = useCallback((): void => {
+    if (!endpoint || !formattedAddress || !chain) { return; }
 
-    const hasRecoveryWorker: Worker = new Worker(new URL('../util/workers/hasRecovery.js', import.meta.url));
+    const isRecoveringWorker: Worker = new Worker(new URL('../util/workers/isRecovering.js', import.meta.url));
 
-    hasRecoveryWorker.postMessage({ address, chain, endpoint });
+    isRecoveringWorker.postMessage({ formattedAddress, chain, endpoint });
 
-    hasRecoveryWorker.onerror = (err) => {
+    isRecoveringWorker.onerror = (err) => {
       console.log(err);
     };
 
-    hasRecoveryWorker.onmessage = (e) => {
-      const rescuer: string | undefined = e.data as unknown as string | undefined;
+    isRecoveringWorker.onmessage = (e) => {
+      const rescuer: Rescuer | undefined = e.data as unknown as Rescuer | undefined;
+
+      if (rescuer) {
+        console.log('rescuer is :', rescuer);
+        rescuer.option.created = new BN(rescuer.option.created);
+        rescuer.option.deposit = new BN(rescuer.option.deposit);
+      }
 
       setRescuer(rescuer);
-      rescuer && console.log(`${rescuer} is recovering ${address}`);
-      hasRecoveryWorker.terminate();
+      isRecoveringWorker.terminate();
     };
-  }, [address, chain, endpoint]);
+  }, [formattedAddress, chain, endpoint]);
 
   const subscribeToBalanceChanges = useCallback((): void => {
     if (!chain || !endpoint || !formattedAddress) { return; }
@@ -149,8 +153,8 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   }, [address, chain, formattedAddress, name, endpoint]);
 
   useEffect((): void => {
-    address && chain && endpoint && hasRecovery(); //TOLO: filter just supported chain
-  }, [address, chain, endpoint, hasRecovery]);
+    address && chain && endpoint && isRecovering(); //TOLO: filter just supported chain
+  }, [address, chain, endpoint, isRecovering]);
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
@@ -279,9 +283,17 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
     onAction(`/socialRecovery/${chain.genesisHash}/${address}`)
   }, [address, chain, onAction]);
 
+  const handleCloseRecovery = useCallback((): void => {
+    chain && rescuer && setCloseRecoveryModalOpen(true);
+  }, [chain, rescuer]);
+
   function getCoin(_myBalance: AccountsBalanceType): string {
     return !_myBalance || !_myBalance.balanceInfo ? '' : _myBalance.balanceInfo.coin;
   }
+
+  const handleExitCloseRecovery = useCallback((): void => {
+    setCloseRecoveryModalOpen(false);
+  }, [setCloseRecoveryModalOpen]);
 
   return (
     <Container disableGutters sx={{ position: 'relative', top: '-10px' }}>
@@ -326,8 +338,8 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                       beat
                       color={red[600]}
                       icon={faShieldHalved}
-                      id='hasRecovery'
-                      onClick={handleOpenRecovery}
+                      id='isRecovering'
+                      onClick={handleCloseRecovery}
                       size='sm'
                       title={t && t('is recovering')}
                     />
@@ -451,6 +463,16 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
           setStakingModalOpen={setStakingModalOpen}
           showStakingModal={showStakingModal}
           staker={sender}
+        />
+      }
+      {showCloseRecoveryModal && rescuer && formattedAddress && chain && // TODO: chain should be supported ones
+        <CloseRecovery
+          formattedAddress={formattedAddress}
+          api={api}
+          chain={chain}
+          handleExitCloseRecovery={handleExitCloseRecovery}
+          rescuer={rescuer}
+          showCloseRecoveryModal={showCloseRecoveryModal}
         />
       }
     </Container>

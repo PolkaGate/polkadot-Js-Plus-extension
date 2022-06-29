@@ -9,7 +9,7 @@
 
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { Balance } from '@polkadot/types/interfaces';
-import type { RecoveryConsts, TransactionDetail } from '../../util/plusTypes';
+import type { RecoveryConsts, Rescuer, TransactionDetail } from '../../util/plusTypes';
 
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Grid, Skeleton, Typography } from '@mui/material';
@@ -39,13 +39,14 @@ interface Props {
   setState: React.Dispatch<React.SetStateAction<string>>;
   account: DeriveAccountInfo;
   friends?: DeriveAccountInfo[];
-  recoveryThreshold: number;
-  recoveryDelay: number;
-  recoveryConsts: RecoveryConsts;
+  recoveryThreshold?: number;
+  recoveryDelay?: number;
+  recoveryConsts?: RecoveryConsts;
   lostAccount?: DeriveAccountInfo;
+  rescuer: Rescuer;
 }
 
-export default function Confirm({ account, api, chain, lostAccount, friends, recoveryConsts, recoveryDelay, recoveryThreshold, setConfirmModalOpen, setState, showConfirmModal, state }: Props): React.ReactElement<Props> {
+export default function Confirm({ account, api, chain, friends, lostAccount, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const onAction = useContext(ActionContext);
@@ -61,6 +62,7 @@ export default function Confirm({ account, api, chain, lostAccount, friends, rec
   const createRecovery = api.tx.recovery.createRecovery;// (friends: Vec<AccountId32>, threshold: u16, delay_period: u32)
   const removeRecovery = api.tx.recovery.removeRecovery;
   const initiateRecovery = api.tx.recovery.initiateRecovery; // (lostAccount)
+  const closeRecovery = api.tx.recovery.closeRecovery; // (rescuer)
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) { return false; }
@@ -87,29 +89,38 @@ export default function Confirm({ account, api, chain, lostAccount, friends, rec
         break;
       case ('removeRecovery'):
         // eslint-disable-next-line no-void
-        void removeRecovery().paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+        account?.accountId && void removeRecovery().paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
       case ('initiateRecovery'):
         // eslint-disable-next-line no-void
-        lostAccount?.accountId && void initiateRecovery(lostAccount.accountId).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+        lostAccount?.accountId && account?.accountId && void initiateRecovery(lostAccount.accountId).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+
+        break;
+      case ('closeRecovery'):
+        // eslint-disable-next-line no-void
+        account?.accountId && void closeRecovery(rescuer.accountId).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
       default:
     }
-  }, [account.accountId, createRecovery, freindIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, state]);
+  }, [account.accountId, closeRecovery, createRecovery, freindIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer.accountId, state]);
 
   const deposit = useMemo((): BN => {
-    if (['removeRecovery', 'makeRecoverable'].includes(state) && freindIds?.length) {
+    if (['removeRecovery', 'makeRecoverable'].includes(state) && freindIds?.length && recoveryConsts) {
       return recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(freindIds.length));
     }
 
-    if (state === 'initiateRecovery') {
+    if (state === 'initiateRecovery' && recoveryConsts) {
       return recoveryConsts.recoveryDeposit;
     }
 
+    if (state === 'closeRecovery') {
+      return rescuer.option.deposit;
+    }
+
     return BN_ZERO;
-  }, [freindIds?.length, recoveryConsts.configDepositBase, recoveryConsts.friendDepositFactor, recoveryConsts.recoveryDeposit, state]);
+  }, [freindIds?.length, recoveryConsts, rescuer.option.deposit, state]);
 
   useEffect(() => {
     if (!api) { return; }
@@ -234,6 +245,8 @@ export default function Confirm({ account, api, chain, lostAccount, friends, rec
         return 'Remove Recovery';
       case ('initiateRecovery'):
         return 'Initiate Recovery';
+      case ('closeRecovery'):
+        return 'Close Recovery';
       default:
         return state.toUpperCase();
     }
@@ -259,14 +272,16 @@ export default function Confirm({ account, api, chain, lostAccount, friends, rec
               <Identity accountInfo={lostAccount ?? account} chain={chain} showAddress />
             </Grid>
             <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, pt: '30px', textAlign: 'center' }} xs={12}>
-              <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
-                <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
-                  {t('Recovery threshold')}
+              {recoveryThreshold &&
+                <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
+                  <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
+                    {t('Recovery threshold')}
+                  </Grid>
+                  <Grid item xs={12}>
+                    {recoveryThreshold}
+                  </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                  {recoveryThreshold}
-                </Grid>
-              </Grid>
+              }
               <Grid container item justifyContent='center' xs={3}>
                 <Grid item sx={{ color: grey[500], fontWeight: '600' }} xs={12}>
                   {t('Fee')}
@@ -286,14 +301,15 @@ export default function Confirm({ account, api, chain, lostAccount, friends, rec
                   <FormatBalance api={api} value={deposit} />
                 </Grid>
               </Grid>
-              <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
-                <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
-                  {t('Recovery delay ')}
-                </Grid>
-                <Grid item xs={12}>
-                  {recoveryDelay}
-                </Grid>
-              </Grid>
+              {recoveryDelay &&
+                <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
+                  <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
+                    {t('Recovery delay ')}
+                  </Grid>
+                  <Grid item xs={12}>
+                    {recoveryDelay}
+                  </Grid>
+                </Grid>}
             </Grid>
           </Grid>
         </Grid>

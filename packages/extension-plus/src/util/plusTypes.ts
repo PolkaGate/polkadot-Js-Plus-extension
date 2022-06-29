@@ -366,3 +366,12 @@ export interface RecoveryConsts {
   maxFriends: number,
   recoveryDeposit: BN
 }
+
+export type Rescuer = {
+  accountId: string;
+  option: {
+    created: BN;
+    deposit: BN;
+    friends: string[];
+  }
+}

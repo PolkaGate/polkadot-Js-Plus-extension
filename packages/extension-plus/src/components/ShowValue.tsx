@@ -4,12 +4,12 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description  this componet is used to show an value, if not loaded shows skelton
+ * @description  this componet is used to show a value, if not loaded shows skelton
  * */
 
 import type { ThemeProps } from '../../../extension-ui/src/types';
 
-import { Skeleton } from '@mui/material';
+import { Grid, Skeleton } from '@mui/material';
 import React from 'react';
 import styled from 'styled-components';
 
@@ -21,15 +21,23 @@ export interface Props {
 
 function ShowValue({ title, unit, value }: Props): React.ReactElement<Props> {
   return (
-    <div data-testid='showValue'>
-      {title && <> {title}:{' '}</>}
-      {value !== undefined && value !== null
-        ? <>
-          {value}{' '}{unit}
-        </>
-        : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
+    <Grid container item justifyContent='space-between' xs={12}>
+      {title &&
+        <Grid item>
+          {title}
+        </Grid>
       }
-    </div>
+      <Grid item>
+        {value !== undefined && value !== null
+          ? <>
+            {value}{' '}{unit}
+          </>
+          : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
+        }
+      </Grid>
+    </Grid>
+
+
   );
 }
 
