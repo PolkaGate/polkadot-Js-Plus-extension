@@ -328,7 +328,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                       icon={faShieldHalved}
                       id='hasRecovery'
                       onClick={handleOpenRecovery}
-                      size='lg'
+                      size='sm'
                       title={t && t('is recovering')}
                     />
                   }
