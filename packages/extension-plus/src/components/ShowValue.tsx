@@ -17,11 +17,12 @@ export interface Props {
   value: string | number | null | undefined;
   unit?: string;
   title?: string;
+  direction?: string;
 }
 
-function ShowValue({ title, unit, value }: Props): React.ReactElement<Props> {
+function ShowValue({ direction = 'row', title, unit, value }: Props): React.ReactElement<Props> {
   return (
-    <Grid container item justifyContent='space-between' xs={12}>
+    <Grid container direction={direction} item justifyContent='space-between' xs={12}>
       {title &&
         <Grid item>
           {title}
@@ -36,8 +37,6 @@ function ShowValue({ title, unit, value }: Props): React.ReactElement<Props> {
         }
       </Grid>
     </Grid>
-
-
   );
 }
 
