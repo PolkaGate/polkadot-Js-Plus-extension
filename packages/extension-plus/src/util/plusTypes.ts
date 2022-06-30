@@ -361,13 +361,13 @@ export interface MembersMapEntry {
 }
 
 export interface RecoveryConsts {
-  configDepositBase: BN,
-  friendDepositFactor: BN,
-  maxFriends: number,
+  configDepositBase: BN;
+  friendDepositFactor: BN;
+  maxFriends: number;
   recoveryDeposit: BN
 }
 
-export type Rescuer = {
+export interface Rescuer {
   accountId: string;
   option: {
     created: BN;

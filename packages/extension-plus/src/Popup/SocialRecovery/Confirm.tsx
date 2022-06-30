@@ -25,10 +25,10 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, FormatBalance, Identity, Password, PlusHeader, Popup } from '../../components';
+import { ConfirmButton, FormatBalance, Identity, Password, PlusHeader, Popup, ShowBalance2, ShowValue } from '../../components';
 import { broadcast } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
-import { getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
+import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 
 interface Props {
   api: ApiPromise;
@@ -36,14 +36,14 @@ interface Props {
   showConfirmModal: boolean;
   setConfirmModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   state: string;
-  setState: React.Dispatch<React.SetStateAction<string>>;
+  setState: React.Dispatch<React.SetStateAction<string | undefined>>
   account: DeriveAccountInfo;
   friends?: DeriveAccountInfo[];
   recoveryThreshold?: number;
   recoveryDelay?: number;
   recoveryConsts?: RecoveryConsts;
   lostAccount?: DeriveAccountInfo;
-  rescuer: Rescuer;
+  rescuer?: Rescuer;
 }
 
 export default function Confirm({ account, api, chain, friends, lostAccount, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state }: Props): React.ReactElement<Props> {
@@ -56,6 +56,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
 
+  const decimals = api.registry.chainDecimals[0];
   const freindIds = friends?.map((f) => f.accountId).sort(); // if not sorted, tx will retun an error!!
 
   /** list of available trasactions */
@@ -77,7 +78,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
   const callSetFee = useCallback(() => {
     let params;
-    const recoveryDelayInBlocks = recoveryDelay * 24 * 60 * 10;
+    const recoveryDelayInBlocks = recoveryDelay ? recoveryDelay * 24 * 60 * 10 : undefined;
 
     switch (state) {
       case ('makeRecoverable'):
@@ -98,13 +99,15 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
         break;
       case ('closeRecovery'):
+        params = [rescuer.accountId];
+
         // eslint-disable-next-line no-void
-        account?.accountId && void closeRecovery(rescuer.accountId).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+        account?.accountId && void closeRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
       default:
     }
-  }, [account.accountId, closeRecovery, createRecovery, freindIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer.accountId, state]);
+  }, [account.accountId, closeRecovery, createRecovery, freindIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, state]);
 
   const deposit = useMemo((): BN => {
     if (['removeRecovery', 'makeRecoverable'].includes(state) && freindIds?.length && recoveryConsts) {
@@ -120,7 +123,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     }
 
     return BN_ZERO;
-  }, [freindIds?.length, recoveryConsts, rescuer.option.deposit, state]);
+  }, [freindIds?.length, recoveryConsts, rescuer, state]);
 
   useEffect(() => {
     if (!api) { return; }
@@ -201,6 +204,25 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         setConfirmingState(status);
       }
 
+      if (localState === 'closeRecovery' && rescuer?.accountId) {
+        const params = [rescuer.accountId];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, closeRecovery, params, signer, account.accountId);
+
+        history.push({
+          action: 'close_recovery',
+          amount: amountToHuman(String(rescuer.option.deposit), decimals),
+          block,
+          date: Date.now(),
+          fee: fee || '',
+          from: String(account.accountId),
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
+
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, account.accountId, history);
     } catch (e) {
@@ -209,7 +231,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, api, chain, createRecovery, freindIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, setState, state]);
+  }, [account.accountId, api, chain, closeRecovery, createRecovery, decimals, freindIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -219,6 +241,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     setState('');
     setConfirmingState('');
     onAction('/');
+    window.location.reload();
   }, [onAction, setState]);
 
   const WriteAppropiateMessage = useCallback(({ note, state }: { state: string, note?: string }) => {
@@ -227,7 +250,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         return <Typography sx={{ mt: '50px' }} variant='h6'>
           {t('Initiating recovery for the above mentioned account, the deposit will be always repatriated to that account')}
         </Typography>;
-
+      case ('closeRecovery'):
+        return <Typography sx={{ mt: '50px' }} variant='body1'>
+          {t('Closing the initiated recovery process by the above mentioned account and transfering its {{deposit}} deposit to your account',
+            { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
+        </Typography>;
+      case ('removeRecovery'):
+        return <Typography sx={{ mt: '50px' }} variant='body1'>
+          {t('Removing your account setting as recoverable. Your {{deposit}} deposit will be unclocked',
+            { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
+        </Typography>;
       default:
         return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>
           {note}
@@ -271,61 +303,43 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
             <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
               <Identity accountInfo={lostAccount ?? account} chain={chain} showAddress />
             </Grid>
-            <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 11, pt: '30px', textAlign: 'center' }} xs={12}>
+            <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '30px', textAlign: 'center' }} xs={12}>
               {recoveryThreshold &&
                 <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
-                  <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
-                    {t('Recovery threshold')}
-                  </Grid>
-                  <Grid item xs={12}>
-                    {recoveryThreshold}
-                  </Grid>
+                  <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
                 </Grid>
               }
               <Grid container item justifyContent='center' xs={3}>
-                <Grid item sx={{ color: grey[500], fontWeight: '600' }} xs={12}>
-                  {t('Fee')}
-                </Grid>
-                <Grid item xs={12}>
-                  {!estimatedFee
-                    ? <span><Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '30px' }} /></span>
-                    : <FormatBalance api={api} value={estimatedFee} />
-                  }
-                </Grid>
+                <ShowBalance2 api={api} balance={estimatedFee} title={t('Fee')} />
               </Grid>
-              <Grid container item justifyContent='center' xs={3}>
-                <Grid item sx={{ color: grey[500], fontWeight: '600' }} xs={12}>
-                  {t('Deposit')}
+              {['initiateRecovery', 'makeRecoverable'].includes(state) &&
+                <Grid container item justifyContent='center' xs={3}>
+                  <ShowBalance2 api={api} balance={deposit} title={t('Deposit')} />
                 </Grid>
-                <Grid item xs={12}>
-                  <FormatBalance api={api} value={deposit} />
-                </Grid>
-              </Grid>
-              {recoveryDelay &&
+              }
+              {recoveryDelay !== undefined &&
                 <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
-                  <Grid item sx={{ color: grey[600], fontWeight: '600' }} xs={12}>
-                    {t('Recovery delay ')}
-                  </Grid>
-                  <Grid item xs={12}>
-                    {recoveryDelay}
-                  </Grid>
-                </Grid>}
+                  <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} />
+                </Grid>
+              }
             </Grid>
           </Grid>
         </Grid>
         <Grid container item sx={{ fontSize: 12, height: '200px', overflowY: 'auto', bgcolor: 'white' }} xs={12}>
-          {!!friends?.length &&
-            <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
-              {t('List of friends')}
-            </Grid>
+          {['makeRecoverable', 'initiateRecovery'].includes(state) &&
+            <>
+              <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
+                {t('List of friends')}
+              </Grid>
+              {friends?.map((f, index) => (
+                <Grid alignItems='flex-start' key={index} sx={{ px: '30px' }} xs={12}>
+                  <Identity accountInfo={f} chain={chain} showAddress />
+                </Grid>
+              ))}
+            </>
           }
-          {friends?.map((f, index) => (
-            <Grid alignItems='flex-start' key={index} sx={{ px: '30px' }} xs={12}>
-              <Identity accountInfo={f} chain={chain} showAddress />
-            </Grid>
-          ))}
-          {!friends?.length &&
-            <Grid item xs={12} px='30px'>
+          {['closeRecovery', 'removeRecovery'].includes(state) &&
+            <Grid item px='30px' xs={12}>
               <WriteAppropiateMessage state={state} />
             </Grid>
           }

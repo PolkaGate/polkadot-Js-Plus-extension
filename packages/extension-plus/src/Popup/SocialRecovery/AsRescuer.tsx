@@ -60,7 +60,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   const [state, setState] = useState<string | undefined>();
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined>();
   const [isProxy, setIsProxy] = useState<boolean | undefined>();
-
+  const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState<{
     [k: number]: boolean;
@@ -113,9 +113,22 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     setConfirmModalOpen(true);
   }, []);
 
+  const handleStep = (step: number) => () => {
+    setActiveStep(step);
+  };
+
   useEffect(() => {
     handleSearchIdentity();
   }, [handleSearchIdentity, text]);
+
+  useEffect(() => {
+    if (api && lostAccountRecoveryInfo?.friends) {
+      Promise.all(
+        lostAccountRecoveryInfo.friends.map((f) => api.derive.accounts.info(f))
+      ).then((info) => setfriendsAccountsInfo(info))
+        .catch(console.error);
+    }
+  }, [lostAccountRecoveryInfo, api]);
 
   useEffect(() => {
     if (!api || !lostAccount) { return; }
@@ -125,7 +138,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     // eslint-disable-next-line no-void
     void isRecoverable(lostAccount.accountId).then((r) => {
       setLostAccountRecoveryInfo(r.isSome && r.unwrap());
-      console.log('is lost account Recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+      console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
   }, [api, lostAccount]);
 
@@ -140,27 +153,13 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
       console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
 
-    // let recoveries = [];
-
-    // // eslint-disable-next-line no-void
-    // void hasActiveRecoveries.entries().then((ars) => {
-    //   ars.map(([key, option]) => {
-    //     recoveries.push([encodeAddress('0x' + key.toString().slice(82, 146), chain?.ss58Format), encodeAddress('0x' + key.toString().slice(162), chain?.ss58Format)])
-    //   });
-    //   console.log('recoveries:',recoveries);
-    // });
-
     // eslint-disable-next-line no-void
     void api.query.recovery.proxy(account.accountId).then((r) => {
       const proxy = r.isSome ? r.unwrap().toString() : '';
 
       setIsProxy(proxy === lostAccount.accountId);
     });
-  }, [account.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
-
-  const handleStep = (step: number) => () => {
-    setActiveStep(step);
-  };
+  }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
   const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
@@ -312,6 +311,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
           account={account}
           api={api}
           chain={chain}
+          friends={friendsAccountsInfo}
           lostAccount={lostAccount}
           recoveryConsts={recoveryConsts}
           recoveryDelay={lostAccountRecoveryInfo.delayPeriod.toNumber()}

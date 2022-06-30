@@ -196,7 +196,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
             {!recoveryInfo && <Tab icon={<BeenhereIcon fontSize='small' />} iconPosition='start' label='Make recoverable' sx={{ fontSize: 11 }} value='makeRecoverable' />}
             {recoveryInfo && <Tab icon={<BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />} iconPosition='start' label='Remoe recovery' sx={{ fontSize: 11 }} value='makeRecoverable' />}
-            <Tab icon={<SaveAltIcon fontSize='small' />} iconPosition='start' label='Recover' sx={{ fontSize: 11 }} value='recover' />
+            <Tab icon={<SaveAltIcon fontSize='small' />} iconPosition='start' label='Rescue' sx={{ fontSize: 11 }} value='rescue' />
             <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
           </Tabs>
         </Grid>
@@ -214,7 +214,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             recoveryThreshold={recoveryThreshold}
           />
         }
-        {tabValue === 'recover' &&
+        {tabValue === 'rescue' &&
           <RecoveryTab
             account={account}
             accountsInfo={accountsInfo}
