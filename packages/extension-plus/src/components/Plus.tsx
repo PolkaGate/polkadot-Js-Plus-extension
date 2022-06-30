@@ -153,8 +153,8 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   }, [address, chain, formattedAddress, name, endpoint]);
 
   useEffect((): void => {
-    address && chain && endpoint && isRecovering(); //TOLO: filter just supported chain
-  }, [address, chain, endpoint, isRecovering]);
+    address && chain && endpoint && api?.query?.recovery && isRecovering(); //TOLO: filter just supported chain
+  }, [api, address, chain, endpoint, isRecovering]);
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
