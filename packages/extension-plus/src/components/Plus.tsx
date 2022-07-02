@@ -98,12 +98,12 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
     };
   }, [address, endpoint]);
 
-  const isRecovering = useCallback((): void => {
-    if (!endpoint || !formattedAddress || !chain) { return; }
+  const isRecovering = useCallback((address: string, chain: Chain, endpoint: string): void => {
+    if (!endpoint || !address || !chain) { return; }
 
     const isRecoveringWorker: Worker = new Worker(new URL('../util/workers/isRecovering.js', import.meta.url));
 
-    isRecoveringWorker.postMessage({ formattedAddress, chain, endpoint });
+    isRecoveringWorker.postMessage({ address, chain, endpoint });
 
     isRecoveringWorker.onerror = (err) => {
       console.log(err);
@@ -121,7 +121,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       setRescuer(rescuer);
       isRecoveringWorker.terminate();
     };
-  }, [formattedAddress, chain, endpoint]);
+  }, []);
 
   const subscribeToBalanceChanges = useCallback((): void => {
     if (!chain || !endpoint || !formattedAddress) { return; }
@@ -153,8 +153,8 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   }, [address, chain, formattedAddress, name, endpoint]);
 
   useEffect((): void => {
-    address && chain && endpoint && api?.query?.recovery && isRecovering(); //TOLO: filter just supported chain
-  }, [api, address, chain, endpoint, isRecovering]);
+    formattedAddress && chain && endpoint && api?.query?.recovery && isRecovering(formattedAddress, chain, endpoint); //TOLO: filter just supported chain
+  }, [api, formattedAddress, chain, endpoint, isRecovering]);
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
@@ -467,9 +467,9 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       }
       {showCloseRecoveryModal && rescuer && formattedAddress && chain && // TODO: chain should be supported ones
         <CloseRecovery
-          formattedAddress={formattedAddress}
           api={api}
           chain={chain}
+          formattedAddress={formattedAddress}
           handleExitCloseRecovery={handleExitCloseRecovery}
           rescuer={rescuer}
           showCloseRecoveryModal={showCloseRecoveryModal}

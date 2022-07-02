@@ -6,7 +6,7 @@
 
 /**
  * @description
- * this component renders make recoverable tab in social recovery
+ * this component renders make/remove recoverable tab in social recovery
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
@@ -29,11 +29,11 @@ interface Props {
   chain: Chain | null;
   handleDeleteFreind: (index: number) => void;
   recoveryThreshold: number;
-  handleRecoveryDelay: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  handleRecoveryDelay: (event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => void;
   recoveryDelay: number;
-  handleRecoveryThreshold: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  handleRecoveryThreshold: (event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleNext: () => void;
-  recoveryInfo: PalletRecoveryRecoveryConfig | undefined
+  recoveryInfo: PalletRecoveryRecoveryConfig | undefined | null;
 }
 
 function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFreind, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryInfo, recoveryDelay, recoveryThreshold }: Props): React.ReactElement<Props> {

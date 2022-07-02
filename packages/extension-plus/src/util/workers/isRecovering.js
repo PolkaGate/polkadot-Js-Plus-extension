@@ -29,10 +29,10 @@ async function isRecovering(_address, endpoint, chain) {
 }
 
 onmessage = (e) => {
-  const { formattedAddress, chain, endpoint } = e.data;
+  const { address, chain, endpoint } = e.data;
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  isRecovering(formattedAddress, endpoint, chain).then((rescuer) => {
+  isRecovering(address, endpoint, chain).then((rescuer) => {
     postMessage(rescuer);
   });
 };

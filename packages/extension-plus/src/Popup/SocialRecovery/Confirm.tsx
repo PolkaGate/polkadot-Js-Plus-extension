@@ -252,7 +252,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         </Typography>;
       case ('closeRecovery'):
         return <Typography sx={{ mt: '50px' }} variant='body1'>
-          {t('Closing the initiated recovery process by the above mentioned account and transfering its {{deposit}} deposit to your account',
+          {t('Closing the recovery process initiated by the above mentioned malicious account, which transfers its {{deposit}} deposit to your account',
             { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
         </Typography>;
       case ('removeRecovery'):
@@ -328,9 +328,17 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         <Grid container item sx={{ fontSize: 12, height: '200px', overflowY: 'auto', bgcolor: 'white' }} xs={12}>
           {['makeRecoverable', 'initiateRecovery'].includes(state) &&
             <>
-              <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
+              {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
                 {t('List of friends')}
               </Grid>
+              }
+              {state === 'initiateRecovery' &&
+                <Grid item sx={{ p: '25px 20px 5px', textAlign: 'center' }} xs={12}>
+                  <Typography sx={{ color: grey[600] }} variant='subtitle2'>
+                    {t('Initiating recovery for the above account, with the following friends: ')}
+                  </Typography>
+                </Grid>
+              }
               {friends?.map((f, index) => (
                 <Grid alignItems='flex-start' key={index} sx={{ px: '30px' }} xs={12}>
                   <Identity accountInfo={f} chain={chain} showAddress />

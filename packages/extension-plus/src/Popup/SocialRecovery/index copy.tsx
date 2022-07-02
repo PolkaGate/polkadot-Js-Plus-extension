@@ -13,10 +13,8 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 
-import { Beenhere as BeenhereIcon, Backspace as BackspaceIcon, HealthAndSafety as HealthAndSafetyIcon, SaveAlt as SaveAltIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
+import { Beenhere as BeenhereIcon, Backspace as BackspaceIcon, SaveAlt as SaveAltIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -41,7 +39,6 @@ import RscueTab from './RescueTab';
 import { Chain } from '@polkadot/extension-chains/types';
 import CloseRecoveryTab from './CloseRecoveryTab';
 import RecoveryChecking from './RecoveryChecking';
-import { red } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -70,8 +67,6 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const [recoveryConsts, setRecoveryConsts] = useState<RecoveryConsts | undefined>();
   const [recoveryInfo, setRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [rescuer, setRescuer] = useState<Rescuer | undefined | null>();
-  const [recoveryTabLabel, setRecoveryTabLabel] = useState<string>('Make recoverable');
-  const [recoveryStatus, setRecoveryStatus] = useState<string | undefined>();
 
   const handleAlladdressesOnThisChain = useCallback((prefix: number): void => {
     const allAddresesOnSameChain = accounts.reduce(function (result: nameAddress[], acc): nameAddress[] {
@@ -240,27 +235,21 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
       <Grid alignItems='center' container sx={{ px: '30px' }}>
         <Grid item xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab
-              icon={
-                !recoveryStatus || recoveryStatus === 'Make recoverable'
-                  ? <BeenhereIcon fontSize='small' />
-                  : recoveryStatus === 'Remove recovery'
-                    ? <BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />
-                    : <HealthAndSafetyIcon fontSize='small' />
-              }
-              iconPosition='start' label={recoveryStatus ?? 'Recovery'} sx={{ fontSize: 11 }} value='recovery' />
+            {!recoveryInfo && <Tab icon={<BeenhereIcon fontSize='small' />} iconPosition='start' label='Make recoverable' sx={{ fontSize: 11 }} value='makeRecoverable' />}
+            {recoveryInfo && !rescuer && <Tab icon={<BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />} iconPosition='start' label='Remoe recovery' sx={{ fontSize: 11 }} value='removeRecovery' />}
+            {recoveryInfo && rescuer && <Tab icon={<BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />} iconPosition='start' label='Close recovery' sx={{ fontSize: 11 }} value='closeRecovery' />}
             <Tab icon={<SaveAltIcon fontSize='small' />} iconPosition='start' label='Rescue' sx={{ fontSize: 11 }} value='rescue' />
             <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
           </Tabs>
         </Grid>
-        {tabValue === 'recovery' && !recoveryStatus &&
+        {tabValue === 'makeRecoverable' &&
           <RecoveryChecking
             recoveryInfo={recoveryInfo}
             rescuer={rescuer}
-            setRecoveryStatus={setRecoveryStatus}
+            setTabValue={setTabValue}
           />
         }
-        {tabValue === 'recovery' && recoveryStatus && ['Make recoverable', 'Remove recovery'].includes(recoveryStatus) &&
+        {['makeRecoverable', 'removeRecovery'].includes(tabValue) &&
           <MakeRecoverableTab
             chain={chain}
             friends={friends}
@@ -274,7 +263,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             recoveryThreshold={recoveryThreshold}
           />
         }
-        {tabValue === 'recovery' && recoveryStatus && recoveryStatus === 'Close recovery' && rescuer &&
+        {tabValue === 'closeRecovery' && rescuer &&
           <CloseRecoveryTab
             api={api}
             chain={chain}
