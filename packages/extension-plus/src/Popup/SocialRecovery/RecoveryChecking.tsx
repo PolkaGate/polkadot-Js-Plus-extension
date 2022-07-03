@@ -35,7 +35,7 @@ function RecoveryChecking({ recoveryInfo, rescuer, setRecoveryStatus }: Props): 
 
   useEffect((): void => {
     if (recoveryInfo === undefined) {
-      return setProcessTitle(t('Checking if account is recoverable'));
+      return setProcessTitle(t('Checking if the account is recoverable'));
     }
 
     if (recoveryInfo === null) {

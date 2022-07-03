@@ -12,7 +12,7 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Support as SupportIcon } from '@mui/icons-material';
+import { AdminPanelSettings as AdminPanelSettingsIcon } from '@mui/icons-material';
 import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepButton } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -185,7 +185,31 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
           autoFocus
           disabled={!accountsInfo?.length}
           fullWidth
-          // helperText={t<string>('Please enter the lost account information')}
+          helperText={lostAccount &&
+            <Grid container>
+              {!lostAccountRecoveryInfo &&
+                <Grid item  >
+                  {t<string>('Account is not recoverable')}
+                </Grid>
+              }
+              {lostAccountRecoveryInfo &&
+                <>
+                  {hasActiveRecoveries
+                    ? <Grid item >
+                      {t<string>('Recovery is already initiated')}
+                    </Grid>
+                    : isProxy
+                      ? <Grid item sx={{ color: 'green' }}  >
+                        {t<string>('Account is already a proxy')}
+                      </Grid>
+                      : <Grid item sx={{ color: 'green' }}  >
+                        {t<string>('Account is recoverable, proceed')}
+                      </Grid>
+                  }
+                </>
+              }
+            </Grid>
+          }
           label={t<string>('Account')}
           onChange={handleLostAccountChange}
           placeholder={'account Id / name / twitter / element Id / email / web site'}
@@ -211,11 +235,11 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
 
   return (
     <Popup handleClose={handleCloseAsFriend} showModal={showAsFriendModal}>
-      <PlusHeader action={handleCloseAsFriend} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Vouch account'} />
+      <PlusHeader action={handleCloseAsFriend} chain={chain} closeText={'Close'} icon={<AdminPanelSettingsIcon fontSize='small' />} title={'Vouch account'} />
       <Grid container sx={{ p: '25px 30px' }}>
-        <Grid item pt='35px' xs={12}>
+        <Grid item pt='15px' xs={12}>
           <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
-            {t<string>('Enter a lost account address (or search by identity)')}:
+            {t<string>('Enter the lost account Id (identity), who you want to vouch for')}:
           </Typography>
           <AccountTextBox />
         </Grid>
@@ -239,40 +263,16 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
                 <Progress title={t<string>('Loading identities ...')} />
             }
             {(accountInfo || isValidAddress(text)) &&
-              <Grid container item justifyContent='center' sx={{ px: 7 }} xs={12}>
+              <Grid container item justifyContent='center' sx={{ p: '10px 35px' }} xs={12}>
                 <MuiButton
                   color='primary'
                   onClick={handleConfirmLostAccount}
                   variant='contained'
+                  sx={{ textTransform: 'none' }}
                 >
                   {t<string>('Confirm your lost account')}
                 </MuiButton>
               </Grid>
-            }
-          </Grid>
-        }
-        {lostAccount &&
-          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px', p: '20px 20px 20px 50px' }} xs={12}>
-            {!lostAccountRecoveryInfo &&
-              <Typography sx={{ color: 'text.secondary', pb: '10px' }} variant='subtitle1'>
-                {t<string>('Account is not recoverable')}
-              </Typography>
-            }
-            {lostAccountRecoveryInfo &&
-              <>
-                {hasActiveRecoveries
-                  ? <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='subtitle1'>
-                    {t<string>('Recovery is already initiated')}
-                  </Typography>
-                  : isProxy
-                    ? <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
-                      {t<string>('Account is already a proxy')}
-                    </Typography>
-                    : <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
-                      {t<string>('Account is recoverable, proceed')}
-                    </Typography>
-                }
-              </>
             }
           </Grid>
         }

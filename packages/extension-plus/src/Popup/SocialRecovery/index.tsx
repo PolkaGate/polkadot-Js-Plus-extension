@@ -16,7 +16,7 @@ import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 
-import { Beenhere as BeenhereIcon, Backspace as BackspaceIcon, HealthAndSafety as HealthAndSafetyIcon, SaveAlt as SaveAltIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
+import { Beenhere as BeenhereIcon, Backspace as BackspaceIcon, HealthAndSafety as HealthAndSafetyIcon, Support as SupportIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -132,10 +132,10 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
 
     setRecoveryDelay(recoveryDelayInDays);
-    const onChainFriends = recoveryInfo.friends.map((f) => {
-      const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString())
+    const onChainFriends = recoveryInfo.friends.map((f): DeriveAccountInfo => {
+      const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString());
 
-      return accountInfo ?? { accountId: f, identity: undefined };
+      return accountInfo ?? { accountId: f, identity: undefined } as unknown as DeriveAccountInfo;
     });
 
     setFriends(onChainFriends);
@@ -208,7 +208,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   }, [address, api, chain?.name, chain?.ss58Format]);
 
   const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
-    console.log('newValue', newValue)
+    console.log('newValue', newValue);
     setTabValue(newValue);
   }, []);
 
@@ -246,10 +246,11 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
                   ? <BeenhereIcon fontSize='small' />
                   : recoveryStatus === 'Remove recovery'
                     ? <BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />
-                    : <HealthAndSafetyIcon fontSize='small' />
+                    : <FontAwesomeIcon beat color={red[600]} icon={faShieldHalved} size='sm' />
+                // <HealthAndSafetyIcon fontSize='small' />
               }
               iconPosition='start' label={recoveryStatus ?? 'Recovery'} sx={{ fontSize: 11 }} value='recovery' />
-            <Tab icon={<SaveAltIcon fontSize='small' />} iconPosition='start' label='Rescue' sx={{ fontSize: 11 }} value='rescue' />
+            <Tab icon={<SupportIcon fontSize='small' />} iconPosition='start' label='Rescue' sx={{ fontSize: 11 }} value='rescue' />
             <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
           </Tabs>
         </Grid>
