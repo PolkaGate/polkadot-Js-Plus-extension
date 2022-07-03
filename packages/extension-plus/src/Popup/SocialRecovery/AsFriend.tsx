@@ -6,7 +6,7 @@
 
 /**
  * @description
- * this component opens rescuer page, where a rescuer can initiate, claim, and finally close a recovery  
+ * this component opens friend page, where a friend can vouch for a lost account for a rescuer account
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
@@ -40,14 +40,12 @@ interface Props extends ThemeProps {
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
   className?: string;
-  handleCloseAsRescuer: () => void
-  showAsRescuerModal: boolean;
+  handleCloseAsFriend: () => void
+  showAsFriendModal: boolean;
   recoveryConsts: RecoveryConsts | undefined;
 }
 
-const steps = ['Initiating recovery', 'Claiming recovery', 'Close recovery'];
-
-function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
+function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
@@ -112,10 +110,6 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     setConfirmModalOpen(true);
   }, []);
 
-  const handleStep = (step: number) => () => {
-    setActiveStep(step);
-  };
-
   useEffect(() => {
     handleSearchIdentity();
   }, [handleSearchIdentity, text]);
@@ -177,7 +171,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
                 <IconButton
                   onClick={handleClearLostAccount}
                 >
-                  {lostAccount ? <ClearIcon /> : ''}
+                  {lostAccount !== null ? <ClearIcon /> : ''}
                 </IconButton>
               </InputAdornment>
             ),
@@ -216,20 +210,9 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   );
 
   return (
-    <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
-      <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Rescue account'} />
+    <Popup handleClose={handleCloseAsFriend} showModal={showAsFriendModal}>
+      <PlusHeader action={handleCloseAsFriend} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Vouch account'} />
       <Grid container sx={{ p: '25px 30px' }}>
-        <Grid item xs={12}>
-          <Stepper activeStep={activeStep} nonLinear>
-            {steps.map((label, index) =>
-              <Step completed={completed[index]} key={label}>
-                <StepButton color='inherit' onClick={handleStep(index)}>
-                  {label}
-                </StepButton>
-              </Step>
-            )}
-          </Stepper>
-        </Grid>
         <Grid item pt='35px' xs={12}>
           <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
             {t<string>('Enter a lost account address (or search by identity)')}:
@@ -323,7 +306,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   );
 }
 
-export default styled(AsRescuer)`
+export default styled(AsFriend)`
          height: calc(100vh - 2px);
          overflow: auto;
          scrollbar - width: none;

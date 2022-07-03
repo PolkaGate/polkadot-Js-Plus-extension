@@ -34,8 +34,8 @@ import { Button } from '@polkadot/extension-ui/components';
 
 interface Props extends ThemeProps {
   className?: string;
-  showAddFreindModal: boolean;
-  setShowAddFreindModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showAddFriendModal: boolean;
+  setShowAddFriendModal: React.Dispatch<React.SetStateAction<boolean>>;
   setFriends: React.Dispatch<React.SetStateAction<DeriveAccountInfo[]>>;
   friends: DeriveAccountInfo[];
   accountsInfo: DeriveAccountInfo[] | undefined;
@@ -43,7 +43,7 @@ interface Props extends ThemeProps {
 }
 
 
-function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, setShowAddFreindModal, showAddFreindModal }: Props): React.ReactElement<Props> {
+function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, setShowAddFriendModal, showAddFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
@@ -83,7 +83,7 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
     // handleAddress(event.target.value);
   }, []);
 
-  const handleSearchFreind = useCallback(() => {
+  const handleSearchFriend = useCallback(() => {
     if (!accountsInfo?.length) { return; }
 
     if (!text) {
@@ -101,32 +101,32 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   }, [accountsInfo, text]);
 
   useEffect(() => {
-    handleSearchFreind();
-  }, [handleSearchFreind, text]);
+    handleSearchFriend();
+  }, [handleSearchFriend, text]);
 
-  const handleAddFreind = useCallback(() => {
+  const handleAddFriend = useCallback(() => {
     const mayBeAddress = isValidAddress(text) ? text : undefined;
 
     if (!mayBeAddress && !accountInfo?.accountId) { return; }
 
-    const mayBeNewFreind = mayBeAddress || accountInfo?.accountId?.toString();
+    const mayBeNewFriend = mayBeAddress || accountInfo?.accountId?.toString();
 
-    if (!friends.find((i) => i.accountId === mayBeNewFreind)) {
+    if (!friends.find((i) => i.accountId === mayBeNewFriend)) {
       const temp = [...friends];
 
-      accountInfo ? temp.push(accountInfo) : temp.push({ accountId: mayBeNewFreind, identity: undefined });
+      accountInfo ? temp.push(accountInfo) : temp.push({ accountId: mayBeNewFriend, identity: undefined });
 
       console.log('setting friends to ', [...temp]);
       setFriends([...temp]);
-      setShowAddFreindModal(false);
+      setShowAddFriendModal(false);
     }
-  }, [accountInfo, friends, setFriends, setShowAddFreindModal, text]);
+  }, [accountInfo, friends, setFriends, setShowAddFriendModal, text]);
 
   const handleCloseModal = useCallback((): void => {
-    setShowAddFreindModal(false);
-  }, [setShowAddFreindModal]);
+    setShowAddFriendModal(false);
+  }, [setShowAddFriendModal]);
 
-  const FreindTextBox = () => (
+  const FriendTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
         {text &&
@@ -154,7 +154,7 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
               InputLabelProps={{ shrink: true }}
               autoFocus
               error={!text}
-              label={t('New freind')}
+              label={t('New friend')}
               onChange={handleChange}
               placeholder={'account Id / name / twitter / element Id / email / web site'}
             />
@@ -166,14 +166,14 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   );
 
   return (
-    <Popup handleClose={handleCloseModal} showModal={showAddFreindModal}>
-      <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<AddCircleRoundedIcon fontSize='small' />} title={'Add Freind'} />
+    <Popup handleClose={handleCloseModal} showModal={showAddFriendModal}>
+      <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<AddCircleRoundedIcon fontSize='small' />} title={'Add Friend'} />
       <Grid container sx={{ p: '35px 30px' }}>
         <Grid item xs={12} sx={{ height: '100px' }}>
           <Typography sx={{ color: 'text.primary', pb: '15px' }} variant='body1'>
             {t('Add a friend account Id ( or search by their identity)')}:
           </Typography>
-          {accountsInfo?.length && <FreindTextBox />}
+          {accountsInfo?.length && <FriendTextBox />}
         </Grid>
         <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
           {accountInfo
@@ -249,7 +249,7 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
           <Button
             data-button-action=''
             // isBusy={isBusy} isDisabled={isDisabled}
-            onClick={handleAddFreind}
+            onClick={handleAddFriend}
           >
             {t('Add')}
           </Button>
@@ -260,7 +260,7 @@ function AddFreind({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   );
 }
 
-export default styled(AddFreind)`
+export default styled(AddFriend)`
          height: calc(100vh - 2px);
          overflow: auto;
          scrollbar - width: none;

@@ -57,7 +57,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
 
   const decimals = api.registry.chainDecimals[0];
-  const freindIds = friends?.map((f) => f.accountId).sort(); // if not sorted, tx will retun an error!!
+  const friendIds = friends?.map((f) => f.accountId).sort(); // if not sorted, tx will retun an error!!
 
   /** list of available trasactions */
   const createRecovery = api.tx.recovery.createRecovery;// (friends: Vec<AccountId32>, threshold: u16, delay_period: u32)
@@ -82,7 +82,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
     switch (state) {
       case ('makeRecoverable'):
-        params = [freindIds, recoveryThreshold, recoveryDelayInBlocks];
+        params = [friendIds, recoveryThreshold, recoveryDelayInBlocks];
 
         // eslint-disable-next-line no-void
         account?.accountId && void createRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
@@ -107,11 +107,11 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         break;
       default:
     }
-  }, [account.accountId, closeRecovery, createRecovery, freindIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, state]);
+  }, [account.accountId, closeRecovery, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, state]);
 
   const deposit = useMemo((): BN => {
-    if (['removeRecovery', 'makeRecoverable'].includes(state) && freindIds?.length && recoveryConsts) {
-      return recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(freindIds.length));
+    if (['removeRecovery', 'makeRecoverable'].includes(state) && friendIds?.length && recoveryConsts) {
+      return recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friendIds.length));
     }
 
     if (state === 'initiateRecovery' && recoveryConsts) {
@@ -123,7 +123,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     }
 
     return BN_ZERO;
-  }, [freindIds?.length, recoveryConsts, rescuer, state]);
+  }, [friendIds?.length, recoveryConsts, rescuer, state]);
 
   useEffect(() => {
     if (!api) { return; }
@@ -148,7 +148,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       if (localState === 'makeRecoverable') {
         const recoveryDelayInBlocks = recoveryDelay * 24 * 60 * 10;
 
-        const params = [freindIds, recoveryThreshold, recoveryDelayInBlocks];
+        const params = [friendIds, recoveryThreshold, recoveryDelayInBlocks];
         const { block, failureText, fee, status, txHash } = await broadcast(api, createRecovery, params, signer, account.accountId);
 
         history.push({
@@ -231,7 +231,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, api, chain, closeRecovery, createRecovery, decimals, freindIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, api, chain, closeRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);

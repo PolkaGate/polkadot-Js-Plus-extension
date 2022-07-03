@@ -48,7 +48,7 @@ function InfoTab({ api, recoveryConsts }: Props): React.ReactElement<Props> {
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('{{token}}s needed to be reserved per added freind ', { replace: { token } })}:
+            {t('{{token}}s needed to be reserved per added friend ', { replace: { token } })}:
           </Grid>
           <Grid item>
             <ShowBalance2 api={api} balance={recoveryConsts?.friendDepositFactor} />

@@ -31,7 +31,7 @@ import { Header } from '../../../../extension-ui/src/partials';
 import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
 import useApi from '../../hooks/useApi';
 import useEndpoint from '../../hooks/useEndPoint';
-import AddFreind from './AddFriend';
+import AddFriend from './AddFriend';
 import Confirm from './Confirm';
 import InfoTab from './InfoTab';
 import MakeRecoverableTab from './MakeRecoverableTab';
@@ -59,7 +59,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const [recoveryThreshold, setRecoveryThreshold] = useState<number>(0);
   const [recoveryDelay, setRecoveryDelay] = useState<number>(0);
   const [friends, setFriends] = useState<DeriveAccountInfo[]>([]);
-  const [showAddFreindModal, setShowAddFreindModal] = useState<boolean>(false);
+  const [showAddFriendModal, setShowAddFriendModal] = useState<boolean>(false);
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
   const [account, setAccount] = useState<DeriveAccountInfo | undefined>();
@@ -75,7 +75,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
       if (acc.address === address) {
         setAccount({ accountId: encodeAddress(publicKey, prefix), identity: { display: acc?.name } });
 
-        return result; // ignore the current account, I can not be a freind of mine
+        return result; // ignore the current account, I can not be a friend of mine
       }
 
       result.push({ address: encodeAddress(publicKey, prefix), name: acc?.name });
@@ -127,13 +127,13 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
 
     setRecoveryDelay(recoveryDelayInDays);
-    const onChainFreinds = recoveryInfo.friends.map((f) => {
+    const onChainFriends = recoveryInfo.friends.map((f) => {
       const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString())
 
       return accountInfo ?? { accountId: f, identity: undefined };
     });
 
-    setFriends(onChainFreinds);
+    setFriends(onChainFriends);
   }, [recoveryInfo, accountsInfo]);
 
   useEffect(() => {
@@ -220,11 +220,11 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     setConfirmModalOpen(true);
   }, [recoveryInfo]);
 
-  const handleAddFreind = useCallback(() => {
-    setShowAddFreindModal(true);
+  const handleAddFriend = useCallback(() => {
+    setShowAddFriendModal(true);
   }, []);
 
-  const handleDeleteFreind = useCallback((index: number) => {
+  const handleDeleteFriend = useCallback((index: number) => {
     friends.splice(index, 1);
     setFriends([...friends]);
   }, [friends]);
@@ -253,8 +253,8 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
           <MakeRecoverableTab
             chain={chain}
             friends={friends}
-            handleAddFreind={handleAddFreind}
-            handleDeleteFreind={handleDeleteFreind}
+            handleAddFriend={handleAddFriend}
+            handleDeleteFriend={handleDeleteFriend}
             handleNext={handleNext}
             handleRecoveryDelay={handleRecoveryDelay}
             handleRecoveryThreshold={handleRecoveryThreshold}
@@ -287,14 +287,14 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
           />
         }
       </Grid>
-      {showAddFreindModal &&
-        <AddFreind
+      {showAddFriendModal &&
+        <AddFriend
           accountsInfo={accountsInfo}
           addresesOnThisChain={addresesOnThisChain}
           friends={friends}
           setFriends={setFriends}
-          setShowAddFreindModal={setShowAddFreindModal}
-          showAddFreindModal={showAddFreindModal}
+          setShowAddFriendModal={setShowAddFriendModal}
+          showAddFriendModal={showAddFriendModal}
         />}
       {showConfirmModal && api && chain && state && account && recoveryConsts &&
         <Confirm

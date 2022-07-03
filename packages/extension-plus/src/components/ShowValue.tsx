@@ -9,7 +9,8 @@
 
 import type { ThemeProps } from '../../../extension-ui/src/types';
 
-import { Grid, Skeleton } from '@mui/material';
+import { Grid, GridDirection, Skeleton } from '@mui/material';
+// import { ResponsiveStyleValue } from '@mui/material';
 import React from 'react';
 import styled from 'styled-components';
 
@@ -17,7 +18,7 @@ export interface Props {
   value: string | number | null | undefined;
   unit?: string;
   title?: string;
-  direction?: string;
+  direction?: ResponsiveStyleValue<GridDirection> | undefined;
 }
 
 function ShowValue({ direction = 'row', title, unit, value }: Props): React.ReactElement<Props> {

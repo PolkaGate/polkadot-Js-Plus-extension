@@ -24,6 +24,7 @@ import { NextStepButton } from '@polkadot/extension-ui/components';
 import { Chain } from '@polkadot/extension-chains/types';
 import { grey } from '@mui/material/colors';
 import AsResuer from './AsRescuer';
+import AsFriend from './AsFriend';
 import type { ApiPromise } from '@polkadot/api';
 
 interface Props {
@@ -34,17 +35,30 @@ interface Props {
   recoveryConsts: RecoveryConsts | undefined;
 }
 
-function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain }: Props): React.ReactElement<Props> {
+function RecoveryTab({ account, accountsInfo, api, chain, recoveryConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [recoverer, setRecoverer] = useState<string | undefined>();
   const [showAsRescuerModal, setShowAsRescuerModal] = useState<boolean>(false);
+  const [showAsFriendModal, setShowAsFriendModal] = useState<boolean>(false);
 
-  const handleRescuer = useCallback(() => { setRecoverer('rescuer'); setShowAsRescuerModal(true) }, []);
-  const handleFreind = useCallback(() => { setRecoverer('freind'); }, []);
+  const handleRescuer = useCallback(() => {
+    setRecoverer('rescuer'); 
+    setShowAsRescuerModal(true);
+  }, []);
 
-  const handleCloseAsRescuer = useCallback(() => { setRecoverer(''); setShowAsRescuerModal(false); }, []);
+  const handleFriend = useCallback(() => {
+    setRecoverer('friend');
+    setShowAsFriendModal(true);
+  }, []);
 
+  const handleCloseAsRescuer = useCallback(() => {
+    setRecoverer(''); setShowAsRescuerModal(false);
+  }, []);
+
+  const handleCloseAsFriend= useCallback(() => {
+    setRecoverer(''); setShowAsFriendModal(false);
+  }, []);
 
   const RecovererChoice = () => (
     <Grid container justifyContent='center' sx={{ pt: 15 }}>
@@ -55,7 +69,7 @@ function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain }: Prop
       </Grid>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
-          <Avatar onClick={handleFreind} sx={{ bgcolor: '#ffb057', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>{t('as Freind')}</Avatar>
+          <Avatar onClick={handleFriend} sx={{ bgcolor: '#ffb057', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>{t('as Friend')}</Avatar>
         </Grid>
       </Grid>
     </Grid>
@@ -72,6 +86,16 @@ function RecoveryTab({ api, account, accountsInfo, recoveryConsts, chain }: Prop
           handleCloseAsRescuer={handleCloseAsRescuer}
           recoveryConsts={recoveryConsts}
           showAsRescuerModal={showAsRescuerModal}
+        />
+      }
+      {recoverer === 'friend' &&
+        <AsFriend
+          account={account}
+          accountsInfo={accountsInfo}
+          api={api}
+          handleCloseAsFriend={handleCloseAsFriend}
+          recoveryConsts={recoveryConsts}
+          showAsFriendModal={showAsFriendModal}
         />
       }
     </>

@@ -24,10 +24,10 @@ import { Chain } from '@polkadot/extension-chains/types';
 import { grey } from '@mui/material/colors';
 
 interface Props {
-  handleAddFreind: () => void
+  handleAddFriend: () => void
   friends: DeriveAccountInfo[];
   chain: Chain | null;
-  handleDeleteFreind: (index: number) => void;
+  handleDeleteFriend: (index: number) => void;
   recoveryThreshold: number;
   handleRecoveryDelay: (event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => void;
   recoveryDelay: number;
@@ -36,7 +36,7 @@ interface Props {
   recoveryInfo: PalletRecoveryRecoveryConfig | undefined | null;
 }
 
-function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFreind, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryInfo, recoveryDelay, recoveryThreshold }: Props): React.ReactElement<Props> {
+function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryInfo, recoveryDelay, recoveryThreshold }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (
@@ -49,8 +49,8 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
         </Grid>
         <Grid item>
           {!recoveryInfo &&
-            <Hint id='addFreind' place='left' tip={t('add a freind')}>
-              <IconButton aria-label='addFreind' color='warning' onClick={handleAddFreind} size='small'>
+            <Hint id='addFriend' place='left' tip={t('add a friend')}>
+              <IconButton aria-label='addFriend' color='warning' onClick={handleAddFriend} size='small'>
                 <AddCircleRoundedIcon sx={{ fontSize: 25 }} />
               </IconButton>
             </Hint>
@@ -66,8 +66,8 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
               </Grid>
               {!recoveryInfo &&
                 <Grid item xs={1}>
-                  <Hint id='deleteFreind' place='left' tip={t('add a freind')}>
-                    <IconButton aria-label='deleteFreind' color='error' onClick={() => handleDeleteFreind(index)} size='small'>
+                  <Hint id='deleteFriend' place='left' tip={t('add a friend')}>
+                    <IconButton aria-label='deleteFriend' color='error' onClick={() => handleDeleteFriend(index)} size='small'>
                       <ClearIcon sx={{ fontSize: 15 }} />
                     </IconButton>
                   </Hint>
@@ -88,7 +88,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFreind, handleDeleteFrein
         <Grid item xs={6}>
           <TextField
             InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{t('freind(s)')}</InputAdornment>) }}
+            InputProps={{ endAdornment: (<InputAdornment position='end'>{t('friend(s)')}</InputAdornment>) }}
             color='warning'
             disabled={!!recoveryInfo}
             error={!recoveryThreshold || recoveryThreshold > friends?.length}
