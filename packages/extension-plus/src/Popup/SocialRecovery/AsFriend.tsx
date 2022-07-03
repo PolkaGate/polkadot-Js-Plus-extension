@@ -63,10 +63,12 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
     [k: number]: boolean;
   }>({});
 
+  
   const handleClearLostAccount = useCallback(() => {
     setLostAccount(undefined);
     setLostAccountRecoveryInfo(undefined);
-    setText('');
+    setText(undefined);
+    setAccountInfo(undefined);
   }, []);
 
   const handleLostAccountChange = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -75,6 +77,7 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
     setLostAccount(undefined);
     setLostAccountRecoveryInfo(undefined);
     setText(value);
+    setAccountInfo(undefined);
   }, []);
 
   const handleConfirmLostAccount = useCallback(() => {
@@ -171,7 +174,7 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
                 <IconButton
                   onClick={handleClearLostAccount}
                 >
-                  {lostAccount !== null ? <ClearIcon /> : ''}
+                  {text ? <ClearIcon /> : ''}
                 </IconButton>
               </InputAdornment>
             ),
@@ -233,6 +236,18 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
     </Grid>
   );
 
+  const ShowAccountInfo = ({ accountInfo }: { accountInfo: DeriveAccountInfo }) => (
+    <>
+      <ShowItem title={t<string>('Display')} value={accountInfo.identity.display} />
+      <ShowItem title={t<string>('Legal')} value={accountInfo.identity.legal} />
+      <ShowItem title={t<string>('Email')} value={accountInfo.identity.email} />
+      <ShowItem title={t<string>('Element')} value={accountInfo.identity.riot} />
+      <ShowItem title={t<string>('Twitter')} value={accountInfo.identity.twitter} />
+      <ShowItem title={t<string>('Web')} value={accountInfo.identity.web} />
+      {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(accountInfo.accountId)} />}
+    </>
+  );
+
   return (
     <Popup handleClose={handleCloseAsFriend} showModal={showAsFriendModal}>
       <PlusHeader action={handleCloseAsFriend} chain={chain} closeText={'Close'} icon={<AdminPanelSettingsIcon fontSize='small' />} title={'Vouch account'} />
@@ -246,17 +261,9 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
         {!lostAccount &&
           <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px', p: '20px 20px 20px 50px' }} xs={12}>
             {accountInfo
-              ? <>
-                <ShowItem title={t<string>('Display')} value={accountInfo.identity.display} />
-                <ShowItem title={t<string>('Legal')} value={accountInfo.identity.legal} />
-                <ShowItem title={t<string>('Email')} value={accountInfo.identity.email} />
-                <ShowItem title={t<string>('Element')} value={accountInfo.identity.riot} />
-                <ShowItem title={t<string>('Twitter')} value={accountInfo.identity.twitter} />
-                <ShowItem title={t<string>('Web')} value={accountInfo.identity.web} />
-                {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(accountInfo.accountId)} />}
-              </>
-              : accountInfo === null ?
-                <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
+              ? <ShowAccountInfo accountInfo={accountInfo} />
+              : accountInfo === null
+                ? <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
                   {t<string>('No indetity found for this account!')}
                 </Grid>
                 : !accountsInfo?.length && accountInfo === undefined &&

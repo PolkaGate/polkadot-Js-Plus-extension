@@ -17,7 +17,7 @@ import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAd
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
-import { ArrowBackIosRounded, CheckRounded as CheckRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
+import { ArrowBackIosRounded, CheckRounded as CheckRoundedIcon, Clear as ClearIcon, NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
 
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
@@ -54,6 +54,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [text, setText] = useState<string | undefined>();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
+  const [filteredAccountsInfo, setFilteredAccountsInfo] = useState<DeriveAccountInfo[] | undefined | null>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
@@ -66,17 +67,19 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
   }>({});
 
   const handleClearLostAccount = useCallback(() => {
-    setLostAccount(undefined);
     setLostAccountRecoveryInfo(undefined);
-    setText('');
+    setText(undefined);
+    setLostAccount(undefined);
+    setAccountInfo(undefined);
   }, []);
 
   const handleLostAccountChange = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value as string;
 
-    setLostAccount(undefined);
     setLostAccountRecoveryInfo(undefined);
     setText(value);
+    setLostAccount(undefined);
+    setAccountInfo(undefined);
   }, []);
 
   const handleConfirmLostAccount = useCallback(() => {
@@ -91,20 +94,23 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     }
 
     if (!text) {
-      return setAccountInfo(undefined);
+      return setFilteredAccountsInfo(undefined);
     }
 
-    let accountInfo;
+    let filtered;
 
     if (text) {
-      accountInfo = accountsInfo.find((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
+      filtered = accountsInfo.filter((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
 
-      if (accountInfo) {
-        return setAccountInfo(accountInfo);
+      if (filtered) {
+        setFilteredAccountsInfo(filtered);
+        setAccountInfo(filtered[0]);
+
+        return;
       }
     }
 
-    setAccountInfo(null);
+    setFilteredAccountsInfo(null);
   }, [accountsInfo, text]);
 
   const handleNextToInitiateRecovery = useCallback(() => {
@@ -158,6 +164,26 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     });
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
+  const navigateBefore = useCallback((info: DeriveAccountInfo) => {
+    const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
+
+    if (index === 0) {
+      setAccountInfo(filteredAccountsInfo[filteredAccountsInfo.length - 1]);
+    } else {
+      setAccountInfo(filteredAccountsInfo[index - 1]);
+    }
+  }, [filteredAccountsInfo]);
+
+  const navigateNext = useCallback((info: DeriveAccountInfo) => {
+    const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
+
+    if (index === filteredAccountsInfo.length - 1) {
+      setAccountInfo(filteredAccountsInfo[0]);
+    } else {
+      setAccountInfo(filteredAccountsInfo[index + 1]);
+    }
+  }, [filteredAccountsInfo]);
+
   const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
@@ -177,7 +203,7 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
                 <IconButton
                   onClick={handleClearLostAccount}
                 >
-                  {lostAccount ? <ClearIcon /> : ''}
+                  {text ? <ClearIcon /> : ''}
                 </IconButton>
               </InputAdornment>
             ),
@@ -215,6 +241,26 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
     </Grid>
   );
 
+  const ShowAccountInfo = ({ info }: { info: DeriveAccountInfo }) => (
+    <Grid alignItems='center' container item xs={12}>
+      <Grid item xs={1}>
+        <NavigateBeforeIcon onClick={() => navigateBefore(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
+      </Grid>
+      <Grid item xs>
+        <ShowItem title={t<string>('Display')} value={info.identity.display} />
+        <ShowItem title={t<string>('Legal')} value={info.identity.legal} />
+        <ShowItem title={t<string>('Email')} value={info.identity.email} />
+        <ShowItem title={t<string>('Element')} value={info.identity.riot} />
+        <ShowItem title={t<string>('Twitter')} value={info.identity.twitter} />
+        <ShowItem title={t<string>('Web')} value={info.identity.web} />
+        {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(info.accountId)} />}
+      </Grid>
+      <Grid item xs={0.5}>
+        <NavigateNextIcon fontSize='large' onClick={() => navigateNext(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
+      </Grid>
+    </Grid>
+  );
+
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
       <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Rescue account'} />
@@ -237,17 +283,9 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
           <AccountTextBox />
         </Grid>
         {!lostAccount &&
-          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px', p: '20px 20px 20px 50px' }} xs={12}>
+          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px' }} xs={12}>
             {accountInfo
-              ? <>
-                <ShowItem title={t<string>('Display')} value={accountInfo.identity.display} />
-                <ShowItem title={t<string>('Legal')} value={accountInfo.identity.legal} />
-                <ShowItem title={t<string>('Email')} value={accountInfo.identity.email} />
-                <ShowItem title={t<string>('Element')} value={accountInfo.identity.riot} />
-                <ShowItem title={t<string>('Twitter')} value={accountInfo.identity.twitter} />
-                <ShowItem title={t<string>('Web')} value={accountInfo.identity.web} />
-                {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(accountInfo.accountId)} />}
-              </>
+              ? <ShowAccountInfo info={accountInfo} />
               : accountInfo === null ?
                 <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
                   {t<string>('No indetity found for this account!')}
@@ -261,8 +299,9 @@ function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryC
                   color='primary'
                   onClick={handleConfirmLostAccount}
                   variant='contained'
+                  sx={{ textTransform: 'none' }}
                 >
-                  {t<string>('Confirm your lost account')}
+                  {t<string>('Confirm the lost account')}
                 </MuiButton>
               </Grid>
             }

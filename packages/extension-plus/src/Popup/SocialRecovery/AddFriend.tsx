@@ -13,7 +13,7 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AddCircleRounded as AddCircleRoundedIcon } from '@mui/icons-material';
+import { AddCircleRounded as AddCircleRoundedIcon, NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
 import { Typography, Autocomplete, Grid, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -48,23 +48,25 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
+  const [filteredAccountsInfo, setFilteredAccountsInfo] = useState<DeriveAccountInfo[] | undefined | null>();
   const [text, setText] = useState<string | undefined>();
 
   const handleAddress = useCallback((value: string | null) => {
     if (!value) {
-      // setNewAddress(undefined);
       setText(undefined);
+      setAccountInfo(undefined);
 
       return;
     }
 
     const indexOfDots = value?.indexOf(':');
-    let mayBeAddress = value?.slice(indexOfDots + 1)?.trim();
+    let mayBeAddress: string | undefined = value?.slice(indexOfDots + 1)?.trim();
 
     mayBeAddress = mayBeAddress && isValidAddress(mayBeAddress) ? mayBeAddress : undefined;
 
     if (mayBeAddress) {
       setText(mayBeAddress);
+      setAccountInfo(undefined);
     }
   }, []);
 
@@ -76,7 +78,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
     const value = _event.target.value;
 
     setText(value);
-    // handleAddress(value);
+    setAccountInfo(undefined);
   }, []);
 
   const handleBlur = useCallback(() => {
@@ -87,17 +89,23 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
     if (!accountsInfo?.length) { return; }
 
     if (!text) {
-      return setAccountInfo(undefined);
+      return setFilteredAccountsInfo(undefined);
     }
-    let accountInfo;
+
+    let filtered;
 
     if (text) {
-      accountInfo = accountsInfo.find((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
+      filtered = accountsInfo.filter((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
 
-      if (accountInfo) { return setAccountInfo(accountInfo); }
+      if (filtered?.length) {
+        setFilteredAccountsInfo(filtered);
+        setAccountInfo(filtered[0]);
+
+        return;
+      }
     }
 
-    setAccountInfo(null);
+    setFilteredAccountsInfo(null);
   }, [accountsInfo, text]);
 
   useEffect(() => {
@@ -125,6 +133,26 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   const handleCloseModal = useCallback((): void => {
     setShowAddFriendModal(false);
   }, [setShowAddFriendModal]);
+
+  const navigateBefore = useCallback((info: DeriveAccountInfo) => {
+    const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
+
+    if (index === 0) {
+      setAccountInfo(filteredAccountsInfo[filteredAccountsInfo.length - 1]);
+    } else {
+      setAccountInfo(filteredAccountsInfo[index - 1]);
+    }
+  }, [filteredAccountsInfo]);
+
+  const navigateNext = useCallback((info: DeriveAccountInfo) => {
+    const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
+
+    if (index === filteredAccountsInfo.length - 1) {
+      setAccountInfo(filteredAccountsInfo[0]);
+    } else {
+      setAccountInfo(filteredAccountsInfo[index + 1]);
+    }
+  }, [filteredAccountsInfo]);
 
   const FriendTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
@@ -165,6 +193,37 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
     </Grid>
   );
 
+  const ShowItem = ({ title, value }: { title: string, value: string | undefined }) => (
+    <Grid container item spacing={1} xs={12}>
+      <Grid item sx={{ fontWeight: 'bold' }}>
+        {title}:
+      </Grid>
+      <Grid item>
+        {value}
+      </Grid>
+    </Grid>
+  );
+
+  const ShowAccountInfo = ({ info }: { info: DeriveAccountInfo }) => (
+    <Grid alignItems='center' container item xs={12}>
+      <Grid item xs={1}>
+        <NavigateBeforeIcon onClick={() => navigateBefore(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
+      </Grid>
+      <Grid item xs>
+        <ShowItem title={t<string>('Display')} value={info.identity.display} />
+        <ShowItem title={t<string>('Legal')} value={info.identity.legal} />
+        <ShowItem title={t<string>('Email')} value={info.identity.email} />
+        <ShowItem title={t<string>('Element')} value={info.identity.riot} />
+        <ShowItem title={t<string>('Twitter')} value={info.identity.twitter} />
+        <ShowItem title={t<string>('Web')} value={info.identity.web} />
+        {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(info.accountId)} />}
+      </Grid>
+      <Grid item xs={0.5}>
+        <NavigateNextIcon fontSize='large' onClick={() => navigateNext(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
+      </Grid>
+    </Grid>
+  );
+
   return (
     <Popup handleClose={handleCloseModal} showModal={showAddFriendModal}>
       <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<AddCircleRoundedIcon fontSize='small' />} title={'Add Friend'} />
@@ -175,70 +234,11 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
           </Typography>
           {accountsInfo?.length && <FriendTextBox />}
         </Grid>
-        <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', p: '40px 20px 20px 50px' }} xs={12}>
+        <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', pt: '40px' }} xs={12}>
           {accountInfo
-            ? <>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 'bold' }}>
-                  {t('Display')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.display}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Legal')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.legal}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Email')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.email}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Element')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.riot}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Twitter')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.twitter}
-                </Grid>
-              </Grid>
-              <Grid container item spacing={1} xs={12}>
-                <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                  {t('Web')}:
-                </Grid>
-                <Grid item>
-                  {accountInfo.identity.web}
-                </Grid>
-              </Grid>
-              {!isValidAddress(text) &&
-                <Grid container item spacing={1} xs={12}>
-                  <Grid item sx={{ fontWeight: 600, fontSize: 12 }}>
-                    {t('Account Id')}:
-                  </Grid>
-                  <Grid item>
-                    {accountInfo.accountId}
-                  </Grid>
-                </Grid>
-              }
-            </>
-            : accountInfo === null ?
-              <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
+            ? <ShowAccountInfo info={accountInfo} />
+            : accountInfo === null
+              ? <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
                 {t('No indetity found')}
               </Grid>
               : !accountsInfo?.length && accountInfo === undefined &&
