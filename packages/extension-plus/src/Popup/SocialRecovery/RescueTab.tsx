@@ -18,7 +18,7 @@ import React, { useCallback, useState } from 'react';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, Identity, ShowBalance2 } from '../../components';
-import { RecoveryConsts } from '../../util/plusTypes';
+import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
 
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -33,9 +33,10 @@ interface Props {
   accountsInfo: DeriveAccountInfo[] | undefined;
   chain: Chain | null;
   recoveryConsts: RecoveryConsts | undefined;
+  addresesOnThisChain: nameAddress[];
 }
 
-function RecoveryTab({ account, accountsInfo, api, chain, recoveryConsts }: Props): React.ReactElement<Props> {
+function RecoveryTab({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [recoverer, setRecoverer] = useState<string | undefined>();
@@ -43,7 +44,7 @@ function RecoveryTab({ account, accountsInfo, api, chain, recoveryConsts }: Prop
   const [showAsFriendModal, setShowAsFriendModal] = useState<boolean>(false);
 
   const handleRescuer = useCallback(() => {
-    setRecoverer('rescuer'); 
+    setRecoverer('rescuer');
     setShowAsRescuerModal(true);
   }, []);
 
@@ -56,7 +57,7 @@ function RecoveryTab({ account, accountsInfo, api, chain, recoveryConsts }: Prop
     setRecoverer(''); setShowAsRescuerModal(false);
   }, []);
 
-  const handleCloseAsFriend= useCallback(() => {
+  const handleCloseAsFriend = useCallback(() => {
     setRecoverer(''); setShowAsFriendModal(false);
   }, []);
 
@@ -86,6 +87,7 @@ function RecoveryTab({ account, accountsInfo, api, chain, recoveryConsts }: Prop
           handleCloseAsRescuer={handleCloseAsRescuer}
           recoveryConsts={recoveryConsts}
           showAsRescuerModal={showAsRescuerModal}
+          addresesOnThisChain={addresesOnThisChain}
         />
       }
       {recoverer === 'friend' &&
@@ -96,6 +98,7 @@ function RecoveryTab({ account, accountsInfo, api, chain, recoveryConsts }: Prop
           handleCloseAsFriend={handleCloseAsFriend}
           recoveryConsts={recoveryConsts}
           showAsFriendModal={showAsFriendModal}
+          addresesOnThisChain={addresesOnThisChain}
         />
       }
     </>

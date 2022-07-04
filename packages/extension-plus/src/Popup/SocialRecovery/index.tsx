@@ -287,6 +287,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
           <RscueTab
             account={account}
             accountsInfo={accountsInfo}
+            addresesOnThisChain={addresesOnThisChain}
             api={api}
             chain={chain}
             recoveryConsts={recoveryConsts}

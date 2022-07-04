@@ -43,11 +43,12 @@ interface Props extends ThemeProps {
   handleCloseAsRescuer: () => void
   showAsRescuerModal: boolean;
   recoveryConsts: RecoveryConsts | undefined;
+  addresesOnThisChain: nameAddress[];
 }
 
 const steps = ['Initiating recovery', 'Claiming recovery', 'Close recovery'];
 
-function AsRescuer({ account, accountsInfo, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
+function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);

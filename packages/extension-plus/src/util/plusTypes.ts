@@ -367,9 +367,8 @@ export interface RecoveryConsts {
   recoveryDeposit: BN
 }
 
-export interface Rescuer {
-  accountId: string;
-  option: {
+export interface Rescuer extends DeriveAccountInfo {
+  option?: {
     created: BN;
     deposit: BN;
     friends: string[];

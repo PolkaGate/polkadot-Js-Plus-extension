@@ -64,6 +64,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   const removeRecovery = api.tx.recovery.removeRecovery;
   const initiateRecovery = api.tx.recovery.initiateRecovery; // (lostAccount)
   const closeRecovery = api.tx.recovery.closeRecovery; // (rescuer)
+  const vouchRecovery = api.tx.recovery.vouchRecovery; // (lost, rescuer)
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) { return false; }
@@ -105,9 +106,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         account?.accountId && void closeRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
+      case ('vouchRecovery'):
+        params = [lostAccount.accountId, rescuer.accountId];
+
+        // eslint-disable-next-line no-void
+        account?.accountId && void vouchRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+
+        break;
       default:
     }
-  }, [account.accountId, closeRecovery, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, state]);
+  }, [account.accountId, closeRecovery, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
 
   const deposit = useMemo((): BN => {
     if (['removeRecovery', 'makeRecoverable'].includes(state) && friendIds?.length && recoveryConsts) {
@@ -279,6 +287,8 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         return 'Initiate Recovery';
       case ('closeRecovery'):
         return 'Close Recovery';
+      case ('vouchRecovery'):
+        return 'Vouch Recovery';
       default:
         return state.toUpperCase();
     }
