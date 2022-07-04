@@ -77,7 +77,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
   }, []);
 
   return (
-    <Grid container sx={{ p: 0 }}>
+    <Grid container>
       {pool !== undefined && api
         ? pool
           ? <>

@@ -15,12 +15,12 @@ import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import { TFunction } from '@polkadot/apps-config/types';
 import { Chain } from '@polkadot/extension-chains/types';
 
 import { Identity, ShortAddress } from '../../../components';
 import { SELECTED_COLOR } from '../../../util/constants';
 import { StakingConsts } from '../../../util/plusTypes';
-import { TFunction } from '@polkadot/apps-config/types';
 
 interface Props {
   api: ApiPromise;
@@ -44,9 +44,9 @@ function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwit
   const getAccountInfo = (id: AccountId): DeriveAccountInfo | undefined => validatorsIdentities?.find((v) => v?.accountId === id);
   const nominatorCount = validator.exposure.others.length;
   const isActive = validator.accountId === activeValidator?.accountId;
-  const isOverSubscribed = validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
+  const isOverSubscribed = stakingConsts && validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
 
-  const total = api.createType('Balance', validator.exposure.total);
+  const total = String(validator.exposure.total).indexOf('.') === -1 && api.createType('Balance', validator.exposure.total);
 
   return (
     <Paper elevation={2} sx={{ backgroundColor: rowBackground, borderRadius: '10px', mt: '4px', p: '1px 10px 2px 0px' }}>

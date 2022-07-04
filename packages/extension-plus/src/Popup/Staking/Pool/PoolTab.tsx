@@ -64,7 +64,7 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
   }, [api, pool, staker.address]);
 
   return (
-    <Grid container sx={{ px: '25px' }}>
+    <Grid container px='5px'>
       {api && pool !== undefined
         ? pool
           ? <>
