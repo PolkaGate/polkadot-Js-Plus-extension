@@ -49,9 +49,12 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
-  const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
-  const [text, setText] = useState<string | undefined>();
+  const [lostAccountInfo, setLostAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
+  const [rescuerAccountInfo, setRescuerAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
+  const [lostText, setLostText] = useState<string | undefined>();
+  const [rescuerText, setRescuerText] = useState<string | undefined>();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
+  const [rescuerAccount, setRescuerAccount] = useState<DeriveAccountInfo | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
@@ -63,12 +66,11 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
     [k: number]: boolean;
   }>({});
 
-  
   const handleClearLostAccount = useCallback(() => {
     setLostAccount(undefined);
     setLostAccountRecoveryInfo(undefined);
-    setText(undefined);
-    setAccountInfo(undefined);
+    setLostText(undefined);
+    setLostAccountInfo(undefined);
   }, []);
 
   const handleLostAccountChange = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -76,37 +78,37 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
 
     setLostAccount(undefined);
     setLostAccountRecoveryInfo(undefined);
-    setText(value);
-    setAccountInfo(undefined);
+    setLostText(value);
+    setLostAccountInfo(undefined);
   }, []);
 
   const handleConfirmLostAccount = useCallback(() => {
-    const lostAccount = accountInfo ?? (text && isValidAddress(text) ? { accountId: text, identity: undefined } as unknown as DeriveAccountInfo : undefined);
+    const lostAccount = lostAccountInfo ?? (lostText && isValidAddress(lostText) ? { accountId: lostText, identity: undefined } as unknown as DeriveAccountInfo : undefined);
 
     lostAccount && setLostAccount(lostAccount);
-  }, [accountInfo, text]);
+  }, [lostAccountInfo, lostText]);
 
   const handleSearchIdentity = useCallback(() => {
     if (!accountsInfo?.length) {
       return;
     }
 
-    if (!text) {
-      return setAccountInfo(undefined);
+    if (!lostText) {
+      return setLostAccountInfo(undefined);
     }
 
-    let accountInfo;
+    let lostAccountInfo;
 
-    if (text) {
-      accountInfo = accountsInfo.find((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
+    if (lostText) {
+      lostAccountInfo = accountsInfo.find((id) => JSON.stringify(id).toLowerCase().includes(lostText.toLocaleLowerCase()));
 
-      if (accountInfo) {
-        return setAccountInfo(accountInfo);
+      if (lostAccountInfo) {
+        return setLostAccountInfo(lostAccountInfo);
       }
     }
 
-    setAccountInfo(null);
-  }, [accountsInfo, text]);
+    setLostAccountInfo(null);
+  }, [accountsInfo, lostText]);
 
   const handleNextToInitiateRecovery = useCallback(() => {
     setState('initiateRecovery');
@@ -115,7 +117,7 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
 
   useEffect(() => {
     handleSearchIdentity();
-  }, [handleSearchIdentity, text]);
+  }, [handleSearchIdentity, lostText]);
 
   useEffect(() => {
     if (api && lostAccountRecoveryInfo?.friends) {
@@ -155,15 +157,15 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
     });
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
-  const AccountTextBox = () => (
+  const AccountTextBox = ({ info, text }: { info: DeriveAccountInfo | undefined, text: string | undefined }) => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
-        {lostAccount &&
+        {info &&
           <Identicon
             prefix={chain?.ss58Format ?? 42}
             size={40}
             theme={chain?.icon || 'polkadot'}
-            value={lostAccount.accountId}
+            value={info.accountId}
           />}
       </Grid>
       <Grid item xs={11}>
@@ -188,24 +190,24 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
           autoFocus
           disabled={!accountsInfo?.length}
           fullWidth
-          helperText={lostAccount &&
+          helperText={info &&
             <Grid container>
               {!lostAccountRecoveryInfo &&
-                <Grid item  >
+                <Grid item>
                   {t<string>('Account is not recoverable')}
                 </Grid>
               }
               {lostAccountRecoveryInfo &&
                 <>
                   {hasActiveRecoveries
-                    ? <Grid item >
+                    ? <Grid item>
                       {t<string>('Recovery is already initiated')}
                     </Grid>
                     : isProxy
-                      ? <Grid item sx={{ color: 'green' }}  >
+                      ? <Grid item sx={{ color: 'green' }}>
                         {t<string>('Account is already a proxy')}
                       </Grid>
-                      : <Grid item sx={{ color: 'green' }}  >
+                      : <Grid item sx={{ color: 'green' }}>
                         {t<string>('Account is recoverable, proceed')}
                       </Grid>
                   }
@@ -218,7 +220,7 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
           placeholder={'account Id / name / twitter / element Id / email / web site'}
           size='medium'
           type='string'
-          value={lostAccount?.accountId || text}
+          value={info?.accountId || text}
           variant='outlined'
         />
       </Grid>
@@ -236,15 +238,15 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
     </Grid>
   );
 
-  const ShowAccountInfo = ({ accountInfo }: { accountInfo: DeriveAccountInfo }) => (
+  const ShowAccountInfo = ({ info, text }: { info: DeriveAccountInfo, text: string | undefined }) => (
     <>
-      <ShowItem title={t<string>('Display')} value={accountInfo.identity.display} />
-      <ShowItem title={t<string>('Legal')} value={accountInfo.identity.legal} />
-      <ShowItem title={t<string>('Email')} value={accountInfo.identity.email} />
-      <ShowItem title={t<string>('Element')} value={accountInfo.identity.riot} />
-      <ShowItem title={t<string>('Twitter')} value={accountInfo.identity.twitter} />
-      <ShowItem title={t<string>('Web')} value={accountInfo.identity.web} />
-      {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(accountInfo.accountId)} />}
+      <ShowItem title={t<string>('Display')} value={info.identity.display} />
+      <ShowItem title={t<string>('Legal')} value={info.identity.legal} />
+      <ShowItem title={t<string>('Email')} value={info.identity.email} />
+      <ShowItem title={t<string>('Element')} value={info.identity.riot} />
+      <ShowItem title={t<string>('Twitter')} value={info.identity.twitter} />
+      <ShowItem title={t<string>('Web')} value={info.identity.web} />
+      {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(info.accountId)} />}
     </>
   );
 
@@ -256,20 +258,20 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
           <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
             {t<string>('Enter the lost account Id (identity), who you want to vouch for')}:
           </Typography>
-          <AccountTextBox />
+          <AccountTextBox info={lostAccount} text={lostText} />
         </Grid>
         {!lostAccount &&
           <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px', p: '20px 20px 20px 50px' }} xs={12}>
-            {accountInfo
-              ? <ShowAccountInfo accountInfo={accountInfo} />
-              : accountInfo === null
+            {lostAccountInfo
+              ? <ShowAccountInfo info={lostAccountInfo} text={lostText} />
+              : lostAccountInfo === null
                 ? <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
                   {t<string>('No indetity found for this account!')}
                 </Grid>
-                : !accountsInfo?.length && accountInfo === undefined &&
+                : !accountsInfo?.length && lostAccountInfo === undefined &&
                 <Progress title={t<string>('Loading identities ...')} />
             }
-            {(accountInfo || isValidAddress(text)) &&
+            {(lostAccountInfo || isValidAddress(lostText)) &&
               <Grid container item justifyContent='center' sx={{ p: '10px 35px' }} xs={12}>
                 <MuiButton
                   color='primary'
@@ -283,6 +285,44 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
             }
           </Grid>
         }
+
+
+        {lostAccount &&
+          <Grid item xs={12}>
+            <Grid item pt='15px' xs={12}>
+              <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
+                {t<string>('Enter the rescuer account Id (identity)')}:
+              </Typography>
+              <AccountTextBox info={rescuerAccountInfo} text={rescuerText} />
+            </Grid>
+            {!rescuerAccount &&
+              <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '150px', p: '20px 20px 20px 50px' }} xs={12}>
+                {rescuerAccountInfo
+                  ? <ShowAccountInfo info={rescuerAccountInfo} />
+                  : rescuerAccountInfo === null
+                    ? <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
+                      {t<string>('No indetity found for this account!')}
+                    </Grid>
+                    : !accountsInfo?.length && rescuerAccountInfo === undefined &&
+                    <Progress title={t<string>('Loading identities ...')} />
+                }
+                {(rescuerAccountInfo || isValidAddress(rescuerText)) &&
+                  <Grid container item justifyContent='center' sx={{ p: '10px 35px' }} xs={12}>
+                    <MuiButton
+                      color='primary'
+                      onClick={handleConfirmLostAccount}
+                      variant='contained'
+                      sx={{ textTransform: 'none' }}
+                    >
+                      {t<string>('Confirm your lost account')}
+                    </MuiButton>
+                  </Grid>
+                }
+              </Grid>
+            }
+          </Grid>
+        }
+
         <Grid item sx={{ pt: 3 }} xs={12}>
           <Button
             data-button-action=''
@@ -292,6 +332,7 @@ function AsFriend({ account, accountsInfo, api, handleCloseAsFriend, recoveryCon
             {t<string>('Next')}
           </Button>
         </Grid>
+
       </Grid>
       {showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts && lostAccountRecoveryInfo &&
         <Confirm
