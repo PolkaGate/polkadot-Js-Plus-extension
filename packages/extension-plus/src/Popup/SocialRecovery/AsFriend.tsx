@@ -98,7 +98,7 @@ function AsFriend({ account, accountsInfo, api, addresesOnThisChain, handleClose
 
       setLostAccountHelperText(t<string>('Account is recoverable'));
     }
-  }, [hasActiveRecoveries, lostAccount, lostAccountRecoveryInfo, t]);
+  }, [lostAccount, lostAccountRecoveryInfo, t]);
 
   useEffect(() => {
     if (rescuerAccount && lostAccountRecoveryInfo) {

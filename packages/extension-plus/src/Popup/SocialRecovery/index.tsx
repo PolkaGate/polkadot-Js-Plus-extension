@@ -30,6 +30,10 @@ import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
 
+import { AccountsStore } from '@polkadot/extension-base/stores';
+import keyring from '@polkadot/ui-keyring';
+import { cryptoWaitReady } from '@polkadot/util-crypto';
+
 import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
 import useApi from '../../hooks/useApi';
 import useEndpoint from '../../hooks/useEndPoint';
@@ -72,6 +76,13 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const [rescuer, setRescuer] = useState<Rescuer | undefined | null>();
   const [recoveryTabLabel, setRecoveryTabLabel] = useState<string>('Make recoverable');
   const [recoveryStatus, setRecoveryStatus] = useState<string | undefined>();
+
+  useEffect(() => {
+    // eslint-disable-next-line no-void
+    void cryptoWaitReady().then(() => {
+      keyring.loadAll({ store: new AccountsStore() });
+    }).catch(console.error);
+  }, []);
 
   const handleAlladdressesOnThisChain = useCallback((prefix: number): void => {
     const allAddresesOnSameChain = accounts.reduce(function (result: nameAddress[], acc): nameAddress[] {

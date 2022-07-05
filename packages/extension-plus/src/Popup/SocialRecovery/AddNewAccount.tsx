@@ -6,17 +6,18 @@
 
 /**
  * @description
- * this component opens a textbox to enter an accountId or search the account by an identity
+ * this component opens a textbox to enter an accountId or search the account by an identity and
+ * returns the accountInfo of the entered accountId/identity
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { Chain } from '@polkadot/extension-chains/types';
 
-import { Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Autocomplete } from '@mui/material';
+import { Grid, Button as MuiButton, TextField, Autocomplete } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Clear as ClearIcon, NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
+import { NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
 
 import Identicon from '@polkadot/react-identicon';
 
@@ -28,14 +29,13 @@ import { nameAddress } from '../../util/plusTypes';
 interface Props extends ThemeProps {
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
+  addresesOnThisChain: nameAddress[];
   className?: string;
   chain: Chain | null;
   helperText?: string;
   helperColor?: string;
   label: string;
   setAccount: React.Dispatch<React.SetStateAction<DeriveAccountInfo | undefined>>;
-  addresesOnThisChain: nameAddress[];
-
 }
 
 function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, helperColor, helperText, label, setAccount }: Props): React.ReactElement<Props> {
@@ -43,20 +43,6 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
   const [info, setInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [text, setText] = useState<string | undefined>();
   const [filteredAccountsInfo, setFilteredAccountsInfo] = useState<DeriveAccountInfo[] | undefined | null>();
-
-  const handleClearLostAccount = useCallback(() => {
-    setAccount(undefined);
-    setText(undefined);
-    setInfo(undefined);
-  }, [setAccount]);
-
-  // const handleLostAccountChange = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
-  //   const value = event.target.value as string;
-
-  //   setAccount(undefined);
-  //   setText(value);
-  //   setInfo(undefined);
-  // }, [setAccount]);
 
   const handleChange = useCallback((_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = _event.target.value;
@@ -84,12 +70,14 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
     if (text) {
       const filtered = accountsInfo.filter((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
 
-      if (filtered) {
+      if (filtered?.length) {
         setFilteredAccountsInfo(filtered);
         setInfo(filtered[0]);
 
         return;
       }
+
+      setInfo(null);
     }
 
     setFilteredAccountsInfo(null);

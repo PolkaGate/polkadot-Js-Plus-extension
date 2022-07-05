@@ -13,7 +13,7 @@ import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Support as SupportIcon } from '@mui/icons-material';
-import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepButton } from '@mui/material';
+import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepButton, Stack } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -34,6 +34,7 @@ import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from 
 import { AddressState, RecoveryConsts } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
+import AddNewAccount from './AddNewAccount';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -55,6 +56,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [text, setText] = useState<string | undefined>();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
+  const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
   const [filteredAccountsInfo, setFilteredAccountsInfo] = useState<DeriveAccountInfo[] | undefined | null>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
@@ -165,102 +167,27 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     });
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
-  const navigateBefore = useCallback((info: DeriveAccountInfo) => {
-    const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
+  useEffect(() => {
+    if (lostAccount) {
+      if (lostAccountRecoveryInfo === undefined || hasActiveRecoveries === undefined || isProxy === undefined) {
+        return;
+      }
 
-    if (index === 0) {
-      setAccountInfo(filteredAccountsInfo[filteredAccountsInfo.length - 1]);
-    } else {
-      setAccountInfo(filteredAccountsInfo[index - 1]);
+      if (lostAccountRecoveryInfo === null) {
+        return setLostAccountHelperText(t<string>('Account is not recoverable'));
+      }
+
+      if (hasActiveRecoveries) {
+        return setLostAccountHelperText(t<string>('Recovery is already initiated'));
+      }
+
+      if (isProxy === null) {
+        return setLostAccountHelperText(t<string>('Account is recoverable, proceed'));
+      }
+
+      return setLostAccountHelperText(t<string>('Account is already a proxy'));
     }
-  }, [filteredAccountsInfo]);
-
-  const navigateNext = useCallback((info: DeriveAccountInfo) => {
-    const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
-
-    if (index === filteredAccountsInfo.length - 1) {
-      setAccountInfo(filteredAccountsInfo[0]);
-    } else {
-      setAccountInfo(filteredAccountsInfo[index + 1]);
-    }
-  }, [filteredAccountsInfo]);
-
-  const AccountTextBox = () => (
-    <Grid alignItems='center' container sx={{ pt: 2 }}>
-      <Grid item xs={1}>
-        {lostAccount &&
-          <Identicon
-            prefix={chain?.ss58Format ?? 42}
-            size={40}
-            theme={chain?.icon || 'polkadot'}
-            value={lostAccount.accountId}
-          />}
-      </Grid>
-      <Grid item xs={11}>
-        <TextField
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position='end'>
-                <IconButton
-                  onClick={handleClearLostAccount}
-                >
-                  {text ? <ClearIcon /> : ''}
-                </IconButton>
-              </InputAdornment>
-            ),
-            startAdornment: (
-              <InputAdornment position='start'>
-                {/* {lostAccountIsValid ? <CheckRoundedIcon color='success' /> : ''} */}
-              </InputAdornment>
-            ),
-            style: { fontSize: 14 }
-          }}
-          autoFocus
-          disabled={!accountsInfo?.length}
-          fullWidth
-          // helperText={t<string>('Please enter the lost account information')}
-          label={t<string>('Account')}
-          onChange={handleLostAccountChange}
-          placeholder={'account Id / name / twitter / element Id / email / web site'}
-          size='medium'
-          type='string'
-          value={lostAccount?.accountId || text}
-          variant='outlined'
-        />
-      </Grid>
-    </Grid>
-  );
-
-  const ShowItem = ({ title, value }: { title: string, value: string | undefined }) => (
-    <Grid container item spacing={1} xs={12}>
-      <Grid item sx={{ fontWeight: 'bold' }}>
-        {title}:
-      </Grid>
-      <Grid item>
-        {value}
-      </Grid>
-    </Grid>
-  );
-
-  const ShowAccountInfo = ({ info }: { info: DeriveAccountInfo }) => (
-    <Grid alignItems='center' container item xs={12}>
-      <Grid item xs={1}>
-        <NavigateBeforeIcon onClick={() => navigateBefore(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
-      </Grid>
-      <Grid item xs>
-        <ShowItem title={t<string>('Display')} value={info.identity.display} />
-        <ShowItem title={t<string>('Legal')} value={info.identity.legal} />
-        <ShowItem title={t<string>('Email')} value={info.identity.email} />
-        <ShowItem title={t<string>('Element')} value={info.identity.riot} />
-        <ShowItem title={t<string>('Twitter')} value={info.identity.twitter} />
-        <ShowItem title={t<string>('Web')} value={info.identity.web} />
-        {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(info.accountId)} />}
-      </Grid>
-      <Grid item xs={0.5}>
-        <NavigateNextIcon fontSize='large' onClick={() => navigateNext(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
-      </Grid>
-    </Grid>
-  );
+  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, t]);
 
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
@@ -277,62 +204,19 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             )}
           </Stepper>
         </Grid>
-        <Grid item pt='35px' xs={12}>
-          <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
+        <Grid height='395px' item pt='55px' xs={12}>
+          <Typography sx={{ color: 'text.primary', p: '10px 10px 15px' }} variant='subtitle2'>
             {t<string>('Enter a lost account address (or search by identity)')}:
           </Typography>
-          <AccountTextBox />
-        </Grid>
-        {!lostAccount &&
-          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px' }} xs={12}>
-            {accountInfo
-              ? <ShowAccountInfo info={accountInfo} />
-              : accountInfo === null ?
-                <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
-                  {t<string>('No indetity found for this account!')}
-                </Grid>
-                : !accountsInfo?.length && accountInfo === undefined &&
-                <Progress title={t<string>('Loading identities ...')} />
-            }
-            {(accountInfo || isValidAddress(text)) &&
-              <Grid container item justifyContent='center' sx={{ px: 7 }} xs={12}>
-                <MuiButton
-                  color='primary'
-                  onClick={handleConfirmLostAccount}
-                  variant='contained'
-                  sx={{ textTransform: 'none' }}
-                >
-                  {t<string>('Confirm the lost account')}
-                </MuiButton>
-              </Grid>
-            }
-          </Grid>
-        }
-        {lostAccount &&
-          <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '250px', p: '20px 20px 20px 50px' }} xs={12}>
-            {!lostAccountRecoveryInfo &&
-              <Typography sx={{ color: 'text.secondary', pb: '10px' }} variant='subtitle1'>
-                {t<string>('Account is not recoverable')}
+          <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
+          {lostAccountHelperText &&
+            <Stack alignItems='center' justifyContent='center' pt='85px'>
+              <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
+                {lostAccountHelperText}
               </Typography>
-            }
-            {lostAccountRecoveryInfo &&
-              <>
-                {hasActiveRecoveries
-                  ? <Typography sx={{ color: 'text.primary', pb: '10px' }} variant='subtitle1'>
-                    {t<string>('Recovery is already initiated')}
-                  </Typography>
-                  : isProxy
-                    ? <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
-                      {t<string>('Account is already a proxy')}
-                    </Typography>
-                    : <Typography sx={{ color: 'green', pb: '10px' }} variant='subtitle1'>
-                      {t<string>('Account is recoverable, proceed')}
-                    </Typography>
-                }
-              </>
-            }
-          </Grid>
-        }
+            </Stack>
+          }
+        </Grid>
         <Grid item sx={{ pt: 3 }} xs={12}>
           <Button
             data-button-action=''
