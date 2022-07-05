@@ -31,7 +31,7 @@ import { ConfirmButton, Password, PlusHeader, Popup, Progress } from '../../comp
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
-import { AddressState, RecoveryConsts } from '../../util/plusTypes';
+import { AddressState, nameAddress, RecoveryConsts } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import AddNewAccount from './AddNewAccount';
@@ -53,11 +53,8 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
-  const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
-  const [text, setText] = useState<string | undefined>();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
   const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
-  const [filteredAccountsInfo, setFilteredAccountsInfo] = useState<DeriveAccountInfo[] | undefined | null>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
@@ -69,53 +66,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     [k: number]: boolean;
   }>({});
 
-  const handleClearLostAccount = useCallback(() => {
-    setLostAccountRecoveryInfo(undefined);
-    setText(undefined);
-    setLostAccount(undefined);
-    setAccountInfo(undefined);
-  }, []);
-
-  const handleLostAccountChange = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = event.target.value as string;
-
-    setLostAccountRecoveryInfo(undefined);
-    setText(value);
-    setLostAccount(undefined);
-    setAccountInfo(undefined);
-  }, []);
-
-  const handleConfirmLostAccount = useCallback(() => {
-    const lostAccount = accountInfo ?? (text && isValidAddress(text) ? { accountId: text, identity: undefined } as unknown as DeriveAccountInfo : undefined);
-
-    lostAccount && setLostAccount(lostAccount);
-  }, [accountInfo, text]);
-
-  const handleSearchIdentity = useCallback(() => {
-    if (!accountsInfo?.length) {
-      return;
-    }
-
-    if (!text) {
-      return setFilteredAccountsInfo(undefined);
-    }
-
-    let filtered;
-
-    if (text) {
-      filtered = accountsInfo.filter((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
-
-      if (filtered) {
-        setFilteredAccountsInfo(filtered);
-        setAccountInfo(filtered[0]);
-
-        return;
-      }
-    }
-
-    setFilteredAccountsInfo(null);
-  }, [accountsInfo, text]);
-
   const handleNextToInitiateRecovery = useCallback(() => {
     setState('initiateRecovery');
     setConfirmModalOpen(true);
@@ -124,10 +74,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const handleStep = (step: number) => () => {
     setActiveStep(step);
   };
-
-  useEffect(() => {
-    handleSearchIdentity();
-  }, [handleSearchIdentity, text]);
 
   useEffect(() => {
     if (api && lostAccountRecoveryInfo?.friends) {
