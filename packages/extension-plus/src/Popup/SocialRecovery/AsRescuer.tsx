@@ -110,6 +110,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       const proxy = r.isSome ? r.unwrap().toString() : null;
 
       setIsProxy(proxy === lostAccount.accountId);
+      console.log('proxy:', r.isSome ? r.unwrap().toString() : 'noch');
     });
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
@@ -127,7 +128,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         return setLostAccountHelperText(t<string>('Recovery is already initiated'));
       }
 
-      if (isProxy === null) {
+      if (!isProxy) {
         return setLostAccountHelperText(t<string>('Account is recoverable, proceed'));
       }
 

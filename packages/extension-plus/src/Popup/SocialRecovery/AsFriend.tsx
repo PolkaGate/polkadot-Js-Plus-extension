@@ -76,6 +76,17 @@ function AsFriend({ account, accountsInfo, api, addresesOnThisChain, handleClose
     }
   }, [lostAccountRecoveryInfo, api]);
 
+  const clearHelperTexts = useCallback(() => {
+    setRescuerAccountHelperText(undefined);
+    setLostAccountHelperText(undefined);
+  }, []);
+
+  useEffect(() => {
+    if (!lostAccount) {
+      clearHelperTexts();
+    }
+  }, [clearHelperTexts, lostAccount]);
+
   useEffect(() => {
     if (!api || !lostAccount) { return; }
 
@@ -144,10 +155,10 @@ function AsFriend({ account, accountsInfo, api, addresesOnThisChain, handleClose
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={lostAccountHelperText} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccount && lostAccountRecoveryInfo &&
             <>
-              <Typography sx={{ color: 'text.primary', p: '20px 10px 10px' }} variant='subtitle2'>
+              <Typography sx={{ color: 'text.primary', p: '30px 10px 10px' }} variant='subtitle2'>
                 {t<string>('Enter the rescuer account Id (identity)')}:
               </Typography>
-              <AddNewAccount account={rescuerAccount} addresesOnThisChain={addresesOnThisChain} accountsInfo={accountsInfo} chain={chain} helperText={rescuerAccountHelperText} label={t('Rescuer')} setAccount={setRescuerAccount} />
+              <AddNewAccount account={rescuerAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={rescuerAccountHelperText} label={t('Rescuer')} setAccount={setRescuerAccount} />
             </>
           }
         </Grid>

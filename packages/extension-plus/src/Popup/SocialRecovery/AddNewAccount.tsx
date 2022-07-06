@@ -221,9 +221,11 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
   );
 
   const ShowAccountInfo = ({ info, text }: { info: DeriveAccountInfo, text: string | undefined }) => (
-    <Grid alignItems='center' container item xs={12}>
+    <Grid alignItems='center' container item justifyContent='center' xs={12}>
       <Grid item xs={1}>
-        <NavigateBeforeIcon onClick={() => navigateBefore(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
+        {filteredAccountsInfo && filteredAccountsInfo.length > 1 &&
+          <NavigateBeforeIcon onClick={() => navigateBefore(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
+        }
       </Grid>
       <Grid item xs>
         <ShowItem title={t<string>('Display')} value={info.identity.display} />
@@ -234,9 +236,11 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
         <ShowItem title={t<string>('Web')} value={info.identity.web} />
         {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(info.accountId)} />}
       </Grid>
-      <Grid item xs={0.5}>
-        <NavigateNextIcon fontSize='large' onClick={() => navigateNext(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
-      </Grid>
+      {filteredAccountsInfo && filteredAccountsInfo.length > 1 &&
+        <Grid item xs={0.5}>
+          <NavigateNextIcon fontSize='large' onClick={() => navigateNext(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
+        </Grid>
+      }
     </Grid>
   );
 

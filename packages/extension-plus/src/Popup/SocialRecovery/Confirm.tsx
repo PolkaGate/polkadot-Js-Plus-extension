@@ -231,6 +231,25 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         setConfirmingState(status);
       }
 
+      if (localState === 'vouchRecovery' && rescuer?.accountId && lostAccount?.accountId) {
+        const params = [lostAccount.accountId, rescuer.accountId];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, vouchRecovery, params, signer, account.accountId);
+
+        history.push({
+          action: 'vouch_recovery',
+          amount: '0',
+          block,
+          date: Date.now(),
+          fee: fee || '',
+          from: String(account.accountId),
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
+
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, account.accountId, history);
     } catch (e) {
@@ -252,7 +271,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     window.location.reload();
   }, [onAction, setState]);
 
-  const WriteAppropiateMessage = useCallback(({ note, state }: { state: string, note?: string }) => {
+  const WriteAppropriateMessage = useCallback(({ note, state }: { state: string, note?: string }) => {
     switch (state) {
       case ('initiateRecovery'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
@@ -266,6 +285,11 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       case ('removeRecovery'):
         return <Typography sx={{ mt: '50px' }} variant='body1'>
           {t('Removing your account setting as recoverable. Your {{deposit}} deposit will be unclocked',
+            { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
+        </Typography>;
+      case ('vouchRecovery'):
+        return <Typography sx={{ mt: '50px' }} variant='body1'>
+          {t('You are vouching to rescue the above lost account Id using the following rescuer Id:',
             { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
         </Typography>;
       default:
@@ -335,7 +359,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
             </Grid>
           </Grid>
         </Grid>
-        <Grid container item sx={{ fontSize: 12, height: '200px', overflowY: 'auto', bgcolor: 'white' }} xs={12}>
+        <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '200px', overflowY: 'auto' }} xs={12}>
           {['makeRecoverable', 'initiateRecovery'].includes(state) &&
             <>
               {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
@@ -358,8 +382,18 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
           }
           {['closeRecovery', 'removeRecovery'].includes(state) &&
             <Grid item px='30px' xs={12}>
-              <WriteAppropiateMessage state={state} />
+              <WriteAppropriateMessage state={state} />
             </Grid>
+          }
+          {state === 'vouchRecovery' &&
+            <>
+              <Grid item p='30px'>
+                <WriteAppropriateMessage state={state} />
+              </Grid>
+              <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
+                <Identity accountInfo={rescuer} chain={chain} showAddress />
+              </Grid>
+            </>
           }
         </Grid>
       </Grid>
@@ -395,6 +429,6 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
           } */}
         </Grid>
       </Grid>
-    </Popup>
+    </Popup >
   );
 }
