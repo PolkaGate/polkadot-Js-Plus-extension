@@ -57,7 +57,7 @@ function Identity({ accountInfo, address, api, chain, iconSize = 24, name, showA
     <>
       <Grid container>
         {title &&
-          <Grid item sx={{ paddingBottom: '5px' }}>
+          <Grid item sx={{ pb: '5px' }}>
             {title}
           </Grid>
         }

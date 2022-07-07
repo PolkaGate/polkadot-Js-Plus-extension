@@ -27,7 +27,7 @@ import isValidAddress from '../../util/validateAddress';
 import { SettingsContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Password, PlusHeader, Popup, Progress } from '../../components';
+import { ConfirmButton, Password, PlusHeader, Popup, Progress, ShowValue } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
@@ -60,6 +60,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [state, setState] = useState<string | undefined>();
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
   const [isProxy, setIsProxy] = useState<boolean | undefined | null>();
+  const [initiateDate, setInitiateDate] = useState<Date | undefined | null>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState<{
@@ -74,6 +75,18 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const handleStep = (step: number) => () => {
     setActiveStep(step);
   };
+
+  useEffect((): void => {
+    api && hasActiveRecoveries && api.rpc.chain.getHeader().then((h) => {
+      const currentBlockNumber = h.number.toNumber();
+      const now = Date.now();
+      const initiateRecoveryBlock = hasActiveRecoveries.created.toNumber();
+      const initiateRecoveryTime = now - (currentBlockNumber - initiateRecoveryBlock) * 6000;
+
+      setInitiateDate(new Date(initiateRecoveryTime));
+    });
+  }, [api, hasActiveRecoveries]);
+
 
   useEffect(() => {
     if (api && lostAccountRecoveryInfo?.friends) {
@@ -107,9 +120,9 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
 
     // eslint-disable-next-line no-void
     void api.query.recovery.proxy(account.accountId).then((r) => {
-      const proxy = r.isSome ? r.unwrap().toString() : null;
+      const proxy = r.isSome ? String(r.unwrap()) : null;
 
-      setIsProxy(proxy === lostAccount.accountId);
+      setIsProxy(proxy === String(lostAccount.accountId));
       console.log('proxy:', r.isSome ? r.unwrap().toString() : 'noch');
     });
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
@@ -163,6 +176,11 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
               </Typography>
             </Stack>
           }
+          {hasActiveRecoveries && initiateDate &&
+            <Stack alignItems='center' fontSize={12} justifyContent='center' pt='20px'>
+              <ShowValue direction='column' title='Initiation time' value={initiateDate.toString()} />
+            </Stack>
+          }
         </Grid>
         <Grid item sx={{ pt: 3 }} xs={12}>
           <Button
@@ -174,7 +192,8 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           </Button>
         </Grid>
       </Grid>
-      {showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts && lostAccountRecoveryInfo &&
+      {
+        showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts && lostAccountRecoveryInfo &&
         <Confirm
           account={account}
           api={api}
@@ -190,7 +209,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           state={state}
         />
       }
-    </Popup>
+    </Popup >
   );
 }
 

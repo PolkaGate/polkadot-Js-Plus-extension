@@ -330,9 +330,6 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={stateInHuman(state)} />
       <Grid alignItems='center' container>
         <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
-          {/* <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center', fontVariant: 'small-caps' }}>
-            {stateInHuman(confirmingState || state)}
-          </Grid> */}
           <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12, pt: '10px', textAlign: 'center' }} xs={12}>
             <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
               <Identity accountInfo={lostAccount ?? account} chain={chain} showAddress />

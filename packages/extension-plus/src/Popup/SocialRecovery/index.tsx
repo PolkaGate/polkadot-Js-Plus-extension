@@ -155,10 +155,8 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   useEffect(() => {
     if (!api || !account?.accountId) { return; }
 
-    const isRecoverable = api.query.recovery.recoverable;
-
     // eslint-disable-next-line no-void
-    void isRecoverable(account.accountId).then((r) => {
+    void api.query.recovery.recoverable(account.accountId).then((r) => {
       setRecoveryInfo(r.isSome ? r.unwrap() as unknown as PalletRecoveryRecoveryConfig : null);
       console.log('is recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });

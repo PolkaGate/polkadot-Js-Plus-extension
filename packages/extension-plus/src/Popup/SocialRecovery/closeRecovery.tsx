@@ -43,7 +43,7 @@ function CloseRecovery({ api, chain, formattedAddress, handleExitCloseRecovery, 
   const [date, setDate] = useState<Date | undefined>();
 
   useEffect((): void => {
-    api && rescuer && api.rpc.chain.getHeader().then((h) => {
+    api && rescuer?.option && api.rpc.chain.getHeader().then((h) => {
       const currentBlockNumber = h.number.toNumber();
       const now = Date.now();
       const initiateRecoveryBlock = rescuer.option.created.toNumber();
