@@ -93,7 +93,11 @@ function Identity({ accountInfo, address, api, chain, iconSize = 24, showAddress
                 {showSocial && <Grid container id='socials' item justifyContent='flex-start' xs={hasSocial ? 3 : 0}>
                   {info?.identity.twitter &&
                     <Grid item>
-                      <Link href={`https://TwitterIcon.com/${info?.identity.twitter}`}>
+                      <Link
+                        href={`https://twitter.com/${info?.identity.twitter}`}
+                        rel='noreferrer'
+                        target='_blank'
+                      >
                         <TwitterIcon
                           color='primary'
                           sx={{ fontSize: 15 }}
