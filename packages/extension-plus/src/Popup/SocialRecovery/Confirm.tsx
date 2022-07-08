@@ -65,6 +65,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   const initiateRecovery = api.tx.recovery.initiateRecovery; // (lostAccount)
   const closeRecovery = api.tx.recovery.closeRecovery; // (rescuer)
   const vouchRecovery = api.tx.recovery.vouchRecovery; // (lost, rescuer)
+  const claimRecovery = api.tx.recovery.claimRecovery; // (lost)
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) { return false; }
@@ -113,9 +114,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         account?.accountId && void vouchRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
+      case ('claimRecovery'):
+        params = [lostAccount.accountId];
+
+        // eslint-disable-next-line no-void
+        account?.accountId && void claimRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+
+        break;
       default:
     }
-  }, [account.accountId, closeRecovery, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
+  }, [account?.accountId, claimRecovery, closeRecovery, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
 
   const deposit = useMemo((): BN => {
     if (['removeRecovery', 'makeRecoverable'].includes(state) && friendIds?.length && recoveryConsts) {
@@ -250,6 +258,25 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         setConfirmingState(status);
       }
 
+      if (localState === 'claimRecovery' && account.accountId && lostAccount?.accountId) {
+        const params = [lostAccount.accountId];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, claimRecovery, params, signer, account.accountId);
+
+        history.push({
+          action: 'claim_recovery',
+          amount: '0',
+          block,
+          date: Date.now(),
+          fee: fee || '',
+          from: String(account.accountId),
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
+      }
+
       // eslint-disable-next-line no-void
       void saveHistory(chain, hierarchy, account.accountId, history);
     } catch (e) {
@@ -258,7 +285,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, api, chain, closeRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, api, chain, vouchRecovery, closeRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -271,35 +298,35 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     window.location.reload();
   }, [onAction, setState]);
 
-  const WriteAppropriateMessage = useCallback(({ note, state }: { state: string, note?: string }) => {
-    switch (state) {
-      case ('initiateRecovery'):
-        return <Typography sx={{ mt: '50px' }} variant='h6'>
-          {t('Initiating recovery for the above mentioned account, the deposit will be always repatriated to that account')}
-        </Typography>;
-      case ('closeRecovery'):
-        return <Typography sx={{ mt: '50px' }} variant='body1'>
-          {t('Closing the recovery process initiated by the above mentioned malicious account, which transfers its {{deposit}} deposit to your account',
-            { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
-        </Typography>;
-      case ('removeRecovery'):
-        return <Typography sx={{ mt: '50px' }} variant='body1'>
-          {t('Removing your account setting as recoverable. Your {{deposit}} deposit will be unclocked',
-            { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
-        </Typography>;
-      case ('vouchRecovery'):
-        return <Typography sx={{ mt: '50px' }} variant='body1'>
-          {t('You are vouching to rescue the above lost account Id using the following rescuer Id:',
-            { replace: { deposit: api.createType('Balance', deposit).toHuman() } })}
-        </Typography>;
-      default:
-        return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>
-          {note}
-        </Typography>;
+  const getMessage = useCallback((note, state): string => {
+    if (state === 'initiateRecovery') {
+      return t<string>('Initiating recovery for the above mentioned account, the deposit will be always repatriated to that account')
     }
-    // Note: availableBalance change should not change the alert in redeem confirm page!
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    if (state === 'closeRecovery') {
+      return t('Closing the recovery process initiated by the above account, transfering its {{deposit}} deposit to your account', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
+    }
+
+    if (state === 'removeRecovery') {
+      return t('Removing your account setting as recoverable. Your {{deposit}} deposit will be unclocked', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
+    }
+
+    if (state === 'vouchRecovery') {
+      return t('Vouching to rescue the above lost account Id using the following rescuer Id')
+    }
+
+    if (state === 'claimRecovery') {
+      return t('Claiming recovery for the above lost account Id');
+    }
+
+    return '';
+  }, [api, deposit, t]);
+
+  const WriteAppropriateMessage = ({ note, state }: { state: string, note?: string }) => (
+    <Typography sx={{ mt: '50px', textAlign: 'center' }} variant='h6'>
+      {getMessage(note, state)}
+    </Typography>
+  );
 
   const stateInHuman = (state: string): string => {
     switch (state) {
@@ -313,6 +340,8 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         return 'Close Recovery';
       case ('vouchRecovery'):
         return 'Vouch Recovery';
+      case ('claimRecovery'):
+        return 'Claim Recovery';
       default:
         return state.toUpperCase();
     }
@@ -377,8 +406,8 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               ))}
             </>
           }
-          {['closeRecovery', 'removeRecovery'].includes(state) &&
-            <Grid item px='30px' xs={12}>
+          {['closeRecovery', 'removeRecovery', 'claimRecovery'].includes(state) &&
+            <Grid item px='30px' pt='50px' xs={12}>
               <WriteAppropriateMessage state={state} />
             </Grid>
           }

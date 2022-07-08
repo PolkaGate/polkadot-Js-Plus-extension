@@ -6,7 +6,7 @@
 
 /**
  * @description
- * this component opens rescuer page, where a rescuer can initiate, claim, and finally close a recovery  
+ * this component opens rescuer page, where a rescuer can initiate, claim, and finally close a recovery
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
@@ -49,7 +49,7 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
-const steps = ['Initiating recovery', 'Claiming recovery', 'Close recovery'];
+const steps = ['Initiate recovery', 'Claim recovery', 'Close recovery'];
 
 function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -61,18 +61,25 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
-  const [isProxy, setIsProxy] = useState<boolean | undefined | null>();
-  const [remainingBlocksToClaim, setRemainigBlocksToClaim] = useState<number | undefined>();
+  const [isProxy, setIsProxy] = useState<boolean | undefined>();
+  const [remainingBlocksToClaim, setRemainingBlocksToClaim] = useState<number | undefined>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState<{
     [k: number]: boolean;
   }>({});
 
-  const handleNextToInitiateRecovery = useCallback(() => {
-    setState('initiateRecovery');
-    setConfirmModalOpen(true);
+  const resetPage = useCallback(() => {
+    setRemainingBlocksToClaim(undefined);
+    setActiveStep(0);
+    setCompleted({});
+    setLostAccountHelperText(undefined);
   }, []);
+
+  const handleNextToInitiateRecovery = useCallback(() => {
+    !state && setState('initiateRecovery');
+    setConfirmModalOpen(true);
+  }, [state]);
 
   const handleStep = (step: number) => () => {
     setActiveStep(step);
@@ -88,12 +95,33 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       // setInitiateDate(new Date(initiateRecoveryTime));
       const delayPeriod = lostAccountRecoveryInfo.delayPeriod.toNumber();
 
-      setRemainigBlocksToClaim(initiateRecoveryBlock + delayPeriod - currentBlockNumber);
+      setRemainingBlocksToClaim(initiateRecoveryBlock + delayPeriod - currentBlockNumber);
     });
   }, [api, hasActiveRecoveries, lostAccountRecoveryInfo]);
 
-  console.log('remainingBlocksToClaim:', remainingBlocksToClaim);
+  useEffect((): void => {
+    if (remainingBlocksToClaim && remainingBlocksToClaim <= 0) {
+      const newCompleted = completed;
 
+      completed[activeStep] = true;
+      setCompleted(newCompleted);
+      setActiveStep((preActiveStep) => preActiveStep + 1);
+      setState('claimRecovery');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remainingBlocksToClaim]);
+
+  useEffect((): void => {
+    if (isProxy) {
+      const newCompleted = completed;
+
+      completed[activeStep] = true;
+      setCompleted(newCompleted);
+      setActiveStep((preActiveStep) => preActiveStep + 1);
+      setState('closeRecovery');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProxy]);
 
   useEffect(() => {
     if (api && lostAccountRecoveryInfo?.friends) {
@@ -113,6 +141,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
   }, [api, lostAccount]);
+
+  useEffect(() => {
+    if (lostAccount === undefined) { resetPage(); }
+  }, [lostAccount, resetPage]);
 
   useEffect(() => {
     if (!api || !account?.accountId || !lostAccount || !lostAccountRecoveryInfo) { return; }
@@ -145,21 +177,31 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       }
 
       if (hasActiveRecoveries) {
-        return setLostAccountHelperText(t<string>('Recovery is already initiated'));
+        if (remainingBlocksToClaim === undefined) {
+          return;
+        }
+
+        if (remainingBlocksToClaim > 0) {
+          return setLostAccountHelperText(t<string>('Remaining time to claim recovery'));
+        } else {
+          if (isProxy) {
+            return setLostAccountHelperText(t<string>('Account is already a proxy'));
+          }
+
+          return setLostAccountHelperText(t<string>('Recovery can be claimed'));
+        }
       }
 
       if (!isProxy) {
         return setLostAccountHelperText(t<string>('Account is recoverable, proceed'));
       }
-
-      return setLostAccountHelperText(t<string>('Account is already a proxy'));
     }
-  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, t]);
+  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t]);
 
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
       <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Rescue account'} />
-      <Grid container sx={{ p: '25px 30px' }}>
+      <Grid container sx={{ p: '35px 30px' }}>
         <Grid item xs={12}>
           <Stepper activeStep={activeStep} nonLinear>
             {steps.map((label, index) =>
@@ -183,28 +225,16 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
               </Typography>
             </Grid>
           }
-          {remainingBlocksToClaim &&
-            <>
-              {remainingBlocksToClaim > 0
-                ? <Grid fontSize={12} pt='20px' textAlign='center'>
-                  <Typography sx={{ color: 'text.success' }} variant='subtitle2'>
-                    {t('Remaining time to be able to claim recovery')}:
-                  </Typography>
-                  {remainingTime(remainingBlocksToClaim)}
-                </Grid>
-                : <Grid fontSize={12} textAlign='center' pt='20px'>
-                  <Typography sx={{ color: 'text.success' }} variant='subtitle2'>
-                    {t('Recovery can be claimed.')}
-                  </Typography>
-                </Grid>
-              }
-            </>
+          {remainingBlocksToClaim && remainingBlocksToClaim > 0 &&
+            <Grid fontSize={14} fontWeight={600} pt='20px' textAlign='center'>
+              {remainingTime(remainingBlocksToClaim)}
+            </Grid>
           }
         </Grid>
-        <Grid item sx={{ pt: 3 }} xs={12}>
+        <Grid item pt='15px' xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!hasActiveRecoveries || !!isProxy || (remainingBlocksToClaim && remainingBlocksToClaim > 0)}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!isProxy}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}
