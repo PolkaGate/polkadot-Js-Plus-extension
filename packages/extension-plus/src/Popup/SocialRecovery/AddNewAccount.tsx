@@ -150,7 +150,7 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
         <Autocomplete
           ListboxProps={{ sx: { fontSize: 12 } }}
           autoFocus
-          defaultValue={text}
+          defaultValue={info?.accountId || text}
           disabled={!accountsInfo?.length}
           freeSolo
           // onBlur={handleBlur}

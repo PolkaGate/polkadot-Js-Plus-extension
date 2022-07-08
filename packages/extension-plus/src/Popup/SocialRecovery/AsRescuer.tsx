@@ -30,11 +30,13 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Password, PlusHeader, Popup, Progress, ShowValue } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
+import { BN, hexToString } from '@polkadot/util';
 
 import { AddressState, nameAddress, RecoveryConsts } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import AddNewAccount from './AddNewAccount';
+import { remainingTime } from '../../util/plusUtils';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -60,7 +62,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [state, setState] = useState<string | undefined>();
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
   const [isProxy, setIsProxy] = useState<boolean | undefined | null>();
-  const [initiateDate, setInitiateDate] = useState<Date | undefined | null>();
+  const [remainingBlocksToClaim, setRemainigBlocksToClaim] = useState<number | undefined>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState<{
@@ -77,15 +79,20 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   };
 
   useEffect((): void => {
-    api && hasActiveRecoveries && api.rpc.chain.getHeader().then((h) => {
+    api && hasActiveRecoveries && lostAccountRecoveryInfo && api.rpc.chain.getHeader().then((h) => {
       const currentBlockNumber = h.number.toNumber();
-      const now = Date.now();
+      // const now = Date.now();
       const initiateRecoveryBlock = hasActiveRecoveries.created.toNumber();
-      const initiateRecoveryTime = now - (currentBlockNumber - initiateRecoveryBlock) * 6000;
+      // const initiateRecoveryTime = now - (currentBlockNumber - initiateRecoveryBlock) * 6000;
 
-      setInitiateDate(new Date(initiateRecoveryTime));
+      // setInitiateDate(new Date(initiateRecoveryTime));
+      const delayPeriod = lostAccountRecoveryInfo.delayPeriod.toNumber();
+
+      setRemainigBlocksToClaim(initiateRecoveryBlock + delayPeriod - currentBlockNumber);
     });
-  }, [api, hasActiveRecoveries]);
+  }, [api, hasActiveRecoveries, lostAccountRecoveryInfo]);
+
+  console.log('remainingBlocksToClaim:', remainingBlocksToClaim);
 
 
   useEffect(() => {
@@ -170,22 +177,34 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccountHelperText &&
-            <Stack alignItems='center' justifyContent='center' pt='85px'>
+            <Grid textAlign='center' pt='85px'>
               <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
                 {lostAccountHelperText}
               </Typography>
-            </Stack>
+            </Grid>
           }
-          {hasActiveRecoveries && initiateDate &&
-            <Stack alignItems='center' fontSize={12} justifyContent='center' pt='20px'>
-              <ShowValue direction='column' title='Initiation time' value={initiateDate.toString()} />
-            </Stack>
+          {remainingBlocksToClaim &&
+            <>
+              {remainingBlocksToClaim > 0
+                ? <Grid fontSize={12} pt='20px' textAlign='center'>
+                  <Typography sx={{ color: 'text.success' }} variant='subtitle2'>
+                    {t('Remaining time to be able to claim recovery')}:
+                  </Typography>
+                  {remainingTime(remainingBlocksToClaim)}
+                </Grid>
+                : <Grid fontSize={12} textAlign='center' pt='20px'>
+                  <Typography sx={{ color: 'text.success' }} variant='subtitle2'>
+                    {t('Recovery can be claimed.')}
+                  </Typography>
+                </Grid>
+              }
+            </>
           }
         </Grid>
         <Grid item sx={{ pt: 3 }} xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!hasActiveRecoveries || isProxy}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!hasActiveRecoveries || !!isProxy || (remainingBlocksToClaim && remainingBlocksToClaim > 0)}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}
