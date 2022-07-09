@@ -316,7 +316,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
     let partialSubtrahend = surAmount;
 
-    if (['withdrawUnbound', 'unstake', 'withdrawClaimable'].includes(state)) {
+    if (['withdrawUnbound', 'unstake', 'withdrawClaimable', 'bondExtraRewards'].includes(state)) {
       partialSubtrahend = BN_ZERO;
     }
 
