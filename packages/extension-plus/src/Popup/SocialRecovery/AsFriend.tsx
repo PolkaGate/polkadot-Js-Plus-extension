@@ -13,21 +13,14 @@ import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { AdminPanelSettings as AdminPanelSettingsIcon } from '@mui/icons-material';
-import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepButton } from '@mui/material';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { Typography, Grid } from '@mui/material';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
-import { ArrowBackIosRounded, CheckRounded as CheckRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
 
-import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
-
-import Identicon from '@polkadot/react-identicon';
-
-import isValidAddress from '../../util/validateAddress';
-import { SettingsContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Password, PlusHeader, Popup, Progress } from '../../components';
+import { PlusHeader, Popup, Progress } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
@@ -47,7 +40,7 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
-function AsFriend({ account, accountsInfo, api, addresesOnThisChain, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
+function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
@@ -104,10 +97,10 @@ function AsFriend({ account, accountsInfo, api, addresesOnThisChain, handleClose
       }
 
       if (lostAccountRecoveryInfo === null) {
-        return setLostAccountHelperText(t<string>('Account is not recoverable'));
+        return setLostAccountHelperText(t<string>('The account is not recoverable'));
       }
 
-      setLostAccountHelperText(t<string>('Account is recoverable'));
+      setLostAccountHelperText(t<string>('The account is recoverable'));
     }
   }, [lostAccount, lostAccountRecoveryInfo, t]);
 
@@ -118,10 +111,10 @@ function AsFriend({ account, accountsInfo, api, addresesOnThisChain, handleClose
       }
 
       if (hasActiveRecoveries === null) {
-        return setRescuerAccountHelperText(t<string>('Account recovery for the lost account is not initiated by this rescuer'));
+        return setRescuerAccountHelperText(t<string>('Account recovery for the lost account has not been initiated by this rescuer'));
       }
 
-      setRescuerAccountHelperText(t<string>('The rescuer is initiated the recovery, proceed'));
+      setRescuerAccountHelperText(t<string>('The rescuer has initiated the recovery, proceed'));
     }
   }, [hasActiveRecoveries, lostAccountRecoveryInfo, rescuerAccount, t]);
 
@@ -158,7 +151,18 @@ function AsFriend({ account, accountsInfo, api, addresesOnThisChain, handleClose
               <Typography sx={{ color: 'text.primary', p: '30px 10px 10px' }} variant='subtitle2'>
                 {t<string>('Enter the rescuer account Id (identity)')}:
               </Typography>
-              <AddNewAccount account={rescuerAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={rescuerAccountHelperText} label={t('Rescuer')} setAccount={setRescuerAccount} />
+              <AddNewAccount account={rescuerAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Rescuer')} setAccount={setRescuerAccount} />
+              {rescuerAccount &&
+                <> {rescuerAccountHelperText
+                  ? <Grid pt='85px' textAlign='center'>
+                    <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
+                      {rescuerAccountHelperText}
+                    </Typography>
+                  </Grid>
+                  : <Progress pt={1} title={t('Checking the resuer account')} />
+                }
+                </>
+              }
             </>
           }
         </Grid>

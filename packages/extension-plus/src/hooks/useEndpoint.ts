@@ -25,7 +25,8 @@ export default function useEndpoint(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const endPointFromStore: SavedMetaData = account?.endpoint ? JSON.parse(account.endpoint) : null;
 
-    if (endPointFromStore && endPointFromStore?.chainName === chainName) {
+    // TODO: THE CONDITION SHOULD BE CHANGED WHILE USING lIGHT Client
+    if (endPointFromStore && endPointFromStore?.chainName === chainName && String(endPointFromStore).startsWith('ws')) {
       return endPointFromStore.metaData as string;
     }
 

@@ -17,6 +17,7 @@ async function isRecovering(_address, endpoint, chain) {
   for (let i = 0; i < activeRecoveries.length; i++) {
     const [key, option] = activeRecoveries[i];
 
+    // TODO: can check all the list to find all ongoing possible recoveries for an account
     if (encodeAddress('0x' + key.toString().slice(82, 146), chain?.ss58Format) === _address) { // if this is lostAccount Id
       return {
         accountId: encodeAddress('0x' + key.toString().slice(162), chain?.ss58Format),
@@ -25,7 +26,7 @@ async function isRecovering(_address, endpoint, chain) {
     }
   }
 
-  return undefined;
+  return null;
 }
 
 onmessage = (e) => {

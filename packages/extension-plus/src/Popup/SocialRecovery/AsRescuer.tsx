@@ -13,24 +13,16 @@ import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Support as SupportIcon } from '@mui/icons-material';
-import { Typography, Autocomplete, Grid, Button as MuiButton, TextField, InputAdornment, IconButton, Stepper, Step, StepButton, Stack } from '@mui/material';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { Typography, Grid, Stepper, Step, StepButton } from '@mui/material';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
-import { ArrowBackIosRounded, CheckRounded as CheckRoundedIcon, Clear as ClearIcon, NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
 
-import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
-
-import Identicon from '@polkadot/react-identicon';
-
-import isValidAddress from '../../util/validateAddress';
-import { SettingsContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Password, PlusHeader, Popup, Progress, ShowValue } from '../../components';
+import { PlusHeader, Popup, Progress } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
-import { BN, hexToString } from '@polkadot/util';
 
 import { AddressState, nameAddress, RecoveryConsts } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
@@ -102,7 +94,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       completed[activeStep] = true;
       setCompleted(newCompleted);
       setActiveStep((preActiveStep) => preActiveStep + 1);
-      setState('claimRecovery');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remainingBlocksToClaim]);
@@ -114,10 +105,19 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       completed[activeStep] = true;
       setCompleted(newCompleted);
       setActiveStep((preActiveStep) => preActiveStep + 1);
-      setState('closeRecovery');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isProxy]);
+
+  useEffect((): void => {
+    if (activeStep === 1) {
+      return setState('claimRecovery');
+    }
+
+    if (activeStep === 2) {
+      return setState('closeRecovery');
+    }
+  }, [activeStep]);
 
   useEffect(() => {
     if (api && lostAccountRecoveryInfo?.friends) {
@@ -129,7 +129,9 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [lostAccountRecoveryInfo, api]);
 
   useEffect(() => {
-    if (!api || !lostAccount) { return; }
+    if (!api || !lostAccount) {
+      return;
+    }
 
     // eslint-disable-next-line no-void
     void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
@@ -139,11 +141,15 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [api, lostAccount]);
 
   useEffect(() => {
-    if (lostAccount === undefined) { resetPage(); }
+    if (lostAccount === undefined) {
+      resetPage();
+    }
   }, [lostAccount, resetPage]);
 
   useEffect(() => {
-    if (!api || !account?.accountId || !lostAccount || !lostAccountRecoveryInfo) { return; }
+    if (!api || !account?.accountId || !lostAccount || !lostAccountRecoveryInfo) {
+      return;
+    }
 
     const hasActiveRecoveries = api.query.recovery.activeRecoveries;
 
@@ -184,7 +190,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         if (remainingBlocksToClaim > 0) {
           return setLostAccountHelperText(t<string>('Remaining time to claim recovery'));
         } else {
-          return setLostAccountHelperText(t<string>('Recovery can be claimed'));
+          return setLostAccountHelperText(t<string>('Recovery can be claimed if the vouch threshold ({{threshold}}) is satisfied', { replace: { threshold: lostAccountRecoveryInfo.threshold } }));
         }
       }
 
@@ -214,7 +220,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccount &&
             <> {lostAccountHelperText
-              ? <Grid textAlign='center' pt='85px'>
+              ? <Grid pt='85px' textAlign='center'>
                 <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
                   {lostAccountHelperText}
                 </Typography>
@@ -232,7 +238,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         <Grid item pt='15px' xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!isProxy}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}
@@ -250,6 +256,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           recoveryConsts={recoveryConsts}
           recoveryDelay={lostAccountRecoveryInfo.delayPeriod.toNumber()}
           recoveryThreshold={lostAccountRecoveryInfo.threshold.toNumber()}
+          rescuer={{ ...account, 'option': { deposit: lostAccountRecoveryInfo.deposit, friends: lostAccountRecoveryInfo.friends } }}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}
           showConfirmModal={showConfirmModal}

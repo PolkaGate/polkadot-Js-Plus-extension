@@ -285,7 +285,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, api, chain, vouchRecovery, closeRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, api, chain, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -312,7 +312,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     }
 
     if (state === 'vouchRecovery') {
-      return t('Vouching to rescue the above lost account Id using the following rescuer Id')
+      return t('Vouching to rescue the above lost account using the following rescuer')
     }
 
     if (state === 'claimRecovery') {
@@ -407,16 +407,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
             </>
           }
           {['closeRecovery', 'removeRecovery', 'claimRecovery'].includes(state) &&
-            <Grid item px='30px' pt='50px' xs={12}>
+            <Grid item pt='50px' px='30px' xs={12}>
               <WriteAppropriateMessage state={state} />
             </Grid>
           }
           {state === 'vouchRecovery' &&
             <>
-              <Grid item p='30px'>
+              <Grid item p='25px'>
                 <WriteAppropriateMessage state={state} />
               </Grid>
-              <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
+              <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 7 }} xs={12}>
                 <Identity accountInfo={rescuer} chain={chain} showAddress />
               </Grid>
             </>
@@ -439,7 +439,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              // isDisabled={!stakingConsts || confirmButtonDisabled || !estimatedFee || !availableBalance || !api}
+              // isDisabled={ !estimatedFee || !availableBalance || !api} //TODO: check available balance to see if transaction can be done
               state={confirmingState}
               text={t('Confirm')}
             />

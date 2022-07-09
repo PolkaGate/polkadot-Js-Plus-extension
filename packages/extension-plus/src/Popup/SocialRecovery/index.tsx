@@ -247,7 +247,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     <>
       <Header showAdd showBackArrow showSettings smallMargin text={`${t<string>('Social Recovery')} ${chain?.name ? 'on' : ''} ${chain?.name ?? ''}`} />
       <Grid alignItems='center' container sx={{ px: '30px' }}>
-        <Grid item xs={12}>
+        <Grid item sx={{ borderBottom: 1, borderColor: 'divider' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
             <Tab
               icon={

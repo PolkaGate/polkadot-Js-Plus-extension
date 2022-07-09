@@ -75,7 +75,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const [price, setPrice] = useState<number>(0);
   const [ledger, setLedger] = useState<StakingLedger | null>(null);
   const [recoverable, setRecoverable] = useState<boolean | undefined>();
-  const [rescuer, setRescuer] = useState<Rescuer | undefined>();
+  const [rescuer, setRescuer] = useState<Rescuer | undefined | null>();
 
   const getLedger = useCallback((): void => {
     if (!endpoint || !address) { return; }
@@ -112,13 +112,16 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
     isRecoveringWorker.onmessage = (e) => {
       const rescuer: Rescuer | undefined = e.data as unknown as Rescuer | undefined;
 
-      if (rescuer) {
+      if (rescuer?.option) {
         console.log('rescuer is :', rescuer);
         rescuer.option.created = new BN(rescuer.option.created);
         rescuer.option.deposit = new BN(rescuer.option.deposit);
+        setRescuer(rescuer);
+      } else {
+        setRescuer(null);
       }
 
-      setRescuer(rescuer);
+
       isRecoveringWorker.terminate();
     };
   }, []);
@@ -321,9 +324,9 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
               {t && t('Please select a chain to view your balance.')}
             </Grid>
             : <>
-              <Grid alignItems='flex-start' container item justifyContent='center' sx={{ textAlign: 'center', pl: 1 }} xs={2}>
+              <Grid alignItems='flex-start' container item justifyContent='center' sx={{ pl: 1, textAlign: 'center' }} xs={2}>
                 <Grid item sx={{ cursor: 'pointer' }}>
-                  {recoverable && !rescuer &&
+                  {recoverable && rescuer === null &&
                     <FontAwesomeIcon
                       color={green[600]}
                       icon={faShield}
