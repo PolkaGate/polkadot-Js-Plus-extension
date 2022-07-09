@@ -88,11 +88,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   useEffect((): void => {
     api && hasActiveRecoveries && lostAccountRecoveryInfo && api.rpc.chain.getHeader().then((h) => {
       const currentBlockNumber = h.number.toNumber();
-      // const now = Date.now();
       const initiateRecoveryBlock = hasActiveRecoveries.created.toNumber();
-      // const initiateRecoveryTime = now - (currentBlockNumber - initiateRecoveryBlock) * 6000;
-
-      // setInitiateDate(new Date(initiateRecoveryTime));
       const delayPeriod = lostAccountRecoveryInfo.delayPeriod.toNumber();
 
       setRemainingBlocksToClaim(initiateRecoveryBlock + delayPeriod - currentBlockNumber);
@@ -173,7 +169,11 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       }
 
       if (lostAccountRecoveryInfo === null) {
-        return setLostAccountHelperText(t<string>('Account is not recoverable'));
+        return setLostAccountHelperText(t<string>('The account is not recoverable'));
+      }
+
+      if (isProxy) {
+        return setLostAccountHelperText(t<string>('The account is already a proxy'));
       }
 
       if (hasActiveRecoveries) {
@@ -184,17 +184,11 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         if (remainingBlocksToClaim > 0) {
           return setLostAccountHelperText(t<string>('Remaining time to claim recovery'));
         } else {
-          if (isProxy) {
-            return setLostAccountHelperText(t<string>('Account is already a proxy'));
-          }
-
           return setLostAccountHelperText(t<string>('Recovery can be claimed'));
         }
       }
 
-      if (!isProxy) {
-        return setLostAccountHelperText(t<string>('Account is recoverable, proceed'));
-      }
+      return setLostAccountHelperText(t<string>('The account is recoverable, proceed to initiate recovery'));
     }
   }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t]);
 
@@ -218,12 +212,16 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             {t<string>('Enter a lost account address (or search by identity)')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
-          {lostAccountHelperText &&
-            <Grid textAlign='center' pt='85px'>
-              <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
-                {lostAccountHelperText}
-              </Typography>
-            </Grid>
+          {lostAccount &&
+            <> {lostAccountHelperText
+              ? <Grid textAlign='center' pt='85px'>
+                <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
+                  {lostAccountHelperText}
+                </Typography>
+              </Grid>
+              : <Progress pt={1} title={t('Checking the account')} />
+            }
+            </>
           }
           {remainingBlocksToClaim && remainingBlocksToClaim > 0 &&
             <Grid fontSize={14} fontWeight={600} pt='20px' textAlign='center'>
