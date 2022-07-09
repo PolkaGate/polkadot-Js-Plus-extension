@@ -304,7 +304,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     }
 
     if (state === 'closeRecovery') {
-      return t('Closing the recovery process initiated by the above account, transfering its {{deposit}} deposit to your account', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
+      return t('Closing the recovery initiated by the below account, transfering its {{deposit}} deposit to the above account', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
     }
 
     if (state === 'removeRecovery') {
@@ -323,7 +323,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   }, [api, deposit, t]);
 
   const WriteAppropriateMessage = ({ note, state }: { state: string, note?: string }) => (
-    <Typography sx={{ mt: '50px', textAlign: 'center' }} variant='h6'>
+    <Typography sx={{ mt: '30px', textAlign: 'center' }} variant='h6'>
       {getMessage(note, state)}
     </Typography>
   );
@@ -361,7 +361,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
           <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12, pt: '10px', textAlign: 'center' }} xs={12}>
             <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
-              <Identity accountInfo={lostAccount ?? account} chain={chain} showAddress />
+              <Identity accountInfo={lostAccount} chain={chain} showAddress />
             </Grid>
             <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '30px', textAlign: 'center' }} xs={12}>
               {recoveryThreshold &&
@@ -407,9 +407,14 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
             </>
           }
           {['closeRecovery', 'removeRecovery', 'claimRecovery'].includes(state) &&
-            <Grid item pt='50px' px='30px' xs={12}>
-              <WriteAppropriateMessage state={state} />
-            </Grid>
+            <>
+              <Grid item p='15px'>
+                <WriteAppropriateMessage state={state} />
+              </Grid>
+              <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 7 }} xs={12}>
+                <Identity accountInfo={rescuer} chain={chain} showAddress />
+              </Grid>
+            </>
           }
           {state === 'vouchRecovery' &&
             <>

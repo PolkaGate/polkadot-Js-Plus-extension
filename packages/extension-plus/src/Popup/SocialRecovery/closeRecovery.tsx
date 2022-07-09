@@ -42,6 +42,7 @@ function CloseRecovery({ api, chain, formattedAddress, handleExitCloseRecovery, 
   const [state, setState] = useState<string | undefined>();
   const [date, setDate] = useState<Date | undefined>();
 
+  console.log('{ accountId: formattedAddress }', { accountId: formattedAddress })
   useEffect((): void => {
     api && rescuer?.option && api.rpc.chain.getHeader().then((h) => {
       const currentBlockNumber = h.number.toNumber();
@@ -68,8 +69,8 @@ function CloseRecovery({ api, chain, formattedAddress, handleExitCloseRecovery, 
           </Typography>
         </Grid>
         <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '220px', overflowY: 'auto', px: '30px' }} xs={12}>
-          <Identity address={rescuer.accountId} api={api} chain={chain} showAddress />
-          <ShowBalance2 api={api} balance={rescuer.option.deposit} direction='row' title={`${t('Deposited')}:`} />
+          <Identity address={String(rescuer.accountId)} api={api} chain={chain} showAddress />
+          <ShowBalance2 api={api} balance={rescuer?.option?.deposit} direction='row' title={`${t('Deposited')}:`} />
           <ShowValue title='Initiation time' value={date?.toString()} />
         </Grid>
         <Grid item pt='25px' xs={12}>
@@ -92,6 +93,7 @@ function CloseRecovery({ api, chain, formattedAddress, handleExitCloseRecovery, 
           account={{ accountId: formattedAddress }}
           api={api}
           chain={chain}
+          lostAccount={{ accountId: formattedAddress }}
           rescuer={rescuer}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}

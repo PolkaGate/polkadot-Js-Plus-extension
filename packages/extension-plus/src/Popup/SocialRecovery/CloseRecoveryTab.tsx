@@ -87,6 +87,7 @@ function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.
       {showConfirmModal && api && chain && state &&
         <Confirm
           account={{ accountId: formattedAddress }}
+          lostAccount={{ accountId: formattedAddress }}
           api={api}
           chain={chain}
           rescuer={rescuer}

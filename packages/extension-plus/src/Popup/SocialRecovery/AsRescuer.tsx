@@ -62,13 +62,17 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }>({});
 
   const resetPage = useCallback(() => {
+    console.log('resetPage ...');
+
     setRemainingBlocksToClaim(undefined);
     setActiveStep(0);
     setCompleted({});
     setLostAccountHelperText(undefined);
+    setIsProxy(undefined);
+    setLostAccountRecoveryInfo(undefined);
   }, []);
 
-  const handleNextToInitiateRecovery = useCallback(() => {
+  const handleNext = useCallback(() => {
     !state && setState('initiateRecovery');
     setConfirmModalOpen(true);
   }, [state]);
@@ -88,26 +92,31 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [api, hasActiveRecoveries, lostAccountRecoveryInfo]);
 
   useEffect((): void => {
-    if (remainingBlocksToClaim && remainingBlocksToClaim <= 0) {
-      const newCompleted = completed;
-
-      completed[activeStep] = true;
-      setCompleted(newCompleted);
-      setActiveStep((preActiveStep) => preActiveStep + 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remainingBlocksToClaim]);
-
-  useEffect((): void => {
     if (isProxy) {
+      if (hasActiveRecoveries) {
+        const newCompleted = completed;
+
+        completed[0] = true;
+        completed[1] = true;
+        setCompleted(newCompleted);
+        setActiveStep(2);
+      } else {
+        const newCompleted = completed;
+
+        completed[0] = true;
+        completed[1] = true;
+        completed[2] = true;
+        setCompleted(newCompleted);
+      }
+    } else if (remainingBlocksToClaim && remainingBlocksToClaim <= 0) {
       const newCompleted = completed;
 
-      completed[activeStep] = true;
+      completed[0] = true;
       setCompleted(newCompleted);
-      setActiveStep((preActiveStep) => preActiveStep + 1);
+      setActiveStep(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isProxy]);
+  }, [isProxy, remainingBlocksToClaim]);
 
   useEffect((): void => {
     if (activeStep === 1) {
@@ -136,7 +145,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     // eslint-disable-next-line no-void
     void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
       setLostAccountRecoveryInfo(r.isSome ? r.unwrap() : null);
-      console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+      console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'null');
     });
   }, [api, lostAccount]);
 
@@ -147,24 +156,27 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [lostAccount, resetPage]);
 
   useEffect(() => {
-    if (!api || !account?.accountId || !lostAccount || !lostAccountRecoveryInfo) {
+    if (!api || !account?.accountId || !lostAccount || lostAccountRecoveryInfo === undefined) {
       return;
     }
 
-    const hasActiveRecoveries = api.query.recovery.activeRecoveries;
-
-    // eslint-disable-next-line no-void
-    void hasActiveRecoveries(lostAccount.accountId, account.accountId).then((r) => {
-      setHasActiveRecoveries(r.isSome ? r.unwrap() : null);
-      console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
-    });
+    if (lostAccountRecoveryInfo === null) {
+      setHasActiveRecoveries(null);
+    } else {
+      // eslint-disable-next-line no-void
+      void api.query.recovery.activeRecoveries(lostAccount.accountId, account.accountId).then((r) => {
+        setHasActiveRecoveries(r.isSome ? r.unwrap() : null);
+        console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+      });
+    }
 
     // eslint-disable-next-line no-void
     void api.query.recovery.proxy(account.accountId).then((r) => {
       const proxy = r.isSome ? String(r.unwrap()) : null;
 
       setIsProxy(proxy === String(lostAccount.accountId));
-      console.log('proxy:', r.isSome ? r.unwrap().toString() : 'noch');
+      console.log('proxy address:', r.isSome ? r.unwrap().toString() : 'noch');
+      console.log('is a proxy:', proxy === String(lostAccount.accountId));
     });
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
@@ -178,11 +190,11 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         return setLostAccountHelperText(t<string>('The account is not recoverable'));
       }
 
-      if (isProxy) {
-        return setLostAccountHelperText(t<string>('The account is already a proxy'));
-      }
-
       if (hasActiveRecoveries) {
+        if (isProxy) {
+          return setLostAccountHelperText(t<string>('This account is a proxy of the lost account, proceed to close recovery'));
+        }
+
         if (remainingBlocksToClaim === undefined) {
           return;
         }
@@ -194,7 +206,15 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         }
       }
 
-      return setLostAccountHelperText(t<string>('The account is recoverable, proceed to initiate recovery'));
+      if (isProxy) {
+        return setLostAccountHelperText(t<string>('The account is already a proxy, and recvery is also closed'));
+      }
+
+      if (lostAccountRecoveryInfo) {
+        return setLostAccountHelperText(t<string>('The account is recoverable, proceed to initiate recovery'));
+      }
+
+      return setLostAccountHelperText(t<string>('The account is NOT recoverable'));
     }
   }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t]);
 
@@ -202,7 +222,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
       <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={'Rescue account'} />
       <Grid container sx={{ p: '35px 30px' }}>
-        <Grid item xs={12}>
+        <Grid item sx={{ borderBottom: 1, borderColor: 'divider', pb: '15px' }} xs={12}>
           <Stepper activeStep={activeStep} nonLinear>
             {steps.map((label, index) =>
               <Step completed={completed[index]} key={label}>
@@ -235,11 +255,11 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             </Grid>
           }
         </Grid>
-        <Grid item pt='15px' xs={12}>
+        <Grid item pt='10px' xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo}
-            onClick={handleNextToInitiateRecovery}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo || completed[2] || (remainingBlocksToClaim && remainingBlocksToClaim > 0)}
+            onClick={handleNext}
           >
             {t<string>('Next')}
           </Button>
