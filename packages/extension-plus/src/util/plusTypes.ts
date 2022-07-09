@@ -5,8 +5,7 @@
 
 import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, DeriveProposal, DeriveReferendumExt, DeriveStakingAccount, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import type { PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletStakingNominations } from '@polkadot/types/lookup';
-// import type { Option } from '@polkadot/types';
+import type { PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 import type { BN } from '@polkadot/util';
 
 import { ApiPromise } from '@polkadot/api';
@@ -368,9 +367,5 @@ export interface RecoveryConsts {
 }
 
 export interface Rescuer extends DeriveAccountInfo {
-  option?: {
-    created: BN;
-    deposit: BN;
-    friends: string[];
-  }
+  option?: PalletRecoveryActiveRecovery
 }

@@ -181,18 +181,6 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   useEffect(() => {
     if (!api) { return; }
 
-    // const call = api.tx.recovery.closeRecovery(address);
-    // const asRecovered = api.tx.recovery.asRecovered;
-    // const params = [address, call];
-
-    // // eslint-disable-next-line no-void
-    // void asRecovered(...params).paymentInfo(address).then((i) => {
-    //   const fee = i?.partialFee;
-
-    //   console.log('feeeeeeeeee', fee.toString());
-    //   console.log('address', address);
-    // });
-
     // eslint-disable-next-line no-void
     void api.query.identity.identityOf.entries().then((ids) => {
       console.log(`${ids?.length} accountsInfo fetched from ${chain?.name}`);

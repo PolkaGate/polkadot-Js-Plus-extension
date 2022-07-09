@@ -41,7 +41,7 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
-const steps = ['Initiate recovery', 'Claim recovery', 'Close recovery'];
+const steps = ['Initiate', 'Claim', 'Close', 'As recovered'];
 
 function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -107,6 +107,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         completed[1] = true;
         completed[2] = true;
         setCompleted(newCompleted);
+        setActiveStep(3);
       }
     } else if (remainingBlocksToClaim && remainingBlocksToClaim <= 0) {
       const newCompleted = completed;
@@ -124,7 +125,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     }
 
     if (activeStep === 2) {
-      return setState('closeRecovery');
+      return setState('closeRecoveryAsRecovered');
     }
   }, [activeStep]);
 
@@ -276,14 +277,14 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           recoveryConsts={recoveryConsts}
           recoveryDelay={lostAccountRecoveryInfo.delayPeriod.toNumber()}
           recoveryThreshold={lostAccountRecoveryInfo.threshold.toNumber()}
-          rescuer={{ ...account, 'option': { deposit: lostAccountRecoveryInfo.deposit, friends: lostAccountRecoveryInfo.friends } }}
+          rescuer={{ ...account, option: hasActiveRecoveries }}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}
           showConfirmModal={showConfirmModal}
           state={state}
         />
       }
-    </Popup >
+    </Popup>
   );
 }
 
