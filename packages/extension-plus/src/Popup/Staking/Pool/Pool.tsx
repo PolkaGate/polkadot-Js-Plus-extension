@@ -77,7 +77,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
   }, []);
 
   return (
-    <Grid container sx={{ p: 0 }}>
+    <Grid container>
       {pool !== undefined && api
         ? pool
           ? <>
@@ -186,7 +186,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                     <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
                       <Grid item xs={12}>
                         <Paper elevation={3} sx={{ p: '10px' }}>
-                          {pool?.rewardClaimable &&
+                          {!!pool?.rewardClaimable &&
                             <Grid color={grey[600]} container item justifyContent='space-between' sx={{ fontSize: 11, fontWeight: '600' }} xs={12}>
                               <Grid item>
                                 {t('Pool claimable')}:
@@ -195,7 +195,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                                 <ShowBalance2 api={api} balance={pool.rewardClaimable} />
                               </Grid>
                             </Grid>}
-                          {pool?.rewardPool?.totalEarnings &&
+                          {!!pool?.rewardPool?.totalEarnings &&
                             <Grid color={grey[600]} container item justifyContent='space-between' sx={{ fontSize: 11, fontWeight: '600' }} xs={12}>
                               <Grid item>
                                 {t('Pool total earnings')}:

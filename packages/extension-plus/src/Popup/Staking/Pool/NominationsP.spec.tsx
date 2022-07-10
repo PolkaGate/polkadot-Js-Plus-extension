@@ -147,9 +147,13 @@ describe('Testing nomination pools tab', () => {
         expect(queryAllByText(`${nominatedValidator.validatorPrefs.commission / (10 ** 7)}%`)).toBeTruthy();
       }
 
-      i === 2
-        ? expect(queryByText('Change validators')).toBeFalsy()
-        : expect(queryByText('Change validators')).toBeTruthy();
+      if (i === 2) {
+        expect(queryByText('Change validators')).toBeFalsy();
+        expect(queryByText('Stop nominating')).toBeFalsy();
+      } else {
+        expect(queryByText('Change validators')).toBeTruthy();
+        expect(queryByText('Stop nominating')).toBeTruthy();
+      }
 
       cleanup();
     }
