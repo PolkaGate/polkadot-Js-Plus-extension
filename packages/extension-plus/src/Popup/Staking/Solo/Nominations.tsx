@@ -52,7 +52,7 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
   return (
     <>
       {nominatedValidators?.length && stakingConsts && !noNominatedValidators
-        ? <Grid container sx={{ p: 0 }}>
+        ? <Grid container px='5px'>
           <Grid item sx={{ height: '245px' }} xs={12}>
             <ValidatorsList
               activeValidator={activeValidator}
@@ -65,7 +65,7 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
               validatorsInfo={nominatedValidators}
             />
           </Grid>
-          <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
+          <Grid container item justifyContent='space-between' pt='5px' xs={12}>
             <Grid item xs={5}>
               <MuiButton
                 onClick={handleStopNominating}

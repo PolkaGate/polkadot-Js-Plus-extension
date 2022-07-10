@@ -50,7 +50,7 @@ export default function ValidatorsList({ activeValidator, api, chain, height, st
 
   return (
     <>
-      <Grid item sx={{ p: '0px 10px' }} xs={12}>
+      <Grid item xs={12}>
         {validatorsInfo && api
           ? <VTable
             activeValidator={activeValidator}

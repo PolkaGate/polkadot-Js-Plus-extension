@@ -324,31 +324,46 @@ describe('Testing confirmStaking page', () => {
     expect(queryByText(withdrawClaimablePool.bondedPool?.memberCounter as unknown as Matcher)).toBeTruthy();
   });
 
-  test.skip('when state is withdrawUnbound', () => {
+  test('when state is withdrawUnbound', async () => {
+    const withdrawUnboundPool: MyPoolInfo = pool(state[6]);
+    let redeemValue = new BN('0');
+    const currentlyStaked = withdrawUnboundPool.member?.points ? new BN(withdrawUnboundPool.member?.points.toString()) : BN_ZERO;
+    const currentEraIndex = Number(await api?.query.staking.currentEra());
 
-    // TODO
-    // const withdrawUnboundPool: MyPoolInfo = pool(state[6]);
+    for (const [era, unbondingPoint] of Object.entries(withdrawUnboundPool.member.unbondingEras)) {
+      if (currentEraIndex > Number(era)) {
+        redeemValue = redeemValue.add(unbondingPoint);
+      }
+    }
 
-    // amount = withdrawUnboundPool.myClaimable;  // withdrawUnbound
+    const { debug, queryByTestId, queryByText } = render(
+      <ConfirmStaking
+        amount={redeemValue}
+        api={api}
+        chain={chain}
+        nominatedValidators={validatorsList}
+        pool={withdrawUnboundPool}
+        poolsMembers={poolsMembers}
+        selectedValidators={validatorsList}
+        setConfirmStakingModalOpen={setConfirmStakingModalOpen}
+        setState={setState}
+        showConfirmStakingModal={true}
+        staker={staker}
+        stakingConsts={stakingConsts}
+        state={state[6]}
+        validatorsIdentities={validatorsIdentities}
+      />
+    );
 
-    // const { queryAllByText, queryByTestId, queryByText } = render(
-    //   <ConfirmStaking
-    //     amount={amount}
-    //     api={api}
-    //     chain={chain}
-    //     nominatedValidators={validatorsList}
-    //     pool={withdrawUnboundPool}
-    //     poolsMembers={poolsMembers}
-    //     selectedValidators={validatorsList}
-    //     setConfirmStakingModalOpen={setConfirmStakingModalOpen}
-    //     setState={setState}
-    //     showConfirmStakingModal={true}
-    //     staker={staker}
-    //     stakingConsts={stakingConsts}
-    //     state={state[6]}
-    //     validatorsIdentities={validatorsIdentities}
-    //   />
-    // );
+    expect(queryByText('REDEEM')).toBeTruthy();
+    expect(queryByTestId('amount')?.textContent).toEqual(formatBalance(redeemValue));
+    expect(queryByText('Currently staked')).toBeTruthy();
+    expect(queryByTestId('currentlyStaked')?.textContent).toEqual(formatBalance(currentlyStaked));
+    expect(queryByText('Total staked')).toBeTruthy();
+    expect(queryByTestId('totalStaked')?.textContent).toEqual(formatBalance(currentlyStaked));
+    expect(queryByText('Fee')).toBeTruthy();
+
+    expect(queryByText('Available balance after redeem will be', { exact: false })).toBeTruthy();
   });
 
   test('when state is editPool', () => {
