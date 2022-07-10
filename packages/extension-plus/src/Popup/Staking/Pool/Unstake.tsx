@@ -135,7 +135,7 @@ export default function Unstake({ api, currentlyStaked, handleConfirmStakingModa
                 <Grid xs={12}>
                   {t('Fetching data from blockchain ...')}
                 </Grid>}
-              {currentlyStaked?.isZero() &&
+              {(currentlyStaked === null || currentlyStaked?.isZero()) &&
                 <Grid xs={12}>
                   {t('Nothing to unstake')}
                 </Grid>

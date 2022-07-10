@@ -70,7 +70,7 @@ function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handl
   return (
     <>
       {nominatedValidators?.length && poolStakingConsts && !noNominatedValidators
-        ? <Grid container sx={{ p: 0 }}>
+        ? <Grid container px='5px'>
           <Grid item sx={{ height: '245px' }} xs={12}>
             <ValidatorsList
               activeValidator={activeValidator}
@@ -84,7 +84,7 @@ function Nominations({ activeValidator, api, chain, endpoint, getPoolInfo, handl
             />
           </Grid>
           {[myPool?.bondedPool?.roles?.root, myPool?.bondedPool?.roles?.nominator].includes(staker.address) &&
-            <Grid container item justifyContent='space-between' sx={{ padding: '5px 10px 0px' }} xs={12}>
+            <Grid container item justifyContent='space-between' pt='5px' xs={12}>
               <Grid item>
                 <MuiButton
                   onClick={handleStopNominating}

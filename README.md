@@ -3,7 +3,7 @@
 
 A user-friendly wallet to interact with the Polkadot/Substrate based blockchains through a browser. It allows users to access their Polkadot/Kusama ecosystem account(s), which can also be used to interact with decentralized apps. It is based on polkadot js extension, which injects a [@polkadot/api](https://github.com/polkadot-js/api) signer into a page, along with any associated accounts.
 
-PPolkadot js Plus extension not only has all the abilities of the original Polkadot extension, but also many new functionalities as listed below are available, where more features are coming.
+Polkadot js Plus extension not only has all the abilities of the original Polkadot extension, but also many new functionalities as listed below are available, where more features are coming.
 
 ## New functionalities
 
@@ -26,7 +26,7 @@ Currently, the following features are available:
 
 ### Add-on
 
-The beta version of Plus extension for firefox can be downloaded from [here](https://addons.mozilla.org/en-US/firefox/addon/polkadot-js-plus-extension/)
+The extension for firefox can be downloaded from [here](https://addons.mozilla.org/en-US/firefox/addon/polkadot-js-plus-extension/)
 
 
 ### Development version

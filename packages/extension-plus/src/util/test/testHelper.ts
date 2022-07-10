@@ -1545,7 +1545,10 @@ export const pool = (states = '', nameEdited = false, rolesEdited = false): MyPo
       points: states === 'joinPool' ? 0 : 1267100000000,
       poolId: new BN('6'),
       rewardPoolTotalEarnings: 0,
-      unbondingEras: {}
+      unbondingEras: {
+        '5194': new BN('400000000000'),
+        '5206': new BN('100000000000')
+      }
     },
     metadata: !nameEdited ? 'Polkadot js plus' : 'Polkadot js plus ❤',
     myClaimable: new BN('16844370676'),
