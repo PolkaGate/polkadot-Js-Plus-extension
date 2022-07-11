@@ -30,6 +30,12 @@ import { broadcast } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 
+interface WithdrawAmounts {
+  available: BN;
+  redeemable: BN;
+  staked: BN;
+  spanCount: number;
+}
 interface Props {
   api: ApiPromise;
   chain: Chain;
@@ -44,9 +50,10 @@ interface Props {
   recoveryConsts?: RecoveryConsts;
   lostAccount?: DeriveAccountInfo;
   rescuer?: Rescuer;
+  withdrawAmounts?: WithdrawAmounts
 }
 
-export default function Confirm({ account, api, chain, friends, lostAccount, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state }: Props): React.ReactElement<Props> {
+export default function Confirm({ account, api, chain, friends, lostAccount, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state, withdrawAmounts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const onAction = useContext(ActionContext);
@@ -59,6 +66,13 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   const decimals = api.registry.chainDecimals[0];
   const friendIds = friends?.map((f) => f.accountId).sort(); // if not sorted, tx will retun an error!!
 
+  const bondingDuration = api.consts.staking.bondingDuration.toNumber();
+  const sessionsPerEra = api.consts.staking.sessionsPerEra.toNumber();
+  const epochDuration = api.consts.babe.epochDuration.toNumber();
+  const expectedBlockTime = api.consts.babe.expectedBlockTime.toNumber();
+  const epochDurationInHours = epochDuration * expectedBlockTime / 3600000; // 1000miliSec * 60sec * 60min
+  const unbondingDuration = bondingDuration * sessionsPerEra * epochDurationInHours / 24;
+
   /** list of available trasactions */
   const createRecovery = api.tx.recovery.createRecovery;// (friends: Vec<AccountId32>, threshold: u16, delay_period: u32)
   const removeRecovery = api.tx.recovery.removeRecovery;
@@ -66,18 +80,20 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   const closeRecovery = api.tx.recovery.closeRecovery; // (rescuer)
   const vouchRecovery = api.tx.recovery.vouchRecovery; // (lost, rescuer)
   const claimRecovery = api.tx.recovery.claimRecovery; // (lost)
-
-  // const call = api.tx.recovery.closeRecovery(address);
+  const transferAll = api.tx.balances.transferAll; // [rescuer.accountId, false]
   const asRecovered = api.tx.recovery.asRecovered;
-  // const params = [address, call];
+  const unbonded = api.tx.staking.unbond;
+  const redeem = api.tx.staking.withdrawUnbonded;
+  const chill = api.tx.staking.chill;
 
-  // // eslint-disable-next-line no-void
-  // void asRecovered(...params).paymentInfo(address).then((i) => {
-  //   const fee = i?.partialFee;
+  const withdrawCalls = [];
 
-  //   console.log('feeeeeeeeee', fee.toString());
-  //   console.log('address', address);
-  // });
+  recoveryThreshold && withdrawCalls.push(removeRecovery());
+  withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));
+  withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked)); // TODO: chill before unbound ALL
+  withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero() && withdrawCalls.push(redeem(withdrawAmounts.spanCount));
+
+  const batchWithdraw = rescuer?.accountId && api.tx.utility.batch(withdrawCalls);
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) { return false; }
@@ -144,9 +160,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         account?.accountId && void claimRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
+      case ('withdrawAsRecovered'):
+        params = [lostAccount.accountId, batchWithdraw];
+
+        // eslint-disable-next-line no-void
+        account?.accountId && void asRecovered(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+
+        break;
       default:
     }
-  }, [account?.accountId, claimRecovery, closeRecovery, asRecovered, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
+  }, [account?.accountId, batchWithdraw, claimRecovery, closeRecovery, asRecovered, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
 
   const deposit = useMemo((): BN => {
     if (['removeRecovery', 'makeRecoverable'].includes(state) && friendIds?.length && recoveryConsts) {
@@ -184,7 +207,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      if (localState === 'makeRecoverable') {
+      if (localState === 'makeRecoverable' && recoveryDelay !== undefined) {
         const recoveryDelayInBlocks = recoveryDelay * 24 * 60 * 10;
 
         const params = [friendIds, recoveryThreshold, recoveryDelayInBlocks];
@@ -243,7 +266,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         setConfirmingState(status);
       }
 
-      if (localState === 'closeRecovery' && rescuer?.accountId) {
+      if (localState === 'closeRecovery' && rescuer?.accountId && rescuer?.option) {
         const params = [rescuer.accountId];
         const { block, failureText, fee, status, txHash } = await broadcast(api, closeRecovery, params, signer, account.accountId);
 
@@ -262,11 +285,11 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         setConfirmingState(status);
       }
 
-      if (localState === 'closeRecoveryAsRecovered' && rescuer?.accountId) {
+      if (localState === 'closeRecoveryAsRecovered' && rescuer?.accountId && lostAccount?.accountId && rescuer?.option) {
         const call = closeRecovery(rescuer.accountId);
 
         const params = [lostAccount.accountId, call];
-        const { block, failureText, fee, status, txHash } = await broadcast(api, asRecovered, params, signer, String(account.accountId));
+        const { block, failureText, fee, status, txHash } = await broadcast(api, asRecovered, params, signer, account.accountId);
 
         history.push({
           action: 'close_recovery_a.r.',
@@ -278,6 +301,25 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
           hash: txHash || '',
           status: failureText || status,
           to: ''
+        });
+
+        setConfirmingState(status);
+      }
+
+      if (localState === 'withdrawAsRecovered' && lostAccount?.accountId && withdrawAmounts) {
+        const params = [lostAccount.accountId, batchWithdraw];
+        const { block, failureText, fee, status, txHash } = await broadcast(api, asRecovered, params, signer, account.accountId);
+
+        history.push({
+          action: 'withdraw_a.r.',
+          amount: amountToHuman(String(withdrawAmounts.available.add(withdrawAmounts.redeemable).add(withdrawAmounts.staked)), decimals),
+          block,
+          date: Date.now(),
+          fee: fee || '',
+          from: String(lostAccount.accountId),
+          hash: txHash || '',
+          status: failureText || status,
+          to: String(account.accountId)
         });
 
         setConfirmingState(status);
@@ -322,14 +364,14 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       }
 
       // eslint-disable-next-line no-void
-      void saveHistory(chain, hierarchy, account.accountId, history);
+      account?.accountId && void saveHistory(chain, hierarchy, String(account.accountId), history);
     } catch (e) {
       console.log('error:', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, api, chain, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, asRecovered, api, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -344,7 +386,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
   const getMessage = useCallback((note, state): string => {
     if (state === 'initiateRecovery') {
-      return t<string>('Initiating recovery for the above mentioned account, the deposit will be always repatriated to that account')
+      return t<string>('Initiating recovery for the above mentioned account, the deposit will be always repatriated to that account');
     }
 
     if (['closeRecovery', 'closeRecoveryAsRecovered'].includes(state)) {
@@ -357,15 +399,29 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     }
 
     if (state === 'vouchRecovery') {
-      return t('Vouching to rescue the above lost account using the following rescuer')
+      return t('Vouching to rescue the above lost account using the following rescuer');
     }
 
     if (state === 'claimRecovery') {
       return t('Claiming recovery for the above lost account Id');
     }
 
+    if (state === 'withdrawAsRecovered' && withdrawAmounts && rescuer?.option) {
+      const text = (withdrawAmounts.available && !withdrawAmounts.available.isZero()
+        ? t('WIthdrawing {{amount}},', { replace: { amount: api.createType('Balance', withdrawAmounts.available.add(withdrawAmounts?.redeemable).add(rescuer.option.deposit)).toHuman() } })
+        : '') +
+        (withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero()
+          ? t('redeeming {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.redeemable).toHuman() } })
+          : '') +
+        (withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
+          ? t(' unstaking {{amount}} which will be redeemable after {{days}} days', { replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration } })
+          : '');
+
+      return text;
+    }
+
     return '';
-  }, [api, deposit, t]);
+  }, [api, deposit, rescuer?.option, t, unbondingDuration, withdrawAmounts]);
 
   const WriteAppropriateMessage = ({ note, state }: { state: string, note?: string }) => (
     <Typography sx={{ mt: '30px', textAlign: 'center' }} variant='h6'>
@@ -388,6 +444,8 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         return 'Vouch Recovery';
       case ('claimRecovery'):
         return 'Claim Recovery';
+      case ('withdrawAsRecovered'):
+        return 'Withdraw';
       default:
         return state.toUpperCase();
     }
@@ -410,7 +468,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               <Identity accountInfo={lostAccount} chain={chain} showAddress />
             </Grid>
             <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '30px', textAlign: 'center' }} xs={12}>
-              {recoveryThreshold &&
+              {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
                 <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
                   <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
                 </Grid>
@@ -423,7 +481,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
                   <ShowBalance2 api={api} balance={deposit} title={t('Deposit')} />
                 </Grid>
               }
-              {recoveryDelay !== undefined &&
+              {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
                 <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
                   <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} />
                 </Grid>
@@ -452,7 +510,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               ))}
             </>
           }
-          {['closeRecovery', 'closeRecoveryAsRecovered', 'vouchRecovery', 'removeRecovery', 'claimRecovery'].includes(state) &&
+          {['closeRecovery', 'closeRecoveryAsRecovered', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered'].includes(state) &&
             <Grid item p='15px'>
               <WriteAppropriateMessage state={state} />
             </Grid>
@@ -468,7 +526,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
         <Password
           autofocus={!['confirming', 'failed', 'success'].includes(confirmingState)}
           handleIt={handleConfirm}
-          // isDisabled={ confirmButtonDisabled || !estimatedFee}
+          isDisabled={!estimatedFee}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
@@ -480,22 +538,13 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              // isDisabled={ !estimatedFee || !availableBalance || !api} //TODO: check available balance to see if transaction can be done
+              isDisabled={!estimatedFee} //TODO: check available balance to see if transaction can be done
               state={confirmingState}
               text={t('Confirm')}
             />
           </Grid>
-          {/* {amountNeedsAdjust &&
-            <Grid item sx={{ textAlign: 'left' }} xs={1}>
-              <Hint id='adjustAmount' place='left' tip={t('Auto adjust the staking amount')}>
-                <IconButton aria-label='Adjust' color='warning' onClick={handleAutoAdjust} size='medium'>
-                  <BuildCircleRoundedIcon sx={{ fontSize: 40 }} />
-                </IconButton>
-              </Hint>
-            </Grid>
-          } */}
         </Grid>
       </Grid>
-    </Popup >
+    </Popup>
   );
 }

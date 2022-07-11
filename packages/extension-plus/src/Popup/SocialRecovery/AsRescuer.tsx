@@ -68,10 +68,12 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
   const [redeemable, setRedeemable] = useState<BN | undefined>();
   const [unlocking, setUnlocking] = useState<BN | undefined>();
+  const [spanCount, setSpanCount] = useState<number | undefined>();
+  const [nextIsDisabled, setNextIsDisabled] = useState<boolean>(true);
 
   const resetPage = useCallback(() => {
     console.log('resetPage ...');
-
+    setState(undefined);
     setRemainingBlocksToClaim(undefined);
     setActiveStep(0);
     setCompleted({});
@@ -90,6 +92,18 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const handleStep = (step: number) => () => {
     setActiveStep(step);
   };
+
+  useEffect((): void => {
+    if (isProxy === true) {
+      return setNextIsDisabled(false);
+    }
+
+    if (!lostAccount || !lostAccountRecoveryInfo || (remainingBlocksToClaim && remainingBlocksToClaim > 0)) {
+      return setNextIsDisabled(true);
+    }
+
+    setNextIsDisabled(false);
+  }, [isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim]);
 
   useEffect((): void => {
     api && hasActiveRecoveries && lostAccountRecoveryInfo && api.rpc.chain.getHeader().then((h) => {
@@ -137,6 +151,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     if (activeStep === 2) {
       return setState('closeRecoveryAsRecovered');
     }
+
+    if (activeStep === 3) {
+      return setState('withdrawAsRecovered');
+    }
   }, [activeStep]);
 
   useEffect((): void => {
@@ -163,7 +181,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [isProxy, api, lostAccount, hasActiveRecoveries]);
 
   useEffect((): void => {
-    if (!lostAccountLedger || !currentEraIndex) {
+    if (!lostAccountLedger || !currentEraIndex || !lostAccount?.accountId) {
       return;
     }
 
@@ -178,9 +196,14 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       }
     }
 
+    !redeemValue.isZero() && api && api.query.staking.slashingSpans(lostAccount.accountId).then((optSpans) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      setSpanCount(optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1);
+    });
+
     setUnlocking(unlockingValue);
     setRedeemable(redeemValue);
-  }, [currentEraIndex, lostAccountLedger]);
+  }, [api, currentEraIndex, lostAccount?.accountId, lostAccountLedger]);
 
   useEffect(() => {
     if (api && lostAccountRecoveryInfo?.friends) {
@@ -198,7 +221,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
 
     // eslint-disable-next-line no-void
     void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
-      setLostAccountRecoveryInfo(r.isSome ? r.unwrap() : null);
+      setLostAccountRecoveryInfo(r.isSome ? r.unwrap() as unknown as PalletRecoveryRecoveryConfig : null);
       console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'null');
     });
   }, [api, lostAccount]);
@@ -219,7 +242,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     } else {
       // eslint-disable-next-line no-void
       void api.query.recovery.activeRecoveries(lostAccount.accountId, account.accountId).then((r) => {
-        setHasActiveRecoveries(r.isSome ? r.unwrap() : null);
+        setHasActiveRecoveries(r.isSome ? r.unwrap() as unknown as alletRecoveryActiveRecovery : null);
         console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
       });
     }
@@ -240,7 +263,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         return;
       }
 
-      if (lostAccountRecoveryInfo === null) {
+      if (lostAccountRecoveryInfo === null && isProxy === false) {
         return setLostAccountHelperText(t<string>('The account is not recoverable'));
       }
 
@@ -327,7 +350,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
               {lostAccountLedger &&
                 <Grid container item justifyContent='space-between' p='10px 20px'>
                   <Grid item>
-                    <ShowBalance2 api={api} balance={lostAccountLedger.active.toString()} title={t('Staked')} />
+                    <ShowBalance2 api={api} balance={lostAccountLedger.active.unwrap()} title={t('Staked')} />
                   </Grid>
                   <Grid item>
                     <ShowBalance2 api={api} balance={redeemable} title={t('Redeemable')} />
@@ -343,7 +366,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         <Grid item pt='10px' xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo || completed[2] || (remainingBlocksToClaim && remainingBlocksToClaim > 0)}
+            isDisabled={nextIsDisabled}
             onClick={handleNext}
           >
             {t<string>('Next')}
@@ -351,7 +374,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         </Grid>
       </Grid>
       {
-        showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts && lostAccountRecoveryInfo &&
+        showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts &&
         <Confirm
           account={account}
           api={api}
@@ -359,13 +382,19 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           friends={friendsAccountsInfo}
           lostAccount={lostAccount}
           recoveryConsts={recoveryConsts}
-          recoveryDelay={lostAccountRecoveryInfo.delayPeriod.toNumber()}
-          recoveryThreshold={lostAccountRecoveryInfo.threshold.toNumber()}
-          rescuer={{ ...account, option: hasActiveRecoveries }}
+          recoveryDelay={lostAccountRecoveryInfo?.delayPeriod?.toNumber()}
+          recoveryThreshold={lostAccountRecoveryInfo?.threshold?.toNumber()}
+          rescuer={{ ...account, option: hasActiveRecoveries ?? { deposit: lostAccountRecoveryInfo?.deposit ?? BN_ZERO } }}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}
           showConfirmModal={showConfirmModal}
           state={state}
+          withdrawAmounts={{
+            available: lostAccountBalance?.availableBalance ?? BN_ZERO,
+            redeemable: redeemable ?? BN_ZERO,
+            staked: lostAccountLedger?.active?.unwrap() ?? BN_ZERO,
+            spanCount: spanCount ?? 0
+          }}
         />
       }
     </Popup>
