@@ -36,7 +36,7 @@ interface Props {
   recoveryInfo: PalletRecoveryRecoveryConfig | undefined | null;
 }
 
-function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryInfo, recoveryDelay, recoveryThreshold }: Props): React.ReactElement<Props> {
+function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryDelay, recoveryInfo, recoveryThreshold }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (

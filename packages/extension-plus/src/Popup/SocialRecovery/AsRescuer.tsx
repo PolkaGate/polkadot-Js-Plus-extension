@@ -9,8 +9,10 @@
  * this component opens rescuer page, where a rescuer can initiate, claim, and finally close a recovery
  * */
 
-import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
+import type { DeriveAccountInfo, DeriveBalancesAll } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
+import type { StakingLedger } from '@polkadot/types/interfaces';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { Support as SupportIcon } from '@mui/icons-material';
 import { Typography, Grid, Stepper, Step, StepButton } from '@mui/material';
@@ -20,7 +22,7 @@ import styled from 'styled-components';
 
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, Progress } from '../../components';
+import { PlusHeader, Popup, Progress, ShowBalance2 } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
@@ -50,16 +52,22 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
   const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
+  const [lostAccountBalance, setLostAccountBalance] = useState<DeriveBalancesAll | undefined>();
+  const [lostAccountLedger, setLostAccountLedger] = useState<StakingLedger | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
   const [isProxy, setIsProxy] = useState<boolean | undefined>();
   const [remainingBlocksToClaim, setRemainingBlocksToClaim] = useState<number | undefined>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
+  const [asRecovered, setAsRecovered] = React.useState<boolean>(false);
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState<{
     [k: number]: boolean;
   }>({});
+  const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
+  const [redeemable, setRedeemable] = useState<BN | undefined>();
+  const [unlocking, setUnlocking] = useState<BN | undefined>();
 
   const resetPage = useCallback(() => {
     console.log('resetPage ...');
@@ -70,6 +78,8 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     setLostAccountHelperText(undefined);
     setIsProxy(undefined);
     setLostAccountRecoveryInfo(undefined);
+    setAsRecovered(false);
+    setLostAccountBalance(undefined);
   }, []);
 
   const handleNext = useCallback(() => {
@@ -128,6 +138,49 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       return setState('closeRecoveryAsRecovered');
     }
   }, [activeStep]);
+
+  useEffect((): void => {
+    // eslint-disable-next-line no-void
+    api && void api.query.staking.currentEra().then((ce) => {
+      setCurrentEraIndex(Number(ce));
+    });
+  }, [api]);
+
+  useEffect((): void => {
+    // get the lost account balances
+    // eslint-disable-next-line no-void
+    lostAccount?.accountId && isProxy && !hasActiveRecoveries && api && void api.derive.balances?.all(lostAccount.accountId).then((b) => {
+      setLostAccountBalance(b);
+      setAsRecovered(true);
+      console.log('lost balances b', JSON.parse(JSON.stringify(b)));
+
+      // eslint-disable-next-line no-void
+      void api.query.staking.ledger(lostAccount.accountId).then((l) => {
+        setLostAccountLedger(l.isSome ? l.unwrap() as unknown as StakingLedger : null);
+        console.log('lost account ledger', JSON.parse(JSON.stringify(l)));
+      });
+    });
+  }, [isProxy, api, lostAccount, hasActiveRecoveries]);
+
+  useEffect((): void => {
+    if (!lostAccountLedger || !currentEraIndex) {
+      return;
+    }
+
+    let unlockingValue = BN_ZERO;
+    let redeemValue = BN_ZERO;
+
+    for (const item of lostAccountLedger.unlocking) {
+      if (currentEraIndex > Number(item.era)) {
+        redeemValue = redeemValue.add(item.value.unwrap());
+      } else {
+        unlockingValue = unlockingValue.add(item.value.unwrap());
+      }
+    }
+
+    setUnlocking(unlockingValue);
+    setRedeemable(redeemValue);
+  }, [currentEraIndex, lostAccountLedger]);
 
   useEffect(() => {
     if (api && lostAccountRecoveryInfo?.friends) {
@@ -208,7 +261,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       }
 
       if (isProxy) {
-        return setLostAccountHelperText(t<string>('The account is already a proxy, and recvery is also closed'));
+        return;// setLostAccountHelperText(t<string>('The account is already a proxy. The lost account balance can be withdrawn:'));
       }
 
       if (lostAccountRecoveryInfo) {
@@ -239,9 +292,9 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             {t<string>('Enter a lost account address (or search by identity)')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
-          {lostAccount &&
+          {lostAccount && !asRecovered &&
             <> {lostAccountHelperText
-              ? <Grid pt='85px' textAlign='center'>
+              ? <Grid item pt='85px' textAlign='center'>
                 <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
                   {lostAccountHelperText}
                 </Typography>
@@ -251,8 +304,39 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             </>
           }
           {remainingBlocksToClaim && remainingBlocksToClaim > 0 &&
-            <Grid fontSize={14} fontWeight={600} pt='20px' textAlign='center'>
+            <Grid fontSize={14} fontWeight={600} item pt='20px' textAlign='center'>
               {remainingTime(remainingBlocksToClaim)}
+            </Grid>
+          }
+          {asRecovered && lostAccountBalance &&
+            <Grid container item justifyContent='center' pt='35px' sx={{ fontSize: 12 }} textAlign='center'>
+              <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
+                {t('The lost account balance can be withdrawn:')}
+              </Typography>
+              <Grid container item justifyContent='space-between' p='15px 20px'>
+                <Grid item>
+                  <ShowBalance2 api={api} balance={lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance)} title={t('Total')} />
+                </Grid>
+                <Grid item>
+                  <ShowBalance2 api={api} balance={lostAccountBalance.availableBalance} title={t('Available')} />
+                </Grid>
+                <Grid item>
+                  <ShowBalance2 api={api} balance={lostAccountBalance.reservedBalance} title={t('Reserved')} />
+                </Grid>
+              </Grid>
+              {lostAccountLedger &&
+                <Grid container item justifyContent='space-between' p='10px 20px'>
+                  <Grid item>
+                    <ShowBalance2 api={api} balance={lostAccountLedger.active.toString()} title={t('Staked')} />
+                  </Grid>
+                  <Grid item>
+                    <ShowBalance2 api={api} balance={redeemable} title={t('Redeemable')} />
+                  </Grid>
+                  <Grid item>
+                    <ShowBalance2 api={api} balance={unlocking} title={t('Unlocking')} />
+                  </Grid>
+                </Grid>
+              }
             </Grid>
           }
         </Grid>

@@ -17,7 +17,7 @@ import type { Chain } from '@polkadot/extension-chains/types';
 import { Grid, Button as MuiButton, TextField, Autocomplete } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
+import { NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon, NoAccounts as NoAccountsIcon } from '@mui/icons-material';
 
 import Identicon from '@polkadot/react-identicon';
 
@@ -25,6 +25,7 @@ import isValidAddress from '../../util/validateAddress';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../components';
 import { nameAddress } from '../../util/plusTypes';
+import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   account: DeriveAccountInfo | undefined;
@@ -145,6 +146,8 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
             theme={chain?.icon || 'polkadot'}
             value={info.accountId}
           />}
+        {!info &&
+          <NoAccountsIcon sx={{ color: grey[400], fontSize: 43 }} />}
       </Grid>
       <Grid item xs>
         <Autocomplete

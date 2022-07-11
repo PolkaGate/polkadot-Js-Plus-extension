@@ -452,25 +452,15 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               ))}
             </>
           }
-          {['closeRecovery', 'closeRecoveryAsRecovered', 'removeRecovery', 'claimRecovery'].includes(state) &&
-            <>
-              <Grid item p='15px'>
-                <WriteAppropriateMessage state={state} />
-              </Grid>
-              <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 7 }} xs={12}>
-                <Identity accountInfo={rescuer} chain={chain} showAddress />
-              </Grid>
-            </>
+          {['closeRecovery', 'closeRecoveryAsRecovered', 'vouchRecovery', 'removeRecovery', 'claimRecovery'].includes(state) &&
+            <Grid item p='15px'>
+              <WriteAppropriateMessage state={state} />
+            </Grid>
           }
-          {state === 'vouchRecovery' &&
-            <>
-              <Grid item p='25px'>
-                <WriteAppropriateMessage state={state} />
-              </Grid>
-              <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 7 }} xs={12}>
-                <Identity accountInfo={rescuer} chain={chain} showAddress />
-              </Grid>
-            </>
+          {['closeRecovery', 'closeRecoveryAsRecovered', 'vouchRecovery', 'claimRecovery'].includes(state) &&
+            <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 7 }} xs={12}>
+              <Identity accountInfo={rescuer} chain={chain} showAddress />
+            </Grid>
           }
         </Grid>
       </Grid>

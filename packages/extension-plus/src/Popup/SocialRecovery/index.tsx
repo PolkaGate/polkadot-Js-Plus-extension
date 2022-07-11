@@ -272,7 +272,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             recoveryThreshold={recoveryThreshold}
           />
         }
-        {tabValue === 'recovery' && recoveryStatus && recoveryStatus === 'Close recovery' && rescuer &&
+        {tabValue === 'recovery' && recoveryStatus && recoveryStatus === 'Close recovery' && rescuer && chain &&
           <CloseRecoveryTab
             api={api}
             chain={chain}
@@ -312,6 +312,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
           api={api}
           chain={chain}
           friends={friends}
+          lostAccount={account}
           recoveryConsts={recoveryConsts}
           recoveryDelay={recoveryDelay}
           recoveryThreshold={recoveryThreshold}
