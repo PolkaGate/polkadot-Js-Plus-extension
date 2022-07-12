@@ -96,7 +96,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFrien
             error={!recoveryThreshold || recoveryThreshold > friends?.length}
             fullWidth
             helperText={
-              <Hint icon id='recoveryThreshold' tip='The threshold of vouches that is to be reached to recover the account'>
+              <Hint icon id='recoveryThreshold' place='top' tip='The threshold of vouches that is to be reached to recover the account'>
                 {t('Vouches requiered for recovery')}
               </Hint>
             }
@@ -118,7 +118,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFrien
             disabled={!!recoveryInfo}
             fullWidth
             helperText={
-              <Hint icon id='recoveryDelay' tip='The delay between vouching and the availability of the recovered account'>
+              <Hint icon id='recoveryDelay' place='top' tip='The delay between vouching and the availability of the recovered account'>
                 {t('The delay after vouching ')}
               </Hint>
             }
