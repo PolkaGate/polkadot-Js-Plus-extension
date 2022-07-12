@@ -108,7 +108,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
   const callSetFee = useCallback(() => {
     let params;
-    const recoveryDelayInBlocks = recoveryDelay ? recoveryDelay * 24 * 60 * 10 : undefined;
+    const recoveryDelayInBlocks = recoveryDelay ? parseInt(recoveryDelay * 24 * 60 * 10) : undefined;
 
     switch (state) {
       case ('makeRecoverable'):
@@ -208,7 +208,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       setPasswordStatus(PASS_MAP.CORRECT);
 
       if (localState === 'makeRecoverable' && recoveryDelay !== undefined) {
-        const recoveryDelayInBlocks = recoveryDelay * 24 * 60 * 10;
+        const recoveryDelayInBlocks = parseInt(recoveryDelay * 24 * 60 * 10);
 
         const params = [friendIds, recoveryThreshold, recoveryDelayInBlocks];
         const { block, failureText, fee, status, txHash } = await broadcast(api, createRecovery, params, signer, account.accountId);

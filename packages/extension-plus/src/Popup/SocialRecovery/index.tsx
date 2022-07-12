@@ -210,7 +210,9 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   }, []);
 
   const handleRecoveryThreshold = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
-    setRecoveryThreshold(Number(event.target.value));
+    const nodecimalValue = event.target.value.replace('.', '');
+
+    setRecoveryThreshold(Number(nodecimalValue));
   }, [setRecoveryThreshold]);
 
   const handleRecoveryDelay = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
