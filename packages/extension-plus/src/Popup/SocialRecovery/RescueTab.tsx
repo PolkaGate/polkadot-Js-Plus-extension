@@ -1,8 +1,8 @@
-/* eslint-disable simple-import-sort/imports */
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
+/* eslint-disable simple-import-sort/imports */
 
 /**
  * @description
@@ -10,17 +10,13 @@
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
-import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 
-import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
-import { Avatar, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Avatar, Grid, Paper } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, Identity, ShowBalance2 } from '../../components';
 import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
 
-import { NextStepButton } from '@polkadot/extension-ui/components';
 import { Chain } from '@polkadot/extension-chains/types';
 import { grey } from '@mui/material/colors';
 import AsResuer from './AsRescuer';
@@ -62,16 +58,32 @@ function RecoveryTab({ account, accountsInfo, addresesOnThisChain, api, chain, r
   }, []);
 
   const RecovererChoice = () => (
-    <Grid container justifyContent='center' sx={{ pt: 15 }}>
+    <Grid container justifyContent='center' sx={{ pt: 7 }}>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
-          <Avatar onClick={handleRescuer} sx={{ bgcolor: '#1c4a5a', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#ffb057', cursor: 'pointer', height: 120, width: 120 }}>{t('as Rescuer')}</Avatar>
+          <Avatar onClick={handleRescuer} sx={{ boxShadow: `2px 4px 10px 4px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
+            {t('as Rescuer')}
+          </Avatar>
         </Grid>
       </Grid>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
-          <Avatar onClick={handleFriend} sx={{ bgcolor: '#ffb057', boxShadow: `2px 4px 10px 4px ${grey[400]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>{t('as Friend')}</Avatar>
+          <Avatar onClick={handleFriend} sx={{ boxShadow: `2px 4px 10px 4px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
+            {t('as Friend')}
+          </Avatar>
         </Grid>
+      </Grid>
+      <Grid alignItems='center' container justifyContent='space-around'>
+        <Paper onClick={handleRescuer} sx={{ borderRadius: '10px', cursor: 'pointer', height: 170, pt: '15px', width: '45%' }}>
+          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, p: '10px 15px' }}>
+            {t('A rescuer can initiate the recovery of a lost account. If it receives enough vouchers, the lost account can be claimed.')}
+          </Grid>
+        </Paper>
+        <Paper onClick={handleFriend} sx={{ borderRadius: '10px', cursor: 'pointer', height: 170, pt: '15px', width: '45%' }}>
+          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, p: '10px 15px' }}>
+            {t('An account, who has been set as a friend of a lost account, can vouch for recovering the lost account by a rescuer.')}
+          </Grid>
+        </Paper>
       </Grid>
     </Grid>
   );
@@ -83,22 +95,22 @@ function RecoveryTab({ account, accountsInfo, addresesOnThisChain, api, chain, r
         <AsResuer
           account={account}
           accountsInfo={accountsInfo}
+          addresesOnThisChain={addresesOnThisChain}
           api={api}
           handleCloseAsRescuer={handleCloseAsRescuer}
           recoveryConsts={recoveryConsts}
           showAsRescuerModal={showAsRescuerModal}
-          addresesOnThisChain={addresesOnThisChain}
         />
       }
       {recoverer === 'friend' &&
         <AsFriend
           account={account}
           accountsInfo={accountsInfo}
+          addresesOnThisChain={addresesOnThisChain}
           api={api}
           handleCloseAsFriend={handleCloseAsFriend}
           recoveryConsts={recoveryConsts}
           showAsFriendModal={showAsFriendModal}
-          addresesOnThisChain={addresesOnThisChain}
         />
       }
     </>

@@ -22,6 +22,7 @@ import { Hint, Identity } from '../../components';
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import { Chain } from '@polkadot/extension-chains/types';
 import { grey } from '@mui/material/colors';
+import { RecoveryConsts } from 'extension-plus/src/util/plusTypes';
 
 interface Props {
   handleAddFriend: () => void
@@ -34,9 +35,10 @@ interface Props {
   handleRecoveryThreshold: (event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleNext: () => void;
   recoveryInfo: PalletRecoveryRecoveryConfig | undefined | null;
+  recoveryConsts: RecoveryConsts | undefined
 }
 
-function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryDelay, recoveryInfo, recoveryThreshold }: Props): React.ReactElement<Props> {
+function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryConsts, recoveryDelay, recoveryInfo, recoveryThreshold }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (
@@ -48,7 +50,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFrien
           </Typography>
         </Grid>
         <Grid item>
-          {!recoveryInfo &&
+          {!recoveryInfo && (recoveryConsts && friends.length < recoveryConsts.maxFriends) &&
             <Hint id='addFriend' place='left' tip={t('add a friend')}>
               <IconButton aria-label='addFriend' color='warning' onClick={handleAddFriend} size='small'>
                 <AddCircleRoundedIcon sx={{ fontSize: 25 }} />

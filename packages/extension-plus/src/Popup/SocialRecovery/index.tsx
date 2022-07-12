@@ -165,7 +165,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   useEffect(() => {
     if (recoveryInfo !== undefined && account?.accountId && chain && endpoint) {
       // check if reacovery is initiated
-      isRecovering(account?.accountId, chain, endpoint);
+      isRecovering(String(account.accountId), chain, endpoint);
     }
   }, [account?.accountId, chain, endpoint, isRecovering, recoveryInfo]);
 
@@ -173,7 +173,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     api && setRecoveryConsts({
       configDepositBase: api.consts.recovery.configDepositBase as unknown as BN,
       friendDepositFactor: api.consts.recovery.friendDepositFactor as unknown as BN,
-      maxFriends: api.consts.recovery.maxFriends.toNumber(),
+      maxFriends: api.consts.recovery.maxFriends.toNumber() as number,
       recoveryDeposit: api.consts.recovery.recoveryDeposit as unknown as BN
     });
   }, [api]);
@@ -244,7 +244,6 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
                   : recoveryStatus === 'Remove recovery'
                     ? <BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />
                     : <FontAwesomeIcon beat color={red[600]} icon={faShieldHalved} size='sm' />
-                // <HealthAndSafetyIcon fontSize='small' />
               }
               iconPosition='start' label={recoveryStatus ?? 'Recovery'} sx={{ fontSize: 11 }} value='recovery' />
             <Tab icon={<SupportIcon fontSize='small' />} iconPosition='start' label='Rescue' sx={{ fontSize: 11 }} value='rescue' />
@@ -267,6 +266,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             handleNext={handleNext}
             handleRecoveryDelay={handleRecoveryDelay}
             handleRecoveryThreshold={handleRecoveryThreshold}
+            recoveryConsts={recoveryConsts}
             recoveryDelay={recoveryDelay}
             recoveryInfo={recoveryInfo}
             recoveryThreshold={recoveryThreshold}

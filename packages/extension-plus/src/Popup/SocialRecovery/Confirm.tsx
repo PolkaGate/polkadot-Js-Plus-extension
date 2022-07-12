@@ -395,7 +395,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     }
 
     if (state === 'removeRecovery') {
-      return t('Removing your account setting as recoverable. Your {{deposit}} deposit will be unclocked', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
+      return t('Removing your account setting as recoverable. Your {{deposit}} deposit will be unlocked', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
     }
 
     if (state === 'vouchRecovery') {
@@ -408,13 +408,13 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
     if (state === 'withdrawAsRecovered' && withdrawAmounts && rescuer?.option) {
       const text = (withdrawAmounts.available && !withdrawAmounts.available.isZero()
-        ? t('WIthdrawing {{amount}},', { replace: { amount: api.createType('Balance', withdrawAmounts.available.add(withdrawAmounts?.redeemable).add(rescuer.option.deposit)).toHuman() } })
+        ? t('Withdrawing {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.available.add(withdrawAmounts?.redeemable).add(rescuer.option.deposit)).toHuman() } })
         : '') +
         (withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero()
-          ? t('redeeming {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.redeemable).toHuman() } })
+          ? t('Redeeming {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.redeemable).toHuman() } })
           : '') +
         (withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
-          ? t(' unstaking {{amount}} which will be redeemable after {{days}} days', { replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration } })
+          ? t(' Unstaking {{amount}} which will be redeemable after {{days}} days', { replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration } })
           : '');
 
       return text;
@@ -511,7 +511,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
             </>
           }
           {['closeRecovery', 'closeRecoveryAsRecovered', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered'].includes(state) &&
-            <Grid item p='15px'>
+            <Grid container item justifyContent='center' p='15px'>
               <WriteAppropriateMessage state={state} />
             </Grid>
           }

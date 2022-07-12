@@ -1,8 +1,8 @@
-/* eslint-disable simple-import-sort/imports */
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
+/* eslint-disable simple-import-sort/imports */
 
 /**
  * @description
@@ -94,6 +94,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   };
 
   useEffect((): void => {
+    if (activeStep === 3 && lostAccountBalance && lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance).isZero()) {
+      return setNextIsDisabled(true);
+    }
+
     if (isProxy === true) {
       return setNextIsDisabled(false);
     }
@@ -103,7 +107,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     }
 
     setNextIsDisabled(false);
-  }, [isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim]);
+  }, [activeStep, isProxy, lostAccount, lostAccountBalance, lostAccountRecoveryInfo, remainingBlocksToClaim]);
 
   useEffect((): void => {
     api && hasActiveRecoveries && lostAccountRecoveryInfo && api.rpc.chain.getHeader().then((h) => {

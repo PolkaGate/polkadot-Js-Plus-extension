@@ -71,7 +71,7 @@ function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.
         </Grid>
         <Grid item py='25px' xs={12}>
           <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
-            {t<string>('If it isn\'t you, close the recovery process, which will automatically transfer their deposit to your account')}
+            {t<string>('If it isn\'t you, close the recovery process, which will automatically transfer it\'s deposit to your account')}
           </Typography>
         </Grid>
         <Grid item sx={{ pt: 4 }} xs={12}>
