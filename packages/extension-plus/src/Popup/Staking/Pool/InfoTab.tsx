@@ -56,7 +56,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
         </Grid>
         {info && info?.maxPoolMembersPerPool !== -1 &&
           <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-              <ShowValue title={`${t('Maximum pool members per pool')}:`} value={info?.maxPoolMembersPerPool}/>
+            <ShowValue title={`${t('Maximum pool members per pool')}:`} value={info?.maxPoolMembersPerPool} />
           </Grid>
         }
         {/* <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200],fontSize: 12, paddingBottom: '5px' }} xs={12}>
