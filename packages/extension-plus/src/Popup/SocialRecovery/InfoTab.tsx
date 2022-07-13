@@ -56,7 +56,7 @@ function InfoTab({ api, recoveryConsts }: Props): React.ReactElement<Props> {
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <Grid item>
-            {t('Maximum allowed number of friends:')}:
+            {t('Maximum allowed number of friends')}:
           </Grid>
           <Grid item>
             <ShowValue value={recoveryConsts?.maxFriends} />

@@ -58,9 +58,14 @@ function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.
 
   return (
     <>
+      <Grid item p='0px 17px 0px' sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Typography sx={{ color: 'text.primary' }} variant='overline'>
+          {t('Close recovery')}
+        </Typography>
+      </Grid>
       <Grid container>
-        <Grid item py='15px'>
-          <Typography py='7px' sx={{ color: 'text.primary' }} variant='body2'>
+        <Grid item p='25px 15px 10px'>
+          <Typography sx={{ color: 'text.primary' }} variant='body2'>
             {t<string>('The following account has initiated a recovery process for your account:')}
           </Typography>
         </Grid>
@@ -69,12 +74,12 @@ function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.
           <ShowBalance2 api={api} balance={rescuer.option.deposit} direction='row' title={`${t('Deposited')}:`} />
           <ShowValue title='Initiation time' value={date?.toString()} />
         </Grid>
-        <Grid item py='25px' xs={12}>
+        <Grid item p='20px 15px 20px' xs={12}>
           <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
             {t<string>('If it isn\'t you, close the recovery process, which will automatically transfer it\'s deposit to your account')}
           </Typography>
         </Grid>
-        <Grid item sx={{ pt: 4 }} xs={12}>
+        <Grid item pt='20px' xs={12}>
           <Button
             data-button-action=''
             // isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!hasActiveRecoveries || isProxy}
@@ -87,9 +92,9 @@ function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.
       {showConfirmModal && api && chain && state &&
         <Confirm
           account={{ accountId: formattedAddress }}
-          lostAccount={{ accountId: formattedAddress }}
           api={api}
           chain={chain}
+          lostAccount={{ accountId: formattedAddress }}
           rescuer={rescuer}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}

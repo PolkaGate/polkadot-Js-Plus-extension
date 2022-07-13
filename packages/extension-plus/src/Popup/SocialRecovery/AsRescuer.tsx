@@ -16,21 +16,22 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { Support as SupportIcon } from '@mui/icons-material';
 import { Typography, Grid, Stepper, Step, StepButton } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
 
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, Progress, ShowBalance2 } from '../../components';
+import { PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
-import { AddressState, nameAddress, RecoveryConsts } from '../../util/plusTypes';
+import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import AddNewAccount from './AddNewAccount';
 import { remainingTime } from '../../util/plusUtils';
+import { encodeAddress } from '@polkadot/util-crypto';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -70,6 +71,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [unlocking, setUnlocking] = useState<BN | undefined>();
   const [spanCount, setSpanCount] = useState<number | undefined>();
   const [nextIsDisabled, setNextIsDisabled] = useState<boolean>(true);
+  const [otherPossibleRescuers, setOtherPossibleRescuers] = useState<Rescuer[] | undefined>();
 
   const resetPage = useCallback(() => {
     console.log('resetPage ...');
@@ -118,6 +120,20 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       setRemainingBlocksToClaim(initiateRecoveryBlock + delayPeriod - currentBlockNumber);
     });
   }, [api, hasActiveRecoveries, lostAccountRecoveryInfo]);
+
+  const otherPossibleRescuersDeposit = useMemo((): BN | undefined => {
+    if (!otherPossibleRescuers?.length) {
+      return;
+    }
+
+    let d = BN_ZERO;
+
+    for (let i = 0; i < otherPossibleRescuers.length; i++) {
+      d = d.add(otherPossibleRescuers[i]?.option?.deposit ?? BN_ZERO);
+    }
+
+    return (d);
+  }, [otherPossibleRescuers]);
 
   useEffect((): void => {
     if (isProxy) {
@@ -173,7 +189,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     // eslint-disable-next-line no-void
     lostAccount?.accountId && isProxy && !hasActiveRecoveries && api && void api.derive.balances?.all(lostAccount.accountId).then((b) => {
       setLostAccountBalance(b);
-      setAsRecovered(true);
+      // setAsRecovered(true);
       console.log('lost balances b', JSON.parse(JSON.stringify(b)));
 
       // eslint-disable-next-line no-void
@@ -181,8 +197,28 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         setLostAccountLedger(l.isSome ? l.unwrap() as unknown as StakingLedger : null);
         console.log('lost account ledger', JSON.parse(JSON.stringify(l)));
       });
+
+      // eslint-disable-next-line no-void
+      void api.query.recovery.activeRecoveries.entries().then((activeRecoveries) => {
+        const otherPossibleRescuersTemp = [];
+
+        for (let i = 0; i < activeRecoveries.length; i++) {
+          const [key, option] = activeRecoveries[i];
+
+          if (encodeAddress('0x' + key.toString().slice(82, 146), chain?.ss58Format) === String(lostAccount.accountId)) { // if this is lostAccount Id
+            otherPossibleRescuersTemp.push({
+              accountId: encodeAddress('0x' + key.toString().slice(162), chain?.ss58Format),
+              option: option.isSome ? option.unwrap() as unknown as PalletRecoveryActiveRecovery : undefined
+            } as unknown as Rescuer);
+          }
+        }
+
+        setOtherPossibleRescuers(otherPossibleRescuersTemp);
+        setAsRecovered(true);
+
+      });
     });
-  }, [isProxy, api, lostAccount, hasActiveRecoveries]);
+  }, [isProxy, api, lostAccount, hasActiveRecoveries, chain?.ss58Format]);
 
   useEffect((): void => {
     if (!lostAccountLedger || !currentEraIndex || !lostAccount?.accountId) {
@@ -336,7 +372,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             </Grid>
           }
           {asRecovered && lostAccountBalance &&
-            <Grid container item justifyContent='center' pt='35px' sx={{ fontSize: 12 }} textAlign='center'>
+            <Grid Grid container item justifyContent='center' pt='35px' sx={{ fontSize: 12 }} textAlign='center'>
               <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
                 {t('The lost account balance can be withdrawn:')}
               </Typography>
@@ -364,6 +400,16 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
                   </Grid>
                 </Grid>
               }
+              {otherPossibleRescuers?.length &&
+                <Grid container item justifyContent='space-between' p='10px 20px'>
+                  <Grid item>
+                    <ShowValue direction='column' title={t('#Other rescuer(s)')} value={otherPossibleRescuers.length} />
+                  </Grid>
+                  <Grid item>
+                    <ShowBalance2 api={api} balance={otherPossibleRescuersDeposit} title={t('Total deposited')} />
+                  </Grid>
+                </Grid>
+              }
             </Grid>
           }
         </Grid>
@@ -385,6 +431,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           chain={chain}
           friends={friendsAccountsInfo}
           lostAccount={lostAccount}
+          otherPossibleRescuers={otherPossibleRescuers}
           recoveryConsts={recoveryConsts}
           recoveryDelay={lostAccountRecoveryInfo?.delayPeriod?.toNumber()}
           recoveryThreshold={lostAccountRecoveryInfo?.threshold?.toNumber()}
@@ -399,9 +446,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             staked: lostAccountLedger?.active?.unwrap() ?? BN_ZERO,
             spanCount: spanCount ?? 0
           }}
+          otherPossibleRescuersDeposit={otherPossibleRescuersDeposit}
         />
       }
-    </Popup>
+    </Popup >
   );
 }
 

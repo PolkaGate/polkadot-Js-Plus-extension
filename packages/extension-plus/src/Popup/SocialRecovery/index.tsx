@@ -40,7 +40,7 @@ import useEndpoint from '../../hooks/useEndPoint';
 import AddFriend from './AddFriend';
 import Confirm from './Confirm';
 import InfoTab from './InfoTab';
-import MakeRecoverableTab from './MakeRecoverableTab';
+import RecoverableTab from './RecoverableTab';
 import RscueTab from './RescueTab';
 import { Chain } from '@polkadot/extension-chains/types';
 import CloseRecoveryTab from './CloseRecoveryTab';
@@ -239,15 +239,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
       <Grid alignItems='center' container sx={{ px: '30px' }}>
         <Grid item sx={{ borderBottom: 1, borderColor: 'divider' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab
-              icon={
-                !recoveryStatus || recoveryStatus === 'Make recoverable'
-                  ? <BeenhereIcon fontSize='small' />
-                  : recoveryStatus === 'Remove recovery'
-                    ? <BackspaceIcon fontSize='small' sx={{ transform: 'rotate(-90deg)' }} />
-                    : <FontAwesomeIcon beat color={red[600]} icon={faShieldHalved} size='sm' />
-              }
-              iconPosition='start' label={recoveryStatus ?? 'Recovery'} sx={{ fontSize: 11 }} value='recovery' />
+            <Tab icon={<BeenhereIcon fontSize='small' />} iconPosition='start' label={'Configuration'} sx={{ fontSize: 11 }} value='recovery' />
             <Tab icon={<SupportIcon fontSize='small' />} iconPosition='start' label='Rescue' sx={{ fontSize: 11 }} value='rescue' />
             <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
           </Tabs>
@@ -260,7 +252,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
           />
         }
         {tabValue === 'recovery' && recoveryStatus && ['Make recoverable', 'Remove recovery'].includes(recoveryStatus) &&
-          <MakeRecoverableTab
+          <RecoverableTab
             chain={chain}
             friends={friends}
             handleAddFriend={handleAddFriend}

@@ -15,6 +15,7 @@ import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import React from 'react';
+import { Beenhere as BeenhereIcon, Backspace as BackspaceIcon, HealthAndSafety as HealthAndSafetyIcon, Support as SupportIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, Identity } from '../../components';
@@ -38,13 +39,23 @@ interface Props {
   recoveryConsts: RecoveryConsts | undefined
 }
 
-function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryConsts, recoveryDelay, recoveryInfo, recoveryThreshold }: Props): React.ReactElement<Props> {
+function RecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryConsts, recoveryDelay, recoveryInfo, recoveryThreshold }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   return (
     <>
-      <Grid alignItems='center' container item justifyContent='space-between' sx={{ py: '15px' }} xs={12}>
-        <Grid item py='7px'>
+      <Grid item p='0px 15px 0px' sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        {recoveryInfo
+          ? <Typography sx={{ color: 'text.primary' }} variant='overline'>
+            {t('Remove recovery')}
+          </Typography>
+          : <Typography sx={{ color: 'text.primary' }} variant='overline'>
+            {t('Make recoverable')}
+          </Typography>
+        }
+      </Grid>
+      <Grid alignItems='center' container item justifyContent='space-between' pb='2px' pt='15px' xs={12}>
+        <Grid item p='7px 15px 7px'>
           <Typography sx={{ color: 'text.primary' }} variant='body2'>
             {t('Your recovery friends')} {!!friends?.length && `(${friends?.length})`}:
           </Typography>
@@ -59,7 +70,7 @@ function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFrien
           }
         </Grid>
       </Grid>
-      <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '190px', overflowY: 'auto' }} xs={12}>
+      <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '190px', overflowY: 'auto'}} xs={12}>
         {friends?.length
           ? friends?.map((f, index) => (
             <Grid alignItems='flex-start' container item justifyContent='space-between' key={index} sx={{ pl: 1 }} xs={12}>
@@ -86,54 +97,67 @@ function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFrien
           </Grid>
         }
       </Grid>
-      <Grid container item justifyContent='space-between' spacing={1.5} sx={{ pt: '30px' }} xs={12}>
-        <Grid item xs={6}>
-          <TextField
-            InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{t('friend(s)')}</InputAdornment>) }}
-            color='warning'
-            disabled={!!recoveryInfo}
-            error={!recoveryThreshold || recoveryThreshold > friends?.length}
-            fullWidth
-            helperText={
-              <Hint icon id='recoveryThreshold' place='top' tip='The threshold of vouches that is to be reached to recover the account'>
-                {t('Vouches requiered for recovery')}
-              </Hint>
-            }
-            inputProps={{ step: '1' }}
-            label={t('Recovery threshold')}
-            name='recoveryThreshold'
-            onChange={handleRecoveryThreshold}
-            placeholder='0'
-            type='number'
-            value={recoveryThreshold}
-            variant='outlined'
-          />
+      <Grid container item justifyContent='space-between' spacing={1.5} sx={{ mt: '25px' }} xs={12}>
+        <Grid alignItems='center' container justifyContent='flex-start' xs={6}>
+          <Grid item xs={1}>
+            <Hint icon id='recoveryThreshold' place='top' tip='The threshold of vouches that is to be reached to recover the account'>
+            </Hint>
+          </Grid>
+          <Grid item xs={10}>
+            <TextField
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                endAdornment: (<InputAdornment position='end'>{t('friend(s)')}</InputAdornment>),
+                inputProps: { max: recoveryConsts?.maxFriends ?? 9, min: 1 }
+              }}
+              color='warning'
+              disabled={!!recoveryInfo}
+              error={!recoveryThreshold || recoveryThreshold > friends?.length}
+              fullWidth
+              inputProps={{ step: '1' }}
+              label={t('Recovery threshold')}
+              name='recoveryThreshold'
+              onChange={handleRecoveryThreshold}
+              placeholder='0'
+              type='number'
+              value={recoveryThreshold}
+              variant='outlined'
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={6}>
-          <TextField
-            InputLabelProps={{ shrink: true }}
-            InputProps={{ endAdornment: (<InputAdornment position='end'>{t('day(s)')}</InputAdornment>) }}
-            color='warning'
-            disabled={!!recoveryInfo}
-            fullWidth
-            helperText={
-              <Hint icon id='recoveryDelay' place='top' tip='The delay between vouching and the availability of the recovered account'>
-                {t('The delay after vouching ')}
-              </Hint>
-            }
-            inputProps={{ step: '1' }}
-            label={t('Recovery delay')}
-            name='recoveryDelay'
-            onChange={handleRecoveryDelay}
-            placeholder='0'
-            type='number'
-            value={recoveryDelay}
-            variant='outlined'
-          />
+        <Grid alignItems='center' container justifyContent='flex-end' xs={6}>
+          <Grid item xs={1}>
+            <Hint icon id='recoveryDelay' place='top' tip='The delay after a recovery attempt is initialized that needs to pass before the account can be recovered' >
+            </Hint>
+          </Grid>
+          <Grid item xs={10}>
+            <TextField
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                endAdornment: (<InputAdornment position='end'>{t('day(s)')}</InputAdornment>),
+                inputProps: { min: 0 }
+              }}
+              color='warning'
+              disabled={!!recoveryInfo}
+              fullWidth
+              // helperText={
+              //   <Hint icon id='recoveryDelay' place='top' tip='The days after a recovery attempt is initialized that needs to pass before the account can be recovered'>
+              //     {t('The delay before claim ')}
+              //   </Hint>
+              // }
+              inputProps={{ step: '1' }}
+              label={t('Recovery delay')}
+              name='recoveryDelay'
+              onChange={handleRecoveryDelay}
+              placeholder='0'
+              type='number'
+              value={recoveryDelay}
+              variant='outlined'
+            />
+          </Grid>
         </Grid>
       </Grid>
-      <Grid item sx={{ pt: '10px' }} xs={12}>
+      <Grid item sx={{ pt: '25px' }} xs={12}>
         <NextStepButton
           data-button-action='next'
           isDisabled={!recoveryThreshold || !friends?.length || recoveryThreshold > friends?.length}
@@ -146,4 +170,4 @@ function MakeRecoverableTab({ chain, friends, handleAddFriend, handleDeleteFrien
   );
 }
 
-export default React.memo(MakeRecoverableTab);
+export default React.memo(RecoverableTab);

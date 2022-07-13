@@ -50,10 +50,12 @@ interface Props {
   recoveryConsts?: RecoveryConsts;
   lostAccount?: DeriveAccountInfo;
   rescuer?: Rescuer;
-  withdrawAmounts?: WithdrawAmounts
+  withdrawAmounts?: WithdrawAmounts;
+  otherPossibleRescuers?: Rescuer[] | undefined
+  otherPossibleRescuersDeposit?: BN | undefined
 }
 
-export default function Confirm({ account, api, chain, friends, lostAccount, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state, withdrawAmounts }: Props): React.ReactElement<Props> {
+export default function Confirm({ account, api, chain, friends, lostAccount, otherPossibleRescuers, otherPossibleRescuersDeposit, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state, withdrawAmounts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const onAction = useContext(ActionContext);
@@ -86,8 +88,9 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
   const redeem = api.tx.staking.withdrawUnbonded;
   const chill = api.tx.staking.chill;
 
-  const withdrawCalls = [];
+  const withdrawCalls = []; // put all withdraws as recoverd from the lost account inside
 
+  otherPossibleRescuers?.length && withdrawCalls.push(...otherPossibleRescuers.map((o) => closeRecovery(o.accountId)));
   recoveryThreshold && withdrawCalls.push(removeRecovery());
   withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));
   withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked)); // TODO: chill before unbound ALL
@@ -108,7 +111,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
   const callSetFee = useCallback(() => {
     let params;
-    const recoveryDelayInBlocks = recoveryDelay ? parseInt(recoveryDelay * 24 * 60 * 10) : undefined;
+    const recoveryDelayInBlocks = recoveryDelay ? Math.floor(recoveryDelay * 24 * 60 * 10) : undefined;
 
     switch (state) {
       case ('makeRecoverable'):
@@ -138,6 +141,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
       case ('closeRecoveryAsRecovered'): {
         const call = closeRecovery(rescuer.accountId);
+
         params = [lostAccount.accountId, call];
 
         // eslint-disable-next-line no-void
@@ -181,7 +185,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     }
 
     if (['closeRecovery', 'closeRecoveryAsRecovered'].includes(state)) {
-      return rescuer?.option?.deposit;
+      return rescuer?.option?.deposit ? new BN(rescuer?.option?.deposit) : BN_ZERO;
     }
 
     return BN_ZERO;
@@ -208,7 +212,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
       setPasswordStatus(PASS_MAP.CORRECT);
 
       if (localState === 'makeRecoverable' && recoveryDelay !== undefined) {
-        const recoveryDelayInBlocks = parseInt(recoveryDelay * 24 * 60 * 10);
+        const recoveryDelayInBlocks = Math.floor(recoveryDelay * 24 * 60 * 10);
 
         const params = [friendIds, recoveryThreshold, recoveryDelayInBlocks];
         const { block, failureText, fee, status, txHash } = await broadcast(api, createRecovery, params, signer, account.accountId);
@@ -386,24 +390,23 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
 
   const getMessage = useCallback((note, state): string => {
     if (state === 'initiateRecovery') {
-      return t<string>('Initiating recovery for the above mentioned account, the deposit will be always repatriated to that account');
+      return t<string>('Initiating recovery for the recoverable account, with the following friends');
     }
 
     if (['closeRecovery', 'closeRecoveryAsRecovered'].includes(state)) {
-      return t('Closing the recovery process initiated by the below account, transfering its {{deposit}} deposit to the above account', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
-      // the recoverable account will receive the recovery deposit `RecoveryDeposit` placed by the rescuer
+      return t('The recoverable account will receive the recovery deposit {{deposit}} placed by the rescuer account', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
     }
 
     if (state === 'removeRecovery') {
-      return t('Removing your account setting as recoverable. Your {{deposit}} deposit will be unlocked', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
+      return t('Removing your account configuration as recoverable. Your {{deposit}} deposit will be unlocked', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
     }
 
     if (state === 'vouchRecovery') {
-      return t('Vouching to rescue the above lost account using the following rescuer');
+      return t('Vouching to rescue the recoverable account using the rescuer account');
     }
 
     if (state === 'claimRecovery') {
-      return t('Claiming recovery for the above lost account Id');
+      return t('Claiming recovery for the recoverable account');
     }
 
     if (state === 'withdrawAsRecovered' && withdrawAmounts && rescuer?.option) {
@@ -415,13 +418,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
           : '') +
         (withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
           ? t(' Unstaking {{amount}} which will be redeemable after {{days}} days', { replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration } })
+          : '') +
+        (!otherPossibleRescuersDeposit?.isZero()
+          ? t(' Withdrawing {{amount}} as other rescuer(s) deposit ', { replace: { amount: api.createType('Balance', otherPossibleRescuersDeposit).toHuman() } })
           : '');
 
       return text;
     }
 
     return '';
-  }, [api, deposit, rescuer?.option, t, unbondingDuration, withdrawAmounts]);
+  }, [api, deposit, otherPossibleRescuersDeposit, rescuer?.option, t, unbondingDuration, withdrawAmounts]);
 
   const WriteAppropriateMessage = ({ note, state }: { state: string, note?: string }) => (
     <Typography sx={{ mt: '30px', textAlign: 'center' }} variant='h6'>
@@ -462,12 +468,12 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={stateInHuman(state)} />
       <Grid alignItems='center' container>
-        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
+        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '15px 40px 10px' }} xs={12}>
           <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12, pt: '10px', textAlign: 'center' }} xs={12}>
             <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
-              <Identity accountInfo={lostAccount} chain={chain} showAddress />
+              <Identity accountInfo={lostAccount} chain={chain} showAddress title={t('Recoverable account')} />
             </Grid>
-            <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '30px', textAlign: 'center' }} xs={12}>
+            <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '20px', textAlign: 'center' }} xs={12}>
               {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
                 <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
                   <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
@@ -497,14 +503,12 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               </Grid>
               }
               {state === 'initiateRecovery' &&
-                <Grid item sx={{ p: '25px 20px 5px', textAlign: 'center' }} xs={12}>
-                  <Typography sx={{ color: grey[600] }} variant='subtitle2'>
-                    {t('Initiating recovery for the above account, with the following friends: ')}
-                  </Typography>
+                <Grid container item justifyContent='center' p='15px'>
+                  <WriteAppropriateMessage state={state} />
                 </Grid>
               }
               {friends?.map((f, index) => (
-                <Grid alignItems='flex-start' key={index} sx={{ px: '30px' }} xs={12}>
+                <Grid alignItems='flex-start' key={index} sx={{ pl: '50px' }} xs={12}>
                   <Identity accountInfo={f} chain={chain} showAddress />
                 </Grid>
               ))}
@@ -516,8 +520,8 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
             </Grid>
           }
           {['closeRecovery', 'closeRecoveryAsRecovered', 'vouchRecovery', 'claimRecovery'].includes(state) &&
-            <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 7 }} xs={12}>
-              <Identity accountInfo={rescuer} chain={chain} showAddress />
+            <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 8 }} xs={12}>
+              <Identity accountInfo={rescuer} chain={chain} showAddress title={'Rescuer account'} />
             </Grid>
           }
         </Grid>
@@ -538,7 +542,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, rec
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!estimatedFee} //TODO: check available balance to see if transaction can be done
+              isDisabled={!estimatedFee} // TODO: check available balance to see if transaction can be done
               state={confirmingState}
               text={t('Confirm')}
             />
