@@ -319,7 +319,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         if (remainingBlocksToClaim > 0) {
           return setLostAccountHelperText(t<string>('Remaining time to claim recovery'));
         } else {
-          return setLostAccountHelperText(t<string>('Recovery can be claimed if {{threshold}} friend verifications are received', { replace: { threshold: lostAccountRecoveryInfo.threshold } }));
+          return setLostAccountHelperText(t<string>('Recovery can be claimed if {{threshold}} friend verification(s) are received', { replace: { threshold: lostAccountRecoveryInfo.threshold } }));
         }
       }
 

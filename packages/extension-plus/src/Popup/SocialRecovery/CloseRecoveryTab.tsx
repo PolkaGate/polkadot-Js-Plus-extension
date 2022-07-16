@@ -9,6 +9,8 @@
  * this component opens Close recovery for a named lost account
  * */
 
+import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
+
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { HealthAndSafety as HealthAndSafetyIcon } from '@mui/icons-material';
@@ -28,13 +30,13 @@ import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
-  formattedAddress: string;
+  account: DeriveAccountInfo | undefined;
   chain: Chain;
   className?: string;
   rescuer: Rescuer;
 }
 
-function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.ReactElement<Props> {
+function CloseRecovery({ account, api, chain, rescuer }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
@@ -64,12 +66,12 @@ function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.
         </Typography>
       </Grid>
       <Grid container>
-        <Grid item p='25px 15px 10px'>
+        <Grid item p='35px 15px 15px'>
           <Typography sx={{ color: 'text.primary' }} variant='body2'>
             {t<string>('The following account has initiated a recovery process for your account:')}
           </Typography>
         </Grid>
-        <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '190px', overflowY: 'auto', px: '30px' }} xs={12}>
+        <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '200px', overflowY: 'auto', px: '30px' }} xs={12}>
           <Identity address={rescuer.accountId} api={api} chain={chain} showAddress />
           <ShowBalance2 api={api} balance={rescuer.option.deposit} direction='row' title={`${t('Deposited')}:`} />
           <ShowValue title='Initiation time' value={date?.toString()} />
@@ -89,12 +91,12 @@ function CloseRecovery({ api, chain, formattedAddress, rescuer }: Props): React.
           </Button>
         </Grid>
       </Grid>
-      {showConfirmModal && api && chain && state &&
+      {showConfirmModal && api && chain && state && account &&
         <Confirm
-          account={{ accountId: formattedAddress }}
+          account={account}
           api={api}
           chain={chain}
-          lostAccount={{ accountId: formattedAddress }}
+          lostAccount={account}
           rescuer={rescuer}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}

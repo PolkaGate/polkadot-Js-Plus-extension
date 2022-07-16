@@ -22,6 +22,7 @@ import { grey } from '@mui/material/colors';
 import AsResuer from './AsRescuer';
 import AsFriend from './AsFriend';
 import type { ApiPromise } from '@polkadot/api';
+import { PlusHeader, Popup } from '../../components';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -30,9 +31,11 @@ interface Props {
   chain: Chain | null;
   recoveryConsts: RecoveryConsts | undefined;
   addresesOnThisChain: nameAddress[];
+  showRescueModal: true;
+  setRescueModalOpen: React.Dispatch<React.SetStateAction<boolean | undefined>>;
 }
 
-function RecoveryTab({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts }: Props): React.ReactElement<Props> {
+function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts, setRescueModalOpen, showRescueModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [recoverer, setRecoverer] = useState<string | undefined>();
@@ -57,8 +60,12 @@ function RecoveryTab({ account, accountsInfo, addresesOnThisChain, api, chain, r
     setRecoverer(''); setShowAsFriendModal(false);
   }, []);
 
+  const handleCloseModal = useCallback((): void => {
+    setRescueModalOpen(false);
+  }, [setRescueModalOpen]);
+
   const RecovererChoice = () => (
-    <Grid container justifyContent='center' sx={{ pt: 7 }}>
+    <Grid container justifyContent='center' sx={{ pt: 13 }}>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
           <Avatar onClick={handleRescuer} sx={{ boxShadow: `2px 4px 10px 4px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
@@ -89,7 +96,10 @@ function RecoveryTab({ account, accountsInfo, addresesOnThisChain, api, chain, r
   );
 
   return (
-    <>
+    <Popup handleClose={handleCloseModal} showModal={showRescueModal}>
+      <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'}
+        // icon={<ConfirmationNumberOutlinedIcon fontSize='small' />}
+        title={t<string>('Rescue another account')} />
       {!recoverer && <RecovererChoice />}
       {recoverer === 'rescuer' &&
         <AsResuer
@@ -113,8 +123,8 @@ function RecoveryTab({ account, accountsInfo, addresesOnThisChain, api, chain, r
           showAsFriendModal={showAsFriendModal}
         />
       }
-    </>
+    </Popup >
   );
 }
 
-export default React.memo(RecoveryTab);
+export default React.memo(Rescue);

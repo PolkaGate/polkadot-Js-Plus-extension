@@ -14,8 +14,7 @@ import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 
 import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
-import React from 'react';
-import { Beenhere as BeenhereIcon, Backspace as BackspaceIcon, HealthAndSafety as HealthAndSafetyIcon, Support as SupportIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
+import React, { useState, useCallback, useEffect } from 'react';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, Identity } from '../../components';
@@ -23,24 +22,70 @@ import { Hint, Identity } from '../../components';
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import { Chain } from '@polkadot/extension-chains/types';
 import { grey } from '@mui/material/colors';
-import { RecoveryConsts } from 'extension-plus/src/util/plusTypes';
+import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
+import AddFriend from './AddFriend';
+import Confirm from './Confirm';
+import { ApiPromise } from '@polkadot/api';
 
 interface Props {
-  handleAddFriend: () => void
-  friends: DeriveAccountInfo[];
+  account: DeriveAccountInfo | undefined;
   chain: Chain | null;
-  handleDeleteFriend: (index: number) => void;
-  recoveryThreshold: number;
-  handleRecoveryDelay: (event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => void;
-  recoveryDelay: number;
-  handleRecoveryThreshold: (event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleNext: () => void;
   recoveryInfo: PalletRecoveryRecoveryConfig | undefined | null;
-  recoveryConsts: RecoveryConsts | undefined
+  recoveryConsts: RecoveryConsts | undefined;
+  accountsInfo: DeriveAccountInfo[] | undefined;
+  addresesOnThisChain: nameAddress[];
+  api: ApiPromise | undefined;
 }
 
-function RecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, handleNext, handleRecoveryDelay, handleRecoveryThreshold, recoveryConsts, recoveryDelay, recoveryInfo, recoveryThreshold }: Props): React.ReactElement<Props> {
+function RecoverableTab({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts, recoveryInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+
+  const [recoveryThreshold, setRecoveryThreshold] = useState<number>(0);
+  const [recoveryDelay, setRecoveryDelay] = useState<number>(0);
+  const [friends, setFriends] = useState<DeriveAccountInfo[]>([]);
+  const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
+  const [showAddFriendModal, setShowAddFriendModal] = useState<boolean>(false);
+  const [state, setState] = useState<string | undefined>();
+
+  const handleRecoveryThreshold = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
+    const nodecimalValue = event.target.value.replace('.', '');
+
+    setRecoveryThreshold(Number(nodecimalValue));
+  }, [setRecoveryThreshold]);
+
+  const handleAddFriend = useCallback(() => {
+    setShowAddFriendModal(true);
+  }, []);
+
+  const handleDeleteFriend = useCallback((index: number) => {
+    friends.splice(index, 1);
+    setFriends([...friends]);
+  }, [friends]);
+
+  const handleRecoveryDelay = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
+    setRecoveryDelay(Number(event.target.value));
+  }, [setRecoveryDelay]);
+
+  const handleNext = useCallback(() => {
+    recoveryInfo ? setState('removeRecovery') : setState('makeRecoverable');
+    setConfirmModalOpen(true);
+  }, [recoveryInfo]);
+
+  useEffect(() => {
+    if (!recoveryInfo) { return; }
+
+    setRecoveryThreshold(recoveryInfo.threshold.toNumber());
+    const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
+
+    setRecoveryDelay(recoveryDelayInDays);
+    const onChainFriends = recoveryInfo.friends.map((f): DeriveAccountInfo => {
+      const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString());
+
+      return accountInfo ?? { accountId: f, identity: undefined } as unknown as DeriveAccountInfo;
+    });
+
+    setFriends(onChainFriends);
+  }, [recoveryInfo, accountsInfo]);
 
   return (
     <>
@@ -54,7 +99,7 @@ function RecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, h
           </Typography>
         }
       </Grid>
-      <Grid alignItems='center' container item justifyContent='space-between' pb='2px' pt='15px' xs={12}>
+      <Grid alignItems='center' container item justifyContent='space-between' pb='2px' pt='20px' xs={12}>
         <Grid item p='7px 15px 7px'>
           <Typography sx={{ color: 'text.primary' }} variant='body2'>
             {t('Your recovery friends')} {!!friends?.length && `(${friends?.length})`}:
@@ -70,7 +115,7 @@ function RecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, h
           }
         </Grid>
       </Grid>
-      <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '190px', overflowY: 'auto'}} xs={12}>
+      <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '200px', overflowY: 'auto' }} xs={12}>
         {friends?.length
           ? friends?.map((f, index) => (
             <Grid alignItems='flex-start' container item justifyContent='space-between' key={index} sx={{ pl: 1 }} xs={12}>
@@ -140,11 +185,6 @@ function RecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, h
               color='warning'
               disabled={!!recoveryInfo}
               fullWidth
-              // helperText={
-              //   <Hint icon id='recoveryDelay' place='top' tip='The days after a recovery attempt is initialized that needs to pass before the account can be recovered'>
-              //     {t('The delay before claim ')}
-              //   </Hint>
-              // }
               inputProps={{ step: '1' }}
               label={t('Recovery delay')}
               name='recoveryDelay'
@@ -166,6 +206,32 @@ function RecoverableTab({ chain, friends, handleAddFriend, handleDeleteFriend, h
           {recoveryInfo ? t('Next to remove recovery') : t('Next')}
         </NextStepButton>
       </Grid>
+      {showAddFriendModal &&
+        <AddFriend
+          accountsInfo={accountsInfo}
+          addresesOnThisChain={addresesOnThisChain}
+          friends={friends}
+          setFriends={setFriends}
+          setShowAddFriendModal={setShowAddFriendModal}
+          showAddFriendModal={showAddFriendModal}
+        />}
+      {showConfirmModal && api && chain && state && account && recoveryConsts &&
+        <Confirm
+          account={account}
+          api={api}
+          chain={chain}
+          friends={friends}
+          lostAccount={account}
+          recoveryConsts={recoveryConsts}
+          recoveryDelay={recoveryDelay}
+          recoveryThreshold={recoveryThreshold}
+          setConfirmModalOpen={setConfirmModalOpen}
+          setState={setState}
+          showConfirmModal={showConfirmModal}
+          state={state}
+        />
+      }
+
     </>
   );
 }

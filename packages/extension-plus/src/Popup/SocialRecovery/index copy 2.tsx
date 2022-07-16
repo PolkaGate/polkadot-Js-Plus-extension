@@ -1,3 +1,4 @@
+/* eslint-disable simple-import-sort/imports */
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
@@ -12,9 +13,11 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 
-import { Security as SecurityIcon, Backspace as BackspaceIcon, Support as SupportIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
-import { Divider, Grid, Paper, Tab, Tabs } from '@mui/material';
+import { Beenhere as BeenhereIcon, Backspace as BackspaceIcon, HealthAndSafety as HealthAndSafetyIcon, Support as SupportIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
+import { Grid, Tab, Tabs } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -34,10 +37,15 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
 import useApi from '../../hooks/useApi';
 import useEndpoint from '../../hooks/useEndPoint';
-import Rscue from './Rescue';
+import AddFriend from './AddFriend';
+import Confirm from './Confirm';
+import InfoTab from './InfoTab';
+import RecoverableTab from './RecoverableTab';
+import RscueTab from './Rescue';
 import { Chain } from '@polkadot/extension-chains/types';
-import { blue, green, grey, red } from '@mui/material/colors';
-import Configure from './Configure';
+import CloseRecoveryTab from './CloseRecoveryTab';
+import RecoveryChecking from './RecoveryCheckingTab';
+import { red } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -53,15 +61,21 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const endpoint = useEndpoint(accounts, address, chain);
   const api = useApi(endpoint);
 
+  const [tabValue, setTabValue] = useState('info');
   const [accountsInfo, setAcountsInfo] = useState<DeriveAccountInfo[]>();
+  const [recoveryThreshold, setRecoveryThreshold] = useState<number>(0);
+  const [recoveryDelay, setRecoveryDelay] = useState<number>(0);
+  const [friends, setFriends] = useState<DeriveAccountInfo[]>([]);
+  const [showAddFriendModal, setShowAddFriendModal] = useState<boolean>(false);
+  const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
+  const [state, setState] = useState<string | undefined>();
   const [account, setAccount] = useState<DeriveAccountInfo | undefined>();
   const [addresesOnThisChain, setAddresesOnThisChain] = useState<nameAddress[]>([]);
   const [recoveryConsts, setRecoveryConsts] = useState<RecoveryConsts | undefined>();
   const [recoveryInfo, setRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [rescuer, setRescuer] = useState<Rescuer | undefined | null>();
-  const [showConfigureModal, setConfigureModalOpen] = useState<boolean | undefined >();
-  const [showRescueModal, setRescueModalOpen] = useState<boolean | undefined >();
-  const [recoveryFirstSel, setRecoveryFirstSel] = useState<string | undefined >();
+  const [recoveryTabLabel, setRecoveryTabLabel] = useState<string>('Make recoverable');
+  const [recoveryStatus, setRecoveryStatus] = useState<string | undefined>();
 
   useEffect(() => {
     // eslint-disable-next-line no-void
@@ -123,6 +137,22 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   }, [chain, settings, handleAlladdressesOnThisChain]);
 
   useEffect(() => {
+    if (!recoveryInfo) { return; }
+
+    setRecoveryThreshold(recoveryInfo.threshold.toNumber());
+    const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
+
+    setRecoveryDelay(recoveryDelayInDays);
+    const onChainFriends = recoveryInfo.friends.map((f): DeriveAccountInfo => {
+      const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString());
+
+      return accountInfo ?? { accountId: f, identity: undefined } as unknown as DeriveAccountInfo;
+    });
+
+    setFriends(onChainFriends);
+  }, [recoveryInfo, accountsInfo]);
+
+  useEffect(() => {
     if (!api || !account?.accountId) { return; }
 
     // eslint-disable-next-line no-void
@@ -174,76 +204,118 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     });
   }, [address, api, chain?.name, chain?.ss58Format]);
 
-  const openSelection = useCallback(() => {
-    recoveryFirstSel === 'configure' && setConfigureModalOpen(true);
-    recoveryFirstSel === 'rescue' && setRescueModalOpen(true);
-  }, [recoveryFirstSel]);
+  const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: string) => {
+    console.log('newValue', newValue);
+    setTabValue(newValue);
+  }, []);
+
+  const handleRecoveryThreshold = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
+    const nodecimalValue = event.target.value.replace('.', '');
+
+    setRecoveryThreshold(Number(nodecimalValue));
+  }, [setRecoveryThreshold]);
+
+  const handleRecoveryDelay = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
+    setRecoveryDelay(Number(event.target.value));
+  }, [setRecoveryDelay]);
+
+  const handleNext = useCallback(() => {
+    recoveryInfo ? setState('removeRecovery') : setState('makeRecoverable');
+    setConfirmModalOpen(true);
+  }, [recoveryInfo]);
+
+  const handleAddFriend = useCallback(() => {
+    setShowAddFriendModal(true);
+  }, []);
+
+  const handleDeleteFriend = useCallback((index: number) => {
+    friends.splice(index, 1);
+    setFriends([...friends]);
+  }, [friends]);
 
   return (
     <>
       <Header showAdd showBackArrow showSettings smallMargin text={`${t<string>('Social Recovery')} ${chain?.name ? 'on' : ''} ${chain?.name ?? ''}`} />
-      <Grid alignItems='center' container >
-        <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: '80px' }} >
-          <Paper elevation={recoveryFirstSel === 'configure' ? 8 : 4} onClick={() => openSelection()} onMouseOver={() => setRecoveryFirstSel('configure')} sx={{ borderRadius: '10px', height: 340, pt: 1, width: '45%', cursor: 'pointer' }}>
-            <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, pt: 3, pb: 1 }}>
-              <Grid color={blue[600]} item>
-                <p>{t('Configure my account').toUpperCase()}</p>
-              </Grid>
-              <Grid item>
-                <SecurityIcon sx={{ color: blue[900], fontSize: 30, pt: '10px' }} />
-              </Grid>
-            </Grid>
-            <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
-              <Divider light />
-            </Grid>
-            <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-              {t('You can make your account "recoverable", remove recovery from an already recoverable account, or close a recovery process that is initiated by a (malicious) rescuer account.')}
-            </Grid>
-          </Paper>
-          <Paper elevation={recoveryFirstSel === 'rescue' ? 8 : 4} onClick={() => openSelection()} onMouseOver={() => setRecoveryFirstSel('rescue')} sx={{ borderRadius: '10px', cursor: !(api && !api?.tx?.nominationPools) ? 'pointer' : '', height: 340, pt: 1, width: '45%' }}>
-            <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, pt: 3, pb: 1 }}>
-              <Grid color={green[600]} item>
-                <p>{t('Rescue another account').toUpperCase()}</p>
-              </Grid>
-              <Grid item>
-                <SupportIcon sx={{ color: green[900], fontSize: 30, pt: '10px' }} />
-              </Grid>
-            </Grid>
-            <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
-              <Divider light />
-            </Grid>
-            <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-              {t('You can try to rescue another account. As a "rescuer", you can recover a lost account, or as a friend, you can "vouch" to recover a lost account by a rescuer account.')}
-            </Grid>
-          </Paper>
+      <Grid alignItems='center' container sx={{ px: '30px' }}>
+        <Grid item sx={{ borderBottom: 1, borderColor: 'divider' }} xs={12}>
+          <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
+            <Tab icon={<BeenhereIcon fontSize='small' />} iconPosition='start' label={'Configuration'} sx={{ fontSize: 11 }} value='recovery' />
+            <Tab icon={<SupportIcon fontSize='small' />} iconPosition='start' label='Rescue' sx={{ fontSize: 11 }} value='rescue' />
+            <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
+          </Tabs>
         </Grid>
-        {showConfigureModal &&
-        <Configure
-          account={account}
-          accountsInfo={accountsInfo}
-          addresesOnThisChain={addresesOnThisChain}
-          api={api}
-          chain={chain}
-          recoveryConsts={recoveryConsts}
-          recoveryInfo={recoveryInfo}
-          rescuer={rescuer}
-          setConfigureModalOpen={setConfigureModalOpen}
-          showConfigureModal={showConfigureModal}
-        />
+        {tabValue === 'recovery' && !recoveryStatus &&
+          <RecoveryChecking
+            recoveryInfo={recoveryInfo}
+            rescuer={rescuer}
+            setRecoveryStatus={setRecoveryStatus}
+          />
         }
-        {showRescueModal &&
-        <Rscue
-          account={account}
-          accountsInfo={accountsInfo}
-          addresesOnThisChain={addresesOnThisChain}
-          api={api}
-          chain={chain}
-          recoveryConsts={recoveryConsts}
-          setRescueModalOpen={setRescueModalOpen}
-          showRescueModal={showRescueModal}
-        />
+        {tabValue === 'recovery' && recoveryStatus && ['Make recoverable', 'Remove recovery'].includes(recoveryStatus) &&
+          <RecoverableTab
+            chain={chain}
+            friends={friends}
+            handleAddFriend={handleAddFriend}
+            handleDeleteFriend={handleDeleteFriend}
+            handleNext={handleNext}
+            handleRecoveryDelay={handleRecoveryDelay}
+            handleRecoveryThreshold={handleRecoveryThreshold}
+            recoveryConsts={recoveryConsts}
+            recoveryDelay={recoveryDelay}
+            recoveryInfo={recoveryInfo}
+            recoveryThreshold={recoveryThreshold}
+          />
+        }
+        {tabValue === 'recovery' && recoveryStatus && recoveryStatus === 'Close recovery' && rescuer && chain &&
+          <CloseRecoveryTab
+            api={api}
+            chain={chain}
+            formattedAddress={String(account?.accountId)}
+            rescuer={rescuer}
+          />
+        }
+        {tabValue === 'rescue' &&
+          <RscueTab
+            account={account}
+            accountsInfo={accountsInfo}
+            addresesOnThisChain={addresesOnThisChain}
+            api={api}
+            chain={chain}
+            recoveryConsts={recoveryConsts}
+          />
+        }
+        {tabValue === 'info' &&
+          <InfoTab
+            api={api}
+            recoveryConsts={recoveryConsts}
+          />
         }
       </Grid>
+      {showAddFriendModal &&
+        <AddFriend
+          accountsInfo={accountsInfo}
+          addresesOnThisChain={addresesOnThisChain}
+          friends={friends}
+          setFriends={setFriends}
+          setShowAddFriendModal={setShowAddFriendModal}
+          showAddFriendModal={showAddFriendModal}
+        />}
+      {showConfirmModal && api && chain && state && account && recoveryConsts &&
+        <Confirm
+          account={account}
+          api={api}
+          chain={chain}
+          friends={friends}
+          lostAccount={account}
+          recoveryConsts={recoveryConsts}
+          recoveryDelay={recoveryDelay}
+          recoveryThreshold={recoveryThreshold}
+          setConfirmModalOpen={setConfirmModalOpen}
+          setState={setState}
+          showConfirmModal={showConfirmModal}
+          state={state}
+        />
+      }
     </>
   );
 }

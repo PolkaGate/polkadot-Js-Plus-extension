@@ -54,6 +54,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
   const [isProxy, setIsProxy] = useState<boolean | undefined | null>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
+  const [isFriend, setIsFriend] = useState<boolean | undefined>();
 
   const handleNextToInitiateRecovery = useCallback(() => {
     setState('vouchRecovery');
@@ -69,6 +70,14 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
     }
   }, [lostAccountRecoveryInfo, api]);
 
+  useEffect(() => {
+    if (lostAccountRecoveryInfo?.friends && account?.accountId) {
+      const friendIndex = lostAccountRecoveryInfo.friends.findIndex((f) => f.toString() === account.accountId.toString());
+
+      setIsFriend(friendIndex >= 0);
+    }
+  }, [account?.accountId, lostAccountRecoveryInfo]);
+
   const clearHelperTexts = useCallback(() => {
     setRescuerAccountHelperText(undefined);
     setLostAccountHelperText(undefined);
@@ -77,6 +86,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
   useEffect(() => {
     if (!lostAccount) {
       clearHelperTexts();
+      setIsFriend(undefined);
     }
   }, [clearHelperTexts, lostAccount]);
 
@@ -146,7 +156,14 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
             {t<string>('Enter the lost account Id (identity), who you want to vouch for')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={lostAccountHelperText} label={t('Lost')} setAccount={setLostAccount} />
-          {lostAccount && lostAccountRecoveryInfo &&
+          {lostAccount && lostAccountRecoveryInfo && isFriend === false &&
+            <Grid pt='85px' textAlign='center'>
+              <Typography sx={{ color: 'error.main', p: '50px 10px 10px' }} variant='subtitle2'>
+                {t<string>('You are not registered as a friend of the lost account!')}
+              </Typography>
+            </Grid>
+          }
+          {lostAccount && lostAccountRecoveryInfo && isFriend &&
             <>
               <Typography sx={{ color: 'text.primary', p: '30px 10px 10px' }} variant='subtitle2'>
                 {t<string>('Enter the rescuer account Id (identity)')}:

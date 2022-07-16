@@ -1,4 +1,3 @@
-/* eslint-disable simple-import-sort/imports */
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
@@ -6,30 +5,29 @@
 
 /**
  * @description
- * this component opens Close recovery for a named lost account
+ * this component opens recovery checking page to see in which status the social recovery configuration tab should be: make recoverable, remove recovery or close recovery?
  * */
 
+import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Grid } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../components';
-
 import { Rescuer } from '../../util/plusTypes';
-import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   recoveryInfo: PalletRecoveryRecoveryConfig | undefined | null;
   className?: string;
   rescuer: Rescuer | undefined | null;
-  setRecoveryStatus: (value: React.SetStateAction<string | undefined>) => void
+  setStatus: (value: React.SetStateAction<string | undefined>) => void
 }
 
-function RecoveryChecking({ recoveryInfo, rescuer, setRecoveryStatus }: Props): React.ReactElement<Props> {
+function RecoveryCheckingTab({ recoveryInfo, rescuer, setStatus }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [processTitle, setProcessTitle] = useState<string>('');
 
@@ -39,7 +37,7 @@ function RecoveryChecking({ recoveryInfo, rescuer, setRecoveryStatus }: Props): 
     }
 
     if (recoveryInfo === null) {
-      return setRecoveryStatus('Make recoverable');
+      return setStatus('makeRecoverable');
     }
 
     if (rescuer === undefined) {
@@ -47,11 +45,11 @@ function RecoveryChecking({ recoveryInfo, rescuer, setRecoveryStatus }: Props): 
     }
 
     if (rescuer === null) {
-      return setRecoveryStatus('Remove recovery');
+      return setStatus('removeRecovery');
     }
 
-    return setRecoveryStatus('Close recovery');
-  }, [rescuer, recoveryInfo, t, setRecoveryStatus]);
+    return setStatus('closeRecovery');
+  }, [rescuer, recoveryInfo, t, setStatus]);
 
   return (
     <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '300px', overflowY: 'auto', p: '30px', mt: 5 }} xs={12}>
@@ -62,7 +60,7 @@ function RecoveryChecking({ recoveryInfo, rescuer, setRecoveryStatus }: Props): 
   );
 }
 
-export default styled(RecoveryChecking)`
+export default styled(RecoveryCheckingTab)`
          height: calc(100vh - 2px);
          overflow: auto;
          scrollbar - width: none;
