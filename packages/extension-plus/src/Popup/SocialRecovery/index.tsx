@@ -59,9 +59,9 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const [recoveryConsts, setRecoveryConsts] = useState<RecoveryConsts | undefined>();
   const [recoveryInfo, setRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [rescuer, setRescuer] = useState<Rescuer | undefined | null>();
-  const [showConfigureModal, setConfigureModalOpen] = useState<boolean | undefined >();
-  const [showRescueModal, setRescueModalOpen] = useState<boolean | undefined >();
-  const [recoveryFirstSel, setRecoveryFirstSel] = useState<string | undefined >();
+  const [showConfigureModal, setConfigureModalOpen] = useState<boolean | undefined>();
+  const [showRescueModal, setRescueModalOpen] = useState<boolean | undefined>();
+  const [recoveryFirstSel, setRecoveryFirstSel] = useState<string | undefined>();
 
   useEffect(() => {
     // eslint-disable-next-line no-void
@@ -200,7 +200,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
               {t('You can make your account "recoverable", remove recovery from an already recoverable account, or close a recovery process that is initiated by a (malicious) rescuer account.')}
             </Grid>
           </Paper>
-          <Paper elevation={recoveryFirstSel === 'rescue' ? 8 : 4} onClick={() => openSelection()} onMouseOver={() => setRecoveryFirstSel('rescue')} sx={{ borderRadius: '10px', cursor: !(api && !api?.tx?.nominationPools) ? 'pointer' : '', height: 340, pt: 1, width: '45%' }}>
+          <Paper elevation={recoveryFirstSel === 'rescue' ? 8 : 4} onClick={() => openSelection()} onMouseOver={() => setRecoveryFirstSel('rescue')} sx={{ borderRadius: '10px', cursor: 'pointer', height: 340, pt: 1, width: '45%' }}>
             <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, pt: 3, pb: 1 }}>
               <Grid color={green[600]} item>
                 <p>{t('Rescue another account').toUpperCase()}</p>
@@ -213,35 +213,35 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
               <Divider light />
             </Grid>
             <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-              {t('You can try to rescue another account. As a "rescuer", you can recover a lost account, or as a friend, you can "vouch" to recover a lost account by a rescuer account.')}
+              {t('You can try to rescue another account. As a "rescuer", you can recover a lost account, or as a "friend", you can "vouch" to confirm the recovery of a lost account by a rescuer account.')}
             </Grid>
           </Paper>
         </Grid>
         {showConfigureModal &&
-        <Configure
-          account={account}
-          accountsInfo={accountsInfo}
-          addresesOnThisChain={addresesOnThisChain}
-          api={api}
-          chain={chain}
-          recoveryConsts={recoveryConsts}
-          recoveryInfo={recoveryInfo}
-          rescuer={rescuer}
-          setConfigureModalOpen={setConfigureModalOpen}
-          showConfigureModal={showConfigureModal}
-        />
+          <Configure
+            account={account}
+            accountsInfo={accountsInfo}
+            addresesOnThisChain={addresesOnThisChain}
+            api={api}
+            chain={chain}
+            recoveryConsts={recoveryConsts}
+            recoveryInfo={recoveryInfo}
+            rescuer={rescuer}
+            setConfigureModalOpen={setConfigureModalOpen}
+            showConfigureModal={showConfigureModal}
+          />
         }
         {showRescueModal &&
-        <Rscue
-          account={account}
-          accountsInfo={accountsInfo}
-          addresesOnThisChain={addresesOnThisChain}
-          api={api}
-          chain={chain}
-          recoveryConsts={recoveryConsts}
-          setRescueModalOpen={setRescueModalOpen}
-          showRescueModal={showRescueModal}
-        />
+          <Rscue
+            account={account}
+            accountsInfo={accountsInfo}
+            addresesOnThisChain={addresesOnThisChain}
+            api={api}
+            chain={chain}
+            recoveryConsts={recoveryConsts}
+            setRescueModalOpen={setRescueModalOpen}
+            showRescueModal={showRescueModal}
+          />
         }
       </Grid>
     </>

@@ -44,8 +44,13 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
-const steps = ['Initiate', 'Claim', 'Withdraw'];
-const STEP_MAP = { INIT: 0, CLAIM: 1, WITHDRAW: 2 };
+const steps = ['Initiate', 'Claim', 'Close', 'Withdraw'];
+const STEP_MAP = {
+  INIT: 0,
+  CLAIM: 1,
+  CLOSE: 2,
+  WITHDRAW: 3
+}
 
 function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -88,6 +93,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, []);
 
   const handleNext = useCallback(() => {
+    !state && setState('initiateRecovery');
     setConfirmModalOpen(true);
   }, [state]);
 
@@ -96,7 +102,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   };
 
   useEffect((): void => {
-    if (activeStep === STEP_MAP.WITHDRAW && lostAccountBalance && lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance).sub(lostAccountBalance.lockedBalance).lten(0)) {
+    if (activeStep === 3 && lostAccountBalance && lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance).isZero()) {
       return setNextIsDisabled(true);
     }
 
@@ -137,39 +143,39 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
 
   useEffect((): void => {
     if (isProxy) {
-      // if (hasActiveRecoveries) {
-      const newCompleted = completed;
+      if (hasActiveRecoveries) {
+        const newCompleted = completed;
 
-      completed[STEP_MAP.INIT] = true;
-      completed[STEP_MAP.CLAIM] = true;
-      setCompleted(newCompleted);
-      setActiveStep(STEP_MAP.WITHDRAW);
-      // } 
-      // else {
-      //   const newCompleted = completed;
+        completed[STEP_MAP.INIT] = true;
+        completed[STEP_MAP.CLAIM] = true;
+        setCompleted(newCompleted);
+        setActiveStep(2);
+      } else {
+        const newCompleted = completed;
 
-      //   completed[STEP_MAP.INIT] = true;
-      //   completed[STEP_MAP.CLAIM] = true;
-      //   setCompleted(newCompleted);
-      //   setActiveStep(3);
-      // }
+        completed[STEP_MAP.INIT] = true;
+        completed[STEP_MAP.CLAIM] = true;
+        completed[STEP_MAP.CLOSE] = true;
+        setCompleted(newCompleted);
+        setActiveStep(3);
+      }
     } else if (remainingBlocksToClaim && remainingBlocksToClaim <= 0) {
       const newCompleted = completed;
 
       completed[STEP_MAP.INIT] = true;
       setCompleted(newCompleted);
-      setActiveStep(STEP_MAP.CLAIM);
+      setActiveStep(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isProxy, remainingBlocksToClaim]);
 
   useEffect((): void => {
-    if (activeStep === STEP_MAP.INIT) {
-      return setState('initiateRecovery');
-    }
-
     if (activeStep === STEP_MAP.CLAIM) {
       return setState('claimRecovery');
+    }
+
+    if (activeStep === STEP_MAP.CLOSE) {
+      return setState('closeRecoveryAsRescuer');
     }
 
     if (activeStep === STEP_MAP.WITHDRAW) {
@@ -187,8 +193,9 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   useEffect((): void => {
     // get the lost account balances
     // eslint-disable-next-line no-void
-    lostAccount?.accountId && isProxy && api && void api.derive.balances?.all(lostAccount.accountId).then((b) => {
+    lostAccount?.accountId && isProxy && !hasActiveRecoveries && api && void api.derive.balances?.all(lostAccount.accountId).then((b) => {
       setLostAccountBalance(b);
+      // setAsRecovered(true);
       console.log('lost balances b', JSON.parse(JSON.stringify(b)));
 
       // eslint-disable-next-line no-void
@@ -214,9 +221,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
 
         setOtherPossibleRescuers(otherPossibleRescuers);
         setAsRecovered(true);
+
       });
     });
-  }, [account, isProxy, api, lostAccount, hasActiveRecoveries, chain?.ss58Format]);
+  }, [isProxy, api, lostAccount, hasActiveRecoveries, chain?.ss58Format]);
 
   useEffect((): void => {
     if (!lostAccountLedger || !currentEraIndex || !lostAccount?.accountId) {
@@ -430,7 +438,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           friends={friendsAccountsInfo}
           lostAccount={lostAccount}
           otherPossibleRescuers={otherPossibleRescuers}
-          otherPossibleRescuersDeposit={otherPossibleRescuersDeposit}
           recoveryConsts={recoveryConsts}
           recoveryDelay={lostAccountRecoveryInfo?.delayPeriod?.toNumber()}
           recoveryThreshold={lostAccountRecoveryInfo?.threshold?.toNumber()}
@@ -445,9 +452,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             staked: lostAccountLedger?.active?.unwrap() ?? BN_ZERO,
             spanCount: spanCount ?? 0
           }}
+          otherPossibleRescuersDeposit={otherPossibleRescuersDeposit}
         />
       }
-    </Popup>
+    </Popup >
   );
 }
 

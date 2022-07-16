@@ -80,14 +80,14 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
           </Avatar>
         </Grid>
       </Grid>
-      <Grid alignItems='center' container justifyContent='space-around'>
-        <Paper onClick={handleRescuer} sx={{ borderRadius: '10px', cursor: 'pointer', height: 170, pt: '15px', width: '45%' }}>
-          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, p: '10px 15px' }}>
+      <Grid alignItems='center' container justifyContent='space-around' px={3}>
+        <Paper onClick={handleRescuer} sx={{ borderRadius: '10px', cursor: 'pointer', height: 160, pt: '15px', width: '45%' }}>
+          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
             {t('A rescuer can initiate the recovery of a lost account. If it receives enough vouchers, the lost account can be claimed.')}
           </Grid>
         </Paper>
-        <Paper onClick={handleFriend} sx={{ borderRadius: '10px', cursor: 'pointer', height: 170, pt: '15px', width: '45%' }}>
-          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, p: '10px 15px' }}>
+        <Paper onClick={handleFriend} sx={{ borderRadius: '10px', cursor: 'pointer', height: 160, pt: '15px', width: '45%' }}>
+          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
             {t('An account, who has been set as a friend of a lost account, can vouch for recovering the lost account by a rescuer.')}
           </Grid>
         </Paper>

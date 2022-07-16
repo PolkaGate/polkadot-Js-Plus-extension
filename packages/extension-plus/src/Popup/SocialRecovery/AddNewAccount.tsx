@@ -139,15 +139,15 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
   const AccountTextBox = ({ info, text }: { info: DeriveAccountInfo | undefined, text: string | undefined }) => (
     <Grid alignItems='flex-start' container item xs={12}>
       <Grid item xs={1}>
-        {info &&
-          <Identicon
+        {(info || isValidAddress(text))
+          ? <Identicon
             prefix={chain?.ss58Format ?? 42}
             size={40}
             theme={chain?.icon || 'polkadot'}
-            value={info.accountId}
-          />}
-        {!info &&
-          <NoAccountsIcon sx={{ color: grey[400], fontSize: 43 }} />}
+            value={info?.accountId ?? text}
+          />
+          : <NoAccountsIcon sx={{ color: grey[400], fontSize: 43 }} />
+          }
       </Grid>
       <Grid item xs>
         <Autocomplete
@@ -178,36 +178,6 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
           }
           sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}
         />
-        {/* <TextField
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position='end'>
-                <IconButton
-                  onClick={handleClearLostAccount}
-                >
-                  {text ? <ClearIcon /> : ''}
-                </IconButton>
-              </InputAdornment>
-            ),
-            style: { fontSize: 13 }
-          }}
-          autoFocus
-          disabled={!accountsInfo?.length}
-          fullWidth
-          helperText={info &&
-            <Grid item sx={{ color: { helperColor } }}>
-              {helperText}
-            </Grid>
-          }
-          disabled={!accountsInfo?.length}
-          label={label}
-          onChange={handleLostAccountChange}
-          placeholder={'account Id / name / twitter / element Id / email / web site'}
-          size='medium'
-          type='string'
-          value={info?.accountId || text}
-          variant='outlined'
-        /> */}
       </Grid>
     </Grid>
   );

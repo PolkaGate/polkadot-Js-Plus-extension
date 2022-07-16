@@ -41,7 +41,7 @@ function RecoveryCheckingTab({ recoveryInfo, rescuer, setStatus }: Props): React
     }
 
     if (rescuer === undefined) {
-      return setProcessTitle(t('Checking if some malicious rescuer is recovering your account'));
+      return setProcessTitle(t('Checking if a malicious rescuer is recovering your account'));
     }
 
     if (rescuer === null) {

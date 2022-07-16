@@ -90,12 +90,11 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
   const withdrawCalls = []; // put all withdraws as recoverd from the lost account inside
 
-  // rescuer?.accountId && withdrawCalls.push(closeRecovery(rescuer.accountId));
   otherPossibleRescuers?.length && withdrawCalls.push(...otherPossibleRescuers.map((o) => closeRecovery(o.accountId)));
-  recoveryThreshold && withdrawCalls.push(removeRecovery()); // to collect deposit
+  recoveryThreshold && withdrawCalls.push(removeRecovery());
+  withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));
   withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked)); // TODO: chill before unbound ALL
   withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero() && withdrawCalls.push(redeem(withdrawAmounts.spanCount));
-  withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));// should be last call in the batch to collect redeemed amount
 
   const batchWithdraw = rescuer?.accountId && api.tx.utility.batch(withdrawCalls);
 
@@ -420,7 +419,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         (withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
           ? t(' Unstaking {{amount}} which will be redeemable after {{days}} days', { replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration } })
           : '') +
-        (otherPossibleRescuersDeposit && !otherPossibleRescuersDeposit.isZero()
+        (!otherPossibleRescuersDeposit?.isZero()
           ? t(' Withdrawing {{amount}} as other rescuer(s) deposit ', { replace: { amount: api.createType('Balance', otherPossibleRescuersDeposit).toHuman() } })
           : '');
 
