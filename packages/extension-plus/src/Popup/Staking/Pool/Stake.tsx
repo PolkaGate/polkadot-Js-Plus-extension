@@ -51,7 +51,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const [zeroBalanceAlert, setZeroBalanceAlert] = useState(false);
   const [nextButtonCaption, setNextButtonCaption] = useState<string>(t('Next'));
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
-  const [maxStakeable, setMaxStakeable] = useState<BN>(BN_ZERO);
+  const [maxStakeable, setMaxStakeable] = useState<BN|undefined>();
   const [maxStakeableAsNumber, setMaxStakeableAsNumber] = useState<number>(0);
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
   const [showJoinPoolModal, setJoinPoolModalOpen] = useState<boolean>(false);
@@ -77,14 +77,13 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
 
     setAlert('');
     const valueAsBN = new BN(String(amountToMachine(value, decimals)));
-    const topMargin = new BN(String(staker.balanceInfo.total)).sub(existentialDeposit.muln(2));
 
-    if (valueAsBN.gt(topMargin) && valueAsBN.lt(new BN(String(staker.balanceInfo.total))) && valueAsBN.lt(new BN(String(staker.balanceInfo.available)))) {
+    if (new BN(staker.balanceInfo.total.toString()).sub(valueAsBN).sub(estimatedMaxFee ?? BN_ZERO).lt(existentialDeposit)) {
       setAlert(t('Your account might be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
-  }, [api, decimals, existentialDeposit, staker, t]);
+  }, [api, decimals, estimatedMaxFee, existentialDeposit, staker, t]);
 
   const handleStakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     let value = event.target.value;
@@ -135,7 +134,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [poolStakingConsts, existentialDeposit, staker, myPool, estimatedMaxFee]);
 
   useEffect(() => {
-    if (!decimals) { return; }
+    if (!decimals || !maxStakeable) { return; }
 
     const maxStakeableAsNumber = Number(amountToHuman(maxStakeable.toString(), decimals));
 
@@ -275,7 +274,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
                   <Grid item sx={{ fontSize: 12 }}>
                     {t('Max')}{': ~ '}
                     <MuiButton onClick={handleMaxStakeClicked} variant='text'>
-                      <FormatBalance api={api} value={maxStakeable} />
+                      <ShowBalance2 api={api} balance={maxStakeable} />
                     </MuiButton>
                   </Grid>
                 </Grid>
