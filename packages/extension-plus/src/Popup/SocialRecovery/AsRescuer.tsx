@@ -74,6 +74,24 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [nextIsDisabled, setNextIsDisabled] = useState<boolean>(true);
   const [otherPossibleRescuers, setOtherPossibleRescuers] = useState<Rescuer[] | undefined>();
 
+  const otherPossibleRescuersDeposit = useMemo((): BN | undefined => {
+    if (!otherPossibleRescuers?.length) {
+      return;
+    }
+
+    let d = BN_ZERO;
+
+    for (let i = 0; i < otherPossibleRescuers.length; i++) {
+      d = d.add(otherPossibleRescuers[i]?.option?.deposit ?? BN_ZERO);
+    }
+
+    return (d);
+  }, [otherPossibleRescuers]);
+
+  const totalWithdrawable = useMemo((): BN => {
+    return (lostAccountBalance?.availableBalance ?? BN_ZERO).add(redeemable ?? BN_ZERO).add(lostAccountRecoveryInfo?.deposit ?? BN_ZERO).add(otherPossibleRescuersDeposit ?? BN_ZERO);
+  }, [lostAccountBalance, redeemable, lostAccountRecoveryInfo, otherPossibleRescuersDeposit]);
+
   const resetPage = useCallback(() => {
     console.log('resetPage ...');
     setState(undefined);
@@ -88,6 +106,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, []);
 
   const handleNext = useCallback(() => {
+    !state && setState('initiateRecovery');
     setConfirmModalOpen(true);
   }, [state]);
 
@@ -121,20 +140,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     });
   }, [api, hasActiveRecoveries, lostAccountRecoveryInfo]);
 
-  const otherPossibleRescuersDeposit = useMemo((): BN | undefined => {
-    if (!otherPossibleRescuers?.length) {
-      return;
-    }
-
-    let d = BN_ZERO;
-
-    for (let i = 0; i < otherPossibleRescuers.length; i++) {
-      d = d.add(otherPossibleRescuers[i]?.option?.deposit ?? BN_ZERO);
-    }
-
-    return (d);
-  }, [otherPossibleRescuers]);
-
   useEffect((): void => {
     if (isProxy) {
       // if (hasActiveRecoveries) {
@@ -164,10 +169,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [isProxy, remainingBlocksToClaim]);
 
   useEffect((): void => {
-    if (activeStep === STEP_MAP.INIT) {
-      return setState('initiateRecovery');
-    }
-
     if (activeStep === STEP_MAP.CLAIM) {
       return setState('claimRecovery');
     }
@@ -205,6 +206,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           const [key, option] = activeRecoveries[i];
 
           if (encodeAddress('0x' + key.toString().slice(82, 146), chain?.ss58Format) === String(lostAccount.accountId)) { // if this is lostAccount Id
+            const mightBeOtherRescuer = encodeAddress('0x' + key.toString().slice(162), chain?.ss58Format);
+
+            if (mightBeOtherRescuer === account?.accountId?.toString()) { continue; } // to exclude me from the other possible rescuers list
+
             otherPossibleRescuers.push({
               accountId: encodeAddress('0x' + key.toString().slice(162), chain?.ss58Format),
               option: option.isSome ? option.unwrap() as unknown as PalletRecoveryActiveRecovery : undefined
@@ -216,7 +221,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         setAsRecovered(true);
       });
     });
-  }, [account, isProxy, api, lostAccount, hasActiveRecoveries, chain?.ss58Format]);
+  }, [account, isProxy, api, lostAccount, chain?.ss58Format]);
 
   useEffect((): void => {
     if (!lostAccountLedger || !currentEraIndex || !lostAccount?.accountId) {
@@ -290,8 +295,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       const proxy = r.isSome ? String(r.unwrap()) : null;
 
       setIsProxy(proxy === String(lostAccount.accountId));
-      console.log('proxy address:', r.isSome ? r.unwrap().toString() : 'noch');
-      console.log('is a proxy:', proxy === String(lostAccount.accountId));
+      console.log(`is a proxy ${proxy === String(lostAccount.accountId)} proxy address:${r.isSome ? r.unwrap().toString() : ''}`);
     });
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
@@ -317,7 +321,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         if (remainingBlocksToClaim > 0) {
           return setLostAccountHelperText(t<string>('Remaining time to claim recovery'));
         } else {
-          return setLostAccountHelperText(t<string>('Recovery can be claimed if {{threshold}} friend verification(s) are received', { replace: { threshold: lostAccountRecoveryInfo.threshold } }));
+          return setLostAccountHelperText(t<string>('Recovery can be claimed if {{threshold}} friend verification(s) are received', { replace: { threshold: lostAccountRecoveryInfo?.threshold } }));
         }
       }
 
@@ -421,8 +425,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           </Button>
         </Grid>
       </Grid>
-      {
-        showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts &&
+      {showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts &&
         <Confirm
           account={account}
           api={api}
@@ -432,7 +435,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           otherPossibleRescuers={otherPossibleRescuers}
           otherPossibleRescuersDeposit={otherPossibleRescuersDeposit}
           recoveryConsts={recoveryConsts}
-          recoveryDelay={lostAccountRecoveryInfo?.delayPeriod?.toNumber()}
+          recoveryDelay={lostAccountRecoveryInfo?.delayPeriod ? (lostAccountRecoveryInfo?.delayPeriod?.toNumber() / (24 * 60 * 10)).toFixed(4) : 0}
           recoveryThreshold={lostAccountRecoveryInfo?.threshold?.toNumber()}
           rescuer={{ ...account, option: hasActiveRecoveries ?? { deposit: lostAccountRecoveryInfo?.deposit ?? BN_ZERO } }}
           setConfirmModalOpen={setConfirmModalOpen}
@@ -440,6 +443,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           showConfirmModal={showConfirmModal}
           state={state}
           withdrawAmounts={{
+            totalWithdrawable:totalWithdrawable,
             available: lostAccountBalance?.availableBalance ?? BN_ZERO,
             redeemable: redeemable ?? BN_ZERO,
             staked: lostAccountLedger?.active?.unwrap() ?? BN_ZERO,

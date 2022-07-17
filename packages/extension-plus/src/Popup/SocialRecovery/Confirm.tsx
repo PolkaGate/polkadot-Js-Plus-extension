@@ -31,6 +31,7 @@ import { PASS_MAP } from '../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 
 interface WithdrawAmounts {
+  totalWithdrawable: BN;
   available: BN;
   redeemable: BN;
   staked: BN;
@@ -90,14 +91,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
   const withdrawCalls = []; // put all withdraws as recoverd from the lost account inside
 
-  // rescuer?.accountId && withdrawCalls.push(closeRecovery(rescuer.accountId));
-  otherPossibleRescuers?.length && withdrawCalls.push(...otherPossibleRescuers.map((o) => closeRecovery(o.accountId)));
-  recoveryThreshold && withdrawCalls.push(removeRecovery()); // to collect deposit
-  withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked)); // TODO: chill before unbound ALL
-  withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero() && withdrawCalls.push(redeem(withdrawAmounts.spanCount));
-  withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));// should be last call in the batch to collect redeemed amount
+  if (state === 'withdrawAsRecovered') {
+    rescuer?.accountId && rescuer?.option?.deposit && state === 'withdrawAsRecovered' && withdrawCalls.push(closeRecovery(rescuer.accountId));
+    otherPossibleRescuers?.length && withdrawCalls.push(...otherPossibleRescuers.map((o) => closeRecovery(o.accountId)));
+    recoveryThreshold && withdrawCalls.push(removeRecovery()); // to collect deposit
+    withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked)); // TODO: chill before unbound ALL
+    withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero() && withdrawCalls.push(redeem(withdrawAmounts.spanCount));
+    withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));// should be last call in the batch to collect redeemed amount
+  }
 
-  const batchWithdraw = rescuer?.accountId && api.tx.utility.batch(withdrawCalls);
+  const batchWithdraw = rescuer?.accountId && api.tx.utility.batchAll(withdrawCalls);
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) { return false; }
@@ -410,25 +413,19 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       return t('Claiming recovery for the recoverable account');
     }
 
-    if (state === 'withdrawAsRecovered' && withdrawAmounts && rescuer?.option) {
-      const text = (withdrawAmounts.available && !withdrawAmounts.available.isZero()
-        ? t('Withdrawing {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.available.add(withdrawAmounts?.redeemable).add(rescuer.option.deposit)).toHuman() } })
+    if (state === 'withdrawAsRecovered' && withdrawAmounts) {
+      return (withdrawAmounts?.totalWithdrawable && !withdrawAmounts.totalWithdrawable.isZero()
+        ? t('Withdrawing {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.totalWithdrawable).toHuman() } })
         : '') +
-        (withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero()
-          ? t(' Redeeming {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.redeemable).toHuman() } })
-          : '') +
         (withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
-          ? t(' Unstaking {{amount}} which will be redeemable after {{days}} days', { replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration } })
-          : '') +
-        (otherPossibleRescuersDeposit && !otherPossibleRescuersDeposit.isZero()
-          ? t(' Withdrawing {{amount}} as other rescuer(s) deposit ', { replace: { amount: api.createType('Balance', otherPossibleRescuersDeposit).toHuman() } })
+          ? t(' Unstaking {{amount}} which will be redeemable after {{days}} days', {
+            replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration }
+          })
           : '');
-
-      return text;
     }
 
     return '';
-  }, [api, deposit, otherPossibleRescuersDeposit, rescuer?.option, t, unbondingDuration, withdrawAmounts]);
+  }, [api, deposit, t, unbondingDuration, withdrawAmounts]);
 
   const WriteAppropriateMessage = ({ note, state }: { state: string, note?: string }) => (
     <Typography sx={{ mt: '30px', textAlign: 'center' }} variant='h6'>
@@ -459,7 +456,6 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
   };
 
   const handleBack = useCallback((): void => {
-    // setState('');
     setConfirmingState('');
 
     handleCloseModal();
@@ -497,28 +493,20 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           </Grid>
         </Grid>
         <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '200px', overflowY: 'auto' }} xs={12}>
-          {['makeRecoverable', 'initiateRecovery'].includes(state) &&
-            <>
-              {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
-                {t('List of friends')}
-              </Grid>
-              }
-              {state === 'initiateRecovery' &&
-                <Grid container item justifyContent='center' p='15px'>
-                  <WriteAppropriateMessage state={state} />
-                </Grid>
-              }
-              {friends?.map((f, index) => (
-                <Grid alignItems='flex-start' key={index} sx={{ pl: '50px' }} xs={12}>
-                  <Identity accountInfo={f} chain={chain} showAddress />
-                </Grid>
-              ))}
-            </>
+          {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
+            {t('List of friends')}
+          </Grid>
           }
-          {['closeRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered'].includes(state) &&
+          {['closeRecovery', 'initiateRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered'].includes(state) &&
             <Grid container item justifyContent='center' p='15px'>
               <WriteAppropriateMessage state={state} />
             </Grid>
+          }
+          {['makeRecoverable', 'initiateRecovery'].includes(state) && friends?.map((f, index) => (
+            <Grid alignItems='flex-start' key={index} sx={{ pl: '50px' }} xs={12}>
+              <Identity accountInfo={f} chain={chain} showAddress />
+            </Grid>
+          ))
           }
           {['closeRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'claimRecovery'].includes(state) &&
             <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 8 }} xs={12}>
