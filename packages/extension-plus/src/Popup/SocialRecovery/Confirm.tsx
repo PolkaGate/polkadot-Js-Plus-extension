@@ -498,7 +498,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           </Grid>
           }
           {['closeRecovery', 'initiateRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered'].includes(state) &&
-            <Grid container item justifyContent='center' p='15px'>
+            <Grid container item justifyContent='center' p='15px 30px'>
               <WriteAppropriateMessage state={state} />
             </Grid>
           }
