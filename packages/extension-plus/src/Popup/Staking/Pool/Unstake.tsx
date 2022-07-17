@@ -81,18 +81,23 @@ export default function Unstake({ api, currentlyStaked, handleConfirmStakingModa
       return;
     }
 
-    const remainStaked = currentlyStaked.sub(new BN(String(amountToMachine(value, decimals))));
+    let remainStaked;
 
-    if (remainStaked.gtn(0) &&
-      ((minDeposit.gtn(0) && remainStaked.lt(minDeposit)) || (!stakerIsDepositor && poolStakingConsts?.minJoinBond && remainStaked.lt(poolStakingConsts?.minJoinBond)))) {
-      const minShouldRemain = minDeposit.gtn(0) ? minDeposit : poolStakingConsts?.minJoinBond ?? BN_ZERO;
+    if (value === currentlyStakedInHuman) {
+      remainStaked = new BN('0');
+    } else {
+      remainStaked = currentlyStaked.sub(new BN(String(amountToMachine(value, decimals))));
+    }
 
-      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} should not be less than ${amountToHuman(minShouldRemain.toString(), decimals)} ${token}`);
+    const minShouldRemain = minDeposit.gtn(0) ? minDeposit : poolStakingConsts?.minJoinBond ?? BN_ZERO;
+
+    if ((remainStaked < minShouldRemain) && stakerIsDepositor && !poolIsDestroying) {
+      setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} ${token} should not be less than ${amountToHuman(minShouldRemain.toString(), decimals)} ${token}`);
 
       return;
     }
 
-    if (currentlyStakedInHuman === value) {
+    if (remainStaked.isZero()) {
       // to include even dust
       maxUnstake && setUnstakeAmount(maxUnstake);
     } else {
@@ -100,7 +105,7 @@ export default function Unstake({ api, currentlyStaked, handleConfirmStakingModa
     }
 
     setNextToUnStakeButtonDisabled(false);
-  }, [decimals, currentlyStaked, minDeposit, stakerIsDepositor, poolStakingConsts?.minJoinBond, t, token, maxUnstake]);
+  }, [decimals, currentlyStaked, stakerIsDepositor, poolIsDestroying, t, minDeposit, poolStakingConsts?.minJoinBond, token, maxUnstake]);
 
   const handleUnstakeAmount = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     setNextToUnStakeButtonDisabled(true);
