@@ -52,7 +52,7 @@ function RecoveryCheckingTab({ recoveryInfo, rescuer, setStatus }: Props): React
   }, [rescuer, recoveryInfo, t, setStatus]);
 
   return (
-    <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '300px', overflowY: 'auto', p: '30px', mt: 5 }} xs={12}>
+    <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', borderColor: grey[800], borderRadius: 5, fontSize: 12, height: '300px', overflowY: 'auto', p: '30px', mt: 5 }} xs={12}>
       <Grid item py='30px' xs={12}>
         <Progress title={processTitle} />
       </Grid>

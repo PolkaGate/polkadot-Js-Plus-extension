@@ -30,7 +30,7 @@ import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/p
 import { Button } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import AddNewAccount from './AddNewAccount';
-import { remainingTime } from '../../util/plusUtils';
+import { remainingTimeCountDown } from '../../util/plusUtils';
 import { encodeAddress } from '@polkadot/util-crypto';
 
 interface Props extends ThemeProps {
@@ -61,6 +61,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
   const [isProxy, setIsProxy] = useState<boolean | undefined>();
   const [remainingBlocksToClaim, setRemainingBlocksToClaim] = useState<number | undefined>();
+  const [remainingSecondsToClaim, setRemainingSecondsToClaim] = useState<number | undefined>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [asRecovered, setAsRecovered] = React.useState<boolean>(false);
   const [activeStep, setActiveStep] = React.useState(0);
@@ -115,6 +116,14 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   };
 
   useEffect((): void => {
+    remainingSecondsToClaim && setTimeout(() => setRemainingSecondsToClaim((remainingSecondsToClaim) => remainingSecondsToClaim - 1), 1000);
+  }, [remainingSecondsToClaim]);
+
+  useEffect((): void => {
+    remainingBlocksToClaim && setRemainingSecondsToClaim(remainingBlocksToClaim * 6);
+  }, [remainingBlocksToClaim]);
+
+  useEffect((): void => {
     if (activeStep === STEP_MAP.WITHDRAW && lostAccountBalance && lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance).sub(lostAccountBalance.lockedBalance).lten(0)) {
       return setNextIsDisabled(true);
     }
@@ -149,16 +158,11 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       completed[STEP_MAP.CLAIM] = true;
       setCompleted(newCompleted);
       setActiveStep(STEP_MAP.WITHDRAW);
-      // } 
-      // else {
-      //   const newCompleted = completed;
 
-      //   completed[STEP_MAP.INIT] = true;
-      //   completed[STEP_MAP.CLAIM] = true;
-      //   setCompleted(newCompleted);
-      //   setActiveStep(3);
-      // }
-    } else if (remainingBlocksToClaim && remainingBlocksToClaim <= 0) {
+      return;
+    }
+
+    if (hasActiveRecoveries) {
       const newCompleted = completed;
 
       completed[STEP_MAP.INIT] = true;
@@ -321,7 +325,8 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         if (remainingBlocksToClaim > 0) {
           return setLostAccountHelperText(t<string>('Remaining time to claim recovery'));
         } else {
-          return setLostAccountHelperText(t<string>('Recovery can be claimed if {{threshold}} friend verification(s) are received', { replace: { threshold: lostAccountRecoveryInfo?.threshold } }));
+          return setLostAccountHelperText(t<string>('Recovery can be claimed if you receive the confirmation of {{threshold}} friend{{s}}',
+            { replace: { threshold: lostAccountRecoveryInfo?.threshold, s: lostAccountRecoveryInfo?.threshold === 1 ? '' : 's' } }));
         }
       }
 
@@ -368,9 +373,9 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             }
             </>
           }
-          {remainingBlocksToClaim && remainingBlocksToClaim > 0 &&
-            <Grid fontSize={14} fontWeight={600} item pt='20px' textAlign='center'>
-              {remainingTime(remainingBlocksToClaim)}
+          {!!remainingSecondsToClaim && remainingSecondsToClaim > 0 &&
+            <Grid fontSize={15} fontWeight={500} item pt='20px' textAlign='center'>
+              {remainingTimeCountDown(remainingSecondsToClaim)}
             </Grid>
           }
           {asRecovered && lostAccountBalance &&
@@ -443,7 +448,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           showConfirmModal={showConfirmModal}
           state={state}
           withdrawAmounts={{
-            totalWithdrawable:totalWithdrawable,
+            totalWithdrawable: totalWithdrawable,
             available: lostAccountBalance?.availableBalance ?? BN_ZERO,
             redeemable: redeemable ?? BN_ZERO,
             staked: lostAccountLedger?.active?.unwrap() ?? BN_ZERO,

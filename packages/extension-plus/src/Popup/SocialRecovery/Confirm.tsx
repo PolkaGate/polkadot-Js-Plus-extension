@@ -428,7 +428,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
   }, [api, deposit, t, unbondingDuration, withdrawAmounts]);
 
   const WriteAppropriateMessage = ({ note, state }: { state: string, note?: string }) => (
-    <Typography sx={{ mt: '30px', textAlign: 'center' }} variant='h6'>
+    <Typography sx={{ mt: '30px', textAlign: 'center' }} variant='subtitle2'>
       {getMessage(note, state)}
     </Typography>
   );

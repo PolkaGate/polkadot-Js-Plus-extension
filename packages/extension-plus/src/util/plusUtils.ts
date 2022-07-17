@@ -183,6 +183,12 @@ export function remainingTime(blocks: number): string {
   return time;
 }
 
+export function remainingTimeCountDown(seconds: number): string {
+  if (!seconds) { return 'finished'; }
+
+  return new Date(seconds * 1000).toISOString().substring(11, 19);
+}
+
 function splitSingle(value: string[], sep: string): string[] {
   return value.reduce((result: string[], value: string): string[] => {
     return value.split(sep).reduce((result: string[], value: string) => result.concat(value), result);
