@@ -6,16 +6,16 @@
 
 /**
  * @description
- * this component opens confiure page, to make anaccountrecoverable or remove recovery even close it 
+ * this component opens confiure page, to make an account recoverable or remove recovery, even close it 
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 
-import { Beenhere as BeenhereIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
+import { PolicyOutlined as PolicyOutlinedIcon, GppMaybeOutlined as GppMaybeOutlinedIcon, AddModeratorOutlined as AddModeratorOutlinedIcon, VerifiedUserOutlined as VerifiedUserOutlinedIcon, InfoOutlined as InfoOutlinedIcon, Security as SecurityIcon } from '@mui/icons-material';
 import { Grid, Tab, Tabs } from '@mui/material';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -58,13 +58,22 @@ function Configure({ account, accountsInfo, addresesOnThisChain, api, chain, cla
     setConfigureModalOpen(false);
   }, [setConfigureModalOpen]);
 
+  const ConfigureTabIcon = () => (
+    <>
+      {status === 'makeRecoverable' && <AddModeratorOutlinedIcon fontSize='small' />}
+      {status === 'removeRecovery' && <VerifiedUserOutlinedIcon fontSize='small' />}
+      {status === 'closeRecovery' && <GppMaybeOutlinedIcon fontSize='small' />}
+      {!status && <PolicyOutlinedIcon fontSize='small' />}
+    </>
+  );
+
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfigureModal}>
-      <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} title={t<string>('Configure my account')} />
+      <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<SecurityIcon fontSize='small' />} title={t<string>('Configure my account')} />
       <Grid alignItems='center' container sx={{ px: '30px' }}>
         <Grid item sx={{ borderBottom: 1, borderColor: 'divider' }} xs={12}>
           <Tabs indicatorColor='secondary' onChange={handleTabChange} textColor='secondary' value={tabValue} variant='fullWidth'>
-            <Tab icon={<BeenhereIcon fontSize='small' />} iconPosition='start' label={'Configuration'} sx={{ fontSize: 11 }} value='configuration' />
+            <Tab icon={<ConfigureTabIcon />} iconPosition='start' label={'Configuration'} sx={{ fontSize: 11 }} value='configuration' />
             <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
           </Tabs>
         </Grid>

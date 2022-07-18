@@ -5,39 +5,35 @@
 
 /**
  * @description
- * this component opens crowdloan page, which shows auction and crowdloan tab,
- * where a relay chain can be selected to view available auction/crowdloans
+ * this component opens social recovery index page to choose between configuring your account and rescuing other account
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
-import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
+import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Security as SecurityIcon, Backspace as BackspaceIcon, Support as SupportIcon, InfoOutlined as InfoOutlinedIcon } from '@mui/icons-material';
-import { Divider, Grid, Paper, Tab, Tabs } from '@mui/material';
+import { Security as SecurityIcon, Support as SupportIcon } from '@mui/icons-material';
+import { Divider, Grid, Paper } from '@mui/material';
+import { blue, green, grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
+
+import { AccountsStore } from '@polkadot/extension-base/stores';
+import { Chain } from '@polkadot/extension-chains/types';
+import keyring from '@polkadot/ui-keyring';
 import { BN, hexToString } from '@polkadot/util';
+import { cryptoWaitReady,decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
-import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
-
-import { SettingsContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
+import { AccountContext,SettingsContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
-
-import { AccountsStore } from '@polkadot/extension-base/stores';
-import keyring from '@polkadot/ui-keyring';
-import { cryptoWaitReady } from '@polkadot/util-crypto';
-
-import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
 import useApi from '../../hooks/useApi';
 import useEndpoint from '../../hooks/useEndPoint';
-import Rscue from './Rescue';
-import { Chain } from '@polkadot/extension-chains/types';
-import { blue, green, grey, red } from '@mui/material/colors';
+import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
 import Configure from './Configure';
+import Rscue from './Rescue';
 
 interface Props extends ThemeProps {
   className?: string;

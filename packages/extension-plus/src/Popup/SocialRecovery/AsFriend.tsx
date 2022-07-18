@@ -12,7 +12,7 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AdminPanelSettings as AdminPanelSettingsIcon } from '@mui/icons-material';
+import { AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
 import { Typography, Grid } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -149,7 +149,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
 
   return (
     <Popup handleClose={handleCloseAsFriend} showModal={showAsFriendModal}>
-      <PlusHeader action={handleCloseAsFriend} chain={chain} closeText={'Close'} icon={<AdminPanelSettingsIcon fontSize='small' />} title={'Vouch account'} />
+      <PlusHeader action={handleCloseAsFriend} chain={chain} closeText={'Close'} icon={<AdminPanelSettingsOutlinedIcon fontSize='small' />} title={'Vouch account'} />
       <Grid container sx={{ p: '15px 20px' }}>
         <Grid item pt='15px' sx={{ height: '440px' }} xs={12}>
           <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>

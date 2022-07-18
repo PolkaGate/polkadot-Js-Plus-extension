@@ -102,6 +102,14 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
   const batchWithdraw = rescuer?.accountId && api.tx.utility.batchAll(withdrawCalls);
 
+  const confirmBtnDisabled = useMemo(() => {
+    if (!estimatedFee) { return true };
+    // TODO: check available balance to see if transaction can be done
+    // if(state==='initiateRecovery'){
+    //   return estimatedFee.add(recoveryConsts.recoveryDeposit).gt(account.);
+    // }
+  }, [estimatedFee]);
+
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) { return false; }
 
@@ -492,7 +500,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             </Grid>
           </Grid>
         </Grid>
-        <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '200px', overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '208px', overflowY: 'auto' }} xs={12}>
           {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
             {t('List of friends')}
           </Grid>
@@ -531,7 +539,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={!estimatedFee} // TODO: check available balance to see if transaction can be done
+              isDisabled={confirmBtnDisabled} 
               state={confirmingState}
               text={t('Confirm')}
             />

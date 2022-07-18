@@ -13,6 +13,7 @@ import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
 import { Avatar, Grid, Paper } from '@mui/material';
 import React, { useCallback, useState } from 'react';
+import { Support as SupportIcon } from '@mui/icons-material';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
@@ -65,7 +66,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
   }, [setRescueModalOpen]);
 
   const RecovererChoice = () => (
-    <Grid container justifyContent='center' sx={{ pt: 13 }}>
+    <Grid container justifyContent='center' sx={{ pt: 15 }}>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
           <Avatar onClick={handleRescuer} sx={{ boxShadow: `2px 4px 10px 4px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
@@ -97,9 +98,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
 
   return (
     <Popup handleClose={handleCloseModal} showModal={showRescueModal}>
-      <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'}
-        // icon={<ConfirmationNumberOutlinedIcon fontSize='small' />}
-        title={t<string>('Rescue another account')} />
+      <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={t<string>('Rescue another account')} />
       {!recoverer && <RecovererChoice />}
       {recoverer === 'rescuer' &&
         <AsResuer
