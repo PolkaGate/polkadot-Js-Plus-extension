@@ -500,7 +500,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             </Grid>
           </Grid>
         </Grid>
-        <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '208px', overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '205px', overflowY: 'auto' }} xs={12}>
           {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
             {t('List of friends')}
           </Grid>

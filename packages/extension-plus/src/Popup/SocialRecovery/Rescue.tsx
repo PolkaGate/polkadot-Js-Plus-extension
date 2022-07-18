@@ -39,33 +39,30 @@ interface Props {
 function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts, setRescueModalOpen, showRescueModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
-  const [recoverer, setRecoverer] = useState<string | undefined>();
   const [showAsRescuerModal, setShowAsRescuerModal] = useState<boolean>(false);
   const [showAsFriendModal, setShowAsFriendModal] = useState<boolean>(false);
 
   const handleRescuer = useCallback(() => {
-    setRecoverer('rescuer');
     setShowAsRescuerModal(true);
   }, []);
 
   const handleFriend = useCallback(() => {
-    setRecoverer('friend');
     setShowAsFriendModal(true);
   }, []);
 
   const handleCloseAsRescuer = useCallback(() => {
-    setRecoverer(''); setShowAsRescuerModal(false);
+    setShowAsRescuerModal(false);
   }, []);
 
   const handleCloseAsFriend = useCallback(() => {
-    setRecoverer(''); setShowAsFriendModal(false);
+    setShowAsFriendModal(false);
   }, []);
 
   const handleCloseModal = useCallback((): void => {
     setRescueModalOpen(false);
   }, [setRescueModalOpen]);
 
-  const RecovererChoice = () => (
+  const RescuerSelection = () => (
     <Grid container justifyContent='center' sx={{ pt: 15 }}>
       <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
         <Grid item>
@@ -99,8 +96,8 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
   return (
     <Popup handleClose={handleCloseModal} showModal={showRescueModal}>
       <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<SupportIcon fontSize='small' />} title={t<string>('Rescue another account')} />
-      {!recoverer && <RecovererChoice />}
-      {recoverer === 'rescuer' &&
+      {!showAsRescuerModal && !showAsFriendModal && <RescuerSelection />}
+      {showAsRescuerModal &&
         <AsResuer
           account={account}
           accountsInfo={accountsInfo}
@@ -111,7 +108,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
           showAsRescuerModal={showAsRescuerModal}
         />
       }
-      {recoverer === 'friend' &&
+      {showAsFriendModal &&
         <AsFriend
           account={account}
           accountsInfo={accountsInfo}

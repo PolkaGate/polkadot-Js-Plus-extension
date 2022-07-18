@@ -37,7 +37,7 @@ interface Props {
   api: ApiPromise | undefined;
 }
 
-function RecoverableTab({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts, recoveryInfo }: Props): React.ReactElement<Props> {
+function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts, recoveryInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [recoveryThreshold, setRecoveryThreshold] = useState<number>(0);
@@ -115,7 +115,7 @@ function RecoverableTab({ account, accountsInfo, addresesOnThisChain, api, chain
           }
         </Grid>
       </Grid>
-      <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '200px', overflowY: 'auto' }} xs={12}>
+      <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '205px', overflowY: 'auto' }} xs={12}>
         {friends?.length
           ? friends?.map((f, index) => (
             <Grid alignItems='flex-start' container item justifyContent='space-between' key={index} sx={{ pl: 1 }} xs={12}>
@@ -197,7 +197,7 @@ function RecoverableTab({ account, accountsInfo, addresesOnThisChain, api, chain
           </Grid>
         </Grid>
       </Grid>
-      <Grid item sx={{ pt: '25px' }} xs={12}>
+      <Grid item sx={{ pt: '30px' }} xs={12}>
         <NextStepButton
           data-button-action='next'
           isDisabled={!recoveryThreshold || !friends?.length || recoveryThreshold > friends?.length}
@@ -236,4 +236,4 @@ function RecoverableTab({ account, accountsInfo, addresesOnThisChain, api, chain
   );
 }
 
-export default React.memo(RecoverableTab);
+export default React.memo(MakeRecoverableTab);
