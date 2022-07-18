@@ -186,7 +186,15 @@ export function remainingTime(blocks: number): string {
 export function remainingTimeCountDown(seconds: number): string {
   if (!seconds) { return 'finished'; }
 
-  return new Date(seconds * 1000).toISOString().substring(11, 19);
+  const days = Math.floor(seconds / (60 * 60 * 24));
+  const [hour, min, sec] = new Date(seconds * 1000).toISOString().substring(11, 19).split(':');
+
+  const d = days ? `${days} day ` : '';
+  const h = hour ? `${hour} hour ` : '';
+  const m = min ? `${min} min ` : '';
+  const s = sec ? `${sec} sec` : '';
+
+  return d + h + m + s;
 }
 
 function splitSingle(value: string[], sep: string): string[] {
