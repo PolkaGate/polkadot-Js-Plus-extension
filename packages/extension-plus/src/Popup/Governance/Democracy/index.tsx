@@ -82,11 +82,7 @@ export default function Democracy({ address, chainInfo, setDemocracyModalOpen, s
         title={'Democracy'}
       />
       <Grid container>
-        <Grid
-          item
-          sx={{ margin: '0px 30px' }}
-          xs={12}
-        >
+      <Grid item xs={12} sx={{ borderBottom: 1, borderColor: 'divider', m: '0px 30px' }}  >
           <Tabs
             indicatorColor='secondary'
             onChange={handleTabChange}
@@ -110,7 +106,6 @@ export default function Democracy({ address, chainInfo, setDemocracyModalOpen, s
             />
           </Tabs>
         </Grid>
-
         {tabValue === 'referendums'
           ? <Grid
             item
@@ -130,7 +125,6 @@ export default function Democracy({ address, chainInfo, setDemocracyModalOpen, s
           </Grid>
           : ''
         }
-
         {/* TODO: Proposals needs to be rewrite after menue movement */}
         {tabValue === 'proposals'
           ? <Grid
