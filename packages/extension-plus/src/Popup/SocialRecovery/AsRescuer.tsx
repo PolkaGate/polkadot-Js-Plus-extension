@@ -14,8 +14,8 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import { BN, BN_ZERO } from '@polkadot/util';
 
-import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon  } from '@mui/icons-material';
-import { Typography, Grid, Stepper, Step, StepButton } from '@mui/material';
+import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
+import { Typography, Grid, Stepper, Step, StepButton, StepLabel } from '@mui/material';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -344,15 +344,16 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
 
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
-      <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<HealthAndSafetyOutlinedIcon  fontSize='small' />} title={'Rescue account'} />
+      <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<HealthAndSafetyOutlinedIcon fontSize='small' />} title={'Rescue account'} />
       <Grid container sx={{ p: '35px 30px' }}>
         <Grid item sx={{ borderBottom: 1, borderColor: 'divider', pb: '15px' }} xs={12}>
           <Stepper activeStep={activeStep} nonLinear>
             {steps.map((label, index) =>
               <Step completed={completed[index]} key={label}>
-                <StepButton color='inherit' onClick={handleStep(index)}>
+                {/* <StepButton color='inherit' onClick={handleStep(index)}>
                   {label}
-                </StepButton>
+                </StepButton> */}
+                <StepLabel>{label}</StepLabel>
               </Step>
             )}
           </Stepper>
