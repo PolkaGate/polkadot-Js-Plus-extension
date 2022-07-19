@@ -82,9 +82,13 @@ export default function Unstake({ api, currentlyStaked, handleConfirmStakingModa
     }
 
     const remainStaked = currentlyStaked.sub(new BN(String(amountToMachine(value, decimals))));
+    const remainStakedInHumanToNumber = Number(amountToHuman(remainStaked.toString(), decimals));
 
-    if (remainStaked.gtn(0) &&
-      ((minDeposit.gtn(0) && remainStaked.lt(minDeposit)) || (!stakerIsDepositor && poolStakingConsts?.minJoinBond && remainStaked.lt(poolStakingConsts?.minJoinBond)))) {
+    if (remainStakedInHumanToNumber > 0 &&
+      (
+        (minDeposit.gtn(0) && remainStaked.lt(minDeposit)) ||
+        (!stakerIsDepositor && poolStakingConsts?.minJoinBond && remainStaked.lt(poolStakingConsts?.minJoinBond))
+      )) {
       const minShouldRemain = minDeposit.gtn(0) ? minDeposit : poolStakingConsts?.minJoinBond ?? BN_ZERO;
 
       setAlert(`Remained stake amount: ${amountToHuman(remainStaked.toString(), decimals)} should not be less than ${amountToHuman(minShouldRemain.toString(), decimals)} ${token}`);
