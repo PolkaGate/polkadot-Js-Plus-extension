@@ -184,7 +184,7 @@ export function remainingTime(blocks: number): string {
 }
 
 export function remainingTimeCountDown(seconds: number): string {
-  if (!seconds) { return 'finished'; }
+  if (!seconds || seconds <= 0) { return 'finished'; }
 
   const days = Math.floor(seconds / (60 * 60 * 24));
   const [hour, min, sec] = new Date(seconds * 1000).toISOString().substring(11, 19).split(':');
