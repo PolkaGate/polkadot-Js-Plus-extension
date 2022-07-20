@@ -16,7 +16,7 @@ import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, Pu
 import { SHORT_ADDRESS_CHARACTERS } from '../constants';
 import { Auction } from '../plusTypes';
 
-const westendGenesisHash = '0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e';
+export const westendGenesisHash = '0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e';
 const type = 'sr25519';
 const password = 'passw0rd';
 
@@ -1342,12 +1342,12 @@ export const chain = (name = 'Polkadot'): Chain => {
   return {
     definition: {
       chain: name.toLowerCase() === 'polkadot' ? 'Polkadot Relay Chain' : 'Kusama Relay Chain',
-      genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
+      genesisHash: name.toLowerCase() === 'polkadot' ? '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3':'0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe',
       icon: 'polkadot',
       ss58Format: name.toLowerCase() === 'polkadot' ? 0 : 2,
       specVersion: 0,
       tokenDecimals: 15,
-      tokenSymbol: 'Unit',
+      tokenSymbol: name.toLowerCase() === 'polkadot' ? 'Dot' : 'Ksm',
       types: {}
     },
     genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
@@ -1359,7 +1359,7 @@ export const chain = (name = 'Polkadot'): Chain => {
     specVersion: 0,
     ss58Format: name.toLowerCase() === 'polkadot' ? 0 : 2,
     tokenDecimals: 15,
-    tokenSymbol: 'Unit'
+    tokenSymbol: name.toLowerCase() === 'polkadot' ? 'Dot' : 'Ksm'
   };
 };
 
