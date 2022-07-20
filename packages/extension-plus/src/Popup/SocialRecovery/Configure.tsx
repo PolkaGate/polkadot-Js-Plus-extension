@@ -32,12 +32,12 @@ import { PlusHeader, Popup } from '../../components';
 interface Props extends ThemeProps {
   className?: string;
   account: DeriveAccountInfo | undefined;
-  accountsInfo: DeriveAccountInfo[] | undefined;
-  addresesOnThisChain: nameAddress[];
+  accountsInfo?: DeriveAccountInfo[] | undefined;
+  addresesOnThisChain?: nameAddress[];
   api: ApiPromise | undefined;
   chain: Chain | null;
-  recoveryConsts: RecoveryConsts | undefined;
-  recoveryInfo: PalletRecoveryRecoveryConfig | null | undefined;
+  recoveryConsts?: RecoveryConsts | undefined;
+  recoveryInfo?: PalletRecoveryRecoveryConfig | null | undefined;
   rescuer: Rescuer | null | undefined;
   showConfigureModal: boolean;
   setConfigureModalOpen: React.Dispatch<React.SetStateAction<boolean | undefined>>;

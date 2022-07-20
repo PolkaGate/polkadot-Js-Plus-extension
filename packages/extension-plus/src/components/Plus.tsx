@@ -39,6 +39,7 @@ import { SUPPORTED_CHAINS } from '../util/constants';
 import { AccountsBalanceType, BalanceType, Rescuer, SavedMetaData } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
+import Configure from '../Popup/SocialRecovery/Configure';
 
 interface Props {
   address?: string | null;
@@ -68,7 +69,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const [showQRcodeModalOpen, setQRcodeModalOpen] = useState(false);
   const [showTxHistoryModal, setTxHistoryModalOpen] = useState(false);
   const [showStakingModal, setStakingModalOpen] = useState(false);
-  const [showCloseRecoveryModal, setCloseRecoveryModalOpen] = useState(false);
+  const [showCloseRecoveryModal, setCloseRecoveryModalOpen] = useState<boolean | undefined>();
   const [refreshing, setRefreshing] = useState(false);
   const [account, setAccount] = useState<AccountJson | null>(null);
   const [sender, setSender] = useState<AccountsBalanceType>({ address: String(address), chain: null, name: String(name) });
@@ -468,7 +469,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
           staker={sender}
         />
       }
-      {showCloseRecoveryModal && rescuer && formattedAddress && chain && // TODO: chain should be supported ones
+      {/* {showCloseRecoveryModal && rescuer && formattedAddress && chain && // TODO: chain should be supported ones
         <CloseRecovery
           api={api}
           chain={chain}
@@ -476,6 +477,17 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
           handleExitCloseRecovery={handleExitCloseRecovery}
           rescuer={rescuer}
           showCloseRecoveryModal={showCloseRecoveryModal}
+        />
+      } */}
+      {showCloseRecoveryModal && rescuer && formattedAddress && chain && // TODO: chain should be supported ones
+        <Configure
+          account={{ accountId: formattedAddress }}
+          api={api}
+          chain={chain}
+          recoveryStatus={'closeRecovery'}
+          rescuer={rescuer}
+          setConfigureModalOpen={setCloseRecoveryModalOpen}
+          showConfigureModal={showCloseRecoveryModal}
         />
       }
     </Container>
