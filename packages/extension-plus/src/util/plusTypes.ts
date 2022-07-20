@@ -369,3 +369,11 @@ export interface RecoveryConsts {
 export interface Rescuer extends DeriveAccountInfo {
   option?: PalletRecoveryActiveRecovery
 }
+
+export interface Voucher {
+  blockNumber: string;
+  friend: string;
+  id: string;
+  lost: string;
+  rescuer: string;
+}

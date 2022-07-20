@@ -13,9 +13,10 @@ import type { DeriveAccountInfo, DeriveBalancesAll } from '@polkadot/api-derive/
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import { BN, BN_ZERO } from '@polkadot/util';
+import { AccountId32 } from '@polkadot/types/interfaces/runtime';
 
 import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
-import { Typography, Grid, Stepper, Step, StepButton, StepLabel } from '@mui/material';
+import { Typography, Grid, Stepper, Step, StepButton, StepLabel, Divider } from '@mui/material';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -26,12 +27,13 @@ import { PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../comp
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
-import { AddressState, nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
+import { AddressState, nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import AddNewAccount from './AddNewAccount';
 import { remainingTimeCountDown } from '../../util/plusUtils';
 import { encodeAddress } from '@polkadot/util-crypto';
+import { getVouchers } from '../../util/subqery';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -44,8 +46,8 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
-const steps = ['Initiate', 'Claim', 'Withdraw'];
-const STEP_MAP = { INIT: 0, CLAIM: 1, WITHDRAW: 2 };
+const steps = ['Initiate', 'Wait', 'Withdraw'];
+const STEP_MAP = { INIT: 0, WAIT: 1, WITHDRAW: 2 };
 
 function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -74,6 +76,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [spanCount, setSpanCount] = useState<number | undefined>();
   const [nextIsDisabled, setNextIsDisabled] = useState<boolean>(true);
   const [otherPossibleRescuers, setOtherPossibleRescuers] = useState<Rescuer[] | undefined>();
+  const [receivedVouchers, setReceivedVouchers] = useState<number | undefined>();
 
   const otherPossibleRescuersDeposit = useMemo((): BN | undefined => {
     if (!otherPossibleRescuers?.length) {
@@ -111,12 +114,25 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     setConfirmModalOpen(true);
   }, [state]);
 
-  const handleStep = (step: number) => () => {
-    setActiveStep(step);
-  };
+  useEffect((): void => {
+    lostAccount?.accountId && account?.accountId && lostAccountRecoveryInfo &&
+      getVouchers(lostAccount.accountId, account.accountId).then((vouchers: Voucher[]) => {
+        console.log('vouchers:', vouchers);
+        let voucheCount = 0;
+
+        for (let i = 0; i < vouchers?.length; i++) {
+          if (lostAccountRecoveryInfo.friends.find((f) => String(f) === vouchers[i].friend)) {
+            voucheCount++;
+          }
+        }
+
+        setReceivedVouchers(voucheCount);
+        console.log('voucheCount:', voucheCount);
+      });
+  }, [hasActiveRecoveries, lostAccount, account, lostAccountRecoveryInfo]);
 
   useEffect((): void => {
-    remainingSecondsToClaim && setTimeout(() => setRemainingSecondsToClaim((remainingSecondsToClaim) => remainingSecondsToClaim - 1), 1000);
+    remainingSecondsToClaim && remainingSecondsToClaim > 0 && setTimeout(() => setRemainingSecondsToClaim((remainingSecondsToClaim) => remainingSecondsToClaim - 1), 1000);
   }, [remainingSecondsToClaim]);
 
   useEffect((): void => {
@@ -150,12 +166,13 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [api, hasActiveRecoveries, lostAccountRecoveryInfo]);
 
   useEffect((): void => {
-    if (isProxy) {
-      // if (hasActiveRecoveries) {
+    if (isProxy ||
+      (receivedVouchers && lostAccountRecoveryInfo && receivedVouchers >= lostAccountRecoveryInfo.threshold.toNumber() && remainingBlocksToClaim !== undefined && remainingBlocksToClaim <= 0)
+    ) {
       const newCompleted = completed;
 
       completed[STEP_MAP.INIT] = true;
-      completed[STEP_MAP.CLAIM] = true;
+      completed[STEP_MAP.WAIT] = true;
       setCompleted(newCompleted);
       setActiveStep(STEP_MAP.WITHDRAW);
 
@@ -167,15 +184,14 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
 
       completed[STEP_MAP.INIT] = true;
       setCompleted(newCompleted);
-      setActiveStep(STEP_MAP.CLAIM);
+      setActiveStep(STEP_MAP.WAIT);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isProxy, remainingBlocksToClaim]);
+  }, [completed, hasActiveRecoveries, isProxy, lostAccountRecoveryInfo, receivedVouchers, remainingBlocksToClaim]);
 
   useEffect((): void => {
-    if (activeStep === STEP_MAP.CLAIM) {
-      return setState('claimRecovery');
-    }
+    // if (activeStep === STEP_MAP.CLAIM) {
+    //   return setState('claimRecovery');//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+    // }
 
     if (activeStep === STEP_MAP.WITHDRAW) {
       return setState('withdrawAsRecovered');
@@ -192,7 +208,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   useEffect((): void => {
     // get the lost account balances
     // eslint-disable-next-line no-void
-    lostAccount?.accountId && isProxy && api && void api.derive.balances?.all(lostAccount.accountId).then((b) => {
+    lostAccount?.accountId && activeStep === STEP_MAP.WITHDRAW && api && void api.derive.balances?.all(lostAccount.accountId).then((b) => {
       setLostAccountBalance(b);
       console.log('lost balances b', JSON.parse(JSON.stringify(b)));
 
@@ -225,7 +241,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         setAsRecovered(true);
       });
     });
-  }, [account, isProxy, api, lostAccount, chain?.ss58Format]);
+  }, [account, isProxy, api, lostAccount, chain?.ss58Format, activeStep]);
 
   useEffect((): void => {
     if (!lostAccountLedger || !currentEraIndex || !lostAccount?.accountId) {
@@ -304,43 +320,26 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [account?.accountId, api, chain?.ss58Format, lostAccount, lostAccountRecoveryInfo]);
 
   useEffect(() => {
-    if (lostAccount) {
-      if (lostAccountRecoveryInfo === undefined || hasActiveRecoveries === undefined || isProxy === undefined) {
-        return;
-      }
+    if (lostAccountRecoveryInfo === undefined || !lostAccount || hasActiveRecoveries === undefined || isProxy === undefined) {
+      return;
+    }
 
-      if (lostAccountRecoveryInfo === null && isProxy === false) {
-        return setLostAccountHelperText(t<string>('The account is not recoverable'));
-      }
-
-      if (hasActiveRecoveries) {
-        if (isProxy) {
-          return setLostAccountHelperText(t<string>('This account is a proxy of the lost account, proceed to close recovery'));
-        }
-
-        if (remainingBlocksToClaim === undefined) {
-          return;
-        }
-
-        if (remainingBlocksToClaim > 0) {
-          return setLostAccountHelperText(t<string>('Remaining time to claim recovery'));
-        } else {
-          return setLostAccountHelperText(t<string>('Recovery can be claimed if you receive the confirmation of {{threshold}} friend{{s}}',
-            { replace: { threshold: lostAccountRecoveryInfo?.threshold, s: lostAccountRecoveryInfo?.threshold === 1 ? '' : 's' } }));
-        }
-      }
-
-      if (isProxy) {
-        return;// setLostAccountHelperText(t<string>('The account is already a proxy. The lost account balance can be withdrawn:'));
-      }
-
-      if (lostAccountRecoveryInfo) {
-        return setLostAccountHelperText(t<string>('The account is recoverable, proceed to initiate recovery'));
-      }
-
+    if (lostAccountRecoveryInfo === null && activeStep === STEP_MAP.INIT) {
       return setLostAccountHelperText(t<string>('The account is NOT recoverable'));
     }
-  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t]);
+
+    if (activeStep === STEP_MAP.INIT) {
+      return setLostAccountHelperText(t<string>('The account is recoverable, proceed to initiate recovery'));
+    }
+
+    if (activeStep === STEP_MAP.WAIT) {
+      return setLostAccountHelperText(t<string>('Wait until condition(s) get satisfied'));
+    }
+
+    if (activeStep === STEP_MAP.WITHDRAW) {
+      return setLostAccountHelperText(t<string>('The lost account balance can be withdrawn'));
+    }
+  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t, receivedVouchers, activeStep]);
 
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
@@ -350,9 +349,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           <Stepper activeStep={activeStep} nonLinear>
             {steps.map((label, index) =>
               <Step completed={completed[index]} key={label}>
-                {/* <StepButton color='inherit' onClick={handleStep(index)}>
-                  {label}
-                </StepButton> */}
                 <StepLabel>{label}</StepLabel>
               </Step>
             )}
@@ -363,28 +359,31 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             {t<string>('Enter a lost account address (or search by identity)')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
-          {lostAccount && !asRecovered &&
-            <> {lostAccountHelperText
-              ? <Grid item pt='85px' textAlign='center'>
-                <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
-                  {lostAccountHelperText}
-                </Typography>
+          {lostAccount &&
+            <> {lostAccountHelperText && (lostAccountRecoveryInfo === null || receivedVouchers !== undefined)
+              ? <Grid fontSize={15} fontWeight={500} item pt='85px' textAlign='center'>
+                {lostAccountHelperText}
               </Grid>
               : <Progress pt={1} title={t('Checking the account')} />
             }
             </>
           }
-          {!!remainingSecondsToClaim && remainingSecondsToClaim > 0 &&
-            <Grid fontSize={15} fontWeight={500} item pt='20px' textAlign='center' sx={{ textDecoration: 'underline' }}>
-              {remainingTimeCountDown(remainingSecondsToClaim)}
+          {activeStep === STEP_MAP.WAIT && lostAccountRecoveryInfo && receivedVouchers !== undefined &&
+            <Grid container fontSize={13} fontWeight={350} item pt='10px' textAlign='center'>
+              <Grid item xs={12} >
+                <Divider light />
+              </Grid>
+              <Grid item pt='10px' xs={12}>
+                <ShowValue title={('Remaining time')} value={remainingTimeCountDown(remainingSecondsToClaim)} />
+              </Grid>
+              <Grid item xs={12}>
+                <ShowValue title={('Received vouchers')} value={`${receivedVouchers ?? 0}/${lostAccountRecoveryInfo.threshold}`} />
+              </Grid>
             </Grid>
           }
-          {asRecovered && lostAccountBalance &&
-            <Grid container item justifyContent='center' pt='35px' sx={{ fontSize: 12 }} textAlign='center'>
-              <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
-                {t('The lost account balance can be withdrawn:')}
-              </Typography>
-              <Grid container item justifyContent='space-between' p='15px 20px'>
+          {activeStep === STEP_MAP.WITHDRAW && lostAccountBalance &&
+            <Grid container item justifyContent='center' sx={{ fontSize: 12 }} textAlign='center'>
+              <Grid container item justifyContent='space-between' p='10px 20px'>
                 <Grid item>
                   <ShowBalance2 api={api} balance={lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance)} title={t('Total')} />
                 </Grid>
@@ -396,7 +395,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
                 </Grid>
               </Grid>
               {lostAccountLedger &&
-                <Grid container item justifyContent='space-between' p='10px 20px'>
+                <Grid container item justifyContent='space-between' p='5px 20px'>
                   <Grid item>
                     <ShowBalance2 api={api} balance={lostAccountLedger.active.unwrap()} title={t('Staked')} />
                   </Grid>

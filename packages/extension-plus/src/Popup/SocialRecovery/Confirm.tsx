@@ -354,7 +354,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: String(rescuer.accountId)
         });
 
         setConfirmingState(status);
