@@ -148,7 +148,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       return setNextIsDisabled(false);
     }
 
-    if (!lostAccount || !lostAccountRecoveryInfo || (remainingBlocksToClaim && remainingBlocksToClaim > 0)) {
+    if (!lostAccount || !lostAccountRecoveryInfo || activeStep === STEP_MAP.WAIT) {
       return setNextIsDisabled(true);
     }
 
@@ -193,10 +193,14 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     //   return setState('claimRecovery');//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????
     // }
 
+    if (activeStep === STEP_MAP.WITHDRAW && isProxy === false) {
+      return setState('withdrawWithClaim');
+    }
+
     if (activeStep === STEP_MAP.WITHDRAW) {
       return setState('withdrawAsRecovered');
     }
-  }, [activeStep]);
+  }, [activeStep, isProxy]);
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
@@ -333,7 +337,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     }
 
     if (activeStep === STEP_MAP.WAIT) {
-      return setLostAccountHelperText(t<string>('Wait until condition(s) get satisfied'));
+      return setLostAccountHelperText(t<string>('Wait until the condition(s) will be met'));
     }
 
     if (activeStep === STEP_MAP.WITHDRAW) {
@@ -383,7 +387,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           }
           {activeStep === STEP_MAP.WITHDRAW && lostAccountBalance &&
             <Grid container item justifyContent='center' sx={{ fontSize: 12 }} textAlign='center'>
-              <Grid container item justifyContent='space-between' p='10px 20px'>
+              <Grid container item justifyContent='space-between' p='10px 20px 5px'>
                 <Grid item>
                   <ShowBalance2 api={api} balance={lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance)} title={t('Total')} />
                 </Grid>
@@ -408,7 +412,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
                 </Grid>
               }
               {!!otherPossibleRescuers?.length &&
-                <Grid container item justifyContent='space-between' p='10px 20px'>
+                <Grid container item justifyContent='space-between' p='5px 20px'>
                   <Grid item>
                     <ShowValue direction='column' title={t('#Other rescuer(s)')} value={otherPossibleRescuers.length} />
                   </Grid>
@@ -440,19 +444,20 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           otherPossibleRescuers={otherPossibleRescuers}
           otherPossibleRescuersDeposit={otherPossibleRescuersDeposit}
           recoveryConsts={recoveryConsts}
-          recoveryDelay={lostAccountRecoveryInfo?.delayPeriod ? (lostAccountRecoveryInfo?.delayPeriod?.toNumber() / (24 * 60 * 10)).toFixed(4) : 0}
+          recoveryDelay={lostAccountRecoveryInfo?.delayPeriod ? parseFloat((lostAccountRecoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10)).toFixed(4)) : 0}
           recoveryThreshold={lostAccountRecoveryInfo?.threshold?.toNumber()}
-          rescuer={{ ...account, option: hasActiveRecoveries ?? { deposit: lostAccountRecoveryInfo?.deposit ?? BN_ZERO } }}
+          // rescuer={{ ...account, option: hasActiveRecoveries ?? { deposit: lostAccountRecoveryInfo?.deposit ?? BN_ZERO } }}
+          rescuer={{ ...account, option: hasActiveRecoveries ?? undefined }}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}
           showConfirmModal={showConfirmModal}
           state={state}
           withdrawAmounts={{
-            totalWithdrawable: totalWithdrawable,
             available: lostAccountBalance?.availableBalance ?? BN_ZERO,
             redeemable: redeemable ?? BN_ZERO,
+            spanCount: spanCount ?? 0,
             staked: lostAccountLedger?.active?.unwrap() ?? BN_ZERO,
-            spanCount: spanCount ?? 0
+            totalWithdrawable
           }}
         />
       }

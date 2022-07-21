@@ -26,7 +26,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, FormatBalance, Identity, Password, PlusHeader, Popup, ShowBalance2, ShowValue } from '../../components';
-import { broadcast } from '../../util/api';
+import { broadcast, signAndSend } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 
@@ -88,11 +88,12 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
   const unbonded = api.tx.staking.unbond;
   const redeem = api.tx.staking.withdrawUnbonded;
   const chill = api.tx.staking.chill;
+  const batchAll = api.tx.utility.batchAll;
 
   const withdrawCalls = []; // put all withdraws as recoverd from the lost account inside
 
-  if (state === 'withdrawAsRecovered') {
-    rescuer?.accountId && rescuer?.option?.deposit && state === 'withdrawAsRecovered' && withdrawCalls.push(closeRecovery(rescuer.accountId));
+  if (['withdrawAsRecovered', 'withdrawWithClaim'].includes(state)) {
+    rescuer?.accountId && rescuer?.option?.deposit && withdrawCalls.push(closeRecovery(rescuer.accountId));
     otherPossibleRescuers?.length && withdrawCalls.push(...otherPossibleRescuers.map((o) => closeRecovery(o.accountId)));
     recoveryThreshold && withdrawCalls.push(removeRecovery()); // to collect deposit
     withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked)); // TODO: chill before unbound ALL
@@ -100,7 +101,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));// should be last call in the batch to collect redeemed amount
   }
 
-  const batchWithdraw = rescuer?.accountId && api.tx.utility.batchAll(withdrawCalls);
+  const batchWithdraw = rescuer?.accountId && batchAll(withdrawCalls);
 
   const confirmBtnDisabled = useMemo(() => {
     if (!estimatedFee) { return true };
@@ -169,23 +170,28 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         account?.accountId && void vouchRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
-      case ('claimRecovery'):
-        params = [lostAccount.accountId];
+      // case ('claimRecovery'):
+      //   params = [lostAccount.accountId];
+
+      //   // eslint-disable-next-line no-void
+      //   account?.accountId && void claimRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
+
+      //   break;
+      case ('withdrawWithClaim'):
+        params = [lostAccount.accountId, batchWithdraw];
 
         // eslint-disable-next-line no-void
-        account?.accountId && void claimRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
-
+        account?.accountId && void batchAll([claimRecovery(lostAccount.accountId), asRecovered(...params)]).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
         break;
       case ('withdrawAsRecovered'):
         params = [lostAccount.accountId, batchWithdraw];
 
         // eslint-disable-next-line no-void
         account?.accountId && void asRecovered(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
-
         break;
       default:
     }
-  }, [account?.accountId, batchWithdraw, claimRecovery, closeRecovery, asRecovered, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
+  }, [batchAll, account?.accountId, batchWithdraw, claimRecovery, closeRecovery, asRecovered, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
 
   const deposit = useMemo((): BN => {
     if (['removeRecovery', 'makeRecoverable'].includes(state) && friendIds?.length && recoveryConsts) {
@@ -341,6 +347,27 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         setConfirmingState(status);
       }
 
+      if (localState === 'withdrawWithClaim' && lostAccount?.accountId && withdrawAmounts) {
+        const params = [lostAccount.accountId, batchWithdraw];
+
+        const withdrawWithClaimCall = batchAll([claimRecovery(lostAccount.accountId), asRecovered(...params)]);
+        const { block, failureText, fee, status, txHash } = await signAndSend(api, withdrawWithClaimCall, signer, account.accountId);
+
+        history.push({
+          action: 'withdraw_w.c.',
+          amount: amountToHuman(String(withdrawAmounts.available.add(withdrawAmounts.redeemable).add(withdrawAmounts.staked)), decimals),
+          block,
+          date: Date.now(),
+          fee: fee || '',
+          from: String(lostAccount.accountId),
+          hash: txHash || '',
+          status: failureText || status,
+          to: String(account.accountId)
+        });
+
+        setConfirmingState(status);
+      }
+
       if (localState === 'vouchRecovery' && rescuer?.accountId && lostAccount?.accountId) {
         const params = [lostAccount.accountId, rescuer.accountId];
         const { block, failureText, fee, status, txHash } = await broadcast(api, vouchRecovery, params, signer, account.accountId);
@@ -360,24 +387,24 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         setConfirmingState(status);
       }
 
-      if (localState === 'claimRecovery' && account.accountId && lostAccount?.accountId) {
-        const params = [lostAccount.accountId];
-        const { block, failureText, fee, status, txHash } = await broadcast(api, claimRecovery, params, signer, account.accountId);
+      // if (localState === 'claimRecovery' && account.accountId && lostAccount?.accountId) {
+      //   const params = [lostAccount.accountId];
+      //   const { block, failureText, fee, status, txHash } = await broadcast(api, claimRecovery, params, signer, account.accountId);
 
-        history.push({
-          action: 'claim_recovery',
-          amount: '0',
-          block,
-          date: Date.now(),
-          fee: fee || '',
-          from: String(account.accountId),
-          hash: txHash || '',
-          status: failureText || status,
-          to: ''
-        });
+      //   history.push({
+      //     action: 'claim_recovery',
+      //     amount: '0',
+      //     block,
+      //     date: Date.now(),
+      //     fee: fee || '',
+      //     from: String(account.accountId),
+      //     hash: txHash || '',
+      //     status: failureText || status,
+      //     to: ''
+      //   });
 
-        setConfirmingState(status);
-      }
+      //   setConfirmingState(status);
+      // }
 
       // eslint-disable-next-line no-void
       account?.accountId && void saveHistory(chain, hierarchy, String(account.accountId), history);
@@ -387,7 +414,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, asRecovered, api, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, asRecovered, api, batchAll, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -400,7 +427,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     window.location.reload();
   }, [onAction, setState]);
 
-  const getMessage = useCallback((note, state): string => {
+  const getMessage = useCallback((note, state: string): string => {
     if (state === 'initiateRecovery') {
       return t<string>('Initiating recovery for the recoverable account, with the following friend(s)');
     }
@@ -421,7 +448,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       return t('Claiming recovery for the recoverable account');
     }
 
-    if (state === 'withdrawAsRecovered' && withdrawAmounts) {
+    if (['withdrawAsRecovered', 'withdrawWithClaim'].includes(state) && withdrawAmounts) {
       return (withdrawAmounts?.totalWithdrawable && !withdrawAmounts.totalWithdrawable.isZero()
         ? t('Withdrawing {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.totalWithdrawable).toHuman() } })
         : '') +
@@ -457,6 +484,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       case ('claimRecovery'):
         return 'Claim Recovery';
       case ('withdrawAsRecovered'):
+      case ('withdrawWithClaim'):
         return 'Withdraw';
       default:
         return state.toUpperCase();
@@ -505,7 +533,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             {t('List of friends')}
           </Grid>
           }
-          {['closeRecovery', 'initiateRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered'].includes(state) &&
+          {['closeRecovery', 'initiateRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered', 'withdrawWithClaim'].includes(state) &&
             <Grid container item justifyContent='center' p='15px 30px'>
               <WriteAppropriateMessage state={state} />
             </Grid>
@@ -539,7 +567,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={confirmBtnDisabled} 
+              isDisabled={confirmBtnDisabled}
               state={confirmingState}
               text={t('Confirm')}
             />

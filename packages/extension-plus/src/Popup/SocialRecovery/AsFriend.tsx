@@ -201,7 +201,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
           friends={friendsAccountsInfo}
           lostAccount={lostAccount}
           recoveryConsts={recoveryConsts}
-          recoveryDelay={lostAccountRecoveryInfo.delayPeriod.toNumber()}
+          recoveryDelay={lostAccountRecoveryInfo?.delayPeriod ? parseFloat((lostAccountRecoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10)).toFixed(4)) : 0}
           recoveryThreshold={lostAccountRecoveryInfo.threshold.toNumber()}
           rescuer={rescuerAccount}
           setConfirmModalOpen={setConfirmModalOpen}
