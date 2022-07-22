@@ -501,31 +501,29 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={stateInHuman(state)} />
       <Grid alignItems='center' container>
-        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '15px 40px 10px' }} xs={12}>
-          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12, pt: '10px', textAlign: 'center' }} xs={12}>
-            <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
-              <Identity accountInfo={lostAccount} chain={chain} showAddress title={t('Recoverable account')} />
-            </Grid>
-            <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '20px', textAlign: 'center' }} xs={12}>
-              {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
-                <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
-                  <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
-                </Grid>
-              }
-              <Grid container item justifyContent='center' xs={3}>
-                <ShowBalance2 api={api} balance={estimatedFee} title={t('Fee')} />
+        <Grid container alignItems='center' justifyContent='space-between' item sx={{ backgroundColor: '#f7f7f7', textAlign: 'center', fontSize: 12, p: '15px 40px 10px' }} xs={12}>
+          <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
+            <Identity accountInfo={lostAccount} chain={chain} showAddress title={t('Recoverable account')} />
+          </Grid>
+          <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '20px', textAlign: 'center' }} xs={12}>
+            {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
+              <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
+                <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
               </Grid>
-              {['initiateRecovery', 'makeRecoverable'].includes(state) &&
-                <Grid container item justifyContent='center' xs={3}>
-                  <ShowBalance2 api={api} balance={deposit} title={t('Deposit')} />
-                </Grid>
-              }
-              {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
-                <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
-                  <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} />
-                </Grid>
-              }
+            }
+            <Grid container item justifyContent='center' xs={3}>
+              <ShowBalance2 api={api} balance={estimatedFee} title={t('Fee')} />
             </Grid>
+            {['initiateRecovery', 'makeRecoverable'].includes(state) &&
+              <Grid container item justifyContent='center' xs={3}>
+                <ShowBalance2 api={api} balance={deposit} title={t('Deposit')} />
+              </Grid>
+            }
+            {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
+              <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
+                <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} />
+              </Grid>
+            }
           </Grid>
         </Grid>
         <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '205px', overflowY: 'auto' }} xs={12}>

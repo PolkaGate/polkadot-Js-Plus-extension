@@ -6,17 +6,16 @@
 
 /**
  * @description
- * this component opens rescuer page, where a rescuer can initiate, claim, and finally close a recovery
+ * this component opens rescuer page, where a rescuer can initiate, claim, close and finally withdraw a recovery
  * */
 
 import type { DeriveAccountInfo, DeriveBalancesAll } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import { BN, BN_ZERO } from '@polkadot/util';
-import { AccountId32 } from '@polkadot/types/interfaces/runtime';
 
 import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
-import { Typography, Grid, Stepper, Step, StepButton, StepLabel, Divider } from '@mui/material';
+import { Typography, Grid, Stepper, Step, StepLabel, Divider } from '@mui/material';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -140,20 +139,22 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [remainingBlocksToClaim]);
 
   useEffect((): void => {
-    if (activeStep === STEP_MAP.WITHDRAW && lostAccountBalance && lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance).sub(lostAccountBalance.lockedBalance).lten(0)) {
-      return setNextIsDisabled(true);
-    }
-
-    if (isProxy === true) {
+    if (activeStep === STEP_MAP.WITHDRAW && totalWithdrawable?.gtn(0)) {
       return setNextIsDisabled(false);
     }
 
-    if (!lostAccount || !lostAccountRecoveryInfo || activeStep === STEP_MAP.WAIT) {
-      return setNextIsDisabled(true);
+    if (activeStep === STEP_MAP.INIT && lostAccountRecoveryInfo && hasActiveRecoveries === null) {
+      return setNextIsDisabled(false);
     }
+    // if (isProxy === true) {
+    //   return setNextIsDisabled(false);
+    // }
 
-    setNextIsDisabled(false);
-  }, [activeStep, isProxy, lostAccount, lostAccountBalance, lostAccountRecoveryInfo, remainingBlocksToClaim]);
+    // if (!lostAccount || !lostAccountRecoveryInfo || activeStep === STEP_MAP.WAIT) {
+    //   return setNextIsDisabled(true);
+    // }
+    setNextIsDisabled(true);
+  }, [activeStep, hasActiveRecoveries, lostAccount, lostAccountRecoveryInfo, totalWithdrawable]);
 
   useEffect((): void => {
     api && hasActiveRecoveries && lostAccountRecoveryInfo && api.rpc.chain.getHeader().then((h) => {
@@ -341,7 +342,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     }
 
     if (activeStep === STEP_MAP.WITHDRAW) {
-      return setLostAccountHelperText(t<string>('The lost account balance can be withdrawn'));
+      return setLostAccountHelperText(t<string>('The lost account\'s balance(s) can be withdrawn'));
     }
   }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t, receivedVouchers, activeStep]);
 
@@ -373,15 +374,15 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
             </>
           }
           {activeStep === STEP_MAP.WAIT && lostAccountRecoveryInfo && receivedVouchers !== undefined &&
-            <Grid container fontSize={13} fontWeight={350} item pt='10px' textAlign='center'>
-              <Grid item xs={12} >
+            <Grid container fontSize={13} fontWeight={350} item p='10px' textAlign='center'>
+              <Grid item xs={12}>
                 <Divider light />
               </Grid>
               <Grid item pt='10px' xs={12}>
                 <ShowValue title={('Remaining time')} value={remainingTimeCountDown(remainingSecondsToClaim)} />
               </Grid>
               <Grid item xs={12}>
-                <ShowValue title={('Received vouchers')} value={`${receivedVouchers ?? 0}/${lostAccountRecoveryInfo.threshold}`} />
+                <ShowValue title={('Received vouchers')} value={`${receivedVouchers ?? 0}/${String(lostAccountRecoveryInfo.threshold)}`} />
               </Grid>
             </Grid>
           }
