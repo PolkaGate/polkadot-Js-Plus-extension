@@ -38,7 +38,7 @@ describe('Testing Social Recovery component', () => {
     };
   });
 
-  test('Checking the existance of elements', async () => {
+  test('Checking if everything is working properly in CONFIGURE component', async () => {
     const { getByRole, queryAllByTestId, queryByText } = render(
       <SettingsContext.Provider value={SettingsStruct}>
         <AccountContext.Provider
@@ -77,6 +77,16 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('Checking if the account is recoverable')).toBeTruthy();
     await waitForElementToBeRemoved(() => queryByText('Checking if the account is recoverable'), { timeout: 20000 });
 
+    // Configuration tab's elemnts while loading finished and account is not recoverable
+    expect(queryByText('Make recoverable')).toBeTruthy();
+    expect(queryByText('Your recovery friends :')).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'addFriend' })).toBeTruthy();
+    expect(queryByText('No friends are added yet!')).toBeTruthy();
+    expect(getByRole('spinbutton', { hidden: true, name: 'Recovery threshold' })).toBeTruthy();
+    expect(getByRole('spinbutton', { hidden: true, name: 'Recovery delay' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+
     // Info tab's elemnts
     fireEvent.click(getByRole('tab', { hidden: true, name: 'Info' }));
     expect(queryByText('Welcome to account recovery')).toBeTruthy();
@@ -89,20 +99,27 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText(recoveryConsts.maxFriends)).toBeTruthy();
     expect(queryByText('The base {{token}}s needed to be reserved for starting a recovery:')).toBeTruthy();
     expect(queryAllByTestId('ShowBalance2')[2].textContent).toEqual('0.0166 ' + chain('kusama').tokenSymbol.toUpperCase());
+  });
 
-    // Configuration tab's elemnts while loading finished and account is not recoverable
-    fireEvent.click(getByRole('tab', { hidden: true, name: 'Configuration' }));
-    expect(queryByText('Make recoverable')).toBeTruthy();
-    expect(queryByText('Your recovery friends :')).toBeTruthy();
-    expect(getByRole('button', { hidden: true, name: 'addFriend' })).toBeTruthy();
-    expect(queryByText('No friends are added yet!')).toBeTruthy();
-    expect(getByRole('spinbutton', { hidden: true, name: 'Recovery threshold' })).toBeTruthy();
-    expect(getByRole('spinbutton', { hidden: true, name: 'Recovery delay' })).toBeTruthy();
-    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
-    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+  test('Checking if everything is working properly in RESCUE (as Rescuer) component', async () => {
+    const { getByRole, queryByText } = render(
+      <SettingsContext.Provider value={SettingsStruct}>
+        <AccountContext.Provider
+          value={{
+            accounts,
+            hierarchy: buildHierarchy(accounts)
+          }}
+        >
+          <MemoryRouter initialEntries={[`/socialRecovery/${kusamaGenesisHash}/${validAddress}`]}>
+            <Route path='/socialRecovery/:genesisHash/:address'>
+              <SocialRecoveryIndex />
+            </Route>
+          </MemoryRouter>
+        </AccountContext.Provider>
+      </SettingsContext.Provider>
+    );
 
-    fireEvent.click(queryByText('Close') as Element);
-
+    await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), { timeout: 30000 });
     // Rescue another account component's element
     fireEvent.click(queryByText('RESCUE ANOTHER ACCOUNT') as Element);
     // Header Text
@@ -112,5 +129,57 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('A rescuer can initiate the recovery of a lost account. If it receives enough vouchers, the lost account can be claimed.')).toBeTruthy();
     expect(queryByText('as Friend')).toBeTruthy();
     expect(queryByText('An account, who has been set as a friend of a lost account, can vouch for recovering the lost account by a rescuer.')).toBeTruthy();
+
+    // AsResuer component's elements
+    fireEvent.click(queryByText('as Rescuer') as Element);
+    // Header Text
+    expect(queryByText('Rescue account')).toBeTruthy();
+    // Rescueing steps texts
+    expect(queryByText('Initiate')).toBeTruthy();
+    expect(queryByText('Wait')).toBeTruthy();
+    expect(queryByText('Withdraw')).toBeTruthy();
+    // While loading identities
+    expect(queryByText('Enter a lost account address (or search by identity):')).toBeTruthy();
+    expect(getByRole('combobox', { hidden: true, name: 'Lost' })).toBeTruthy();
+    expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
+    expect(queryByText('Loading identities ...')).toBeTruthy();
+    await waitForElementToBeRemoved(() => queryByText('Loading identities ...'), { timeout: 20000 });
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+  });
+
+  test('Checking if everything is working properly in RESCUE (as Friend) component', async () => {
+    const { getByRole, queryByText } = render(
+      <SettingsContext.Provider value={SettingsStruct}>
+        <AccountContext.Provider
+          value={{
+            accounts,
+            hierarchy: buildHierarchy(accounts)
+          }}
+        >
+          <MemoryRouter initialEntries={[`/socialRecovery/${kusamaGenesisHash}/${validAddress}`]}>
+            <Route path='/socialRecovery/:genesisHash/:address'>
+              <SocialRecoveryIndex />
+            </Route>
+          </MemoryRouter>
+        </AccountContext.Provider>
+      </SettingsContext.Provider>
+    );
+
+    await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), { timeout: 30000 });
+    fireEvent.click(queryByText('RESCUE ANOTHER ACCOUNT') as Element);
+
+    // asFriend component's elements
+    fireEvent.click(queryByText('as Friend') as Element);
+    // Header Text
+    expect(queryByText('Vouch account')).toBeTruthy();
+    // While loading identities
+    expect(queryByText('Enter the lost account Id (identity), who you want to vouch for:')).toBeTruthy();
+    expect(getByRole('combobox', { hidden: true, name: 'Lost' })).toBeTruthy();
+    expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
+    expect(queryByText('Loading identities ...')).toBeTruthy();
+    await waitForElementToBeRemoved(() => queryByText('Loading identities ...'), { timeout: 20000 });
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
   });
 });
