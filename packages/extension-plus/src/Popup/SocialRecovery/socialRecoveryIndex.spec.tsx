@@ -18,7 +18,7 @@ import { ChainInfo, RecoveryConsts } from '../../util/plusTypes';
 import { accounts, chain, SettingsStruct } from '../../util/test/testHelper';
 import SocialRecoveryIndex from './index';
 
-jest.setTimeout(120000);
+jest.setTimeout(240000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
 const validAddress = '5FbSap4BsWfjyRhCchoVdZHkDnmDm3NEgLZ25mesq4aw2WvX';
@@ -38,7 +38,7 @@ describe('Testing Social Recovery component', () => {
     };
   });
 
-  test('Checking the existance of elements', async () => {
+  test('Checking if everything is working properly in CONFIGURE component', async () => {
     const { getByRole, queryAllByTestId, queryByText } = render(
       <SettingsContext.Provider value={SettingsStruct}>
         <AccountContext.Provider
@@ -56,7 +56,11 @@ describe('Testing Social Recovery component', () => {
       </SettingsContext.Provider>
     );
 
-    await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), { timeout: 30000 });
+    await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), {
+      timeout: 30000, onTimeout: () => {
+        throw new Error('Slow connection detected!\nRun the test again.');
+      }
+    });
 
     expect(queryByText('CONFIGURE MY ACCOUNT')).toBeTruthy();
     expect(queryByText('You can make your account "recoverable", remove recovery from an already recoverable account, or close a recovery process that is initiated by a (malicious) rescuer account.')).toBeTruthy();
@@ -75,23 +79,13 @@ describe('Testing Social Recovery component', () => {
     // Configuration tab's elements while loading informations
     expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
     expect(queryByText('Checking if the account is recoverable')).toBeTruthy();
-    await waitForElementToBeRemoved(() => queryByText('Checking if the account is recoverable'), { timeout: 20000 });
-
-    // Info tab's elemnts
-    fireEvent.click(getByRole('tab', { hidden: true, name: 'Info' }));
-    expect(queryByText('Welcome to account recovery')).toBeTruthy();
-    expect(queryByText('Information you need to know')).toBeTruthy();
-    expect(queryByText('The base {{token}}s must be reserved to create a recovery:')).toBeTruthy();
-    await waitFor(() => expect(queryAllByTestId('ShowBalance2')[0].textContent).toEqual('0.0166 ' + chain('kusama').tokenSymbol.toUpperCase()), { timeout: 30000 });
-    expect(queryByText('{{token}}s to be reserved for each added friend :')).toBeTruthy();
-    expect(queryAllByTestId('ShowBalance2')[1].textContent).toEqual('0.0016 ' + chain('kusama').tokenSymbol.toUpperCase());
-    expect(queryByText('Maximum allowed number of friends:')).toBeTruthy();
-    expect(queryByText(recoveryConsts.maxFriends)).toBeTruthy();
-    expect(queryByText('The base {{token}}s needed to be reserved for starting a recovery:')).toBeTruthy();
-    expect(queryAllByTestId('ShowBalance2')[2].textContent).toEqual('0.0166 ' + chain('kusama').tokenSymbol.toUpperCase());
+    await waitForElementToBeRemoved(() => queryByText('Checking if the account is recoverable'), {
+      timeout: 30000, onTimeout: () => {
+        throw new Error('Slow connection detected!\nRun the test again.');
+      }
+    });
 
     // Configuration tab's elemnts while loading finished and account is not recoverable
-    fireEvent.click(getByRole('tab', { hidden: true, name: 'Configuration' }));
     expect(queryByText('Make recoverable')).toBeTruthy();
     expect(queryByText('Your recovery friends :')).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'addFriend' })).toBeTruthy();
@@ -101,8 +95,47 @@ describe('Testing Social Recovery component', () => {
     expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
 
-    fireEvent.click(queryByText('Close') as Element);
+    // Info tab's elemnts
+    fireEvent.click(getByRole('tab', { hidden: true, name: 'Info' }));
+    expect(queryByText('Welcome to account recovery')).toBeTruthy();
+    expect(queryByText('Information you need to know')).toBeTruthy();
+    expect(queryByText('The base {{token}}s must be reserved to create a recovery:')).toBeTruthy();
+    await waitFor(() => expect(queryAllByTestId('ShowBalance2')[0].textContent).toEqual('0.0166 ' + chain('kusama').tokenSymbol.toUpperCase()), {
+      timeout: 30000, onTimeout: () => {
+        throw new Error('Slow connection detected!\nRun the test again.');
+      }
+    });
+    expect(queryByText('{{token}}s to be reserved for each added friend :')).toBeTruthy();
+    expect(queryAllByTestId('ShowBalance2')[1].textContent).toEqual('0.0016 ' + chain('kusama').tokenSymbol.toUpperCase());
+    expect(queryByText('Maximum allowed number of friends:')).toBeTruthy();
+    expect(queryByText(recoveryConsts.maxFriends)).toBeTruthy();
+    expect(queryByText('The base {{token}}s needed to be reserved for starting a recovery:')).toBeTruthy();
+    expect(queryAllByTestId('ShowBalance2')[2].textContent).toEqual('0.0166 ' + chain('kusama').tokenSymbol.toUpperCase());
+  });
 
+  test('Checking if everything is working properly in RESCUE (as Rescuer) component', async () => {
+    const { getByRole, queryByText } = render(
+      <SettingsContext.Provider value={SettingsStruct}>
+        <AccountContext.Provider
+          value={{
+            accounts,
+            hierarchy: buildHierarchy(accounts)
+          }}
+        >
+          <MemoryRouter initialEntries={[`/socialRecovery/${kusamaGenesisHash}/${validAddress}`]}>
+            <Route path='/socialRecovery/:genesisHash/:address'>
+              <SocialRecoveryIndex />
+            </Route>
+          </MemoryRouter>
+        </AccountContext.Provider>
+      </SettingsContext.Provider>
+    );
+
+    await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), {
+      timeout: 30000, onTimeout: () => {
+        throw new Error('Slow connection detected!\nRun the test again.');
+      }
+    });
     // Rescue another account component's element
     fireEvent.click(queryByText('RESCUE ANOTHER ACCOUNT') as Element);
     // Header Text
@@ -112,5 +145,69 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('A rescuer can initiate the recovery of a lost account. If it receives enough vouchers, the lost account can be claimed.')).toBeTruthy();
     expect(queryByText('as Friend')).toBeTruthy();
     expect(queryByText('An account, who has been set as a friend of a lost account, can vouch for recovering the lost account by a rescuer.')).toBeTruthy();
+
+    // AsResuer component's elements
+    fireEvent.click(queryByText('as Rescuer') as Element);
+    // Header Text
+    expect(queryByText('Rescue account')).toBeTruthy();
+    // Rescueing steps texts
+    expect(queryByText('Initiate')).toBeTruthy();
+    expect(queryByText('Wait')).toBeTruthy();
+    expect(queryByText('Withdraw')).toBeTruthy();
+    // While loading identities
+    expect(queryByText('Enter a lost account address (or search by identity):')).toBeTruthy();
+    expect(getByRole('combobox', { hidden: true, name: 'Lost' })).toBeTruthy();
+    expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
+    expect(queryByText('Loading identities ...')).toBeTruthy();
+    await waitForElementToBeRemoved(() => queryByText('Loading identities ...'), {
+      timeout: 30000, onTimeout: () => {
+        throw new Error('Slow connection detected!\nRun the test again.');
+      }
+    });
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+  });
+
+  test('Checking if everything is working properly in RESCUE (as Friend) component', async () => {
+    const { getByRole, queryByText } = render(
+      <SettingsContext.Provider value={SettingsStruct}>
+        <AccountContext.Provider
+          value={{
+            accounts,
+            hierarchy: buildHierarchy(accounts)
+          }}
+        >
+          <MemoryRouter initialEntries={[`/socialRecovery/${kusamaGenesisHash}/${validAddress}`]}>
+            <Route path='/socialRecovery/:genesisHash/:address'>
+              <SocialRecoveryIndex />
+            </Route>
+          </MemoryRouter>
+        </AccountContext.Provider>
+      </SettingsContext.Provider>
+    );
+
+    await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), {
+      timeout: 30000, onTimeout: () => {
+        throw new Error('Slow connection detected!\nRun the test again.');
+      }
+    });
+    fireEvent.click(queryByText('RESCUE ANOTHER ACCOUNT') as Element);
+
+    // asFriend component's elements
+    fireEvent.click(queryByText('as Friend') as Element);
+    // Header Text
+    expect(queryByText('Vouch account')).toBeTruthy();
+    // While loading identities
+    expect(queryByText('Enter the lost account Id (identity), who you want to vouch for:')).toBeTruthy();
+    expect(getByRole('combobox', { hidden: true, name: 'Lost' })).toBeTruthy();
+    expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
+    expect(queryByText('Loading identities ...')).toBeTruthy();
+    await waitForElementToBeRemoved(() => queryByText('Loading identities ...'), {
+      timeout: 30000, onTimeout: () => {
+        throw new Error('Slow connection detected!\nRun the test again.');
+      }
+    });
+    expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
   });
 });
