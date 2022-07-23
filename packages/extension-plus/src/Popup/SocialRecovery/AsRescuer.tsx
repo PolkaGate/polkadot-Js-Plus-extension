@@ -2,37 +2,36 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
-/* eslint-disable simple-import-sort/imports */
 
 /**
  * @description
  * this component opens rescuer page, where a rescuer can initiate, claim, close and finally withdraw a recovery
  * */
 
+import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo, DeriveBalancesAll } from '@polkadot/api-derive/types';
-import type { ThemeProps } from '../../../../extension-ui/src/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import { BN, BN_ZERO } from '@polkadot/util';
+import type { PalletRecoveryActiveRecovery,PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
+import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
-import { Typography, Grid, Stepper, Step, StepLabel, Divider } from '@mui/material';
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { Divider,Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import React, { useCallback, useEffect, useMemo,useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
+
+import { Button } from '@polkadot/extension-ui/components';
+import { BN, BN_ZERO } from '@polkadot/util';
+import { encodeAddress } from '@polkadot/util-crypto';
 
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../components';
-import type { ApiPromise } from '@polkadot/api';
-import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
-
 import { AddressState, nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
-import { Button } from '@polkadot/extension-ui/components';
-import Confirm from './Confirm';
-import AddNewAccount from './AddNewAccount';
 import { remainingTimeCountDown } from '../../util/plusUtils';
-import { encodeAddress } from '@polkadot/util-crypto';
 import { getVouchers } from '../../util/subqery';
+import AddNewAccount from './AddNewAccount';
+import Confirm from './Confirm';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -64,7 +63,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   const [remainingBlocksToClaim, setRemainingBlocksToClaim] = useState<number | undefined>();
   const [remainingSecondsToClaim, setRemainingSecondsToClaim] = useState<number | undefined>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
-  const [asRecovered, setAsRecovered] = React.useState<boolean>(false);
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState<{
     [k: number]: boolean;
@@ -104,7 +102,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     setLostAccountHelperText(undefined);
     setIsProxy(undefined);
     setLostAccountRecoveryInfo(undefined);
-    setAsRecovered(false);
     setLostAccountBalance(undefined);
   }, []);
 
@@ -146,13 +143,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     if (activeStep === STEP_MAP.INIT && lostAccountRecoveryInfo && hasActiveRecoveries === null) {
       return setNextIsDisabled(false);
     }
-    // if (isProxy === true) {
-    //   return setNextIsDisabled(false);
-    // }
 
-    // if (!lostAccount || !lostAccountRecoveryInfo || activeStep === STEP_MAP.WAIT) {
-    //   return setNextIsDisabled(true);
-    // }
     setNextIsDisabled(true);
   }, [activeStep, hasActiveRecoveries, lostAccount, lostAccountRecoveryInfo, totalWithdrawable]);
 
@@ -190,10 +181,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [completed, hasActiveRecoveries, isProxy, lostAccountRecoveryInfo, receivedVouchers, remainingBlocksToClaim]);
 
   useEffect((): void => {
-    // if (activeStep === STEP_MAP.CLAIM) {
-    //   return setState('claimRecovery');//???????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-    // }
-
     if (activeStep === STEP_MAP.WITHDRAW && isProxy === false) {
       return setState('withdrawWithClaim');
     }
@@ -243,7 +230,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
         }
 
         setOtherPossibleRescuers(otherPossibleRescuers);
-        setAsRecovered(true);
       });
     });
   }, [account, isProxy, api, lostAccount, chain?.ss58Format, activeStep]);
@@ -443,11 +429,9 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           friends={friendsAccountsInfo}
           lostAccount={lostAccount}
           otherPossibleRescuers={otherPossibleRescuers}
-          otherPossibleRescuersDeposit={otherPossibleRescuersDeposit}
           recoveryConsts={recoveryConsts}
           recoveryDelay={lostAccountRecoveryInfo?.delayPeriod ? parseFloat((lostAccountRecoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10)).toFixed(4)) : 0}
           recoveryThreshold={lostAccountRecoveryInfo?.threshold?.toNumber()}
-          // rescuer={{ ...account, option: hasActiveRecoveries ?? { deposit: lostAccountRecoveryInfo?.deposit ?? BN_ZERO } }}
           rescuer={{ ...account, option: hasActiveRecoveries ?? undefined }}
           setConfirmModalOpen={setConfirmModalOpen}
           setState={setState}
