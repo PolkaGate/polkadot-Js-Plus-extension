@@ -11,12 +11,12 @@
 import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo, DeriveBalancesAll } from '@polkadot/api-derive/types';
 import type { StakingLedger } from '@polkadot/types/interfaces';
-import type { PalletRecoveryActiveRecovery,PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
+import type { PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
-import { Divider,Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
-import React, { useCallback, useEffect, useMemo,useState } from 'react';
+import { Divider, Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
 
@@ -374,6 +374,9 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           }
           {activeStep === STEP_MAP.WITHDRAW && lostAccountBalance &&
             <Grid container item justifyContent='center' sx={{ fontSize: 12 }} textAlign='center'>
+              <Grid item xs={12}>
+                <Divider light />
+              </Grid>
               <Grid container item justifyContent='space-between' p='10px 20px 5px'>
                 <Grid item>
                   <ShowBalance2 api={api} balance={lostAccountBalance.freeBalance.add(lostAccountBalance.reservedBalance)} title={t('Total')} />
