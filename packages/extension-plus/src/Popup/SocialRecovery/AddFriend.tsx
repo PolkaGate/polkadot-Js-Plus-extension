@@ -6,8 +6,7 @@
 
 /**
  * @description
- * this component opens crowdloan page, which shows auction and crowdloan tab,
- * where a relay chain can be selected to view available auction/crowdloans
+ * this component opens a page, where you can add a recovery friend
  * */
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
@@ -15,16 +14,11 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { AddCircleRounded as AddCircleRoundedIcon, NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
 import { Typography, Autocomplete, Grid, TextField } from '@mui/material';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
-
-import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
-
 import Identicon from '@polkadot/react-identicon';
-
 import isValidAddress from '../../util/validateAddress';
-import { SettingsContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../components';
@@ -41,7 +35,6 @@ interface Props extends ThemeProps {
   accountsInfo: DeriveAccountInfo[] | undefined;
   addresesOnThisChain: nameAddress[];
 }
-
 
 function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, setShowAddFriendModal, showAddFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -79,10 +72,6 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
 
     setText(value);
     setAccountInfo(undefined);
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    // handleAddress(event.target.value);
   }, []);
 
   const handleSearchFriend = useCallback(() => {
@@ -135,6 +124,8 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   }, [setShowAddFriendModal]);
 
   const navigateBefore = useCallback((info: DeriveAccountInfo) => {
+    if (!filteredAccountsInfo?.length) { return; }
+
     const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
 
     if (index === 0) {
@@ -145,6 +136,8 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   }, [filteredAccountsInfo]);
 
   const navigateNext = useCallback((info: DeriveAccountInfo) => {
+    if (!filteredAccountsInfo?.length) { return; }
+
     const index = filteredAccountsInfo?.findIndex((f) => f.accountId === info.accountId);
 
     if (index === filteredAccountsInfo.length - 1) {
@@ -170,9 +163,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
           ListboxProps={{ sx: { fontSize: 12 } }}
           autoFocus
           defaultValue={text}
-          // disabled={disabled}
           freeSolo
-          onBlur={handleBlur}
           onChange={handleAutoComplateChange}
           options={addresesOnThisChain?.map((option) => `${option?.name} :    ${option.address}`)}
           // eslint-disable-next-line react/jsx-no-bind
@@ -232,8 +223,8 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
     <Popup handleClose={handleCloseModal} showModal={showAddFriendModal}>
       <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<AddCircleRoundedIcon fontSize='small' />} title={'Add Friend'} />
       <Grid container sx={{ p: '35px 30px' }}>
-        <Grid item xs={12} sx={{ height: '100px' }}>
-          <Typography sx={{ color: 'text.primary', pb: '15px' }} variant='body1'>
+        <Grid item sx={{ height: '110px' }} xs={12}>
+          <Typography sx={{ color: 'text.primary', p: '15px' }} variant='body1'>
             {t('Add a friend account Id ( or search by their identity)')}:
           </Typography>
           {accountsInfo?.length && <FriendTextBox />}
@@ -252,7 +243,6 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''
-            // isBusy={isBusy} isDisabled={isDisabled}
             onClick={handleAddFriend}
           >
             {t('Add')}

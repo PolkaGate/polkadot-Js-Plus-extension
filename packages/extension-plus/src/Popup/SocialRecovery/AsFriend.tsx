@@ -153,7 +153,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
       <Grid container sx={{ p: '15px 20px' }}>
         <Grid item pt='15px' sx={{ height: '440px' }} xs={12}>
           <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
-            {t<string>('Enter the lost account Id (identity), who you want to vouch for')}:
+            {t<string>('Enter the lost account Id (identity), you want to vouch for')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={lostAccountHelperText} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccount && lostAccountRecoveryInfo && isFriend === false &&

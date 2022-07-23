@@ -12,7 +12,7 @@ import type { Balance } from '@polkadot/types/interfaces';
 import type { RecoveryConsts, Rescuer, TransactionDetail } from '../../util/plusTypes';
 
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
-import { Grid, Skeleton, Typography } from '@mui/material';
+import { Divider, Grid, Skeleton, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -53,10 +53,9 @@ interface Props {
   rescuer?: Rescuer;
   withdrawAmounts?: WithdrawAmounts;
   otherPossibleRescuers?: Rescuer[] | undefined
-  otherPossibleRescuersDeposit?: BN | undefined
 }
 
-export default function Confirm({ account, api, chain, friends, lostAccount, otherPossibleRescuers, otherPossibleRescuersDeposit, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state, withdrawAmounts }: Props): React.ReactElement<Props> {
+export default function Confirm({ account, api, chain, friends, lostAccount, otherPossibleRescuers, recoveryConsts, recoveryDelay, recoveryThreshold, rescuer, setConfirmModalOpen, setState, showConfirmModal, state, withdrawAmounts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const onAction = useContext(ActionContext);
@@ -501,35 +500,36 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={stateInHuman(state)} />
       <Grid alignItems='center' container>
-        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '15px 40px 10px' }} xs={12}>
-          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12, pt: '10px', textAlign: 'center' }} xs={12}>
-            <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 6 }} xs={12}>
-              <Identity accountInfo={lostAccount} chain={chain} showAddress title={t('Recoverable account')} />
-            </Grid>
-            <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '20px', textAlign: 'center' }} xs={12}>
-              {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
-                <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
-                  <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
-                </Grid>
-              }
-              <Grid container item justifyContent='center' xs={3}>
-                <ShowBalance2 api={api} balance={estimatedFee} title={t('Fee')} />
+        <Grid alignItems='center' container item justifyContent='space-between' sx={{ backgroundColor: '#f7f7f7', textAlign: 'center', fontSize: 12, p: '15px 40px 10px' }} xs={12}>
+          <Grid container item sx={{ fontFamily: 'sans-serif', fontWeight: 'bold', pl: 6 }} xs={12}>
+            <Identity accountInfo={lostAccount} chain={chain} showAddress title={t('Recoverable account')} />
+          </Grid>
+          <Grid container item xs={12}>
+            <Divider />
+          </Grid>
+          <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '20px', textAlign: 'center' }} xs={12}>
+            {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
+              <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
+                <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
               </Grid>
-              {['initiateRecovery', 'makeRecoverable'].includes(state) &&
-                <Grid container item justifyContent='center' xs={3}>
-                  <ShowBalance2 api={api} balance={deposit} title={t('Deposit')} />
-                </Grid>
-              }
-              {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
-                <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
-                  <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} />
-                </Grid>
-              }
+            }
+            <Grid container item justifyContent='center' xs={3}>
+              <ShowBalance2 api={api} balance={estimatedFee} title={t('Fee')} />
             </Grid>
+            {['initiateRecovery', 'makeRecoverable'].includes(state) &&
+              <Grid container item justifyContent='center' xs={3}>
+                <ShowBalance2 api={api} balance={deposit} title={t('Deposit')} />
+              </Grid>
+            }
+            {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
+              <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
+                <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} />
+              </Grid>
+            }
           </Grid>
         </Grid>
-        <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '205px', overflowY: 'auto' }} xs={12}>
-          {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '25px 50px 5px', textAlign: 'center' }} xs={12}>
+        <Grid container item sx={{ bgcolor: 'white', fontSize: 12, height: '210px', overflowY: 'auto' }} xs={12}>
+          {state === 'makeRecoverable' && <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '30px 50px 5px', textAlign: 'center' }} xs={12}>
             {t('List of friends')}
           </Grid>
           }
@@ -539,13 +539,13 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             </Grid>
           }
           {['makeRecoverable', 'initiateRecovery'].includes(state) && friends?.map((f, index) => (
-            <Grid alignItems='flex-start' key={index} sx={{ pl: '50px' }} xs={12}>
+            <Grid alignItems='flex-start' key={index} sx={{ fontFamily: 'sans-serif', pl: 11 }} xs={12}>
               <Identity accountInfo={f} chain={chain} showAddress />
             </Grid>
           ))
           }
           {['closeRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'claimRecovery'].includes(state) &&
-            <Grid container item sx={{ fontFamily: 'sans-serif', fontSize: 11, fontWeight: 'bold', pl: 8 }} xs={12}>
+            <Grid container item sx={{ fontFamily: 'sans-serif', fontWeight: 'bold', pl: 11 }} xs={12}>
               <Identity accountInfo={rescuer} chain={chain} showAddress title={'Rescuer account'} />
             </Grid>
           }

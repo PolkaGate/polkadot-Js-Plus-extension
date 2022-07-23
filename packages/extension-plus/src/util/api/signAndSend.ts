@@ -60,6 +60,9 @@ export async function signAndSend(
           }
         });
       }
+    }).catch((e) => {
+      console.log('catch error', e);
+      resolve({ block: 0, failureText: String(e), fee: '', status: 'failed', txHash: '' });
     });
   });
 }

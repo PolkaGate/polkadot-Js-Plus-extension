@@ -186,7 +186,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             <p>{t('Configure my account').toUpperCase()}</p>
           </Grid>
           <Grid item>
-            <SecurityIcon sx={{ color: blue[900], fontSize: 30, pt: '10px' }} />
+            <SecurityIcon color='primary' fontSize='large' />
           </Grid>
         </Grid>
         <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
@@ -202,7 +202,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             <p>{t('Rescue another account').toUpperCase()}</p>
           </Grid>
           <Grid item>
-            <SupportIcon sx={{ color: green[900], fontSize: 30, pt: '10px' }} />
+            <SupportIcon color='success' fontSize='large' />
           </Grid>
         </Grid>
         <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>

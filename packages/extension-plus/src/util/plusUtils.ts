@@ -183,7 +183,7 @@ export function remainingTime(blocks: number): string {
   return time;
 }
 
-export function remainingTimeCountDown(seconds: number): string {
+export function remainingTimeCountDown(seconds: number | undefined): string {
   if (!seconds || seconds <= 0) { return 'finished'; }
 
   const days = Math.floor(seconds / (60 * 60 * 24));
