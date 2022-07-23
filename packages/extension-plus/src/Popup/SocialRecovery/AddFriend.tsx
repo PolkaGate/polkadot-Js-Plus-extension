@@ -88,10 +88,11 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
 
       if (filtered?.length) {
         setFilteredAccountsInfo(filtered);
-        setAccountInfo(filtered[0]);
 
-        return;
+        return setAccountInfo(filtered[0]);
       }
+
+      setAccountInfo(null);
     }
 
     setFilteredAccountsInfo(null);
@@ -225,7 +226,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
       <Grid container sx={{ p: '35px 30px' }}>
         <Grid item sx={{ height: '110px' }} xs={12}>
           <Typography sx={{ color: 'text.primary', p: '15px' }} variant='body1'>
-            {t('Add a friend account Id ( or search by their identity)')}:
+            {t('Add a friend account Id (or search by identity)')}:
           </Typography>
           {accountsInfo?.length && <FriendTextBox />}
         </Grid>

@@ -538,11 +538,12 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
               <WriteAppropriateMessage state={state} />
             </Grid>
           }
-          {['makeRecoverable', 'initiateRecovery'].includes(state) && friends?.map((f, index) => (
-            <Grid alignItems='flex-start' key={index} sx={{ fontFamily: 'sans-serif', pl: 11 }} xs={12}>
-              <Identity accountInfo={f} chain={chain} showAddress />
-            </Grid>
-          ))
+          {['makeRecoverable', 'initiateRecovery'].includes(state) &&
+            friends?.map((f, index) => (
+              <Grid alignItems='flex-start' key={index} sx={{ fontFamily: 'sans-serif', px: 6 }} xs={12}>
+                <Identity accountInfo={f} chain={chain} showAddress />
+              </Grid>
+            ))
           }
           {['closeRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'claimRecovery'].includes(state) &&
             <Grid container item sx={{ fontFamily: 'sans-serif', fontWeight: 'bold', pl: 11 }} xs={12}>
