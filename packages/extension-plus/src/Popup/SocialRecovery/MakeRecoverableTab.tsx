@@ -14,7 +14,7 @@ import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useEffect,useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -101,7 +101,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
       <Grid alignItems='center' container item justifyContent='space-between' pb='2px' pt='20px' xs={12}>
         <Grid item p='7px 15px 7px'>
           <Typography sx={{ color: 'text.primary' }} variant='body2'>
-            {t('Your recovery friends')} {!!friends?.length && `(${friends?.length})`}:
+            {t('Your recovery friends')} {`(${friends?.length ?? 0})`}
           </Typography>
         </Grid>
         <Grid item>
