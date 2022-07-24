@@ -42,16 +42,17 @@ interface Props extends ThemeProps {
   showAsRescuerModal: boolean;
   recoveryConsts: RecoveryConsts | undefined;
   addresesOnThisChain: nameAddress[];
+  lastLostAccount?: DeriveAccountInfo;
 }
 
 const steps = ['Initiate', 'Wait', 'Withdraw'];
 const STEP_MAP = { INIT: 0, WAIT: 1, WITHDRAW: 2 };
 
-function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
+function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, lastLostAccount, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
-  const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
+  const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>(lastLostAccount);
   const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [lostAccountBalance, setLostAccountBalance] = useState<DeriveBalancesAll | undefined>();
@@ -97,13 +98,18 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     console.log('resetPage ...');
     setState(undefined);
     setRemainingBlocksToClaim(undefined);
-    setActiveStep(0);
+    setActiveStep(STEP_MAP.INIT);
     setCompleted({});
     setLostAccountHelperText(undefined);
     setIsProxy(undefined);
     setLostAccountRecoveryInfo(undefined);
     setLostAccountBalance(undefined);
+    setHasActiveRecoveries(undefined);
   }, []);
+
+  useEffect((): void => {
+    console.log('activeStep ...', activeStep);
+  }, [activeStep]);
 
   const handleNext = useCallback(() => {
     !state && setState('initiateRecovery');
@@ -281,9 +287,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
   }, [api, lostAccount]);
 
   useEffect(() => {
-    if (lostAccount === undefined) {
-      resetPage();
-    }
+    !lostAccount && resetPage();
   }, [lostAccount, resetPage]);
 
   useEffect(() => {

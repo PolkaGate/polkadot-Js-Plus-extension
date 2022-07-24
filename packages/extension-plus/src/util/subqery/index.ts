@@ -5,7 +5,7 @@ import request from 'umi-request';
 
 import { AccountId } from '@polkadot/types/interfaces/runtime';
 
-import { Voucher } from '../plusTypes';
+import { Initiation, Voucher } from '../plusTypes';
 
 export async function getVouchers(lost: string | AccountId, rescuer: string | AccountId): Promise<Voucher[]> {
   const query = `query {
@@ -25,6 +25,24 @@ export async function getVouchers(lost: string | AccountId, rescuer: string | Ac
   console.log('res:', res.data.recoveryVoucheds.nodes);
 
   return res.data.recoveryVoucheds.nodes as Voucher[];
+}
+
+export async function getInitiation(rescuer: string | AccountId): Promise<Initiation | null> {
+  const query = `query {
+    recoveryInitiateds (last:1, filter:
+     {rescuer:{equalTo:"${rescuer}"}
+    }){ 
+      nodes 
+      {id,
+       blockNumber,
+       lost,
+       rescuer,
+      }}}`;
+  const res = await postReq('https://api.subquery.network/sq/PolkaGate/westend', { query });
+
+  const mayBeInitiations = res.data.recoveryInitiateds.nodes as Initiation[];
+
+  return mayBeInitiations?.length ? mayBeInitiations[0] : null;
 }
 
 function postReq(api: string, data: Record<string, unknown> = {}, option?: Record<string, unknown>): Promise<Record<string, any>> {

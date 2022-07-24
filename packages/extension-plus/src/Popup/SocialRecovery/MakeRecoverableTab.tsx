@@ -30,7 +30,7 @@ import { ApiPromise } from '@polkadot/api';
 interface Props {
   account: DeriveAccountInfo | undefined;
   chain: Chain | null;
-  recoveryInfo: PalletRecoveryRecoveryConfig | undefined | null;
+  recoveryInfo: PalletRecoveryRecoveryConfig | null;
   recoveryConsts: RecoveryConsts | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
   addresesOnThisChain: nameAddress[];
@@ -106,9 +106,15 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           </Typography>
         </Grid>
         <Grid item>
-          {!recoveryInfo && (recoveryConsts && friends.length < recoveryConsts.maxFriends) &&
+          {!recoveryInfo &&
             <Hint id='addFriend' place='left' tip={t('add a friend')}>
-              <IconButton aria-label='addFriend' color='warning' onClick={handleAddFriend} size='small'>
+              <IconButton
+                aria-label='addFriend'
+                color='warning'
+                disabled={!(recoveryConsts && friends.length < recoveryConsts.maxFriends)}
+                onClick={handleAddFriend}
+                size='small'
+              >
                 <AddCircleRoundedIcon sx={{ fontSize: 25 }} />
               </IconButton>
             </Hint>
