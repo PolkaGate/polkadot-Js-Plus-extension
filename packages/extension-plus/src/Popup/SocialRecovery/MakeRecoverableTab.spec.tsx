@@ -49,7 +49,7 @@ describe('Testing MakerecoverableTab component', () => {
           api={chainInfo.api} // undefined
           chain={chain('kusama')} // null
           recoveryConsts={recoveryConsts} // undeifend
-          recoveryInfo={recoveryInfo} // undefined | null
+          recoveryInfo={recoveryInfo} // null
         />
       );
 
@@ -72,7 +72,7 @@ describe('Testing MakerecoverableTab component', () => {
           api={undefined}
           chain={null}
           recoveryConsts={undefined}
-          recoveryInfo={undefined} // null
+          recoveryInfo={null}
         />
       );
       debug(undefined, 30000)
