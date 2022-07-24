@@ -11,7 +11,9 @@
 
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
-import { Avatar, Badge, Grid, Paper } from '@mui/material';
+import { Avatar, Badge, Button, Grid, Paper } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
+
 import React, { useCallback, useState, useEffect } from 'react';
 import { BookmarkAddedOutlined as BookmarkAddedOutlinedIcon, HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon, Support as SupportIcon, AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
@@ -103,48 +105,62 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
   }));
 
   const RescuerSelection = () => (
-    <Grid container justifyContent='center' sx={{ pt: 15 }}>
-      <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
-        <StyledBadge
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          badgeContent={<HealthAndSafetyOutlinedIcon fontSize='medium' sx={{ color: '#fc2105' }} />}
-          overlap='circular'
-        >
-          <Avatar onClick={handleRescuer} sx={{ boxShadow: `2px 4px 10px 2px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
-            {t('as Rescuer')}
-          </Avatar>
-        </StyledBadge>
-      </Grid>
-      <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
-        <StyledBadge
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          badgeContent={<AdminPanelSettingsOutlinedIcon fontSize='medium' sx={{ color: green[500] }} />}
-          overlap='circular'
-        >          <Avatar onClick={handleFriend} sx={{ boxShadow: `2px 4px 10px 2px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
-            {t('as Friend')}
-          </Avatar>
-        </StyledBadge>
-      </Grid>
-      <Grid alignItems='center' container justifyContent='space-around' px={3}>
-        <Paper onClick={handleRescuer} sx={{ borderRadius: '10px', cursor: 'pointer', height: 160, pt: '15px', width: '45%' }}>
-          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
+    <Grid container justifyContent='center' sx={{ pt: 13 }}>
+      <Grid alignItems='center' container justifyContent='center' xs={6}>
+        <Grid container item justifyContent='center' sx={{ fontSize: 12 }} >
+          <StyledBadge
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            badgeContent={<HealthAndSafetyOutlinedIcon fontSize='medium' sx={{ color: '#fc2105' }} />}
+            overlap='circular'
+          >
+            <Avatar onClick={handleRescuer} sx={{ boxShadow: `2px 4px 10px 2px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
+              {t('as Rescuer')}
+            </Avatar>
+          </StyledBadge>
+        </Grid>
+        <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
+          <Paper sx={{ borderRadius: '10px', color: grey[500], height: 160, p: '15px 10px', width: '90%' }}>
             {t('You can initiate the recovery. If recovery conditions are met, the lost account\'s balances can be withdrawn.')}
-            {activeRescue &&
-              <Grid container item justifyContent='flex-end' sx={{ pt: '10px' }}>
-                <Grid item>
-                  <Hint tip={t('has a rescue attempt')}>
-                    <BookmarkAddedOutlinedIcon color='success' />
-                  </Hint>
-                </Grid>
-              </Grid>
-            }
-          </Grid>
-        </Paper>
-        <Paper onClick={handleFriend} sx={{ borderRadius: '10px', cursor: 'pointer', height: 160, pt: '15px', width: '45%' }}>
-          <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
+            <Grid container justifyContent='center' sx={{ pt: 3 }}>
+              <LoadingButton
+                color='warning'
+                loading={activeRescue === undefined}
+                loadingPosition='start'
+                onClick={handleRescuer}
+                sx={{ textTransform: 'none', width: '80%' }}
+                variant='contained'
+              >
+                {t('Rescue')}
+              </LoadingButton>
+            </Grid>
+          </Paper>
+        </Grid>
+      </Grid>
+      <Grid alignItems='center' container justifyContent='center' xs={6}>
+        <Grid container item justifyContent='center' sx={{ fontSize: 12 }} xs={6}>
+          <StyledBadge
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            badgeContent={<AdminPanelSettingsOutlinedIcon fontSize='medium' sx={{ color: green[500] }} />}
+            overlap='circular'
+          >          <Avatar onClick={handleFriend} sx={{ boxShadow: `2px 4px 10px 2px ${grey[300]}`, color: '#1c4a5a', cursor: 'pointer', height: 120, width: 120 }}>
+              {t('as Friend')}
+            </Avatar>
+          </StyledBadge>
+        </Grid>
+        <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
+          <Paper sx={{ borderRadius: '10px', color: grey[500], height: 160, p: '15px 10px', width: '90%' }}>
             {t('An account, who has been set as a friend of a lost account, can vouch for recovering the lost account by a rescuer.')}
-          </Grid>
-        </Paper>
+            <Grid container justifyContent='center' sx={{ pt: 3 }}>
+              <Button
+                onClick={handleFriend}
+                sx={{ bgcolor: 'black', textTransform: 'none', width: '80%', '&:hover': { bgcolor: 'black', color: 'orange' } }}
+                variant='contained'
+              >
+                {t('Vouch')}
+              </Button>
+            </Grid>
+          </Paper>
+        </Grid>
       </Grid>
     </Grid>
   );
