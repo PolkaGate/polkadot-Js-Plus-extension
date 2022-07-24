@@ -13,8 +13,8 @@ import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Security as SecurityIcon, Support as SupportIcon } from '@mui/icons-material';
-import { Divider, Grid, Paper, Button } from '@mui/material';
-import { blue, green, grey } from '@mui/material/colors';
+import { Button,Divider, Grid, Paper } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
