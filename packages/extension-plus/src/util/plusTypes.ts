@@ -377,3 +377,9 @@ export interface Voucher {
   lost: string;
   rescuer: string;
 }
+export interface Initiation {
+  blockNumber: string;
+  id: string;
+  lost: string;
+  rescuer: string;
+}

@@ -12,19 +12,20 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
 import { Avatar, Badge, Grid, Paper } from '@mui/material';
-import React, { useCallback, useState } from 'react';
-import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon, Support as SupportIcon, AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
+import React, { useCallback, useState, useEffect } from 'react';
+import { BookmarkAddedOutlined as BookmarkAddedOutlinedIcon, HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon, Support as SupportIcon, AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import { getInitiation } from '../../util/subqery';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
+import { Initiation, nameAddress, RecoveryConsts } from '../../util/plusTypes';
 
 import { Chain } from '@polkadot/extension-chains/types';
 import { grey, green, blue } from '@mui/material/colors';
 import AsResuer from './AsRescuer';
 import AsFriend from './AsFriend';
 import type { ApiPromise } from '@polkadot/api';
-import { PlusHeader, Popup } from '../../components';
+import { Hint, PlusHeader, Popup } from '../../components';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -40,8 +41,17 @@ interface Props {
 function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts, setRescueModalOpen, showRescueModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
+  const [activeRescue, setActiveRescue] = useState<Initiation | undefined | null>();
   const [showAsRescuerModal, setShowAsRescuerModal] = useState<boolean>(false);
   const [showAsFriendModal, setShowAsFriendModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    account?.accountId && getInitiation(account.accountId).then((intiation: Initiation | null) => {
+      console.log('intiation:', intiation);
+
+      setActiveRescue(intiation);
+    });
+  }, [account?.accountId]);
 
   const handleRescuer = useCallback(() => {
     setShowAsRescuerModal(true);
@@ -119,6 +129,15 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
         <Paper onClick={handleRescuer} sx={{ borderRadius: '10px', cursor: 'pointer', height: 160, pt: '15px', width: '45%' }}>
           <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
             {t('You can initiate the recovery. If recovery conditions are met, the lost account\'s balances can be withdrawn.')}
+            {activeRescue &&
+              <Grid container item justifyContent='flex-end' sx={{ pt: '10px' }}>
+                <Grid item>
+                  <Hint tip={t('has a rescue attempt')}>
+                    <BookmarkAddedOutlinedIcon color='success' />
+                  </Hint>
+                </Grid>
+              </Grid>
+            }
           </Grid>
         </Paper>
         <Paper onClick={handleFriend} sx={{ borderRadius: '10px', cursor: 'pointer', height: 160, pt: '15px', width: '45%' }}>
@@ -141,6 +160,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
           addresesOnThisChain={addresesOnThisChain}
           api={api}
           handleCloseAsRescuer={handleCloseAsRescuer}
+          lastLostAccount={activeRescue ? { accountId: activeRescue?.lost } : undefined}
           recoveryConsts={recoveryConsts}
           showAsRescuerModal={showAsRescuerModal}
         />

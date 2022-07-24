@@ -95,23 +95,29 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     rescuer?.accountId && rescuer?.option?.deposit && withdrawCalls.push(closeRecovery(rescuer.accountId));
     otherPossibleRescuers?.length && withdrawCalls.push(...otherPossibleRescuers.map((o) => closeRecovery(o.accountId)));
     recoveryThreshold && withdrawCalls.push(removeRecovery()); // to collect deposit
-    withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked)); // TODO: chill before unbound ALL
+    withdrawAmounts?.staked && !withdrawAmounts.staked.isZero() && withdrawCalls.push(chill(), unbonded(withdrawAmounts.staked));
     withdrawAmounts?.redeemable && !withdrawAmounts.redeemable.isZero() && withdrawCalls.push(redeem(withdrawAmounts.spanCount));
-    withdrawAmounts?.available && !withdrawAmounts.available.isZero() && withdrawCalls.push(transferAll(rescuer.accountId, false));// should be last call in the batch to collect redeemed amount
+    withdrawAmounts?.available && !withdrawAmounts.available.isZero() && rescuer?.accountId && withdrawCalls.push(transferAll(rescuer.accountId, false));// should be last call in the batch to collect redeemed amount
   }
 
   const batchWithdraw = rescuer?.accountId && batchAll(withdrawCalls);
 
   const confirmBtnDisabled = useMemo(() => {
-    if (!estimatedFee) { return true };
+    if (!estimatedFee) {
+      return true;
+    };
     // TODO: check available balance to see if transaction can be done
     // if(state==='initiateRecovery'){
     //   return estimatedFee.add(recoveryConsts.recoveryDeposit).gt(account.);
     // }
+
+    return false;
   }, [estimatedFee]);
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
-    if (!history.length) { return false; }
+    if (!history.length) {
+      return false;
+    }
 
     const accountSubstrateAddress = getSubstrateAddress(address);
     const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
@@ -209,7 +215,9 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
   }, [friendIds?.length, recoveryConsts, rescuer, state]);
 
   useEffect(() => {
-    if (!api) { return; }
+    if (!api) {
+      return;
+    }
 
     !estimatedFee && callSetFee();
   }, [api, callSetFee, estimatedFee]);
@@ -219,7 +227,9 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     const history: TransactionDetail[] = []; /** collects all records to save in the local history at the end */
 
     try {
-      if (!account?.accountId) { return; }
+      if (!account?.accountId) {
+        return;
+      }
 
       setConfirmingState('confirming');
 
@@ -274,14 +284,14 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
         history.push({
           action: 'initiate_recovery',
-          amount: '0',
+          amount: recoveryConsts ? amountToHuman(recoveryConsts.recoveryDeposit.toString(), decimals) : '0',
           block,
           date: Date.now(),
           fee: fee || '',
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: String(lostAccount.accountId)
         });
 
         setConfirmingState(status);
@@ -407,6 +417,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
       // eslint-disable-next-line no-void
       account?.accountId && void saveHistory(chain, hierarchy, String(account.accountId), history);
+      // localState === 'initiateRecovery' && account?.accountId && lostAccount?.accountId && updateMeta(String(account?.accountId), prepareMetaData(chain, 'activeRescue', lostAccount.accountId));
     } catch (e) {
       console.log('error:', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
