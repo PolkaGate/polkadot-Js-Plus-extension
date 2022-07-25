@@ -3,7 +3,7 @@
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
 
-/** 
+/**
  * @description This is the main component which conects plus to original extension,
  * and make most of the new functionalities avilable
 */
@@ -40,6 +40,10 @@ import { AccountsBalanceType, BalanceType, Rescuer, SavedMetaData } from '../uti
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
 import Configure from '../Popup/SocialRecovery/Configure';
+import { getCloses, getInitiations } from '../util/subqery'
+import { Initiation, Close } from '../util/plusTypes'
+import type { PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
+import { Option } from '@polkadot/types-codec';
 
 interface Props {
   address?: string | null;
@@ -77,6 +81,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const [ledger, setLedger] = useState<StakingLedger | null>(null);
   const [recoverable, setRecoverable] = useState<boolean | undefined>();
   const [rescuer, setRescuer] = useState<Rescuer | undefined | null>();
+  const [isRecoveringAlert, setIsRecoveringAlert] = useState<boolean | undefined>();
 
   const getLedger = useCallback((): void => {
     if (!endpoint || !address) { return; }
@@ -122,7 +127,6 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
         setRescuer(null);
       }
 
-
       isRecoveringWorker.terminate();
     };
   }, []);
@@ -156,9 +160,60 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
     };
   }, [address, chain, formattedAddress, name, endpoint]);
 
+  // useEffect((): void => {
+  //   formattedAddress && chain && endpoint && api?.query?.recovery && isRecovering(formattedAddress, chain, endpoint); //TOLO: filter just supported chain
+  // }, [api, formattedAddress, chain, endpoint, isRecovering]);
+
   useEffect((): void => {
-    formattedAddress && chain && endpoint && api?.query?.recovery && isRecovering(formattedAddress, chain, endpoint); //TOLO: filter just supported chain
-  }, [api, formattedAddress, chain, endpoint, isRecovering]);
+    const chainName = chain?.name.replace(' Relay Chain', '');
+
+    formattedAddress && chainName && getInitiations(chainName, formattedAddress, 'lost').then((initiations: Initiation[] | null) => {
+      // console.log('initiations:', initiations);
+
+      if (!initiations?.length) {
+        //no initiations set rescuers null
+        return;
+      }
+
+      // eslint-disable-next-line no-void
+      void getCloses(chainName, formattedAddress).then((closes: Close[] | null) => {
+        // console.log('recovery closes', closes);
+
+        if (!closes?.length) {
+          // console.log('*****rescuersssss', initiations);
+
+          // return set all initiations
+          return;
+        }
+
+        const openInitiation = initiations.filter((i: Initiation) => !closes.find((c: Close) => c.lost === i.lost && c.rescuer === i.rescuer && new BN(i.blockNumber).lt(new BN(c.blockNumber))));
+        const maybeRescuers = openInitiation?.map((oi) => oi.rescuer);
+
+        maybeRescuers?.length && setIsRecoveringAlert(true);
+
+
+        maybeRescuers?.length && api && api.query.recovery.activeRecoveries(formattedAddress, maybeRescuers[0]).then((activeRecovery: Option<PalletRecoveryActiveRecovery>) => {
+          // console.log('activeRecovery utilizing subQuery is :', activeRecovery?.isSome ? activeRecovery.unwrap() : null);
+
+          if (activeRecovery?.isSome) {
+            const unwrapedRescuer = activeRecovery.unwrap();
+
+            setRescuer({
+              accountId: maybeRescuers[0],
+              option: {
+                created: unwrapedRescuer.created,
+                deposit: unwrapedRescuer.deposit,
+                friends: JSON.parse(JSON.stringify(unwrapedRescuer.friends)) as string[]
+              }
+            });
+          } else {
+            setRescuer(null);
+          }
+        });
+
+      });
+    });
+  }, [api, formattedAddress, chain]);
 
   useEffect((): void => {
     // eslint-disable-next-line no-void
@@ -327,7 +382,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
             : <>
               <Grid alignItems='flex-start' container item justifyContent='center' sx={{ pl: 1, textAlign: 'center' }} xs={2}>
                 <Grid item sx={{ cursor: 'pointer' }}>
-                  {recoverable && rescuer === null &&
+                  {recoverable && !isRecoveringAlert &&
                     <FontAwesomeIcon
                       color={green[600]}
                       icon={faShield}
@@ -337,7 +392,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                       title={t && t('recoverable')}
                     />
                   }
-                  {rescuer &&
+                  {isRecoveringAlert &&
                     <FontAwesomeIcon
                       beat
                       color={red[600]}
