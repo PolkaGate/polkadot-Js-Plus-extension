@@ -160,9 +160,9 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
     };
   }, [address, chain, formattedAddress, name, endpoint]);
 
-  // useEffect((): void => {
-  //   formattedAddress && chain && endpoint && api?.query?.recovery && isRecovering(formattedAddress, chain, endpoint); //TOLO: filter just supported chain
-  // }, [api, formattedAddress, chain, endpoint, isRecovering]);
+  useEffect((): void => {
+    formattedAddress && chain && endpoint && api?.query?.recovery && isRecovering(formattedAddress, chain, endpoint); //TOLO: filter just supported chain
+  }, [api, formattedAddress, chain, endpoint, isRecovering]);
 
   useEffect((): void => {
     const chainName = chain?.name.replace(' Relay Chain', '');
@@ -172,28 +172,29 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
 
       if (!initiations?.length) {
         //no initiations set rescuers null
-        return;
+        return setIsRecoveringAlert(false);
       }
 
       // eslint-disable-next-line no-void
       void getCloses(chainName, formattedAddress).then((closes: Close[] | null) => {
         // console.log('recovery closes', closes);
 
-        if (!closes?.length) {
-          // console.log('*****rescuersssss', initiations);
+        let maybeRescuers = initiations.map((i) => i.rescuer);
 
-          // return set all initiations
-          return;
+        if (closes?.length) {
+          const openInitiation = initiations.filter((i: Initiation) => !closes.find((c: Close) => c.lost === i.lost && c.rescuer === i.rescuer && new BN(i.blockNumber).lt(new BN(c.blockNumber))));
+
+          maybeRescuers = openInitiation?.map((oi) => oi.rescuer);
         }
 
-        const openInitiation = initiations.filter((i: Initiation) => !closes.find((c: Close) => c.lost === i.lost && c.rescuer === i.rescuer && new BN(i.blockNumber).lt(new BN(c.blockNumber))));
-        const maybeRescuers = openInitiation?.map((oi) => oi.rescuer);
-
-        maybeRescuers?.length && setIsRecoveringAlert(true);
-
+        if (maybeRescuers?.length) {
+          setIsRecoveringAlert(true);
+        } else {
+          return setIsRecoveringAlert(false);
+        }
 
         maybeRescuers?.length && api && api.query.recovery.activeRecoveries(formattedAddress, maybeRescuers[0]).then((activeRecovery: Option<PalletRecoveryActiveRecovery>) => {
-          // console.log('activeRecovery utilizing subQuery is :', activeRecovery?.isSome ? activeRecovery.unwrap() : null);
+          console.log('activeRecovery utilizing subQuery is :', activeRecovery?.isSome ? activeRecovery.unwrap() : null);
 
           if (activeRecovery?.isSome) {
             const unwrapedRescuer = activeRecovery.unwrap();
@@ -210,7 +211,6 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
             setRescuer(null);
           }
         });
-
       });
     });
   }, [api, formattedAddress, chain]);
@@ -382,7 +382,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
             : <>
               <Grid alignItems='flex-start' container item justifyContent='center' sx={{ pl: 1, textAlign: 'center' }} xs={2}>
                 <Grid item sx={{ cursor: 'pointer' }}>
-                  {recoverable && !isRecoveringAlert &&
+                  {recoverable && (isRecoveringAlert === false || rescuer === null) &&
                     <FontAwesomeIcon
                       color={green[600]}
                       icon={faShield}
@@ -392,7 +392,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
                       title={t && t('recoverable')}
                     />
                   }
-                  {isRecoveringAlert &&
+                  {(isRecoveringAlert || rescuer) &&
                     <FontAwesomeIcon
                       beat
                       color={red[600]}
