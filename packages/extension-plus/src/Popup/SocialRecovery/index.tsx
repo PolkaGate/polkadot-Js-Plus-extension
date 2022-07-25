@@ -184,17 +184,17 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     return (
       <Paper elevation={recoveryFirstSel === name ? 8 : 4} onMouseOver={() => setRecoveryFirstSel(name)} sx={{ borderRadius: '10px', pt: 1, width: '45%' }}>
         <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, pt: 3, pb: 1 }}>
-          <Grid color={titleColor} item>
-            <p>{title.toUpperCase()}</p>
-          </Grid>
           <Grid item>
             {icon}
+          </Grid>
+          <Grid color={titleColor} item>
+            <p>{title.toUpperCase()}</p>
           </Grid>
         </Grid>
         <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
           <Divider light />
         </Grid>
-        <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
+        <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, height: '160px', px: 2 }}>
           {text}
         </Grid>
         <Grid container justifyContent='center' sx={{ pt: 3, pb: 2 }}>
