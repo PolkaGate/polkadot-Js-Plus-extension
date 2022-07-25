@@ -13,8 +13,8 @@ import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { Security as SecurityIcon, Support as SupportIcon } from '@mui/icons-material';
-import { Button,Divider, Grid, Paper } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { Button, Divider, Grid, Paper } from '@mui/material';
+import { blue, grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import styled from 'styled-components';
@@ -178,52 +178,55 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     setRescueModalOpen(true);
   }, []);
 
+  const Option: React.FC<{ icon: React.ReactNode, titleColor: any, text: string, title: string, action: React.MouseEventHandler<HTMLButtonElement> }> = ({ action, icon, text, title, titleColor }) => {
+    const name = title.split(' ')[0];
+
+    return (
+      <Paper elevation={recoveryFirstSel === name ? 8 : 4} onMouseOver={() => setRecoveryFirstSel(name)} sx={{ borderRadius: '10px', pt: 1, width: '45%' }}>
+        <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, pt: 3, pb: 1 }}>
+          <Grid color={titleColor} item>
+            <p>{title.toUpperCase()}</p>
+          </Grid>
+          <Grid item>
+            {icon}
+          </Grid>
+        </Grid>
+        <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
+          <Divider light />
+        </Grid>
+        <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
+          {text}
+        </Grid>
+        <Grid container justifyContent='center' sx={{ pt: 3, pb: 2 }}>
+          <Button
+            color='warning'
+            onClick={action}
+            sx={{ textTransform: 'none', width: '80%' }}
+            variant='contained'
+          >
+            {name}
+          </Button>
+        </Grid>
+      </Paper>
+    );
+  };
+
   const Selection = () => (
     <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: '80px' }} >
-      <Paper elevation={recoveryFirstSel === 'configure' ? 8 : 4} onMouseOver={() => setRecoveryFirstSel('configure')} sx={{ borderRadius: '10px', height: 340, pt: 1, width: '45%' }}>
-        <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, pt: 3, pb: 1 }}>
-          <Grid item>
-            <SecurityIcon color='primary' fontSize='large' />
-          </Grid>
-        </Grid>
-        <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
-          <Divider light />
-        </Grid>
-        <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-          {t('You can make your account "recoverable", remove recovery from an already recoverable account, or close a recovery process that is initiated by a (malicious) rescuer account.')}
-        </Grid>
-        <Grid container justifyContent='center' sx={{ pt: 3 }}>
-          <Button
-            color='warning'
-            onClick={() => openConfigure()}
-            sx={{ textTransform: 'none' }}
-            variant='contained'>
-            {t('Configure my account')}
-          </Button>
-        </Grid>
-      </Paper>
-      <Paper elevation={recoveryFirstSel === 'rescue' ? 8 : 4} onMouseOver={() => setRecoveryFirstSel('rescue')} sx={{ borderRadius: '10px', height: 340, pt: 1, width: '45%' }}>
-        <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, pt: 3, pb: 1 }}>
-          <Grid item>
-            <SupportIcon color='secondary' fontSize='large' />
-          </Grid>
-        </Grid>
-        <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
-          <Divider light />
-        </Grid>
-        <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, px: 2 }}>
-          {t('You can try to rescue another account. As a "rescuer", you can recover a lost account, or as a "friend", you can "vouch" to confirm the recovery of a lost account by a rescuer account.')}
-        </Grid>
-        <Grid container justifyContent='center' sx={{ pt: 3 }}>
-          <Button
-            color='warning'
-            onClick={() => openRescue()}
-            sx={{ textTransform: 'none' }}
-            variant='contained'>
-            {t('Rescue another account')}
-          </Button>
-        </Grid>
-      </Paper>
+      <Option
+        action={openConfigure}
+        icon={<SecurityIcon color='primary' fontSize='large' />}
+        title='Configure my account'
+        titleColor={blue[600]}
+        text={t<string>('You can make your account "recoverable", remove recovery from an already recoverable account, or close a recovery process that is initiated by a (malicious) rescuer account.')}
+      />
+      <Option
+        action={openRescue}
+        icon={<SupportIcon color='success' fontSize='large' />}
+        title='Rescue another account'
+        titleColor={'green'}
+        text={t('You can try to rescue another account. As a "rescuer", you can recover a lost account, or as a "friend", you can "vouch" to confirm the recovery of a lost account by a rescuer account.')}
+      />
     </Grid>
   );
 
