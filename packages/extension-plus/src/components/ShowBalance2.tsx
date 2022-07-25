@@ -28,7 +28,7 @@ export interface Props {
 
 function ShowBalance2({ api, balance, direction = 'column', title }: Props): React.ReactElement<Props> {
   return (
-    <Grid container data-testid='ShowBalance2' direction={direction} justifyContent='space-between'>
+    <Grid alignItems='center' container data-testid='ShowBalance2' direction={direction} justifyContent='space-between'>
       {title && <>
         <Grid item sx={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.8px', lineHeight: '16px' }}>
           {title}
