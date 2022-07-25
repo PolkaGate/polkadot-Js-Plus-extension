@@ -19,9 +19,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
 import { NextStepButton } from '@polkadot/extension-ui/components';
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Hint, Identity } from '../../components';
+import { Hint, Identity, ShowBalance2 } from '../../components';
 import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
 import AddFriend from './AddFriend';
 import Confirm from './Confirm';
@@ -29,10 +30,10 @@ import Confirm from './Confirm';
 interface Props {
   account: DeriveAccountInfo | undefined;
   chain: Chain | null;
-  recoveryInfo: PalletRecoveryRecoveryConfig | null;
+  recoveryInfo: PalletRecoveryRecoveryConfig | null | undefined;
   recoveryConsts: RecoveryConsts | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
-  addresesOnThisChain: nameAddress[];
+  addresesOnThisChain: nameAddress[] | undefined;
   api: ApiPromise | undefined;
 }
 
@@ -45,6 +46,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [showAddFriendModal, setShowAddFriendModal] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
+  const [deposit, setDeposit] = useState<BN | undefined>(recoveryConsts?.configDepositBase);
 
   const handleRecoveryThreshold = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
     const nodecimalValue = event.target.value.replace('.', '');
@@ -86,6 +88,10 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
     setFriends(onChainFriends);
   }, [recoveryInfo, accountsInfo]);
 
+  useEffect(() => {
+    recoveryConsts?.friendDepositFactor && recoveryConsts?.configDepositBase && friends?.length && setDeposit(recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friends.length)));
+  }, [friends, recoveryConsts?.configDepositBase, recoveryConsts?.friendDepositFactor]);
+
   return (
     <>
       <Grid item p='0px 15px 0px' sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -99,25 +105,30 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
         }
       </Grid>
       <Grid alignItems='center' container item justifyContent='space-between' pb='2px' pt='20px' xs={12}>
-        <Grid item p='7px 15px 7px'>
-          <Typography sx={{ color: 'text.primary' }} variant='body2'>
-            {t('Your recovery friends')} {`(${friends?.length ?? 0})`}
-          </Typography>
+        <Grid alignItems='center' container item justifyContent='flex-start' xs={6}>
+          <Grid item p='7px 15px 7px'>
+            <Typography sx={{ color: 'text.primary' }} variant='body2'>
+              {t('Your recovery friends')} {`(${friends?.length ?? 0})`}
+            </Typography>
+          </Grid>
+          <Grid item>
+            {!recoveryInfo &&
+              <Hint id='addFriend' place='left' tip={t('add a friend')}>
+                <IconButton
+                  aria-label='addFriend'
+                  color='warning'
+                  disabled={!(recoveryConsts && friends.length < recoveryConsts.maxFriends)}
+                  onClick={handleAddFriend}
+                  size='small'
+                >
+                  <AddCircleRoundedIcon sx={{ fontSize: 25 }} />
+                </IconButton>
+              </Hint>
+            }
+          </Grid>
         </Grid>
-        <Grid item>
-          {!recoveryInfo &&
-            <Hint id='addFriend' place='left' tip={t('add a friend')}>
-              <IconButton
-                aria-label='addFriend'
-                color='warning'
-                disabled={!(recoveryConsts && friends.length < recoveryConsts.maxFriends)}
-                onClick={handleAddFriend}
-                size='small'
-              >
-                <AddCircleRoundedIcon sx={{ fontSize: 25 }} />
-              </IconButton>
-            </Hint>
-          }
+        <Grid alignItems='center' item pr='7px' sx={{ fontSize: 13, color: grey[600] }} xs={3.5}>
+          <ShowBalance2 api={api} balance={deposit} direction='row' title={`${t('Deposit')}:`} />
         </Grid>
       </Grid>
       <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '205px', overflowY: 'auto' }} xs={12}>
@@ -211,7 +222,8 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           {recoveryInfo ? t('Next to remove recovery') : t('Next')}
         </NextStepButton>
       </Grid>
-      {showAddFriendModal &&
+      {
+        showAddFriendModal &&
         <AddFriend
           accountsInfo={accountsInfo}
           addresesOnThisChain={addresesOnThisChain}
@@ -219,8 +231,10 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           setFriends={setFriends}
           setShowAddFriendModal={setShowAddFriendModal}
           showAddFriendModal={showAddFriendModal}
-        />}
-      {showConfirmModal && api && chain && state && account && recoveryConsts &&
+        />
+      }
+      {
+        showConfirmModal && api && chain && state && account && recoveryConsts &&
         <Confirm
           account={account}
           api={api}

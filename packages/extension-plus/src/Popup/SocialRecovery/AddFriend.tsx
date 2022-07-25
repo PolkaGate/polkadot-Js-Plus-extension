@@ -33,7 +33,7 @@ interface Props extends ThemeProps {
   setFriends: React.Dispatch<React.SetStateAction<DeriveAccountInfo[]>>;
   friends: DeriveAccountInfo[];
   accountsInfo: DeriveAccountInfo[] | undefined;
-  addresesOnThisChain: nameAddress[];
+  addresesOnThisChain: nameAddress[] | undefined;
 }
 
 function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, setShowAddFriendModal, showAddFriendModal }: Props): React.ReactElement<Props> {
@@ -171,7 +171,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
           renderInput={(params) =>
             <TextField
               {...params}
-              InputLabelProps={{ shrink: true, style: { fontSize: 17} }}
+              InputLabelProps={{ shrink: true, style: { fontSize: 17 } }}
               autoFocus
               error={!text}
               label={t('New friend')}
