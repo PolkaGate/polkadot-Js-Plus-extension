@@ -147,7 +147,7 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
             value={info?.accountId ?? text}
           />
           : <NoAccountsIcon sx={{ color: grey[400], fontSize: 43 }} />
-          }
+        }
       </Grid>
       <Grid item xs>
         <Autocomplete
@@ -156,14 +156,13 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
           defaultValue={info?.accountId || text}
           disabled={!accountsInfo?.length}
           freeSolo
-          // onBlur={handleBlur}
           onChange={handleAutoComplateChange}
           options={addresesOnThisChain?.map((option) => `${option?.name} :    ${option.address}`)}
           // eslint-disable-next-line react/jsx-no-bind
           renderInput={(params) =>
             <TextField
               {...params}
-              InputLabelProps={{ shrink: true }}
+              InputLabelProps={{ shrink: true, style: { fontSize: 17 } }}
               autoFocus
               error={!text}
               helperText={info &&

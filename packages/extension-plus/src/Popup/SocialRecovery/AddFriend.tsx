@@ -148,7 +148,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
     }
   }, [filteredAccountsInfo]);
 
-  const FriendTextBox = () => (
+  const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
         {text &&
@@ -171,7 +171,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
           renderInput={(params) =>
             <TextField
               {...params}
-              InputLabelProps={{ shrink: true }}
+              InputLabelProps={{ shrink: true, style: { fontSize: 17} }}
               autoFocus
               error={!text}
               label={t('New friend')}
@@ -228,7 +228,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
           <Typography sx={{ color: 'text.primary', p: '15px' }} variant='body1'>
             {t('Add a friend account Id (or search by identity)')}:
           </Typography>
-          {accountsInfo?.length && <FriendTextBox />}
+          {accountsInfo?.length && <AccountTextBox />}
         </Grid>
         <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', pt: '40px' }} xs={12}>
           {accountInfo

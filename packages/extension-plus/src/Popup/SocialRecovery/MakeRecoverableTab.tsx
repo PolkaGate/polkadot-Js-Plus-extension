@@ -1,4 +1,3 @@
-/* eslint-disable simple-import-sort/imports */
 // Copyright 2019-2022 @polkadot/extension-plus authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
@@ -14,18 +13,18 @@ import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 
 import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
-import React, { useState, useCallback, useEffect } from 'react';
+import { grey } from '@mui/material/colors';
+import React, { useCallback, useEffect, useState } from 'react';
+
+import { ApiPromise } from '@polkadot/api';
+import { Chain } from '@polkadot/extension-chains/types';
+import { NextStepButton } from '@polkadot/extension-ui/components';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, Identity } from '../../components';
-
-import { NextStepButton } from '@polkadot/extension-ui/components';
-import { Chain } from '@polkadot/extension-chains/types';
-import { grey } from '@mui/material/colors';
 import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
 import AddFriend from './AddFriend';
 import Confirm from './Confirm';
-import { ApiPromise } from '@polkadot/api';
 
 interface Props {
   account: DeriveAccountInfo | undefined;
@@ -102,7 +101,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
       <Grid alignItems='center' container item justifyContent='space-between' pb='2px' pt='20px' xs={12}>
         <Grid item p='7px 15px 7px'>
           <Typography sx={{ color: 'text.primary' }} variant='body2'>
-            {t('Your recovery friends')} {!!friends?.length && `(${friends?.length})`}:
+            {t('Your recovery friends')} {`(${friends?.length ?? 0})`}
           </Typography>
         </Grid>
         <Grid item>
