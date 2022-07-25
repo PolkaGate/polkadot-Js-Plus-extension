@@ -323,8 +323,8 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
       return setLostAccountHelperText(t<string>('The account is NOT recoverable'));
     }
 
-    if (activeStep === STEP_MAP.INIT) {
-      return setLostAccountHelperText(t<string>('The account is recoverable, proceed to initiate recovery'));
+    if (activeStep === STEP_MAP.INIT && api && recoveryConsts) {
+      return setLostAccountHelperText(t<string>('Proceed to initiate recovery, {{deposit}} should be deposited', { replace: { deposit: api.createType('Balance', recoveryConsts?.recoveryDeposit).toHuman() } }));
     }
 
     if (activeStep === STEP_MAP.WAIT) {
@@ -334,7 +334,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     if (activeStep === STEP_MAP.WITHDRAW) {
       return setLostAccountHelperText(t<string>('The lost account\'s balance(s) can be withdrawn'));
     }
-  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t, receivedVouchers, activeStep]);
+  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t, receivedVouchers, activeStep, recoveryConsts, api]);
 
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>

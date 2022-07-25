@@ -194,7 +194,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
         <Grid item sx={{ fontSize: 12, pb: '15px' }} xs={12}>
           <Divider light />
         </Grid>
-        <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, height: '160px', px: 2 }}>
+        <Grid color={grey[500]} container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, height: '170px', px: 2 }}>
           {text}
         </Grid>
         <Grid container justifyContent='center' sx={{ pt: 3, pb: 2 }}>
