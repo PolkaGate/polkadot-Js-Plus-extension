@@ -12,24 +12,25 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AddCircleRounded as AddCircleRoundedIcon, NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
+import { AddCircleRounded as AddCircleRoundedIcon, NoAccounts as NoAccountsIcon, NavigateNext as NavigateNextIcon, NavigateBefore as NavigateBeforeIcon } from '@mui/icons-material';
 import { Typography, Autocomplete, Grid, TextField } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
 import styled from 'styled-components';
 import Identicon from '@polkadot/react-identicon';
 import isValidAddress from '../../util/validateAddress';
-import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../components';
+import { Chain } from '@polkadot/extension-chains/types';
 
-import { AddressState, nameAddress } from '../../util/plusTypes';
+import { nameAddress } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
+import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
   addresesOnThisChain: nameAddress[] | undefined;
+  chain: Chain | null;
   className?: string;
   friends: DeriveAccountInfo[];
   showAddFriendModal: boolean;
@@ -37,10 +38,8 @@ interface Props extends ThemeProps {
   setFriends: React.Dispatch<React.SetStateAction<DeriveAccountInfo[]>>;
 }
 
-function AddFriend({ account, accountsInfo, addresesOnThisChain, friends, setFriends, setShowAddFriendModal, showAddFriendModal }: Props): React.ReactElement<Props> {
+function AddFriend({ account, accountsInfo, addresesOnThisChain, chain, friends, setFriends, setShowAddFriendModal, showAddFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const { genesisHash } = useParams<AddressState>();
-  const chain = useMetadata(genesisHash, true);
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [filteredAccountsInfo, setFilteredAccountsInfo] = useState<DeriveAccountInfo[] | undefined | null>();
   const [text, setText] = useState<string | undefined>();
@@ -154,13 +153,15 @@ function AddFriend({ account, accountsInfo, addresesOnThisChain, friends, setFri
   const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
-        {text &&
-          <Identicon
+        {text
+          ? <Identicon
             prefix={chain?.ss58Format ?? 42}
             size={40}
             theme={chain?.icon || 'polkadot'}
             value={text}
-          />}
+          />
+          : <NoAccountsIcon sx={{ color: grey[400], fontSize: 43 }} />
+        }
       </Grid>
       <Grid item xs={11}>
         <Autocomplete

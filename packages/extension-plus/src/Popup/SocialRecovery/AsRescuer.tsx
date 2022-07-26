@@ -17,17 +17,16 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
 import { Divider, Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
 import styled from 'styled-components';
 
+import { Chain } from '@polkadot/extension-chains/types';
 import { Button } from '@polkadot/extension-ui/components';
 import { BN, BN_ZERO } from '@polkadot/util';
 import { encodeAddress } from '@polkadot/util-crypto';
 
-import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../components';
-import { AddressState, nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
+import { nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
 import { remainingTimeCountDown } from '../../util/plusUtils';
 import { getVouchers } from '../../util/subqery/recovery';
 import AddNewAccount from './AddNewAccount';
@@ -37,6 +36,7 @@ interface Props extends ThemeProps {
   api: ApiPromise | undefined;
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
+  chain: Chain | null;
   className?: string;
   handleCloseAsRescuer: () => void
   showAsRescuerModal: boolean;
@@ -48,10 +48,8 @@ interface Props extends ThemeProps {
 const steps = ['Initiate', 'Wait', 'Withdraw'];
 const STEP_MAP = { INIT: 0, WAIT: 1, WITHDRAW: 2 };
 
-function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsRescuer, lastLostAccount, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
+function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, handleCloseAsRescuer, lastLostAccount, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const { genesisHash } = useParams<AddressState>();
-  const chain = useMetadata(genesisHash, true);
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>(lastLostAccount);
   const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
@@ -324,7 +322,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
     }
 
     if (activeStep === STEP_MAP.INIT && api && recoveryConsts) {
-      return setLostAccountHelperText(t<string>('Proceed to initiate recovery, {{deposit}} should be deposited', { replace: { deposit: api.createType('Balance', recoveryConsts?.recoveryDeposit).toHuman() } }));
+      return setLostAccountHelperText(t<string>('Proceed to initiate recovery, {{deposit}} needs to be deposited', { replace: { deposit: api.createType('Balance', recoveryConsts?.recoveryDeposit).toHuman() } }));
     }
 
     if (activeStep === STEP_MAP.WAIT) {
@@ -356,7 +354,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, handleClos
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccount &&
             <> {lostAccountHelperText && (lostAccountRecoveryInfo === null || receivedVouchers !== undefined)
-              ? <Grid fontSize={15} fontWeight={500} item pt='85px' textAlign='center'>
+              ? <Grid fontSize={15} fontWeight={600} item pt='85px' textAlign='center'>
                 {lostAccountHelperText}
               </Grid>
               : <Progress pt={1} title={t('Checking the account')} />

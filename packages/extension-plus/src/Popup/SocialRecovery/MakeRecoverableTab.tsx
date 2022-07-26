@@ -227,6 +227,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           account={account}
           accountsInfo={accountsInfo}
           addresesOnThisChain={addresesOnThisChain}
+          chain={chain}
           friends={friends}
           setFriends={setFriends}
           setShowAddFriendModal={setShowAddFriendModal}

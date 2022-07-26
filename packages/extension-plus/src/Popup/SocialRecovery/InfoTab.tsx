@@ -12,7 +12,9 @@ import type { ApiPromise } from '@polkadot/api';
 
 import { Divider, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React from 'react';
+import React, { useMemo } from 'react';
+
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ShowBalance2, ShowValue } from '../../components';
@@ -23,10 +25,22 @@ interface Props {
   recoveryConsts: RecoveryConsts | undefined;
 }
 
-function InfoTab({ api, recoveryConsts }: Props): React.ReactElement<Props> {
+function InfoTab({ api }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const token = api && api.registry.chainTokens[0];
+  const recoveryConsts = useMemo(() => {
+    if (!api) {
+      return undefined;
+    }
+
+    return {
+      configDepositBase: api.consts.recovery.configDepositBase as unknown as BN,
+      friendDepositFactor: api.consts.recovery.friendDepositFactor as unknown as BN,
+      maxFriends: api.consts.recovery.maxFriends.toNumber() as number,
+      recoveryDeposit: api.consts.recovery.recoveryDeposit as unknown as BN
+    };
+  }, [api]);
 
   return (
     <Grid container data-testid='info' sx={{ fontFamily: 'sans-serif', paddingTop: '75px', textAlign: 'center' }}>

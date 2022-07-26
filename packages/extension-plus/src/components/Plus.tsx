@@ -339,12 +339,12 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const handleOpenRecovery = useCallback((): void => {
     if (!chain || !onAction) { return; }
 
-    onAction(`/socialRecovery/${chain.genesisHash}/${address}`)
+    onAction(`/socialRecovery/${chain.genesisHash}/${address}`);
   }, [address, chain, onAction]);
 
   const handleCloseRecovery = useCallback((): void => {
     chain && setCloseRecoveryModalOpen(true);
-  }, [chain, rescuer]);
+  }, [chain]);
 
   function getCoin(_myBalance: AccountsBalanceType): string {
     return !_myBalance || !_myBalance.balanceInfo ? '' : _myBalance.balanceInfo.coin;

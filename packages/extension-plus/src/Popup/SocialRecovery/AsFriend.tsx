@@ -15,16 +15,15 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 import { AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
 import { Typography, Grid } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
 import styled from 'styled-components';
+import { Chain } from '@polkadot/extension-chains/types';
 
-import useMetadata from '../../../../extension-ui/src/hooks/useMetadata';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../components';
 import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
-import { AddressState, nameAddress, RecoveryConsts } from '../../util/plusTypes';
+import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import AddNewAccount from './AddNewAccount';
@@ -33,6 +32,7 @@ interface Props extends ThemeProps {
   api: ApiPromise | undefined;
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
+  chain: Chain | null;
   className?: string;
   handleCloseAsFriend: () => void
   showAsFriendModal: boolean;
@@ -40,10 +40,8 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
-function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
+function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const { genesisHash } = useParams<AddressState>();
-  const chain = useMetadata(genesisHash, true);
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
   const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
   const [rescuerAccount, setRescuerAccount] = useState<DeriveAccountInfo | undefined>();
@@ -171,10 +169,8 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, handleClose
               <AddNewAccount account={rescuerAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Rescuer')} setAccount={setRescuerAccount} />
               {rescuerAccount &&
                 <> {rescuerAccountHelperText
-                  ? <Grid pt='85px' textAlign='center'>
-                    <Typography sx={{ color: 'text.primary' }} variant='subtitle2'>
+                  ? <Grid pt='85px' textAlign='center' fontSize={15} fontWeight={600}>
                       {rescuerAccountHelperText}
-                    </Typography>
                   </Grid>
                   : <Progress pt={1} title={t('Checking the resuer account')} />
                 }

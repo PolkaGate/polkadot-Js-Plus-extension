@@ -49,7 +49,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
 
   useEffect(() => {
     const chainName = chain?.name.replace(' Relay Chain', '');
-    
+
     account?.accountId && chainName && getInitiations(chainName, account.accountId, 'rescuer', true).then((intiation: Initiation | null) => {
       console.log('intiation:', intiation);
 
@@ -177,6 +177,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
           accountsInfo={accountsInfo}
           addresesOnThisChain={addresesOnThisChain}
           api={api}
+          chain={chain}
           handleCloseAsRescuer={handleCloseAsRescuer}
           lastLostAccount={activeRescue ? { accountId: activeRescue?.lost } : undefined}
           recoveryConsts={recoveryConsts}
@@ -189,6 +190,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
           accountsInfo={accountsInfo}
           addresesOnThisChain={addresesOnThisChain}
           api={api}
+          chain={chain}
           handleCloseAsFriend={handleCloseAsFriend}
           recoveryConsts={recoveryConsts}
           showAsFriendModal={showAsFriendModal}
