@@ -77,7 +77,7 @@ function Configure({ account, accountsInfo, addresesOnThisChain, api, chain, cla
             <Tab icon={<InfoOutlinedIcon fontSize='small' />} iconPosition='start' label='Info' sx={{ fontSize: 11 }} value='info' />
           </Tabs>
         </Grid>
-        {tabValue === 'configuration' && !status &&
+        {tabValue === 'configuration' && ((status === 'closeRecovery' && !rescuer) || !status) &&
           <RecoveryChecking
             recoveryInfo={recoveryInfo}
             rescuer={rescuer}

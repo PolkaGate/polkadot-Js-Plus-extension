@@ -343,16 +343,12 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   }, [address, chain, onAction]);
 
   const handleCloseRecovery = useCallback((): void => {
-    chain && rescuer && setCloseRecoveryModalOpen(true);
+    chain && setCloseRecoveryModalOpen(true);
   }, [chain, rescuer]);
 
   function getCoin(_myBalance: AccountsBalanceType): string {
     return !_myBalance || !_myBalance.balanceInfo ? '' : _myBalance.balanceInfo.coin;
   }
-
-  const handleExitCloseRecovery = useCallback((): void => {
-    setCloseRecoveryModalOpen(false);
-  }, [setCloseRecoveryModalOpen]);
 
   return (
     <Container disableGutters sx={{ position: 'relative', top: '-10px' }}>
@@ -524,17 +520,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
           staker={sender}
         />
       }
-      {/* {showCloseRecoveryModal && rescuer && formattedAddress && chain && // TODO: chain should be supported ones
-        <CloseRecovery
-          api={api}
-          chain={chain}
-          formattedAddress={formattedAddress}
-          handleExitCloseRecovery={handleExitCloseRecovery}
-          rescuer={rescuer}
-          showCloseRecoveryModal={showCloseRecoveryModal}
-        />
-      } */}
-      {showCloseRecoveryModal && rescuer && formattedAddress && chain && // TODO: chain should be supported ones
+      {showCloseRecoveryModal && formattedAddress && chain && // TODO: chain should be supported ones
         <Configure
           account={{ accountId: formattedAddress }}
           api={api}
