@@ -14,6 +14,7 @@ export default function useEndpoint(
   accounts: AccountJson[] | AccountJson,
   address: string | null | undefined,
   chain: Chain | null | undefined): string | undefined {
+    
   const endpoint = useMemo(() => {
     if (ENVIREONMENT === 'developement') {
       return DEVELOPEMENT_ENDPOINT;
@@ -25,8 +26,7 @@ export default function useEndpoint(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const endPointFromStore: SavedMetaData = account?.endpoint ? JSON.parse(account.endpoint) : null;
 
-    // TODO: THE CONDITION SHOULD BE CHANGED WHILE USING lIGHT Client
-    if (endPointFromStore && endPointFromStore?.chainName === chainName && String(endPointFromStore).startsWith('ws')) {
+    if (endPointFromStore && endPointFromStore?.chainName === chainName) {
       return endPointFromStore.metaData as string;
     }
 

@@ -64,6 +64,7 @@ const defaultSubscribtion = { chainName: '', endpoint: '' };
 function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): React.ReactElement<Props> {
   const { accounts } = useContext(AccountContext);
   const endpoint = useEndPoint(accounts, address, chain);
+  console.log('endPoint:', endpoint)
   const api = useApi(endpoint);
   const onAction = useContext(ActionContext);
   const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
@@ -134,9 +135,9 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const subscribeToBalanceChanges = useCallback((): void => {
     if (!chain || !endpoint || !formattedAddress) { return; }
 
-    console.log(`subscribing to balance changes on chain:${chain?.name} using endpoint:${endpoint}`);
+    console.log(`subscribing to:${chain?.name} using:${endpoint}`);
 
-    setBalanceChangeSubscribtion({ chainName: chain?.name, endpoint: endpoint });
+    setBalanceChangeSubscribtion({ chainName: chain?.name, endpoint });
     const subscribeToBalanceChangesWorker: Worker = new Worker(new URL('../util/workers/subscribeToBalance.js', import.meta.url));
 
     subscribeToBalanceChangesWorker.postMessage({ address, endpoint, formattedAddress });
