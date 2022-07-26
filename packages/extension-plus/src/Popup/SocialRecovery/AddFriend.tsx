@@ -27,16 +27,17 @@ import { AddressState, nameAddress } from '../../util/plusTypes';
 import { Button } from '@polkadot/extension-ui/components';
 
 interface Props extends ThemeProps {
+  account: DeriveAccountInfo | undefined;
+  accountsInfo: DeriveAccountInfo[] | undefined;
+  addresesOnThisChain: nameAddress[] | undefined;
   className?: string;
+  friends: DeriveAccountInfo[];
   showAddFriendModal: boolean;
   setShowAddFriendModal: React.Dispatch<React.SetStateAction<boolean>>;
   setFriends: React.Dispatch<React.SetStateAction<DeriveAccountInfo[]>>;
-  friends: DeriveAccountInfo[];
-  accountsInfo: DeriveAccountInfo[] | undefined;
-  addresesOnThisChain: nameAddress[] | undefined;
 }
 
-function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, setShowAddFriendModal, showAddFriendModal }: Props): React.ReactElement<Props> {
+function AddFriend({ account, accountsInfo, addresesOnThisChain, friends, setFriends, setShowAddFriendModal, showAddFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { genesisHash } = useParams<AddressState>();
   const chain = useMetadata(genesisHash, true);
@@ -105,11 +106,13 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
   const handleAddFriend = useCallback(() => {
     const mayBeAddress = isValidAddress(text) ? text : undefined;
 
-    if (!mayBeAddress && !accountInfo?.accountId) { return; }
+    const isEnteredMeAsMySelfFriend = String(account?.accountId) === mayBeAddress;
+    
+    if ((!mayBeAddress && !accountInfo?.accountId) || isEnteredMeAsMySelfFriend) { return; }
 
     const mayBeNewFriend = mayBeAddress || accountInfo?.accountId?.toString();
 
-    if (!friends.find((i) => i.accountId === mayBeNewFriend)) {
+    if (!friends.find((i) => i.accountId === mayBeNewFriend)) { // if the account is not already added
       const temp = [...friends];
 
       accountInfo ? temp.push(accountInfo) : temp.push({ accountId: mayBeNewFriend, identity: undefined });
@@ -118,7 +121,7 @@ function AddFriend({ accountsInfo, addresesOnThisChain, friends, setFriends, set
       setFriends([...temp]);
       setShowAddFriendModal(false);
     }
-  }, [accountInfo, friends, setFriends, setShowAddFriendModal, text]);
+  }, [account, accountInfo, friends, setFriends, setShowAddFriendModal, text]);
 
   const handleCloseModal = useCallback((): void => {
     setShowAddFriendModal(false);

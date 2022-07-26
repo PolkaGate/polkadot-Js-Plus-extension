@@ -222,9 +222,9 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           {recoveryInfo ? t('Next to remove recovery') : t('Next')}
         </NextStepButton>
       </Grid>
-      {
-        showAddFriendModal &&
+      {showAddFriendModal &&
         <AddFriend
+          account={account}
           accountsInfo={accountsInfo}
           addresesOnThisChain={addresesOnThisChain}
           friends={friends}
