@@ -107,7 +107,7 @@ function AddFriend({ account, accountsInfo, addresesOnThisChain, friends, setFri
     const mayBeAddress = isValidAddress(text) ? text : undefined;
 
     const isEnteredMeAsMySelfFriend = String(account?.accountId) === mayBeAddress;
-    
+
     if ((!mayBeAddress && !accountInfo?.accountId) || isEnteredMeAsMySelfFriend) { return; }
 
     const mayBeNewFriend = mayBeAddress || accountInfo?.accountId?.toString();
