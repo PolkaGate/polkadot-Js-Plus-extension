@@ -64,7 +64,6 @@ const defaultSubscribtion = { chainName: '', endpoint: '' };
 function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): React.ReactElement<Props> {
   const { accounts } = useContext(AccountContext);
   const endpoint = useEndPoint(accounts, address, chain);
-  console.log('endPoint:', endpoint)
   const api = useApi(endpoint);
   const onAction = useContext(ActionContext);
   const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
