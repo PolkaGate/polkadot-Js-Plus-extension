@@ -29,7 +29,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../components';
 import { AddressState, nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
 import { remainingTimeCountDown } from '../../util/plusUtils';
-import { getVouchers } from '../../util/subqery';
+import { getVouchers } from '../../util/subqery/recovery';
 import AddNewAccount from './AddNewAccount';
 import Confirm from './Confirm';
 

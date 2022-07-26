@@ -17,7 +17,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import React, { useCallback, useState, useEffect } from 'react';
 import { BookmarkAddedOutlined as BookmarkAddedOutlinedIcon, HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon, Support as SupportIcon, AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import { getInitiation } from '../../util/subqery';
+import { getInitiations } from '../../util/subqery/recovery';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Initiation, nameAddress, RecoveryConsts } from '../../util/plusTypes';
@@ -48,12 +48,14 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
   const [showAsFriendModal, setShowAsFriendModal] = useState<boolean>(false);
 
   useEffect(() => {
-    account?.accountId && getInitiation(account.accountId).then((intiation: Initiation | null) => {
+    const chainName = chain?.name.replace(' Relay Chain', '');
+    
+    account?.accountId && chainName && getInitiations(chainName, account.accountId, 'rescuer', true).then((intiation: Initiation | null) => {
       console.log('intiation:', intiation);
 
       setActiveRescue(intiation);
     });
-  }, [account?.accountId]);
+  }, [account?.accountId, chain]);
 
   const handleRescuer = useCallback(() => {
     setShowAsRescuerModal(true);
