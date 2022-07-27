@@ -224,13 +224,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
             // eslint-disable-next-line no-void
             void poolWithdrawUnbonded(...dummyParams).paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
           }
-
-          // if (surAmount === currentlyStaked) {
-          //   // eslint-disable-next-line no-void
-          //   void chilled().paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
-          // } else {
-          // setEstimatedFee(fee);
-          // }
         });
 
         break;
@@ -500,31 +493,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       }
 
       if (localState === 'unstake' && surAmount.gt(BN_ZERO)) {
-        // if (surAmount === currentlyStaked) {
-        //   /**  if unstaking all, should chill first */
-        //   const { failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
-
-        //   history.push({
-        //     action: 'chill',
-        //     amount: '',
-        //     date: Date.now(),
-        //     fee: fee || '',
-        //     from: staker.address,
-        //     hash: txHash || '',
-        //     status: failureText || status,
-        //     to: ''
-        //   });
-
-        //   if (state === 'failed') {
-        //     console.log('chilling failed:', failureText);
-        //     setConfirmingState(status);
-
-        //     // eslint-disable-next-line no-void
-        //     void saveHistory(chain, hierarchy, staker.address, history);
-
-        //     return;
-        //   }
-        // }
         const params = [staker?.address, surAmount];
 
         if (unlockingLen < maxUnlockingChunks) {
@@ -655,7 +623,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       setState(localState);
       setConfirmingState('');
     }
-  }, [api, basePool, bondExtra, chain, claim, decimals, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
+  }, [api, basePool, bondExtra, chain, chilled, claim, decimals, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
 
   const handleReject = useCallback((): void => {
     setState('');
