@@ -31,7 +31,6 @@ import useApi from '../hooks/useApi';
 import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
-import CloseRecovery from '../Popup/SocialRecovery/CloseRecovery';
 import StakingIndex from '../Popup/Staking/StakingIndex';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
@@ -529,6 +528,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
           rescuer={rescuer}
           setConfigureModalOpen={setCloseRecoveryModalOpen}
           showConfigureModal={showCloseRecoveryModal}
+          
         />
       }
     </Container>

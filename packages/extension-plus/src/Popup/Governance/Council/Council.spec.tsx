@@ -228,7 +228,7 @@ describe('Testing Council component', () => {
 
     if (motions?.length) {
       expect(queryByText('Index')).toBeTruthy();
-      expect(queryByText(`Voting end${remainingTime(currentBlockNumber, motions[0].votes.end)}#${motions[0].votes.end}`)).toBeTruthy();
+      expect(queryByText(`Voting end${remainingTime(motions[0].votes.end - currentBlockNumber)}#${motions[0].votes.end}`)).toBeTruthy();
       expect(queryByText(`VotsAye ${motions[0].votes.ayes.length}/${motions[0].votes.threshold}`)).toBeTruthy();
       expect(queryByText(`Threshold${motions[0].votes.threshold}`)).toBeTruthy();
       expect(queryAllByRole('link')).toHaveLength(2);

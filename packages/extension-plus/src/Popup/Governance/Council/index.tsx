@@ -48,13 +48,13 @@ export default function CouncilIndex({ address, chainInfo, setCouncilModalOpen, 
 
     // eslint-disable-next-line no-void
     void chainInfo.api.query.council.proposalCount().then((c) => {
-      setTotalMotionsSofar(c.toNumber());
+      setTotalMotionsSofar(Number(c));
     }).catch(console.error);
 
     // eslint-disable-next-line no-void
     void chainInfo.api.derive.council?.proposals().then((p) => {
       if (p) {
-        setMotions(JSON.parse(JSON.stringify(p)));
+        setMotions(JSON.parse(JSON.stringify(p)) as DeriveCollectiveProposal[]);
 
         if (p?.length) { setCurrentMotionsCount(p.length); }
       }

@@ -27,7 +27,7 @@ interface Props {
   api: ApiPromise | undefined;
   validatorsInfo: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts | undefined;
-  validatorsIdentities: DeriveAccountInfo[] | null;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
   height: number;
   staker?: AccountsBalanceType | string;
 
@@ -50,7 +50,7 @@ export default function ValidatorsList({ activeValidator, api, chain, height, st
 
   return (
     <>
-      <Grid item sx={{ p: '0px 10px' }} xs={12}>
+      <Grid item xs={12}>
         {validatorsInfo && api
           ? <VTable
             activeValidator={activeValidator}

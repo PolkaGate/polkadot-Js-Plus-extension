@@ -65,7 +65,7 @@ describe('Testing unstake tab', () => {
 
     expect(queryByLabelText('Amount')).toBeTruthy();
     expect(queryByText('Fetching data from blockchain ...')).toBeFalsy();
-    expect(queryByText('Nothing to unstake')).toBeFalsy();
+    expect(queryByText('Nothing to unstake')).toBeTruthy();
     expect(queryByText('Unable to pay fee')).toBeFalsy();
     expect(queryAllByRole('button').length).toBe(1);
     expect(queryAllByRole('button')[0]?.hasAttribute('disabled')).toBeTruthy();
