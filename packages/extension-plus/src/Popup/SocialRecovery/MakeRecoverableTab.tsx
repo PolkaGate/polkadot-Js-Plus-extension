@@ -64,7 +64,9 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
   }, [friends]);
 
   const handleRecoveryDelay = useCallback((event: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>) => {
-    setRecoveryDelay(Number(event.target.value));
+    const top4char = event.target.value.substr(0, 4) as string;
+
+    setRecoveryDelay(Number(top4char));
   }, [setRecoveryDelay]);
 
   const handleNext = useCallback(() => {
