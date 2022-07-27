@@ -127,28 +127,38 @@ describe('Testing MakerecoverableTab component', () => {
       expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
     });
 
-    test('Bad boy testing', () => {
+    test.only('Bad boy testing', () => {
       const { debug, getByRole, queryByText } = render(
         <MakeRecoverable
-          account={undefined}
-          accountsInfo={undefined}
-          addresesOnThisChain={[]}
+          account={accountWithId[0]}
+          accountsInfo={accountWithId}
+          addresesOnThisChain={[]} // Don't care
           api={undefined}
           chain={null}
-          recoveryConsts={undefined}
+          recoveryConsts={recoveryConsts}
           recoveryInfo={null}
         />
       );
 
-      debug(undefined, 30000);
-      expect(queryByText('Make recoverable')).toBeTruthy();
-      expect(queryByText('Your recovery friends :')).toBeTruthy();
+      const addFriend = () => {
+        fireEvent.click(getByRole('button', { hidden: true, name: 'addFriend' }) as Element);
+        fireEvent.change(getByRole('combobox', { hidden: true, name: 'New friend' }), { target: { value: accountWithName[counter].address } });
+        fireEvent.click(getByRole('button', { hidden: true, name: 'Add' }) as Element);
+        counter++;
+      };
+
       expect(getByRole('button', { hidden: true, name: 'addFriend' })).toBeTruthy();
+      expect(getByRole('button', { hidden: true, name: 'addFriend' }).hasAttribute('disabled')).toBe(false);
       expect(queryByText('No friends are added yet!')).toBeTruthy();
       expect(getByRole('spinbutton', { hidden: true, name: 'Recovery threshold' })).toBeTruthy();
       expect(getByRole('spinbutton', { hidden: true, name: 'Recovery delay' })).toBeTruthy();
       expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
       expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+
+      fireEvent.change(getByRole('spinbutton', { hidden: true, name: 'Recovery threshold' }), { target: { value: 1 } });
+      expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+      addFriend();
+      expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(false);
     });
   });
 });
