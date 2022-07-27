@@ -212,20 +212,20 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   };
 
   const Selection = () => (
-    <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: '80px' }} >
+    <Grid alignItems='center' container justifyContent='space-around' sx={{ pt: '50px' }} >
       <Option
         action={openConfigure}
         icon={<SecurityIcon color='primary' fontSize='large' />}
+        text={t<string>('You can make your account "recoverable", remove recovery from an already recoverable account, or close a recovery process that is initiated by a (malicious) rescuer account.')}
         title='Configure my account'
         titleColor={blue[600]}
-        text={t<string>('You can make your account "recoverable", remove recovery from an already recoverable account, or close a recovery process that is initiated by a (malicious) rescuer account.')}
       />
       <Option
         action={openRescue}
         icon={<SupportIcon color='success' fontSize='large' />}
+        text={t('You can try to rescue another account. As a "rescuer", you can recover a lost account, or as a "friend", you can "vouch" to confirm the recovery of a lost account by a rescuer account.')}
         title='Rescue another account'
         titleColor={'green'}
-        text={t('You can try to rescue another account. As a "rescuer", you can recover a lost account, or as a "friend", you can "vouch" to confirm the recovery of a lost account by a rescuer account.')}
       />
     </Grid>
   );
