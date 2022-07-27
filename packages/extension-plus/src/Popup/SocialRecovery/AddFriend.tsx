@@ -27,7 +27,7 @@ import { Button } from '@polkadot/extension-ui/components';
 import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
-  account: DeriveAccountInfo | undefined;
+  account: DeriveAccountInfo;
   accountsInfo: DeriveAccountInfo[] | undefined;
   addresesOnThisChain: nameAddress[] | undefined;
   chain: Chain | null;
@@ -105,7 +105,7 @@ function AddFriend({ account, accountsInfo, addresesOnThisChain, chain, friends,
   const handleAddFriend = useCallback(() => {
     const mayBeAddress = isValidAddress(text) ? text : undefined;
 
-    const isEnteredMeAsMySelfFriend = String(account?.accountId) === mayBeAddress;
+    const isEnteredMeAsMySelfFriend = String(account.accountId) === mayBeAddress;
 
     if ((!mayBeAddress && !accountInfo?.accountId) || isEnteredMeAsMySelfFriend) { return; }
 
@@ -232,7 +232,7 @@ function AddFriend({ account, accountsInfo, addresesOnThisChain, chain, friends,
           <Typography sx={{ color: 'text.primary', p: '15px' }} variant='body1'>
             {t('Add a friend account Id (or search by identity)')}:
           </Typography>
-          {accountsInfo?.length && <AccountTextBox />}
+          <AccountTextBox />
         </Grid>
         <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', pt: '40px' }} xs={12}>
           {accountInfo

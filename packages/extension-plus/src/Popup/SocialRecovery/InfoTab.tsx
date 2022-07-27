@@ -78,7 +78,7 @@ function InfoTab({ api }: Props): React.ReactElement<Props> {
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, py: '5px' }} xs={12}>
           <Grid item>
-            {t('The base amount of {{token}}s needed to reserve for starting a recovery', { replace: { token } })}:
+            {t('The base amount of {{token}}s needed to reserve for initiating a recovery', { replace: { token } })}:
           </Grid>
           <Grid item>
             <ShowBalance2 api={api} balance={recoveryConsts?.recoveryDeposit} />
