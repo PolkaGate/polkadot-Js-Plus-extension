@@ -30,7 +30,7 @@ import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
-  account: DeriveAccountInfo | undefined;
+  account: DeriveAccountInfo;
   chain: Chain;
   className?: string;
   rescuer: Rescuer;
@@ -91,7 +91,7 @@ function CloseRecovery({ account, api, chain, rescuer }: Props): React.ReactElem
           </Button>
         </Grid>
       </Grid>
-      {showConfirmModal && api && chain && state && account &&
+      {showConfirmModal && api && chain && state && 
         <Confirm
           account={account}
           api={api}

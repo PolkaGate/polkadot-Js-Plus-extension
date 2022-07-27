@@ -22,7 +22,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 
 import { nameAddress, RecoveryConsts, Rescuer } from '../../util/plusTypes';
 import InfoTab from './InfoTab';
-import MakeRecoverableTab from './MakeRecoverableTab';
+import RecoverableTab from './RecoverableTab';
 import { Chain } from '@polkadot/extension-chains/types';
 import CloseRecoveryTab from './CloseRecoveryTab';
 import RecoveryChecking from './RecoveryCheckingTab';
@@ -84,8 +84,8 @@ function Configure({ account, accountsInfo, addresesOnThisChain, api, chain, cla
             setStatus={setStatus}
           />
         }
-        {tabValue === 'configuration' && status && ['makeRecoverable', 'removeRecovery'].includes(status) &&
-          <MakeRecoverableTab
+        {api && tabValue === 'configuration' && recoveryInfo !== undefined && status && ['makeRecoverable', 'removeRecovery'].includes(status) && account &&
+          <RecoverableTab
             account={account}
             accountsInfo={accountsInfo}
             addresesOnThisChain={addresesOnThisChain}
@@ -95,7 +95,7 @@ function Configure({ account, accountsInfo, addresesOnThisChain, api, chain, cla
             recoveryInfo={recoveryInfo}
           />
         }
-        {tabValue === 'configuration' && status && status === 'closeRecovery' && rescuer && chain &&
+        {tabValue === 'configuration' && status && status === 'closeRecovery' && rescuer && chain && account &&
           <CloseRecoveryTab
             account={account}
             api={api}

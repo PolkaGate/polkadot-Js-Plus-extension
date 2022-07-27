@@ -159,7 +159,9 @@ export const getWebsiteFavico = (url: string | undefined): string => {
 export function remainingTime(blocks: number): string {
   let mins = Math.floor(blocks * BLOCK_RATE / 60);
 
-  if (!mins) { return 'finished'; }
+  if (!mins) { return ''; }
+
+  if (mins <= 0) { return 'finished'; }
 
   let hrs = Math.floor(mins / 60);
   const days = Math.floor(hrs / 24);
