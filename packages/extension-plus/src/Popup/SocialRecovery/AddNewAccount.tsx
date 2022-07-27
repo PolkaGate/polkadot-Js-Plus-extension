@@ -154,7 +154,7 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
           ListboxProps={{ sx: { fontSize: 12 } }}
           autoFocus
           defaultValue={info?.accountId || text}
-          disabled={!accountsInfo?.length}
+          // disabled={!accountsInfo?.length}
           freeSolo
           onChange={handleAutoComplateChange}
           options={addresesOnThisChain?.map((option) => `${option?.name} :    ${option.address}`)}
