@@ -24,7 +24,7 @@ interface Props {
   chain: Chain;
   validators: DeriveStakingQuery[];
   stakingConsts: StakingConsts | undefined;
-  validatorsIdentities: DeriveAccountInfo[] | null;
+  validatorsIdentities: DeriveAccountInfo[] | undefined;
   setInfo: React.Dispatch<React.SetStateAction<DeriveStakingQuery | null>>;
   setShowValidatorInfoModal: React.Dispatch<React.SetStateAction<boolean>>;
   height?: number;
