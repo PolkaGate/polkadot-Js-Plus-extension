@@ -28,13 +28,13 @@ import AddFriend from './AddFriend';
 import Confirm from './Confirm';
 
 interface Props {
-  account: DeriveAccountInfo | undefined;
+  account: DeriveAccountInfo;
   chain: Chain | null;
-  recoveryInfo: PalletRecoveryRecoveryConfig | null | undefined;
+  recoveryInfo: PalletRecoveryRecoveryConfig | null;
   recoveryConsts: RecoveryConsts | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
   addresesOnThisChain: nameAddress[] | undefined;
-  api: ApiPromise | undefined;
+  api: ApiPromise;
 }
 
 function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, chain, recoveryConsts, recoveryInfo }: Props): React.ReactElement<Props> {
@@ -237,7 +237,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
         />
       }
       {
-        showConfirmModal && api && chain && state && account && recoveryConsts &&
+        showConfirmModal && api && chain && state && recoveryConsts &&
         <Confirm
           account={account}
           api={api}
