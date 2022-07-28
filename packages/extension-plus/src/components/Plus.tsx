@@ -39,7 +39,7 @@ import { AccountsBalanceType, BalanceType, Rescuer, SavedMetaData } from '../uti
 import { prepareMetaData } from '../util/plusUtils';
 import { Balance } from './';
 import Configure from '../Popup/SocialRecovery/Configure';
-import { getCloses, getInitiations } from '../util/subqery'
+import { getCloses, getInitiations } from '../util/subquery'
 import { Initiation, Close } from '../util/plusTypes'
 import type { PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 import { Option } from '@polkadot/types-codec';

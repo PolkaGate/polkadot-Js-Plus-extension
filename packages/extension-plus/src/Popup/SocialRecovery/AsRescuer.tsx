@@ -28,7 +28,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../components';
 import { nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
 import { remainingTimeCountDown } from '../../util/plusUtils';
-import { getVouchers } from '../../util/subqery/recovery';
+import { getVouchers } from '../../util/subquery';
 import AddNewAccount from './AddNewAccount';
 import Confirm from './Confirm';
 
@@ -115,8 +115,10 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
   }, [state]);
 
   useEffect((): void => {
-    lostAccount?.accountId && account?.accountId && lostAccountRecoveryInfo &&
-      getVouchers(lostAccount.accountId, account.accountId).then((vouchers: Voucher[]) => {
+    const chainName = chain?.name.replace(' Relay Chain', '');
+
+    chainName && lostAccount?.accountId && account?.accountId && lostAccountRecoveryInfo &&
+      getVouchers(chainName, lostAccount.accountId, account.accountId).then((vouchers: Voucher[]) => {
         console.log('vouchers:', vouchers);
         let voucheCount = 0;
 
