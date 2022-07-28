@@ -84,7 +84,7 @@ function CloseRecovery({ account, api, chain, rescuer }: Props): React.ReactElem
         <Grid item pt='20px' xs={12}>
           <Button
             data-button-action=''
-            // isDisabled={!lostAccount || !lostAccountRecoveryInfo || !!hasActiveRecoveries || isProxy}
+            isDisabled={!api}
             onClick={handleNextToCloseRecovery}
           >
             {t<string>('Next')}
