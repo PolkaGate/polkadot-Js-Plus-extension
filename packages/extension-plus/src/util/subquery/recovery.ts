@@ -7,7 +7,17 @@ import { AccountId } from '@polkadot/types/interfaces/runtime';
 
 import { Close, Initiation, Voucher } from '../plusTypes';
 
-export async function getVouchers(lost: string | AccountId, rescuer: string | AccountId): Promise<Voucher[]> {
+const getUrl = (chainName: string): string => {
+  if (chainName?.toLowerCase() === 'westend') {
+    return 'https://api.subquery.network/sq/Nick-1979/westend';
+  }
+
+  return `https://api.subquery.network/sq/PolkaGate/${chainName.toLowerCase()}`;
+};
+
+export async function getVouchers(chainName: string, lost: string | AccountId, rescuer: string | AccountId): Promise<Voucher[]> {
+  const url = getUrl(chainName);
+
   const query = `query {
     recoveryVoucheds (filter:
      {lost:{equalTo:"${lost}"},
@@ -20,7 +30,7 @@ export async function getVouchers(lost: string | AccountId, rescuer: string | Ac
        rescuer,
        friend
       }}}`;
-  const res = await postReq('https://api.subquery.network/sq/PolkaGate/westend', { query });
+  const res = await postReq(url, { query });
 
   console.log('res:', res.data.recoveryVoucheds.nodes);
 
@@ -34,6 +44,8 @@ export async function getInitiations(chainName: string, account: string | Accoun
     return null;
   }
 
+  const url = getUrl(chainName);
+
   const query = `query {
     recoveryInitiateds (${last ? 'last:1,' : ''} filter:{
   ${accountType}: { equalTo: "${account}" }}) {
@@ -46,7 +58,7 @@ export async function getInitiations(chainName: string, account: string | Accoun
       }
     }}`;
 
-  const res = await postReq(`https://api.subquery.network/sq/PolkaGate/${chainName.toLowerCase()}`, { query });
+  const res = await postReq(url, { query });
 
   const mayBeInitiations = res.data.recoveryInitiateds.nodes as Initiation[];
 

@@ -17,7 +17,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import React, { useCallback, useState, useEffect } from 'react';
 import { BookmarkAddedOutlined as BookmarkAddedOutlinedIcon, HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon, Support as SupportIcon, AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import { getInitiations } from '../../util/subqery/recovery';
+import { getInitiations } from '../../util/subquery/recovery';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Initiation, nameAddress, RecoveryConsts } from '../../util/plusTypes';
