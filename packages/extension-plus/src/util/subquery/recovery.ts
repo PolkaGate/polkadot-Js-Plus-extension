@@ -63,6 +63,8 @@ export async function getCloses(chainName: string, lost: string | AccountId): Pr
     return null;
   }
 
+  const url = getUrl(chainName);
+
   const query = `query {
     recoveryCloseds (filter:{
   lost: { equalTo: "${lost}" }}) {
@@ -75,7 +77,7 @@ export async function getCloses(chainName: string, lost: string | AccountId): Pr
       }
     }}`;
 
-  const res = await postReq(`https://api.subquery.network/sq/PolkaGate/${chainName.toLowerCase()}`, { query });
+  const res = await postReq(url, { query });
 
   const mayBeCloses = res.data.recoveryCloseds.nodes as Close[];
 

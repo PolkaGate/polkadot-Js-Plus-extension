@@ -9,13 +9,13 @@
 */
 import type { TFunction } from 'i18next';
 import type { StakingLedger } from '@polkadot/types/interfaces';
+import type { PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { ThemeProps } from '../../../extension-ui/src/types';
 
 import { faPaperPlane } from '@fortawesome/free-regular-svg-icons';
 import { faCoins, faQrcode, faShield, faShieldHalved, faSyncAlt, faTasks } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Backspace as BackspaceIcon, Beenhere as BeenhereIcon, InfoOutlined as InfoOutlinedIcon, SaveAlt as SaveAltIcon } from '@mui/icons-material';
 import { Container, Grid, Link } from '@mui/material';
 import { deepOrange, green, grey, red } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
@@ -23,6 +23,7 @@ import styled from 'styled-components';
 
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
+import { Option } from '@polkadot/types-codec';
 import { BN } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../extension-ui/src/components/contexts';
@@ -31,18 +32,15 @@ import useApi from '../hooks/useApi';
 import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
+import Configure from '../Popup/SocialRecovery/Configure';
 import StakingIndex from '../Popup/Staking/StakingIndex';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
 import { SUPPORTED_CHAINS } from '../util/constants';
-import { AccountsBalanceType, BalanceType, Rescuer, SavedMetaData } from '../util/plusTypes';
+import { AccountsBalanceType, BalanceType, Close,Initiation, Rescuer, SavedMetaData  } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
+import { getCloses, getInitiations } from '../util/subquery';
 import { Balance } from './';
-import Configure from '../Popup/SocialRecovery/Configure';
-import { getCloses, getInitiations } from '../util/subquery'
-import { Initiation, Close } from '../util/plusTypes'
-import type { PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
-import { Option } from '@polkadot/types-codec';
 
 interface Props {
   address?: string | null;
@@ -170,7 +168,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       // console.log('initiations:', initiations);
 
       if (!initiations?.length) {
-        //no initiations set rescuers null
+        // no initiations set rescuers null
         return setIsRecoveringAlert(false);
       }
 
