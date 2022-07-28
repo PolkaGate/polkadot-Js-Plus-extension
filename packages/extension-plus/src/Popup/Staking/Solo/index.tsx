@@ -208,6 +208,7 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
   }, [getRedeemable, endpoint]);
 
   useEffect((): void => {
+    // TODO: to get rewrads info from subquery
     staker.address && getRewards(chainName, staker.address);
 
     // eslint-disable-next-line no-void
