@@ -236,11 +236,11 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
         };
       });
 
+      console.log('rewardsFromSubscan:', rewardsFromSubscan);
+
       if (rewardsFromSubscan?.length) {
         return setRewardsInfo(rewardsFromSubscan);
       }
-
-      console.log('rewardsFromSubscan:', rewardsFromSubscan);
     });
   }, [chainName, staker.address]);
 
