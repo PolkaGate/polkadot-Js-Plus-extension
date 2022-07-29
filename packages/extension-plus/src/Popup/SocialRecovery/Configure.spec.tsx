@@ -31,11 +31,12 @@ const addresesOnThisChain: nameAddress[] = [accountWithName[0], accountWithName[
 const setConfigureModalOpen = () => undefined;
 const recoveryInfoStates = [undefined, null];
 const rescuerStates = [undefined, null, rescuerValue];
+const apiStates = [undefined];
 
 describe('Testing the Configure component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend') as ChainInfo;
-
+    apiStates.push(chainInfo.api);
     recoveryConsts = {
       configDepositBase: chainInfo.api.consts.recovery.configDepositBase as unknown as BN,
       friendDepositFactor: chainInfo.api.consts.recovery.friendDepositFactor as unknown as BN,
@@ -49,39 +50,46 @@ describe('Testing the Configure component', () => {
   });
 
   test('Testing RecoveryChecking component', () => {
-    for (const recoveryInfo of recoveryInfoStates) {
-      for (const rescuer of rescuerStates) {
-        console.log('recoveryInfoStates:', recoveryInfoStates.length)
-        const { queryByText } = render(
-          <Configure
-            account={accountWithId[1]} // don't care for now
-            accountsInfo={accountWithId} // don't care
-            addresesOnThisChain={addresesOnThisChain} // don't care
-            api={chainInfo.api} // don't care for now
-            chain={chain('kusama')}
-            recoveryConsts={recoveryConsts} // don't care
-            recoveryInfo={recoveryInfo} // important --> undefined - null - value
-            rescuer={rescuer} // important --> undefined - null -value
-            setConfigureModalOpen={setConfigureModalOpen} // don't care
-            showConfigureModal={true} // don't care
-          />
-        );
+    for (const api of apiStates) {
+      for (const recoveryInfo of recoveryInfoStates) {
+        for (const rescuer of rescuerStates) {
+          const { getByRole, queryByText } = render(
+            <Configure
+              account={accountWithId[1]}
+              accountsInfo={accountWithId} // don't care
+              addresesOnThisChain={addresesOnThisChain} // don't care
+              api={api}
+              chain={chain('kusama')} // don't care
+              recoveryConsts={recoveryConsts} // don't care
+              recoveryInfo={recoveryInfo}
+              rescuer={rescuer}
+              setConfigureModalOpen={setConfigureModalOpen} // don't care
+              showConfigureModal={true} // don't care
+            />
+          );
 
-        if (recoveryInfo === undefined) {
-          expect(queryByText('Checking if the account is recoverable')).toBeTruthy();
-        } else if (recoveryInfo === null) {
-          expect(queryByText('Make recoverable')).toBeTruthy();
-        } else {
-          if (rescuer === undefined) {
-            expect(queryByText('Checking if a malicious rescuer is recovering your account')).toBeTruthy();
-          } else if (rescuer === null) {
-            expect(queryByText('Remove recovery')).toBeTruthy();
+          // Header Text
+          expect(queryByText('Configure my account')).toBeTruthy();
+          // Tab's
+          expect(getByRole('tab', { hidden: true, name: 'Configuration' })).toBeTruthy();
+          expect(getByRole('tab', { hidden: true, name: 'Info' })).toBeTruthy();
+
+          if (recoveryInfo === undefined) {
+            expect(queryByText('Checking if the account is recoverable')).toBeTruthy();
+          } else if (recoveryInfo === null) {
+            api && expect(queryByText('Make recoverable')).toBeTruthy();
           } else {
-            expect(queryByText('Close recovery')).toBeTruthy();
+            if (rescuer === undefined) {
+              expect(queryByText('Checking if a malicious rescuer is recovering your account')).toBeTruthy();
+            } else if (rescuer === null) {
+              api && expect(queryByText('Remove recovery')).toBeTruthy();
+            } else {
+              expect(queryByText('Close recovery')).toBeTruthy();
+            }
           }
-        }
 
-        cleanup();
+          cleanup();
+        }
       }
     }
   });
