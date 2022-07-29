@@ -238,7 +238,7 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
                 sx={{ textTransform: 'none' }}
                 variant='contained'
               >
-                {t<string>('Confirm your lost account')}
+                {t<string>('Confirm the account address')}
               </MuiButton>
             </Grid>
           }

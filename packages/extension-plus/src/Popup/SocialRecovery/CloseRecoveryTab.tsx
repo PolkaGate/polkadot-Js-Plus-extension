@@ -23,7 +23,7 @@ import { Identity, PlusHeader, Popup, ShowBalance2, ShowValue } from '../../comp
 import type { ApiPromise } from '@polkadot/api';
 
 import { Rescuer } from '../../util/plusTypes';
-import { Button } from '@polkadot/extension-ui/components';
+import { NextStepButton } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import { Chain } from '@polkadot/extension-chains/types';
 import { grey } from '@mui/material/colors';
@@ -82,13 +82,13 @@ function CloseRecovery({ account, api, chain, rescuer }: Props): React.ReactElem
           </Typography>
         </Grid>
         <Grid item pt='20px' xs={12}>
-          <Button
+          <NextStepButton
             data-button-action=''
             isDisabled={!api}
             onClick={handleNextToCloseRecovery}
           >
             {t<string>('Next')}
-          </Button>
+          </NextStepButton>
         </Grid>
       </Grid>
       {showConfirmModal && api && chain && state && 

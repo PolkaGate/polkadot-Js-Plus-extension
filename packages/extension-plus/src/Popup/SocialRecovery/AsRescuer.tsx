@@ -20,7 +20,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { Chain } from '@polkadot/extension-chains/types';
-import { Button } from '@polkadot/extension-ui/components';
+import { NextStepButton } from '@polkadot/extension-ui/components';
 import { BN, BN_ZERO } from '@polkadot/util';
 import { encodeAddress } from '@polkadot/util-crypto';
 
@@ -419,13 +419,13 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
           }
         </Grid>
         <Grid item pt='10px' xs={12}>
-          <Button
+          <NextStepButton
             data-button-action=''
             isDisabled={nextIsDisabled}
             onClick={handleNext}
           >
             {t<string>('Next')}
-          </Button>
+          </NextStepButton>
         </Grid>
       </Grid>
       {showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts &&

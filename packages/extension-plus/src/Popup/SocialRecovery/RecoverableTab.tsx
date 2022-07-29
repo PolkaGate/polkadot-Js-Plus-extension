@@ -115,7 +115,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           </Grid>
           <Grid item>
             {!recoveryInfo &&
-              <Hint id='addFriend' place='left' tip={t('add a friend')}>
+              <Hint id='addFriend' place='right' tip={t('add a friend')}>
                 <IconButton
                   aria-label='addFriend'
                   color='warning'

@@ -24,7 +24,7 @@ import type { ApiPromise } from '@polkadot/api';
 import type { PalletRecoveryRecoveryConfig, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 
 import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
-import { Button } from '@polkadot/extension-ui/components';
+import { NextStepButton } from '@polkadot/extension-ui/components';
 import Confirm from './Confirm';
 import AddNewAccount from './AddNewAccount';
 
@@ -151,7 +151,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
       <Grid container sx={{ p: '15px 20px' }}>
         <Grid item pt='15px' sx={{ height: '440px' }} xs={12}>
           <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
-            {t<string>('Enter the lost account Id (identity), you want to vouch for')}:
+            {t<string>('Enter the lost account address (or identity) that you want to vouch for')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={lostAccountHelperText} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccount && lostAccountRecoveryInfo && isFriend === false &&
@@ -164,13 +164,13 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
           {lostAccount && lostAccountRecoveryInfo && isFriend &&
             <>
               <Typography sx={{ color: 'text.primary', p: '30px 10px 10px' }} variant='subtitle2'>
-                {t<string>('Enter the rescuer account Id (identity)')}:
+                {t<string>('Enter the rescuer account address (or search by identity)')}:
               </Typography>
               <AddNewAccount account={rescuerAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Rescuer')} setAccount={setRescuerAccount} />
               {rescuerAccount &&
                 <> {rescuerAccountHelperText
-                  ? <Grid pt='85px' textAlign='center' fontSize={15} fontWeight={600}>
-                      {rescuerAccountHelperText}
+                  ? <Grid fontSize={15} fontWeight={600} pt='85px' textAlign='center'>
+                    {rescuerAccountHelperText}
                   </Grid>
                   : <Progress pt={1} title={t('Checking the resuer account')} />
                 }
@@ -180,13 +180,13 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
           }
         </Grid>
         <Grid item sx={{ pt: 3 }} xs={12}>
-          <Button
+          <NextStepButton
             data-button-action=''
             isDisabled={!lostAccount || !lostAccountRecoveryInfo || !hasActiveRecoveries || !!isProxy}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}
-          </Button>
+          </NextStepButton>
         </Grid>
       </Grid>
       {showConfirmModal && api && chain && state && account && lostAccount && rescuerAccount && recoveryConsts && lostAccountRecoveryInfo &&
