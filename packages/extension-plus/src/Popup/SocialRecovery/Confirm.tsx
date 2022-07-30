@@ -397,35 +397,15 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         setConfirmingState(status);
       }
 
-      // if (localState === 'claimRecovery' && account.accountId && lostAccount?.accountId) {
-      //   const params = [lostAccount.accountId];
-      //   const { block, failureText, fee, status, txHash } = await broadcast(api, claimRecovery, params, signer, account.accountId);
-
-      //   history.push({
-      //     action: 'claim_recovery',
-      //     amount: '0',
-      //     block,
-      //     date: Date.now(),
-      //     fee: fee || '',
-      //     from: String(account.accountId),
-      //     hash: txHash || '',
-      //     status: failureText || status,
-      //     to: ''
-      //   });
-
-      //   setConfirmingState(status);
-      // }
-
       // eslint-disable-next-line no-void
       account?.accountId && void saveHistory(chain, hierarchy, String(account.accountId), history);
-      // localState === 'initiateRecovery' && account?.accountId && lostAccount?.accountId && updateMeta(String(account?.accountId), prepareMetaData(chain, 'activeRescue', lostAccount.accountId));
     } catch (e) {
       console.log('error:', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, asRecovered, api, batchAll, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, asRecovered, api, batchAll, recoveryConsts, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -463,8 +443,11 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       return (withdrawAmounts?.totalWithdrawable && !withdrawAmounts.totalWithdrawable.isZero()
         ? t('Withdrawing {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.totalWithdrawable).toHuman() } })
         : '') +
+        (withdrawAmounts?.totalWithdrawable && !withdrawAmounts.totalWithdrawable.isZero() && withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
+          ? ', '
+          : '') +
         (withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
-          ? t(' Unstaking {{amount}} which will be redeemable after {{days}} days', {
+          ? t('Unstaking {{amount}} which will be redeemable after {{days}} days', {
             replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration }
           })
           : '');
@@ -522,7 +505,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '20px', textAlign: 'center' }} xs={12}>
             {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
               <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
-                <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} unit={t('friends')}/>
+                <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} unit={t('friends')} />
               </Grid>
             }
             <Grid container item justifyContent='center' xs={3}>
@@ -535,7 +518,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             }
             {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
               <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
-                <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} unit={t('days')}/>
+                <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} unit={t('days')} />
               </Grid>
             }
           </Grid>

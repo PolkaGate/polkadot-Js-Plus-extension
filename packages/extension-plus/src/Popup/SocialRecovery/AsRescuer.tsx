@@ -104,6 +104,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     setLostAccountRecoveryInfo(undefined);
     setLostAccountBalance(undefined);
     setHasActiveRecoveries(undefined);
+    setRemainingSecondsToClaim(undefined);
   }, []);
 
   useEffect((): void => {
