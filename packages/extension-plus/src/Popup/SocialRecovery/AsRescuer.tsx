@@ -80,13 +80,13 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
       return;
     }
 
-    let d = BN_ZERO;
+    let deposits = BN_ZERO;
 
     for (let i = 0; i < otherPossibleRescuers.length; i++) {
-      d = d.add(otherPossibleRescuers[i]?.option?.deposit ?? BN_ZERO);
+      deposits = deposits.add(otherPossibleRescuers[i]?.option?.deposit ?? BN_ZERO);
     }
 
-    return (d);
+    return deposits;
   }, [otherPossibleRescuers]);
 
   const totalWithdrawable = useMemo((): BN => {
@@ -94,7 +94,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
   }, [lostAccountBalance, redeemable, lostAccountRecoveryInfo, otherPossibleRescuersDeposit]);
 
   const resetPage = useCallback(() => {
-    console.log('resetPage ...');
+    console.log('reseting page ...');
     setState(undefined);
     setRemainingBlocksToClaim(undefined);
     setActiveStep(STEP_MAP.INIT);
@@ -106,10 +106,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     setHasActiveRecoveries(undefined);
     setRemainingSecondsToClaim(undefined);
   }, []);
-
-  useEffect((): void => {
-    console.log('activeStep ...', activeStep);
-  }, [activeStep]);
 
   const handleNext = useCallback(() => {
     !state && setState('initiateRecovery');
@@ -259,7 +255,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     }
 
     !redeemValue.isZero() && api && api.query.staking.slashingSpans(lostAccount.accountId).then((optSpans) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       setSpanCount(optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1);
     });
 
@@ -307,7 +302,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
         setHasActiveRecoveries(activeRecovery);
         activeRecovery && setReceivedVouchers(activeRecovery.friends.length)
 
-        console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+        console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'no');
       });
     }
 
