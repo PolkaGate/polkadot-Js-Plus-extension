@@ -31,6 +31,7 @@ import { remainingTimeCountDown } from '../../util/plusUtils';
 import { getVouchers } from '../../util/subquery';
 import AddNewAccount from './AddNewAccount';
 import Confirm from './Confirm';
+import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -114,24 +115,24 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     setConfirmModalOpen(true);
   }, [state]);
 
-  useEffect((): void => {
-    const chainName = chain?.name.replace(' Relay Chain', '');
+  // useEffect((): void => {
+  //   const chainName = chain?.name.replace(' Relay Chain', '');
 
-    chainName && lostAccount?.accountId && account?.accountId && lostAccountRecoveryInfo &&
-      getVouchers(chainName, lostAccount.accountId, account.accountId).then((vouchers: Voucher[]) => {
-        console.log('vouchers:', vouchers);
-        let voucheCount = 0;
+  //   chainName && lostAccount?.accountId && account?.accountId && lostAccountRecoveryInfo &&
+  //     getVouchers(chainName, lostAccount.accountId, account.accountId).then((vouchers: Voucher[]) => {
+  //       console.log('vouchers:', vouchers);
+  //       let voucheCount = 0;
 
-        for (let i = 0; i < vouchers?.length; i++) {
-          if (lostAccountRecoveryInfo.friends.find((f) => String(f) === vouchers[i].friend)) {
-            voucheCount++;
-          }
-        }
+  //       for (let i = 0; i < vouchers?.length; i++) {
+  //         if (lostAccountRecoveryInfo.friends.find((f) => String(f) === vouchers[i].friend)) {
+  //           voucheCount++;
+  //         }
+  //       }
 
-        setReceivedVouchers(voucheCount);
-        console.log('voucheCount:', voucheCount);
-      });
-  }, [hasActiveRecoveries, lostAccount, account, lostAccountRecoveryInfo]);
+  //       setReceivedVouchers(voucheCount);
+  //       console.log('voucheCount:', voucheCount);
+  //     });
+  // }, [hasActiveRecoveries, lostAccount, account, lostAccountRecoveryInfo]);
 
   useEffect((): void => {
     remainingSecondsToClaim && remainingSecondsToClaim > 0 && setTimeout(() => setRemainingSecondsToClaim((remainingSecondsToClaim) => remainingSecondsToClaim - 1), 1000);
@@ -300,7 +301,11 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     } else {
       // eslint-disable-next-line no-void
       void api.query.recovery.activeRecoveries(lostAccount.accountId, account.accountId).then((r) => {
-        setHasActiveRecoveries(r.isSome ? r.unwrap() as unknown as alletRecoveryActiveRecovery : null);
+        const activeRecovery = r.isSome ? r.unwrap() as unknown as alletRecoveryActiveRecovery : null;
+
+        setHasActiveRecoveries(activeRecovery);
+        activeRecovery && setReceivedVouchers(activeRecovery.friends.length)
+
         console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
       });
     }
@@ -334,36 +339,36 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     if (activeStep === STEP_MAP.WITHDRAW) {
       return setLostAccountHelperText(t<string>('The lost account\'s balance(s) can be withdrawn'));
     }
-  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, remainingBlocksToClaim, t, receivedVouchers, activeStep, recoveryConsts, api]);
+  }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, t, activeStep, recoveryConsts, api]);
 
   return (
     <Popup handleClose={handleCloseAsRescuer} showModal={showAsRescuerModal}>
       <PlusHeader action={handleCloseAsRescuer} chain={chain} closeText={'Close'} icon={<HealthAndSafetyOutlinedIcon fontSize='small' />} title={'Rescue account'} />
-      <Grid container sx={{ p: '35px 30px' }}>
-        <Grid item sx={{ borderBottom: 1, borderColor: 'divider', pb: '15px' }} xs={12}>
-          <Stepper activeStep={activeStep} nonLinear>
-            {steps.map((label, index) =>
-              <Step completed={completed[index]} key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            )}
-          </Stepper>
-        </Grid>
-        <Grid height='395px' item pt='55px' xs={12}>
+      <Grid item sx={{ bgcolor: grey[200], borderBottom: 1, borderColor: 'divider', p: '25px 15px' }} xs={12}>
+        <Stepper activeStep={activeStep} nonLinear>
+          {steps.map((label, index) =>
+            <Step completed={completed[index]} key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          )}
+        </Stepper>
+      </Grid>
+      <Grid container sx={{ px: '30px' }}>
+        <Grid height='395px' item pt='65px' xs={12}>
           <Typography sx={{ color: 'text.primary', p: '10px 10px 15px' }} variant='subtitle2'>
             {t<string>('Enter a lost account address (or search by identity)')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccount &&
-            <> {lostAccountHelperText && (lostAccountRecoveryInfo === null || receivedVouchers !== undefined)
-              ? <Grid fontSize={15} fontWeight={600} item pt='85px' textAlign='center'>
+            <> {lostAccountHelperText
+              ? <Grid fontSize={15} fontWeight={600} item pt='75px' textAlign='center'>
                 {lostAccountHelperText}
               </Grid>
               : <Progress pt={1} title={t('Checking the account')} />
             }
             </>
           }
-          {activeStep === STEP_MAP.WAIT && lostAccountRecoveryInfo && receivedVouchers !== undefined &&
+          {activeStep === STEP_MAP.WAIT && lostAccountRecoveryInfo &&
             <Grid container fontSize={13} fontWeight={350} item p='10px' textAlign='center'>
               <Grid item xs={12}>
                 <Divider light />
