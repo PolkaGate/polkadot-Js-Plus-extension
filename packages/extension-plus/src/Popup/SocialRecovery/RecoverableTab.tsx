@@ -80,7 +80,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
     setRecoveryThreshold(recoveryInfo.threshold.toNumber());
     const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
 
-    setRecoveryDelay(recoveryDelayInDays.toFixed(4));
+    setRecoveryDelay(Number(recoveryDelayInDays.toFixed(4)));
     const onChainFriends = recoveryInfo.friends.map((f): DeriveAccountInfo => {
       const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString());
 
