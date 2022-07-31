@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description here users confirm their staking related orders (e.g., stake, unstake, redeem, etc.)
+ * @description here users confirm their social recovery related orders (e.g., make reoverable, close/remove/initiate recovery, etc.)
  * */
 
 import type { Chain } from '@polkadot/extension-chains/types';
@@ -12,7 +12,7 @@ import type { Balance } from '@polkadot/types/interfaces';
 import type { RecoveryConsts, Rescuer, TransactionDetail } from '../../util/plusTypes';
 
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
-import { Divider, Grid, Skeleton, Typography } from '@mui/material';
+import { Divider, Grid, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -25,7 +25,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, FormatBalance, Identity, Password, PlusHeader, Popup, ShowBalance2, ShowValue } from '../../components';
+import { ConfirmButton, Identity, Password, PlusHeader, Popup, ShowBalance2, ShowValue } from '../../components';
 import { broadcast, signAndSend } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
@@ -64,6 +64,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
+  const [notEnoughBalance, setNotEnoughBalance] = useState<boolean | undefined>();
 
   const decimals = api.registry.chainDecimals[0];
   const friendIds = friends?.map((f) => f.accountId).sort(); // if not sorted, tx will retun an error!!
@@ -102,17 +103,33 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
   const batchWithdraw = rescuer?.accountId && batchAll(withdrawCalls);
 
-  const confirmBtnDisabled = useMemo(() => {
-    if (!estimatedFee) {
-      return true;
-    };
-    // TODO: check available balance to see if transaction can be done
-    // if(state==='initiateRecovery'){
-    //   return estimatedFee.add(recoveryConsts.recoveryDeposit).gt(account.);
-    // }
+  const deposit = useMemo((): BN => {
+    if (['removeRecovery', 'makeRecoverable'].includes(state) && friendIds?.length && recoveryConsts) {
+      return recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friendIds.length));
+    }
 
-    return false;
-  }, [estimatedFee]);
+    if (state === 'initiateRecovery' && recoveryConsts) {
+      return recoveryConsts.recoveryDeposit;
+    }
+
+    if (['closeRecovery', 'closeRecoveryAsRescuer'].includes(state)) {
+      return rescuer?.option?.deposit ? new BN(rescuer?.option?.deposit) : BN_ZERO;
+    }
+
+    return BN_ZERO;
+  }, [friendIds?.length, recoveryConsts, rescuer, state]);
+
+  useEffect(() => {
+    if (!estimatedFee) {
+      return;
+    }
+
+    api && api.query.system.account(account.accountId).then((balance) => {
+      const payout = deposit.gtn(0) ? deposit.add(estimatedFee) : estimatedFee;
+
+      balance?.data?.free && setNotEnoughBalance(payout.gte(balance.data.free));
+    });
+  }, [account.accountId, api, deposit, estimatedFee]);
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) {
@@ -197,22 +214,6 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       default:
     }
   }, [batchAll, account?.accountId, batchWithdraw, claimRecovery, closeRecovery, asRecovered, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
-
-  const deposit = useMemo((): BN => {
-    if (['removeRecovery', 'makeRecoverable'].includes(state) && friendIds?.length && recoveryConsts) {
-      return recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friendIds.length));
-    }
-
-    if (state === 'initiateRecovery' && recoveryConsts) {
-      return recoveryConsts.recoveryDeposit;
-    }
-
-    if (['closeRecovery', 'closeRecoveryAsRescuer'].includes(state)) {
-      return rescuer?.option?.deposit ? new BN(rescuer?.option?.deposit) : BN_ZERO;
-    }
-
-    return BN_ZERO;
-  }, [friendIds?.length, recoveryConsts, rescuer, state]);
 
   useEffect(() => {
     if (!api) {
@@ -396,35 +397,15 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         setConfirmingState(status);
       }
 
-      // if (localState === 'claimRecovery' && account.accountId && lostAccount?.accountId) {
-      //   const params = [lostAccount.accountId];
-      //   const { block, failureText, fee, status, txHash } = await broadcast(api, claimRecovery, params, signer, account.accountId);
-
-      //   history.push({
-      //     action: 'claim_recovery',
-      //     amount: '0',
-      //     block,
-      //     date: Date.now(),
-      //     fee: fee || '',
-      //     from: String(account.accountId),
-      //     hash: txHash || '',
-      //     status: failureText || status,
-      //     to: ''
-      //   });
-
-      //   setConfirmingState(status);
-      // }
-
       // eslint-disable-next-line no-void
       account?.accountId && void saveHistory(chain, hierarchy, String(account.accountId), history);
-      // localState === 'initiateRecovery' && account?.accountId && lostAccount?.accountId && updateMeta(String(account?.accountId), prepareMetaData(chain, 'activeRescue', lostAccount.accountId));
     } catch (e) {
       console.log('error:', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, asRecovered, api, batchAll, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, asRecovered, api, batchAll, recoveryConsts, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -462,8 +443,11 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       return (withdrawAmounts?.totalWithdrawable && !withdrawAmounts.totalWithdrawable.isZero()
         ? t('Withdrawing {{amount}}', { replace: { amount: api.createType('Balance', withdrawAmounts.totalWithdrawable).toHuman() } })
         : '') +
+        (withdrawAmounts?.totalWithdrawable && !withdrawAmounts.totalWithdrawable.isZero() && withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
+          ? ', '
+          : '') +
         (withdrawAmounts?.staked && !withdrawAmounts.staked.isZero()
-          ? t(' Unstaking {{amount}} which will be redeemable after {{days}} days', {
+          ? t('Unstaking {{amount}} which will be redeemable after {{days}} days', {
             replace: { amount: api.createType('Balance', withdrawAmounts.staked).toHuman(), days: unbondingDuration }
           })
           : '');
@@ -521,7 +505,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           <Grid alignItems='center' container item justifyContent='space-around' sx={{ fontSize: 11, pt: '20px', textAlign: 'center' }} xs={12}>
             {recoveryThreshold && !['withdrawAsRecovered'].includes(state) &&
               <Grid container item justifyContent='flex-start' sx={{ textAlign: 'left' }} xs={3}>
-                <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} />
+                <ShowValue direction='column' title={t('Recovery threshold')} value={recoveryThreshold} unit={t('friends')} />
               </Grid>
             }
             <Grid container item justifyContent='center' xs={3}>
@@ -534,7 +518,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             }
             {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
               <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
-                <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} />
+                <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} unit={t('days')} />
               </Grid>
             }
           </Grid>
@@ -579,9 +563,9 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={confirmBtnDisabled}
+              isDisabled={notEnoughBalance}
               state={confirmingState}
-              text={t('Confirm')}
+              text={notEnoughBalance ? t('Not enough balance') : t('Confirm')}
             />
           </Grid>
         </Grid>
