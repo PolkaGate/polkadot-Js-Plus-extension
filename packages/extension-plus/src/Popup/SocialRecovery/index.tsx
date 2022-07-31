@@ -44,8 +44,23 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const settings = useContext(SettingsContext);
   const { accounts } = useContext(AccountContext);
   const { address, genesisHash } = useParams<AddressState>();
+  const [acceptedGenesisHashes, setAcceptedGenesisHashes] = useState<string>();
 
-  const chain = useMetadata(genesisHash, true);
+  useEffect(() => {
+    const accesptableGenesisHashes = ['0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe', '0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e'];
+
+    if (accesptableGenesisHashes.includes(genesisHash)) {
+      setAcceptedGenesisHashes(genesisHash);
+    } else {
+      setAcceptedGenesisHashes(undefined);
+
+      setConfigureModalOpen(false);
+
+      setRescueModalOpen(false);
+    }
+  }, [genesisHash]);
+
+  const chain = useMetadata(acceptedGenesisHashes, true);
   const endpoint = useEndpoint(accounts, address, chain);
   const api = useApi(endpoint);
 
@@ -203,6 +218,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
             onClick={action}
             sx={{ textTransform: 'none', width: '80%' }}
             variant='contained'
+            disabled={!chain}
           >
             {name}
           </Button>
