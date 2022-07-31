@@ -184,7 +184,7 @@ describe('Testing RecoverableTab component', () => {
         ).asFragment().textContent;
       };
 
-      const recoveryDelayInDays = (recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10)).toFixed(4);
+      const recoveryDelayInDays = (recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10)).toString();
 
       expect(queryByText('Remove recovery')).toBeTruthy();
       expect(queryByText(`Your recovery friends (${recoveryInfo.friends.length})`)).toBeTruthy();
@@ -228,7 +228,7 @@ describe('Testing RecoverableTab component', () => {
         ).asFragment().textContent;
       };
 
-      const recoveryDelayInDays = (recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10)).toFixed(4);
+      const recoveryDelayInDays = (recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10)).toString();
 
       expect(queryByText('Remove recovery')).toBeTruthy();
       expect(queryByText(`Your recovery friends (${recoveryInfo.friends.length})`)).toBeTruthy();
