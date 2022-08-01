@@ -13,7 +13,7 @@ import { AccountContext, SettingsContext } from '@polkadot/extension-ui/componen
 import { buildHierarchy } from '@polkadot/extension-ui/util/buildHierarchy';
 import { BN } from '@polkadot/util';
 
-import { ShowBalance2 } from '../../../src/components';
+import { ShowBalance2 } from '../../components';
 import getChainInfo from '../../util/getChainInfo';
 import { ChainInfo, RecoveryConsts } from '../../util/plusTypes';
 import { accounts, chain, SettingsStruct } from '../../util/test/testHelper';
@@ -229,7 +229,7 @@ describe('Testing Social Recovery component', () => {
     // Header Text
     expect(queryByText('Vouch account')).toBeTruthy();
     // While loading identities
-    expect(queryByText('Enter the lost account Id (identity), you want to vouch for:')).toBeTruthy();
+    expect(queryByText('Enter the lost account address (or identity) that you want to vouch for:')).toBeTruthy();
     expect(getByRole('combobox', { hidden: true, name: 'Lost' })).toBeTruthy();
     expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
     expect(queryByText('Loading identities ...')).toBeTruthy();
