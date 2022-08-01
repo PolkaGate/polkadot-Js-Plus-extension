@@ -253,8 +253,8 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     <>
       <Header showAdd showBackArrow showSettings smallMargin text={`${t<string>('Social Recovery')} ${chain?.name ? 'on' : ''} ${chain?.name ?? ''}`} />
       {wrongChainAlert &&
-        <Alert severity='error' sx={{ fontSize: 15, fontWeight: '700', px: 5 }}>
-          {t('Social Recovery is not available on this chain!')}
+        <Alert severity='error' sx={{ fontSize: 15, fontWeight: '700', mx: 5, px: 5 }}>
+          {t('Social recovery is not available on this chain!')}
         </Alert>
       }
       {!showConfigureModal && !showRescueModal && <Selection />}
