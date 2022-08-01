@@ -78,7 +78,7 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
               </MuiButton>
             </Grid>
             <Grid item sx={{ textAlign: 'center' }} xs={3}>
-              <Tooltip placement='top' title={'rebag or putInFrontOf if needed'}>
+              <Tooltip id='tuneUp' placement='top' title={t('rebag or putInFrontOf if needed')}>
                 <MuiButton
                   color='primary'
                   disabled={!tuneUpButtonEnable}
