@@ -123,11 +123,11 @@ export default function RewardChart({ api, chain, rewardsInfo, setChartModalOpen
         <Bar data={data} options={options} />
       </Grid>
       <Grid container item sx={{ fontSize: 11, height: '220px', overflowY: 'auto', scrollbarWidth: 'none' }} xs={12}>
-        <Grid container item justifyContent='space-between' sx={{ fontSize: 11, fontWeight: '600', p: '5px 40px' }} xs={12}>
+        <Grid container item justifyContent='space-between' sx={{ fontSize: 11, fontWeight: '600', p: '5px 40px' }} xs={11}>
           <Grid item xs={4}>
             {t('Date')}
           </Grid>
-          <Grid item sx={{ textAlign: 'center' }} xs={4}>
+          <Grid item sx={{ textAlign: 'center', pl: '15px' }} xs={4}>
             {t('Era')}
           </Grid>
           <Grid item sx={{ textAlign: 'right' }} xs={4}>
@@ -138,8 +138,8 @@ export default function RewardChart({ api, chain, rewardsInfo, setChartModalOpen
           <Divider />
         </Grid>
         {DescSortedRewards.slice(0, MAX_REWARDS_INFO_TO_SHOW).map((d, index: number) =>
-          <Accordion disableGutters expanded={expanded === index} key={index} onChange={handleAccordionChange(index)} sx={{ flexGrow: 1, fontSize: 12 }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: index % 2 && grey[200], minHeight: '20px' }}>
+          <Accordion disableGutters expanded={expanded === index} key={index} onChange={handleAccordionChange(index)} sx={{ bgcolor: index % 2 && grey[200], flexGrow: 1, fontSize: 12 }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '20px' }}>
               <Grid container item justifyContent='space-between' key={index} sx={{ px: '25px' }} xs={12}>
                 <Grid item xs={4}>
                   {d.timeStamp ? new Date(d.timeStamp * 1000).toDateString() : d.era}
@@ -152,9 +152,17 @@ export default function RewardChart({ api, chain, rewardsInfo, setChartModalOpen
                 </Grid>
               </Grid>
             </AccordionSummary>
-            <AccordionDetails sx={{ backgroundColor: grey[200], p: 0 }}>
-              <Grid container justifyContent='center' pl='50px' xs={12}>
-                <Identity address={d.validator} api={api} chain={chain} iconSize={40} showAddress={true} />
+            <AccordionDetails sx={{ p: 0 }}>
+              <Grid item xs={12}>
+                <Divider />
+              </Grid>
+              <Grid alignItems='center' container justifyContent='center' pl='45px' xs={12}>
+                <Grid item sx={{ fontSize: 11, fontWeight: '600', textAlign: 'left' }} xs={2}>
+                  {t('Received from')}:
+                </Grid>
+                <Grid item sx={{ textAlign: 'center' }} xs={10}>
+                  {chain && <Identity address={d.validator} api={api} chain={chain} iconSize={20} showAddress={true} />}
+                </Grid>
               </Grid>
             </AccordionDetails>
           </Accordion>
