@@ -229,7 +229,7 @@ describe('Testing Social Recovery component', () => {
     // Header Text
     expect(queryByText('Vouch account')).toBeTruthy();
     // While loading identities
-    expect(queryByText('Enter the lost account Id (identity), you want to vouch for:')).toBeTruthy();
+    expect(queryByText('Enter the lost account address (or identity) that you want to vouch for:')).toBeTruthy();
     expect(getByRole('combobox', { hidden: true, name: 'Lost' })).toBeTruthy();
     expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
     expect(queryByText('Loading identities ...')).toBeTruthy();
