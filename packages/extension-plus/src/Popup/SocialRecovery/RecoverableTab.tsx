@@ -80,7 +80,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
     setRecoveryThreshold(recoveryInfo.threshold.toNumber());
     const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
 
-    setRecoveryDelay(recoveryDelayInDays.toFixed(4));
+    setRecoveryDelay(Number(recoveryDelayInDays.toFixed(4)));
     const onChainFriends = recoveryInfo.friends.map((f): DeriveAccountInfo => {
       const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString());
 
@@ -115,7 +115,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           </Grid>
           <Grid item>
             {!recoveryInfo &&
-              <Hint id='addFriend' place='left' tip={t('add a friend')}>
+              <Hint id='addFriend' place='right' tip={t('add a friend')}>
                 <IconButton
                   aria-label='addFriend'
                   color='warning'

@@ -2,32 +2,30 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable header/header */
 /* eslint-disable react/jsx-max-props-per-line */
-/* eslint-disable simple-import-sort/imports */
 
 /**
  * @description
- * this component renders make recoverable tab in social recovery
+ * this component renders a page to select between rescuing a lost account as a rescuer or as a friend
  * */
 
+import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 
-import { Avatar, Badge, Button, Grid, Paper } from '@mui/material';
+import { AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon, HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon, Support as SupportIcon } from '@mui/icons-material';
 import LoadingButton from '@mui/lab/LoadingButton';
-
-import React, { useCallback, useState, useEffect } from 'react';
-import { BookmarkAddedOutlined as BookmarkAddedOutlinedIcon, HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon, Support as SupportIcon, AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
+import { Avatar, Badge, Button, Grid, Paper } from '@mui/material';
+import { green, grey } from '@mui/material/colors';
 import { styled } from '@mui/material/styles';
-import { getInitiations } from '../../util/subquery/recovery';
-
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { Initiation, nameAddress, RecoveryConsts } from '../../util/plusTypes';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Chain } from '@polkadot/extension-chains/types';
-import { grey, green, blue } from '@mui/material/colors';
-import AsResuer from './AsRescuer';
+
+import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
+import { PlusHeader, Popup } from '../../components';
+import { Initiation, nameAddress, RecoveryConsts } from '../../util/plusTypes';
+import { getInitiations } from '../../util/subquery/recovery';
 import AsFriend from './AsFriend';
-import type { ApiPromise } from '@polkadot/api';
-import { Hint, PlusHeader, Popup } from '../../components';
+import AsResuer from './AsRescuer';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -79,9 +77,6 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
 
   const StyledBadge = styled(Badge)(({ theme }) => ({
     '& .MuiBadge-badge': {
-      // backgroundColor: '#ffffff',
-      // color: '#fc2105',
-      // boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
       '&::after': {
         position: 'absolute',
         top: 0,
@@ -89,21 +84,9 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
         width: '100%',
         height: '100%',
         borderRadius: '50%',
-        // animation: 'ripple 1.2s infinite ease-in-out',
         border: '1px solid currentColor',
-        // content: '""'
-      },
-    },
-    // '@keyframes ripple': {
-    //   '0%': {
-    //     transform: 'scale(.8)',
-    //     opacity: 1
-    //   },
-    //   '100%': {
-    //     transform: 'scale(2.4)',
-    //     opacity: 0
-    //   }
-    // }
+      }
+    }
   }));
 
   const RescuerSelection = () => (
