@@ -16,6 +16,7 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
 import { Divider, Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
@@ -31,7 +32,6 @@ import { remainingTimeCountDown } from '../../util/plusUtils';
 import { getVouchers } from '../../util/subquery';
 import AddNewAccount from './AddNewAccount';
 import Confirm from './Confirm';
-import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -175,7 +175,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
       return;
     }
 
-    if (hasActiveRecoveries) {
+    if (hasActiveRecoveries && receivedVouchers !== undefined && remainingBlocksToClaim !== undefined) {
       const newCompleted = completed;
 
       completed[STEP_MAP.INIT] = true;
@@ -210,7 +210,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
 
       // eslint-disable-next-line no-void
       void api.query.staking.ledger(lostAccount.accountId).then((l) => {
-        setLostAccountLedger(l.isSome ? l.unwrap() as unknown as StakingLedger : null);
+        setLostAccountLedger(l?.isSome ? l.unwrap() as unknown as StakingLedger : null);
         console.log('lost account ledger', JSON.parse(JSON.stringify(l)));
       });
 
@@ -228,7 +228,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
 
             otherPossibleRescuers.push({
               accountId: encodeAddress('0x' + key.toString().slice(162), chain?.ss58Format),
-              option: option.isSome ? option.unwrap() as unknown as PalletRecoveryActiveRecovery : undefined
+              option: option?.isSome ? option.unwrap() as unknown as PalletRecoveryActiveRecovery : undefined
             } as unknown as Rescuer);
           }
         }
@@ -324,7 +324,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
       return setLostAccountHelperText(t<string>('The account is NOT recoverable'));
     }
 
-    if (activeStep === STEP_MAP.INIT && api && recoveryConsts) {
+    if (activeStep === STEP_MAP.INIT && api && recoveryConsts && hasActiveRecoveries === null) {
       return setLostAccountHelperText(t<string>('Proceed to initiate recovery, {{deposit}} needs to be deposited', { replace: { deposit: api.createType('Balance', recoveryConsts?.recoveryDeposit).toHuman() } }));
     }
 
