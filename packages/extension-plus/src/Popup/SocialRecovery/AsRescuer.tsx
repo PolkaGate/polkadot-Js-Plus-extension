@@ -350,8 +350,8 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
         </Stepper>
       </Grid>
       <Grid container sx={{ px: '30px' }}>
-        <Grid height='395px' item pt='65px' xs={12}>
-          <Typography sx={{ color: 'text.primary', p: '10px 10px 15px' }} variant='subtitle2'>
+        <Grid height='395px' item pt='55px' xs={12}>
+          <Typography sx={{ color: 'text.primary', p: '0px 10px 15px' }} variant='subtitle2'>
             {t<string>('Enter a lost account address (or search by identity)')}:
           </Typography>
           <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} label={t('Lost')} setAccount={setLostAccount} />
@@ -359,7 +359,6 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
             <> {lostAccountHelperText
               ? <Grid fontSize={15} fontWeight={600} item pt='75px' textAlign='center'>
                 <Alert severity={lostAccountHelperText.severity}>{lostAccountHelperText.text}</Alert>
-                {/* {lostAccountHelperText} */}
               </Grid>
               : <Progress pt={1} title={t('Checking the account')} />
             }
