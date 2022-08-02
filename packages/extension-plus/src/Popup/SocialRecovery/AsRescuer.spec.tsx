@@ -5,7 +5,7 @@ import '@polkadot/extension-mocks/chrome';
 
 import type { PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 
-import { fireEvent, Matcher, render, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { fireEvent, render, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -29,7 +29,6 @@ const showAsRescuerModal = () => true;
 describe('Testing AsRescuer component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend') as ChainInfo;
-    // apiStates.push(chainInfo.api);
 
     recoveryConsts = {
       configDepositBase: chainInfo.api.consts.recovery.configDepositBase as unknown as BN,
@@ -156,8 +155,9 @@ describe('Testing AsRescuer component', () => {
     const delayPeriod = recoveryInfo?.delayPeriod.toNumber();
     const remainingBlocksToClaim = (initiateRecoveryBlock + delayPeriod - currentBlockNumber) * 6;
     const remainingTime = remainingTimeCountDown(remainingBlocksToClaim);
+    const remainingTimeForTest = remainingTime.slice(0, remainingTime.indexOf('r'));
 
-    const { debug, getByRole, queryByText } = render(
+    const { getByRole, queryByText } = render(
       <AsRescuer
         account={initaitedRescuerAcc} // undefined
         accountsInfo={accountWithId} // undefined - don't care
@@ -181,20 +181,70 @@ describe('Testing AsRescuer component', () => {
     });
 
     await waitFor(() => expect(queryByText('Wait until the condition(s) will be met')).toBeTruthy(), {
-      timeout: 30000,
+      timeout: 5000,
       onTimeout: () => {
         throw new Error('Please check your internet connection and run the test again!');
       }
     });
     expect(queryByText('Remaining time')).toBeTruthy();
-    await waitFor(() => expect(queryByText(remainingTime)).toBeTruthy(), {
-      timeout: 10000,
+    await waitFor(() => expect(queryByText(remainingTimeForTest, { exact: false })).toBeTruthy(), {
+      timeout: 5000,
       onTimeout: () => {
-        throw new Error('shit');
+        throw new Error('Something went wrong at showing reaminig time at Step 2: Wait');
       }
     });
     expect(queryByText('Received vouchers')).toBeTruthy();
-    await waitFor(() => expect(queryByText(`${VouchedFriends.length}/${recoveryInfo.threshold.toNumber()}`)).toBeTruthy(), { timeout: 30000 });
+    expect(queryByText(`${VouchedFriends.length}/${recoveryInfo.threshold.toNumber()}`)).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
+  });
+
+  test('Recovering an account; phase 3: Withdraw', async () => {
+    const initaitedRescuerAcc = accountWithId[0];
+    const succRecoveredAcc = accountWithId[0].accountId;
+
+    const { getByRole, queryByText } = render(
+      <AsRescuer
+        account={initaitedRescuerAcc} // undefined
+        accountsInfo={accountWithId} // undefined - don't care
+        addresesOnThisChain={addresesOnThisChain} // Don't care
+        api={chainInfo.api} // Undefined
+        chain={chain('westend')}
+        handleCloseAsRescuer={showAsRescuerModal} // value
+        lastLostAccount={undefined} // undefined
+        recoveryConsts={recoveryConsts}
+        showAsRescuerModal={showAsRescuerModal()} // value
+      />
+    );
+
+    fireEvent.change(getByRole('combobox', { hidden: true, name: 'Lost' }), { target: { value: succRecoveredAcc } });
+    fireEvent.click(getByRole('button', { hidden: true, name: 'Confirm the account address' }));
+    await waitForElementToBeRemoved(() => queryByText('Checking the account'), {
+      onTimeout: () => {
+        throw new Error('Please check your internet connection and run the test again!');
+      },
+      timeout: 40000
+    });
+    await waitFor(() => expect(queryByText('The lost account\'s balance(s) can be withdrawn')).toBeTruthy(), {
+      timeout: 5000,
+      onTimeout: () => {
+        throw new Error('Something went wrong at showing the Step 2: Wait Recovery progress!');
+      }
+    });
+    await waitFor(() => expect(queryByText('Total')).toBeTruthy(), {
+      timeout: 5000,
+      onTimeout: () => {
+        throw new Error('Something went wrong at showing the Balances of the losted account!');
+      }
+    });
+    expect(queryByText('Available')).toBeTruthy();
+    expect(queryByText('Reserved')).toBeTruthy();
+    await waitFor(() => expect(queryByText('#Other rescuer(s)')).toBeTruthy(), {
+      timeout: 5000,
+      onTimeout: () => {
+        throw new Error('Something went wrong at showing other possible rescuers of the losted account!');
+      }
+    });
+    expect(queryByText('Total deposited')).toBeTruthy();
+    expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(false);
   });
 });
