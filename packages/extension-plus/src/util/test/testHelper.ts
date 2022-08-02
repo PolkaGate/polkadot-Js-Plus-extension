@@ -1209,7 +1209,7 @@ export const validatorsName: ValidatorsName[] = [
   { address: '5DVDZcaxCDLStUgnqkx67ZrYP9ZQ4hpSiVsHiUmfJh8VTo8S', name: 'Moly' },
   { address: '5GVzG3QJvRc6MEtxaJZnLB3PAhQT8eMgesqgHxYiiQJE4HNv', name: 'Mary' },
   { address: '5CPDNHdbZMNNeHLq7t9Cc434CM1fBL6tkaifiCG3kaQ8KHv8', name: 'NewYork Times' },
-  { address: '5CFPcUJgYgWryPaV1aYjSbTpbTLu42V32Ytw1L9rfoMAsfGh', name: 'Amir' },
+  { address: '5G6TeiXHZJFV3DtPABJ22thuLguSEPJgH7FkqcRPrn88mFKh', name: 'Amir' },
   { address: '5C864nyotaG4cNoR3YBUqnPVnnvqF1NN1s9t9CuAebyQkQGF', name: 'Olivia' },
   { address: '5GYaYNVq6e855t5hVCyk4Wuqssaf6ADTrvdPZ3QXyHvFXTip', name: 'Emma' },
   { address: '5Ek5JCnrRsyUGYNRaEvkufG1i1EUxEE9cytuWBBjA9oNZVsf', name: 'Mia' }
