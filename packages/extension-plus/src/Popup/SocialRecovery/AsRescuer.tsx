@@ -15,7 +15,7 @@ import type { PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig } from 
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { HealthAndSafetyOutlined as HealthAndSafetyOutlinedIcon } from '@mui/icons-material';
-import { Divider, Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import { Alert, Divider, Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
@@ -27,7 +27,7 @@ import { encodeAddress } from '@polkadot/util-crypto';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress, ShowBalance2, ShowValue } from '../../components';
-import { nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
+import { AlertType, nameAddress, RecoveryConsts, Rescuer, Voucher } from '../../util/plusTypes';
 import { remainingTimeCountDown } from '../../util/plusUtils';
 import { getVouchers } from '../../util/subquery';
 import AddNewAccount from './AddNewAccount';
@@ -52,7 +52,7 @@ const STEP_MAP = { INIT: 0, WAIT: 1, WITHDRAW: 2 };
 function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, handleCloseAsRescuer, lastLostAccount, recoveryConsts, showAsRescuerModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>(lastLostAccount);
-  const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
+  const [lostAccountHelperText, setLostAccountHelperText] = useState<AlertType | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [lostAccountBalance, setLostAccountBalance] = useState<DeriveBalancesAll | undefined>();
   const [lostAccountLedger, setLostAccountLedger] = useState<StakingLedger | undefined | null>();
@@ -321,19 +321,19 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     }
 
     if (lostAccountRecoveryInfo === null && activeStep === STEP_MAP.INIT) {
-      return setLostAccountHelperText(t<string>('The account is NOT recoverable'));
+      return setLostAccountHelperText({ severity: 'error', text: t<string>('The account is NOT recoverable') });
     }
 
     if (activeStep === STEP_MAP.INIT && api && recoveryConsts && hasActiveRecoveries === null) {
-      return setLostAccountHelperText(t<string>('Proceed to initiate recovery, {{deposit}} needs to be deposited', { replace: { deposit: api.createType('Balance', recoveryConsts?.recoveryDeposit).toHuman() } }));
+      return setLostAccountHelperText({ severity: 'info', text: t<string>('Proceed to initiate recovery, {{deposit}} needs to be deposited', { replace: { deposit: api.createType('Balance', recoveryConsts?.recoveryDeposit).toHuman() } }) });
     }
 
     if (activeStep === STEP_MAP.WAIT) {
-      return setLostAccountHelperText(t<string>('Wait until the condition(s) will be met'));
+      return setLostAccountHelperText({ severity: 'info', text: t<string>('Wait until the condition(s) will be met') });
     }
 
     if (activeStep === STEP_MAP.WITHDRAW) {
-      return setLostAccountHelperText(t<string>('The lost account\'s balance(s) can be withdrawn'));
+      return setLostAccountHelperText({ severity: 'success', text: t<string>('The lost account\'s balance(s) can be withdrawn') });
     }
   }, [hasActiveRecoveries, isProxy, lostAccount, lostAccountRecoveryInfo, t, activeStep, recoveryConsts, api]);
 
@@ -358,7 +358,8 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
           {lostAccount &&
             <> {lostAccountHelperText
               ? <Grid fontSize={15} fontWeight={600} item pt='75px' textAlign='center'>
-                {lostAccountHelperText}
+                <Alert severity={lostAccountHelperText.severity}>{lostAccountHelperText.text}</Alert>
+                {/* {lostAccountHelperText} */}
               </Grid>
               : <Progress pt={1} title={t('Checking the account')} />
             }

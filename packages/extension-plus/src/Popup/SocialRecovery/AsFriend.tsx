@@ -23,7 +23,7 @@ import { NextStepButton } from '@polkadot/extension-ui/components';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, Progress } from '../../components';
-import { nameAddress, RecoveryConsts } from '../../util/plusTypes';
+import { AlertType, nameAddress, RecoveryConsts } from '../../util/plusTypes';
 import AddNewAccount from './AddNewAccount';
 import Confirm from './Confirm';
 
@@ -39,17 +39,12 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
-interface Alert {
-  text: string;
-  severity: 'error' | 'warning' | 'info' | 'success'
-}
-
 function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
-  const [lostAccountHelperText, setLostAccountHelperText] = useState<Alert | undefined>();
+  const [lostAccountHelperText, setLostAccountHelperText] = useState<AlertType | undefined>();
   const [rescuerAccount, setRescuerAccount] = useState<DeriveAccountInfo | undefined>();
-  const [rescuerAccountHelperText, setRescuerAccountHelperText] = useState<Alert | undefined>();
+  const [rescuerAccountHelperText, setRescuerAccountHelperText] = useState<AlertType | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
@@ -86,6 +81,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
       setLostAccountHelperText(undefined);
       setIsFriend(undefined);
       setHasActiveRecoveries(undefined);
+      setLostAccountRecoveryInfo(undefined);
     }
   }, [lostAccount]);
 
@@ -132,7 +128,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
         return setRescuerAccountHelperText({ severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') });
       }
 
-      setRescuerAccountHelperText({ severity: 'success', text: t<string>('The rescuer has initiated the recovery, proceed') });
+      setRescuerAccountHelperText({ severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') });
     };
   }, [hasActiveRecoveries, lostAccountRecoveryInfo, rescuerAccount, t]);
 
