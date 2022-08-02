@@ -10,11 +10,11 @@
 
 import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
-import type { PalletRecoveryActiveRecovery,PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
+import type { PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig } from '@polkadot/types/lookup';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
-import { Grid,Typography } from '@mui/material';
+import { Alert, Grid, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
@@ -39,12 +39,17 @@ interface Props extends ThemeProps {
   addresesOnThisChain: nameAddress[];
 }
 
+interface Alert {
+  text: string;
+  severity: 'error' | 'warning' | 'info' | 'success'
+}
+
 function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
-  const [lostAccountHelperText, setLostAccountHelperText] = useState<string | undefined>();
+  const [lostAccountHelperText, setLostAccountHelperText] = useState<Alert | undefined>();
   const [rescuerAccount, setRescuerAccount] = useState<DeriveAccountInfo | undefined>();
-  const [rescuerAccountHelperText, setRescuerAccountHelperText] = useState<string | undefined>();
+  const [rescuerAccountHelperText, setRescuerAccountHelperText] = useState<Alert | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
@@ -69,26 +74,32 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
 
   useEffect(() => {
     if (lostAccountRecoveryInfo?.friends && account?.accountId) {
-      const friendIndex = lostAccountRecoveryInfo.friends.findIndex((f) => f.toString() === account.accountId.toString());
+      const friendIndex = lostAccountRecoveryInfo.friends.findIndex((f) => f.toString() === account.accountId?.toString());
 
       setIsFriend(friendIndex >= 0);
     }
   }, [account?.accountId, lostAccountRecoveryInfo]);
 
-  const clearHelperTexts = useCallback(() => {
-    setRescuerAccountHelperText(undefined);
-    setLostAccountHelperText(undefined);
-  }, []);
-
   useEffect(() => {
     if (!lostAccount) {
-      clearHelperTexts();
+      setRescuerAccountHelperText(undefined);
+      setLostAccountHelperText(undefined);
       setIsFriend(undefined);
+      setHasActiveRecoveries(undefined);
     }
-  }, [clearHelperTexts, lostAccount]);
+  }, [lostAccount]);
 
   useEffect(() => {
-    if (!api || !lostAccount) { return; }
+    if (!rescuerAccount) {
+      setRescuerAccountHelperText(undefined);
+      setHasActiveRecoveries(undefined);
+    }
+  }, [rescuerAccount]);
+
+  useEffect(() => {
+    if (!api || !lostAccount) {
+      return;
+    }
 
     // eslint-disable-next-line no-void
     void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
@@ -104,10 +115,10 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
       }
 
       if (lostAccountRecoveryInfo === null) {
-        return setLostAccountHelperText(t<string>('The account is not recoverable'));
+        return setLostAccountHelperText({ severity: 'error', text: t<string>('The account is not recoverable') });
       }
 
-      setLostAccountHelperText(t<string>('The account is recoverable'));
+      setLostAccountHelperText({ severity: 'success', text: t<string>('The account is recoverable') });
     }
   }, [lostAccount, lostAccountRecoveryInfo, t]);
 
@@ -118,15 +129,17 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
       }
 
       if (hasActiveRecoveries === null) {
-        return setRescuerAccountHelperText(t<string>('Account recovery for the lost account has not been initiated by this rescuer'));
+        return setRescuerAccountHelperText({ severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') });
       }
 
-      setRescuerAccountHelperText(t<string>('The rescuer has initiated the recovery, proceed'));
-    }
+      setRescuerAccountHelperText({ severity: 'success', text: t<string>('The rescuer has initiated the recovery, proceed') });
+    };
   }, [hasActiveRecoveries, lostAccountRecoveryInfo, rescuerAccount, t]);
 
   useEffect(() => {
-    if (!api || !rescuerAccount?.accountId || !lostAccount || !lostAccountRecoveryInfo) { return; }
+    if (!api || !rescuerAccount?.accountId || !lostAccount || !lostAccountRecoveryInfo) {
+      return;
+    }
 
     const hasActiveRecoveries = api.query.recovery.activeRecoveries;
 
@@ -152,13 +165,23 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
           <Typography sx={{ color: 'text.primary', p: '10px' }} variant='subtitle2'>
             {t<string>('Enter the lost account address (or identity) that you want to vouch for')}:
           </Typography>
-          <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={lostAccountHelperText} label={t('Lost')} setAccount={setLostAccount} />
+          <AddNewAccount account={lostAccount} accountsInfo={accountsInfo} addresesOnThisChain={addresesOnThisChain} chain={chain} helperText={lostAccountHelperText?.text} label={t('Lost')} setAccount={setLostAccount} />
           {lostAccount && lostAccountRecoveryInfo && isFriend === false &&
-            <Grid pt='85px' textAlign='center'>
-              <Typography sx={{ color: 'error.main', p: '50px 10px 10px' }} variant='subtitle2'>
+            <Grid fontSize={15} fontWeight={600} pt='85px' textAlign='center'>
+              <Alert severity='error'>
                 {t<string>('You are not registered as a friend of the lost account!')}
-              </Typography>
+              </Alert>
             </Grid>
+          }
+          {lostAccount && !lostAccountRecoveryInfo &&
+            <>
+              {lostAccountRecoveryInfo === null && lostAccountHelperText
+                ? <Grid fontSize={15} fontWeight={600} pt='85px' textAlign='center'>
+                  <Alert severity={lostAccountHelperText.severity}>{lostAccountHelperText.text}</Alert>
+                </Grid>
+                : <Progress pt={1} title={t('Checking the lost account')} />
+              }
+            </>
           }
           {lostAccount && lostAccountRecoveryInfo && isFriend &&
             <>
@@ -169,7 +192,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
               {rescuerAccount &&
                 <> {rescuerAccountHelperText
                   ? <Grid fontSize={15} fontWeight={600} pt='85px' textAlign='center'>
-                    {rescuerAccountHelperText}
+                    <Alert severity={rescuerAccountHelperText.severity}>{rescuerAccountHelperText.text}</Alert>
                   </Grid>
                   : <Progress pt={1} title={t('Checking the resuer account')} />
                 }
