@@ -91,7 +91,7 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
       if (acc.address === address) {
         setAccount({ accountId: encodeAddress(publicKey, prefix), identity: { display: acc?.name } });
 
-        return result; // ignore the current account, I can not be a friend of mine
+        // return result; // ignore the current account, I can not be a friend of mine
       }
 
       result.push({ address: encodeAddress(publicKey, prefix), name: acc?.name });
