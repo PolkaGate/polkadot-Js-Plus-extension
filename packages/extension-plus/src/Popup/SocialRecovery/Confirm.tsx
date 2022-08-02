@@ -120,16 +120,22 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
   }, [friendIds?.length, recoveryConsts, rescuer, state]);
 
   useEffect(() => {
-    if (!estimatedFee) {
+    if (!estimatedFee || !recoveryConsts) {
       return;
     }
 
     api && api.query.system.account(account.accountId).then((balance) => {
-      const payout = deposit.gtn(0) ? deposit.add(estimatedFee) : estimatedFee;
+      const payDeposit = state === 'makeRecoverable'
+        ? recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friendIds?.length ?? 1))
+        : state === 'initiateRecovery'
+          ? recoveryConsts.recoveryDeposit
+          : BN_ZERO;
 
-      balance?.data?.free && setNotEnoughBalance(payout.gte(balance.data.free));
+      const payout = payDeposit.add(estimatedFee);
+
+      balance?.data?.free && setNotEnoughBalance(payout.gte(balance.data.free as BN));
     });
-  }, [account.accountId, api, deposit, estimatedFee]);
+  }, [account.accountId, api, estimatedFee, friendIds?.length, recoveryConsts, state]);
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) {
