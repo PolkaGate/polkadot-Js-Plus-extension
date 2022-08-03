@@ -29,13 +29,14 @@ import {
   GppMaybeOutlined as GppMaybeOutlinedIcon,
   AddModeratorOutlined as AddModeratorOutlinedIcon,
   AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon,
-  Start as StartIcon,
+  SportsScore  as SportsScoreIcon ,
   StopCircle as StopCircleIcon,
   SummarizeOutlined as SummarizeOutlinedIcon,
   SystemUpdateAltOutlined as SystemUpdateAltOutlinedIcon,
   ThumbsUpDownRounded as ThumbsUpDownRoundedIcon,
   VolunteerActivismSharp as VolunteerActivismSharpIcon,
-  VerifiedUserOutlined as VerifiedUserOutlinedIcon
+  VerifiedUserOutlined as VerifiedUserOutlinedIcon,
+  SettingsBackupRestore  as SettingsBackupRestoreIcon 
 } from '@mui/icons-material';
 import React from 'react';
 
@@ -168,7 +169,7 @@ export function getTxIcon(action: string): React.ReactNode {
         sx={{ color: 'red' }}
       />;
     case ('initiate_recovery'):
-      return <StartIcon
+      return <SportsScoreIcon 
         fontSize='small'
         sx={{ color: 'OrangeRed' }}
       />;
@@ -190,7 +191,12 @@ export function getTxIcon(action: string): React.ReactNode {
     case ('remove_recovery'):
       return <VerifiedUserOutlinedIcon
         fontSize='small'
-        sx={{ color: 'Tomato' }}
+        sx={{ color: 'DarkSlateGray' }}
+      />;
+    case ('withdraw'):
+      return <SettingsBackupRestoreIcon 
+        fontSize='small'
+        sx={{ color: 'LimeGreen' }}
       />;
     default:
       return <NotificationsNoneIcon
