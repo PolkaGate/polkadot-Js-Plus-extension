@@ -133,7 +133,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
       }
 
       setRescuerAccountHelperText({ severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') });
-    };
+    }
   }, [account?.accountId, activeRecoveries, lostAccountRecoveryInfo, rescuerAccount, t]);
 
   useEffect(() => {
