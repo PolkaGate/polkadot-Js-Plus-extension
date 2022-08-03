@@ -253,14 +253,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
         history.push({
           action: 'make_recoverable',
-          amount: '0',
+          amount: recoveryConsts && friendIds?.length
+            ? amountToHuman(String(recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friendIds.length))), decimals)
+            : '0',
           block,
           date: Date.now(),
           fee: fee || '',
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: 'deposited'
         });
 
         setConfirmingState(status);
@@ -278,7 +280,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: 'N/A'
         });
 
         setConfirmingState(status);
