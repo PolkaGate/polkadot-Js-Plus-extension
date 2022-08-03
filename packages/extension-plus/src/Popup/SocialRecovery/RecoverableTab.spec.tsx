@@ -145,7 +145,7 @@ describe('Testing RecoverableTab component', () => {
     });
   });
 
-  describe('Removing an account recoverability', () => {
+  describe('Removing an account\'s recoverability', () => {
     beforeAll(async () => {
       chainInfo = await getChainInfo('westend') as ChainInfo;
 
@@ -205,6 +205,7 @@ describe('Testing RecoverableTab component', () => {
       expect(getByRole('button', { hidden: true, name: 'Next to remove recovery' })).toBeTruthy();
       expect(getByRole('button', { hidden: true, name: 'Next to remove recovery' }).hasAttribute('disabled')).toBe(false);
     });
+    
     test('When some props have not set yet', () => {
       const { getByRole, queryByRole, queryByTestId, queryByText } = render(
         <RecoverableTab
