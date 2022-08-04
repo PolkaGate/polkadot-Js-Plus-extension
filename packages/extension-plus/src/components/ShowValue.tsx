@@ -10,28 +10,26 @@
 import type { ThemeProps } from '../../../extension-ui/src/types';
 
 import { Grid, GridDirection, Skeleton } from '@mui/material';
-import { ResponsiveStyleValue } from '@mui/system';
+// import { ResponsiveStyleValue } from '@mui/material';
 import React from 'react';
 import styled from 'styled-components';
 
 export interface Props {
-  align?: 'left' | 'right' | 'center';
-  justify?: 'space-between' | 'flex-start';
   value: string | number | null | undefined;
   unit?: string;
   title?: string;
   direction?: ResponsiveStyleValue<GridDirection> | undefined;
 }
 
-function ShowValue({ align = 'left', direction = 'row', justify = 'space-between', title, unit, value }: Props): React.ReactElement<Props> {
+function ShowValue({ direction = 'row', title, unit, value }: Props): React.ReactElement<Props> {
   return (
-    <Grid container direction={direction} item justifyContent={justify} xs={12}>
+    <Grid container direction={direction} item justifyContent='space-between' xs={12}>
       {title &&
         <Grid item>
           {title}
         </Grid>
       }
-      <Grid item textAlign={align}>
+      <Grid item>
         {value !== undefined && value !== null
           ? <>
             {value}{' '}{unit}
