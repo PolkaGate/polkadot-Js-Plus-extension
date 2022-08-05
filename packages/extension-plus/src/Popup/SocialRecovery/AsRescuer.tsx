@@ -37,7 +37,7 @@ interface Props extends ThemeProps {
   api: ApiPromise | undefined;
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
-  chain: Chain | null;
+  chain: Chain;
   className?: string;
   handleCloseAsRescuer: () => void
   showAsRescuerModal: boolean;
@@ -429,7 +429,7 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
           </NextStepButton>
         </Grid>
       </Grid>
-      {showConfirmModal && api && chain && state && account && lostAccount && recoveryConsts &&
+      {showConfirmModal && api && state && account && lostAccount && recoveryConsts &&
         <Confirm
           account={account}
           api={api}

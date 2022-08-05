@@ -29,7 +29,7 @@ import Confirm from './Confirm';
 
 interface Props {
   account: DeriveAccountInfo;
-  chain: Chain | null;
+  chain: Chain;
   recoveryInfo: PalletRecoveryRecoveryConfig | null;
   recoveryConsts: RecoveryConsts | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
@@ -237,7 +237,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
         />
       }
       {
-        showConfirmModal && api && chain && state && recoveryConsts &&
+        showConfirmModal && api && state && recoveryConsts &&
         <Confirm
           account={account}
           api={api}
