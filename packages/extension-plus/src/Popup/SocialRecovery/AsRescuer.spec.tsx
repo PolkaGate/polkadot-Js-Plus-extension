@@ -18,13 +18,16 @@ import { remainingTimeCountDown } from '../../util/plusUtils';
 import { chain, validatorsIdentities as accountWithId, validatorsName as accountWithName } from '../../util/test/testHelper';
 import AsRescuer from './AsRescuer';
 
-jest.setTimeout(50000);
+jest.setTimeout(90000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
 let chainInfo: ChainInfo;
 const addresesOnThisChain: nameAddress[] = [accountWithName[0], accountWithName[1], accountWithName[2]];
 let recoveryConsts: RecoveryConsts;
 const showAsRescuerModal = () => true;
+const notRecoverableAccount = accountWithName[6].address;
+const recoverableAccount = accountWithName[0].address;
+const initaitedRescuerAcc = accountWithId[2];
 
 describe('Testing AsRescuer component', () => {
   beforeAll(async () => {
@@ -85,8 +88,6 @@ describe('Testing AsRescuer component', () => {
       />
     );
 
-    const notRecoverableAccount = accountWithName[5].address;
-
     fireEvent.change(getByRole('combobox', { hidden: true, name: 'Lost' }), { target: { value: notRecoverableAccount } });
     expect(queryByText('No indetity found for this account!')).toBeFalsy();
     fireEvent.click(getByRole('button', { hidden: true, name: 'Confirm the account address' }));
@@ -118,8 +119,6 @@ describe('Testing AsRescuer component', () => {
       />
     );
 
-    const recoverableAccount = accountWithName[0].address;
-
     fireEvent.change(getByRole('combobox', { hidden: true, name: 'Lost' }), { target: { value: recoverableAccount } });
     fireEvent.click(getByRole('button', { hidden: true, name: 'Confirm the account address' }));
     expect(getByRole('progressbar', { hidden: true })).toBeTruthy();
@@ -135,8 +134,6 @@ describe('Testing AsRescuer component', () => {
   });
 
   test('Recovering an account; phase 2: Wait', async () => {
-    const recoverableAccount = accountWithName[0].address;
-    const initaitedRescuerAcc = accountWithId[2];
     let VouchedFriends: string[];
     let initiateRecoveryBlock = 0;
     let recoveryInfo: PalletRecoveryRecoveryConfig;
@@ -199,12 +196,9 @@ describe('Testing AsRescuer component', () => {
   });
 
   test('Recovering an account; phase 3: Withdraw', async () => {
-    const initaitedRescuerAcc = accountWithId[0];
-    const succRecoveredAcc = accountWithId[0].accountId;
-
     const { getByRole, queryByText } = render(
       <AsRescuer
-        account={initaitedRescuerAcc} // undefined
+        account={accountWithId[0]} // undefined
         accountsInfo={accountWithId} // undefined - don't care
         addresesOnThisChain={addresesOnThisChain} // Don't care
         api={chainInfo.api} // Undefined
@@ -216,7 +210,7 @@ describe('Testing AsRescuer component', () => {
       />
     );
 
-    fireEvent.change(getByRole('combobox', { hidden: true, name: 'Lost' }), { target: { value: succRecoveredAcc } });
+    fireEvent.change(getByRole('combobox', { hidden: true, name: 'Lost' }), { target: { value: recoverableAccount } });
     fireEvent.click(getByRole('button', { hidden: true, name: 'Confirm the account address' }));
     await waitForElementToBeRemoved(() => queryByText('Checking the account'), {
       onTimeout: () => {
@@ -225,24 +219,24 @@ describe('Testing AsRescuer component', () => {
       timeout: 40000
     });
     await waitFor(() => expect(queryByText('The lost account\'s balance(s) can be withdrawn')).toBeTruthy(), {
-      timeout: 5000,
       onTimeout: () => {
-        throw new Error('Something went wrong at showing the Step 2: Wait Recovery progress!');
-      }
+        throw new Error('Something went wrong at showing the Step 3: Withdraw Recovery progress!');
+      },
+      timeout: 5000
     });
     await waitFor(() => expect(queryByText('Total')).toBeTruthy(), {
-      timeout: 5000,
       onTimeout: () => {
         throw new Error('Something went wrong at showing the Balances of the losted account!');
-      }
+      },
+      timeout: 5000
     });
     expect(queryByText('Available')).toBeTruthy();
     expect(queryByText('Reserved')).toBeTruthy();
     await waitFor(() => expect(queryByText('#Other rescuer(s)')).toBeTruthy(), {
-      timeout: 5000,
       onTimeout: () => {
         throw new Error('Something went wrong at showing other possible rescuers of the losted account!');
-      }
+      },
+      timeout: 5000
     });
     expect(queryByText('Total deposited')).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(false);
