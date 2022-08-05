@@ -69,7 +69,7 @@ function CloseRecovery({ account, api, chain, rescuer }: Props): React.ReactElem
           </Typography>
         </Grid>
         <Grid alignItems='center' container item justifyContent='center' sx={{ bgcolor: 'white', border: '1px solid', borderColor: grey[600], borderRadius: 5, fontSize: 12, height: '200px', overflowY: 'auto', px: '30px' }} xs={12}>
-          <Identity address={String(rescuer.accountId)} api={api} chain={chain} showAddress />
+          <Identity accountInfo={rescuer} api={api} chain={chain} showAddress />
           <ShowBalance2 api={api} balance={rescuer.option.deposit} direction='row' title={`${t('Deposited')}:`} />
           <ShowValue title='Initiation time' value={date?.toString()} />
         </Grid>

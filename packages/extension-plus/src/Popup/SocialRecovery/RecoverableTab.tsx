@@ -81,18 +81,36 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
     const recoveryDelayInDays = recoveryInfo.delayPeriod.toNumber() / (24 * 60 * 10);
 
     setRecoveryDelay(Number(recoveryDelayInDays.toFixed(4)));
-    const onChainFriends = recoveryInfo.friends.map((f): DeriveAccountInfo => {
+    const onChainFriendsAccountInfo = recoveryInfo.friends.map((f): DeriveAccountInfo => {
       const accountInfo = accountsInfo?.find((a) => a?.accountId?.toString() === f.toString());
 
       return accountInfo ?? { accountId: f, identity: undefined } as unknown as DeriveAccountInfo;
     });
 
-    setFriends(onChainFriends);
+    setFriends(onChainFriendsAccountInfo);
   }, [recoveryInfo, accountsInfo]);
 
   useEffect(() => {
     recoveryConsts?.friendDepositFactor && recoveryConsts?.configDepositBase && friends?.length && setDeposit(recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friends.length)));
   }, [friends, recoveryConsts?.configDepositBase, recoveryConsts?.friendDepositFactor]);
+
+  useEffect(() => {
+    const friendsWithLocalNamesIfNeeded = friends?.map((f) => {
+      if (f?.identity) {
+        return f;
+      }
+
+      const maybeLocalFriend = addresesOnThisChain?.find((l) => l.address === String(f.accountId));
+
+      if (maybeLocalFriend) {
+        f.nickname = maybeLocalFriend.name;
+      }
+
+      return f;
+    });
+
+    friendsWithLocalNamesIfNeeded?.lenght && setFriends([...friendsWithLocalNamesIfNeeded]);
+  }, [addresesOnThisChain, friends?.length]);
 
   return (
     <>

@@ -14,7 +14,7 @@ import type { Chain } from '@polkadot/extension-chains/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { NavigateBefore as NavigateBeforeIcon, NavigateNext as NavigateNextIcon, NoAccounts as NoAccountsIcon } from '@mui/icons-material';
-import { Autocomplete,Button as MuiButton, Grid, TextField } from '@mui/material';
+import { Autocomplete, Button as MuiButton, Grid, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -55,8 +55,14 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
   const handleConfirmLostAccount = useCallback(() => {
     const mayBeAccount = info ?? (text && isValidAddress(text) ? { accountId: text, identity: undefined } as unknown as DeriveAccountInfo : undefined);
 
+    if (mayBeAccount && !mayBeAccount?.identity) {
+      const accountLocalInfo = addresesOnThisChain?.find((i) => i.address === String(mayBeAccount.accountId));
+
+      mayBeAccount.nickname = accountLocalInfo?.name;
+    }
+
     mayBeAccount && setAccount(mayBeAccount);
-  }, [info, setAccount, text]);
+  }, [addresesOnThisChain, info, setAccount, text]);
 
   const handleSearchIdentity = useCallback(() => {
     if (!accountsInfo?.length) {

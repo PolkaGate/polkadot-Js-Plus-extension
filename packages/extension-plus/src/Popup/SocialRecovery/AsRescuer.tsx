@@ -206,12 +206,12 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     // eslint-disable-next-line no-void
     lostAccount?.accountId && activeStep === STEP_MAP.WITHDRAW && api && void api.derive.balances?.all(lostAccount.accountId).then((b) => {
       setLostAccountBalance(b);
-      console.log('lost balances b', JSON.parse(JSON.stringify(b)));
+      console.log('lost balances:', JSON.parse(JSON.stringify(b)));
 
       // eslint-disable-next-line no-void
       void api.query.staking.ledger(lostAccount.accountId).then((l) => {
         setLostAccountLedger(l?.isSome ? l.unwrap() as unknown as StakingLedger : null);
-        console.log('lost account ledger', JSON.parse(JSON.stringify(l)));
+        console.log('lost account ledger:', JSON.parse(JSON.stringify(l)));
       });
 
       // eslint-disable-next-line no-void
@@ -266,10 +266,24 @@ function AsRescuer({ account, accountsInfo, addresesOnThisChain, api, chain, han
     if (api && lostAccountRecoveryInfo?.friends) {
       Promise.all(
         lostAccountRecoveryInfo.friends.map((f) => api.derive.accounts.info(f))
-      ).then((info) => setfriendsAccountsInfo(info))
+      ).then((lostAccountFriendsIdentities) => {
+        const mayHaveLocalFriends = lostAccountFriendsIdentities?.map((i) => {
+          if (i?.identity?.display) {
+            return i;
+          }
+
+          const localFreindInfo = addresesOnThisChain?.find((x) => x.address === String(i.accountId));
+
+          i.nickname = localFreindInfo?.name;
+
+          return i;
+        });
+
+        setfriendsAccountsInfo(mayHaveLocalFriends);
+      })
         .catch(console.error);
     }
-  }, [lostAccountRecoveryInfo, api]);
+  }, [lostAccountRecoveryInfo, api, addresesOnThisChain]);
 
   useEffect(() => {
     if (!api || !lostAccount) {

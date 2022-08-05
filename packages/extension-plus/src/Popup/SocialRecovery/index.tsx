@@ -188,6 +188,21 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
     });
   }, [address, api, chain?.name, chain?.ss58Format]);
 
+  useEffect(() => {
+    if (!rescuer || rescuer?.identity) {
+      return;
+    }
+
+    const localRescuer = rescuer;
+    const maybeLocalrescuer = addresesOnThisChain?.find((l) => l.address === String(rescuer.accountId));
+
+    if (maybeLocalrescuer) {
+      localRescuer.nickname = maybeLocalrescuer.name;
+    }
+
+    localRescuer !== rescuer && setRescuer(localRescuer);
+  }, [addresesOnThisChain, rescuer?.accountId]);
+
   const openConfigure = useCallback(() => {
     setConfigureModalOpen(true);
   }, []);
