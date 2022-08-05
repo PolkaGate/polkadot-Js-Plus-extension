@@ -34,7 +34,7 @@ interface Props extends ThemeProps {
   accountsInfo?: DeriveAccountInfo[] | undefined;
   addresesOnThisChain?: nameAddress[];
   api: ApiPromise | undefined;
-  chain: Chain | null;
+  chain: Chain;
   recoveryConsts?: RecoveryConsts | undefined;
   recoveryInfo?: PalletRecoveryRecoveryConfig | null | undefined;
   rescuer: Rescuer | null | undefined;
@@ -94,7 +94,7 @@ function Configure({ account, accountsInfo, addresesOnThisChain, api, chain, cla
             recoveryInfo={recoveryInfo}
           />
         }
-        {tabValue === 'configuration' && status && status === 'closeRecovery' && rescuer && chain && account &&
+        {tabValue === 'configuration' && status && status === 'closeRecovery' && rescuer && account &&
           <CloseRecoveryTab
             account={account}
             api={api}

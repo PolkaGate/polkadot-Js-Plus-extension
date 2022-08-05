@@ -31,7 +31,7 @@ interface Props extends ThemeProps {
   api: ApiPromise | undefined;
   account: DeriveAccountInfo | undefined;
   accountsInfo: DeriveAccountInfo[] | undefined;
-  chain: Chain | null;
+  chain: Chain;
   className?: string;
   handleCloseAsFriend: () => void
   showAsFriendModal: boolean;
@@ -203,7 +203,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
           </NextStepButton>
         </Grid>
       </Grid>
-      {showConfirmModal && api && chain && state && account && lostAccount && rescuerAccount && recoveryConsts && lostAccountRecoveryInfo &&
+      {showConfirmModal && api && state && account && lostAccount && rescuerAccount && recoveryConsts && lostAccountRecoveryInfo &&
         <Confirm
           account={account}
           api={api}
