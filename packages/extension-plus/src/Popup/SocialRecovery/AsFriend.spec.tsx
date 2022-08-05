@@ -26,7 +26,7 @@ const lostAcc = accountWithId[0].accountId;
 const notRecuerAcc = accountWithId[3].accountId;
 const recuerAcc = accountWithId[2].accountId;
 
-describe('Testing AsFriend component', () => {
+describe.skip('Testing AsFriend component', () => {
   beforeAll(async () => {
     chainInfo = await getChainInfo('westend') as ChainInfo;
 
