@@ -55,14 +55,8 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
   const handleConfirmLostAccount = useCallback(() => {
     const mayBeAccount = info ?? (text && isValidAddress(text) ? { accountId: text, identity: undefined } as unknown as DeriveAccountInfo : undefined);
 
-    if (mayBeAccount && !mayBeAccount?.identity) {
-      const accountLocalInfo = addresesOnThisChain?.find((i) => i.address === String(mayBeAccount.accountId));
-
-      mayBeAccount.nickname = accountLocalInfo?.name;
-    }
-
     mayBeAccount && setAccount(mayBeAccount);
-  }, [addresesOnThisChain, info, setAccount, text]);
+  }, [info, setAccount, text]);
 
   const handleSearchIdentity = useCallback(() => {
     if (!accountsInfo?.length) {
@@ -88,6 +82,18 @@ function AddNewAccount({ account, accountsInfo, addresesOnThisChain, chain, help
 
     setFilteredAccountsInfo(null);
   }, [accountsInfo, text]);
+
+  useEffect(() => {
+    if (account && !account?.identity) {
+      const accountLocalInfo = addresesOnThisChain?.find((i) => i.address === String(account.accountId));
+
+      setAccount((account) => {
+        account.nickname = accountLocalInfo?.name;
+
+        return account;
+      });
+    }
+  }, [ account?.accountId, addresesOnThisChain, setAccount]);
 
   useEffect(() => {
     handleSearchIdentity();
