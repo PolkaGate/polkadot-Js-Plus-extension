@@ -112,7 +112,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       return recoveryConsts.recoveryDeposit;
     }
 
-    if (['closeRecovery', 'closeRecoveryAsRescuer'].includes(state)) {
+    if (['closeRecovery'].includes(state)) {
       return rescuer?.option?.deposit ? new BN(rescuer?.option?.deposit) : BN_ZERO;
     }
 
@@ -179,18 +179,6 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         account?.accountId && void closeRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
-
-      case ('closeRecoveryAsRescuer'): {
-        const call = closeRecovery(rescuer.accountId);
-
-        params = [lostAccount.accountId, call];
-
-        // eslint-disable-next-line no-void
-        account?.accountId && void asRecovered(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
-
-        break;
-      }
-
       case ('vouchRecovery'):
         params = [lostAccount.accountId, rescuer.accountId];
 
@@ -198,13 +186,6 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         account?.accountId && void vouchRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
 
         break;
-      // case ('claimRecovery'):
-      //   params = [lostAccount.accountId];
-
-      //   // eslint-disable-next-line no-void
-      //   account?.accountId && void claimRecovery(...params).paymentInfo(account.accountId).then((i) => setEstimatedFee(i?.partialFee));
-
-      //   break;
       case ('withdrawWithClaim'):
         params = [lostAccount.accountId, batchWithdraw];
 
@@ -253,14 +234,16 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
         history.push({
           action: 'make_recoverable',
-          amount: '0',
+          amount: recoveryConsts && friendIds?.length
+            ? amountToHuman(String(recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friendIds.length))), decimals)
+            : '0',
           block,
           date: Date.now(),
           fee: fee || '',
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: 'deposited'
         });
 
         setConfirmingState(status);
@@ -278,7 +261,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
-          to: ''
+          to: 'N/A'
         });
 
         setConfirmingState(status);
@@ -323,33 +306,12 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         setConfirmingState(status);
       }
 
-      if (localState === 'closeRecoveryAsRescuer' && rescuer?.accountId && lostAccount?.accountId && rescuer?.option) {
-        const call = closeRecovery(rescuer.accountId);
-
-        const params = [lostAccount.accountId, call];
-        const { block, failureText, fee, status, txHash } = await broadcast(api, asRecovered, params, signer, account.accountId);
-
-        history.push({
-          action: 'close_recovery_a.r.',
-          amount: amountToHuman(String(rescuer.option.deposit), decimals),
-          block,
-          date: Date.now(),
-          fee: fee || '',
-          from: String(account.accountId),
-          hash: txHash || '',
-          status: failureText || status,
-          to: ''
-        });
-
-        setConfirmingState(status);
-      }
-
       if (localState === 'withdrawAsRecovered' && lostAccount?.accountId && withdrawAmounts) {
         const params = [lostAccount.accountId, batchWithdraw];
         const { block, failureText, fee, status, txHash } = await broadcast(api, asRecovered, params, signer, account.accountId);
 
         history.push({
-          action: 'withdraw_a.r.',
+          action: 'withdraw',
           amount: amountToHuman(String(withdrawAmounts.available.add(withdrawAmounts.redeemable).add(withdrawAmounts.staked)), decimals),
           block,
           date: Date.now(),
@@ -370,7 +332,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         const { block, failureText, fee, status, txHash } = await signAndSend(api, withdrawWithClaimCall, signer, account.accountId);
 
         history.push({
-          action: 'withdraw_w.c.',
+          action: 'withdraw',
           amount: amountToHuman(String(withdrawAmounts.available.add(withdrawAmounts.redeemable).add(withdrawAmounts.staked)), decimals),
           block,
           date: Date.now(),
@@ -429,7 +391,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       return t<string>('Initiating recovery for the recoverable account, with the following friend(s)');
     }
 
-    if (['closeRecovery', 'closeRecoveryAsRescuer'].includes(state)) {
+    if (['closeRecovery'].includes(state)) {
       return t('The recoverable account will receive the recovery deposit {{deposit}} placed by the rescuer account', { replace: { deposit: api.createType('Balance', deposit).toHuman() } });
     }
 
@@ -439,10 +401,6 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
 
     if (state === 'vouchRecovery') {
       return t('Vouching to rescue the recoverable account using the rescuer account');
-    }
-
-    if (state === 'claimRecovery') {
-      return t('Claiming recovery for the recoverable account');
     }
 
     if (['withdrawAsRecovered', 'withdrawWithClaim'].includes(state) && withdrawAmounts) {
@@ -477,12 +435,9 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       case ('initiateRecovery'):
         return 'Initiate Recovery';
       case ('closeRecovery'):
-      case ('closeRecoveryAsRescuer'):
         return 'Close Recovery';
       case ('vouchRecovery'):
         return 'Vouch Recovery';
-      case ('claimRecovery'):
-        return 'Claim Recovery';
       case ('withdrawAsRecovered'):
       case ('withdrawWithClaim'):
         return 'Withdraw';
@@ -534,7 +489,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             {t('List of friends')}
           </Grid>
           }
-          {['closeRecovery', 'initiateRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'removeRecovery', 'claimRecovery', 'withdrawAsRecovered', 'withdrawWithClaim'].includes(state) &&
+          {['closeRecovery', 'initiateRecovery', 'vouchRecovery', 'removeRecovery', 'withdrawAsRecovered', 'withdrawWithClaim'].includes(state) &&
             <Grid container item justifyContent='center' p='15px 30px'>
               <WriteAppropriateMessage state={state} />
             </Grid>
@@ -546,7 +501,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
               </Grid>
             ))
           }
-          {['closeRecovery', 'closeRecoveryAsRescuer', 'vouchRecovery', 'claimRecovery'].includes(state) &&
+          {['closeRecovery', 'vouchRecovery'].includes(state) &&
             <Grid container item sx={{ fontFamily: 'sans-serif', fontWeight: 'bold', pl: 11 }} xs={12}>
               <Identity accountInfo={rescuer} chain={chain} showAddress title={'Rescuer account'} />
             </Grid>

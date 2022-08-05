@@ -160,11 +160,11 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('Rescue another account')).toBeTruthy();
     // Choises
     expect(queryByText('as Rescuer')).toBeTruthy();
-    expect(queryByText("You can initiate the recovery. If recovery conditions are met, the lost account's balances can be withdrawn.")).toBeTruthy();
+    expect(queryByText("You can initiate the recovery of a lost account. When conditions are met, the lost account's balances can be withdrawn.")).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'Rescue' })).toBeTruthy();
 
     expect(queryByText('as Friend')).toBeTruthy();
-    expect(queryByText('An account, who has been set as a friend of a lost account, can vouch for recovering the lost account by a rescuer.')).toBeTruthy();
+    expect(queryByText('If you are set as a friend account of a lost account, you can vouch the recovery of the lost account by a rescuer.')).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'Vouch' })).toBeTruthy();
     expect(getByRole('progressbar', { hidden: true })).toBeTruthy(); // progressbar in the Rescue button, 
 

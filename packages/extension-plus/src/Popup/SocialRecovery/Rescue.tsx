@@ -105,7 +105,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
         </Grid>
         <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
           <Paper sx={{ borderRadius: '10px', color: grey[500], height: 160, p: '15px 10px', width: '90%' }}>
-            {t('You can initiate the recovery. If recovery conditions are met, the lost account\'s balances can be withdrawn.')}
+            {t('You can initiate the recovery of a lost account. When conditions are met, the lost account\'s balances can be withdrawn.')}
             <Grid container justifyContent='center' sx={{ pt: 3 }}>
               <LoadingButton
                 color='warning'
@@ -134,7 +134,7 @@ function Rescue({ account, accountsInfo, addresesOnThisChain, api, chain, recove
         </Grid>
         <Grid container justifyContent='center' sx={{ fontSize: 14, fontWeight: 500, lineHeight: '25px', p: '15px' }}>
           <Paper sx={{ borderRadius: '10px', color: grey[500], height: 160, p: '15px 10px', width: '90%' }}>
-            {t('An account, who has been set as a friend of a lost account, can vouch for recovering the lost account by a rescuer.')}
+            {t('If you are set as a friend account of a lost account, you can vouch the recovery of the lost account by a rescuer.')}
             <Grid container justifyContent='center' sx={{ pt: 3 }}>
               <Button
                 onClick={handleFriend}

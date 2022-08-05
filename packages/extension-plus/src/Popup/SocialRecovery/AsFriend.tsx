@@ -48,7 +48,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
-  const [hasActiveRecoveries, setHasActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
+  const [activeRecoveries, setActiveRecoveries] = useState<PalletRecoveryActiveRecovery | undefined | null>();
   const [isProxy, setIsProxy] = useState<boolean | undefined | null>();
   const [friendsAccountsInfo, setfriendsAccountsInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [isFriend, setIsFriend] = useState<boolean | undefined>();
@@ -80,7 +80,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
       setRescuerAccountHelperText(undefined);
       setLostAccountHelperText(undefined);
       setIsFriend(undefined);
-      setHasActiveRecoveries(undefined);
+      setActiveRecoveries(undefined);
       setLostAccountRecoveryInfo(undefined);
     }
   }, [lostAccount]);
@@ -88,61 +88,57 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
   useEffect(() => {
     if (!rescuerAccount) {
       setRescuerAccountHelperText(undefined);
-      setHasActiveRecoveries(undefined);
+      setActiveRecoveries(undefined);
     }
   }, [rescuerAccount]);
 
   useEffect(() => {
-    if (!api || !lostAccount) {
-      return;
-    }
-
     // eslint-disable-next-line no-void
-    void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
+    api && lostAccount && void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
       setLostAccountRecoveryInfo(r.isSome ? r.unwrap() : null);
       console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
   }, [api, lostAccount]);
 
   useEffect(() => {
-    if (lostAccount) {
-      if (lostAccountRecoveryInfo === undefined) {
-        return;
-      }
-
-      if (lostAccountRecoveryInfo === null) {
-        return setLostAccountHelperText({ severity: 'error', text: t<string>('The account is not recoverable') });
-      }
-
-      setLostAccountHelperText({ severity: 'success', text: t<string>('The account is recoverable') });
-    }
-  }, [lostAccount, lostAccountRecoveryInfo, t]);
-
-  useEffect(() => {
-    if (rescuerAccount && lostAccountRecoveryInfo) {
-      if (hasActiveRecoveries === undefined) {
-        return;
-      }
-
-      if (hasActiveRecoveries === null) {
-        return setRescuerAccountHelperText({ severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') });
-      }
-
-      setRescuerAccountHelperText({ severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') });
-    };
-  }, [hasActiveRecoveries, lostAccountRecoveryInfo, rescuerAccount, t]);
-
-  useEffect(() => {
-    if (!api || !rescuerAccount?.accountId || !lostAccount || !lostAccountRecoveryInfo) {
+    if (lostAccountRecoveryInfo === undefined) {
       return;
     }
 
-    const hasActiveRecoveries = api.query.recovery.activeRecoveries;
+    if (lostAccountRecoveryInfo === null) {
+      return setLostAccountHelperText({ severity: 'error', text: t<string>('The account is not recoverable') });
+    }
+
+    setLostAccountHelperText({ severity: 'success', text: t<string>('The account is recoverable') });
+  }, [lostAccountRecoveryInfo, t]);
+
+  useEffect(() => {
+    if (activeRecoveries === undefined) {
+      return;
+    }
+
+    if (activeRecoveries === null) {
+      return setRescuerAccountHelperText({ severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') });
+    }
+
+    if (activeRecoveries.friends.find((f) => String(f) === String(account?.accountId))) {
+      return setRescuerAccountHelperText({ severity: 'warning', text: t<string>('You have already vouched for these accounts!') });
+    }
+
+    setRescuerAccountHelperText({ severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') });
+  }, [account?.accountId, activeRecoveries, t]);
+
+  useEffect(() => {
+    if (!api || !rescuerAccount?.accountId || !lostAccount) {
+      return;
+    }
+
+    const activeRecoveries = api.query.recovery.activeRecoveries;
 
     // eslint-disable-next-line no-void
-    void hasActiveRecoveries(lostAccount.accountId, rescuerAccount.accountId).then((r) => {
-      setHasActiveRecoveries(r.isSome ? r.unwrap() : null);
-      console.log('hasActiveRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
+    void activeRecoveries(lostAccount.accountId, rescuerAccount.accountId).then((r) => {
+      setActiveRecoveries(r.isSome ? r.unwrap() : null);
+      console.log('activeRecoveries:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
 
     // eslint-disable-next-line no-void
@@ -151,7 +147,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
 
       setIsProxy(proxy === lostAccount.accountId);
     });
-  }, [api, lostAccount, lostAccountRecoveryInfo, rescuerAccount]);
+  }, [api, lostAccount, rescuerAccount]);
 
   return (
     <Popup handleClose={handleCloseAsFriend} showModal={showAsFriendModal}>
@@ -200,7 +196,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
         <Grid item sx={{ pt: 3 }} xs={12}>
           <NextStepButton
             data-button-action=''
-            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !hasActiveRecoveries || !!isProxy}
+            isDisabled={!lostAccount || !lostAccountRecoveryInfo || !activeRecoveries || !!isProxy}
             onClick={handleNextToInitiateRecovery}
           >
             {t<string>('Next')}
