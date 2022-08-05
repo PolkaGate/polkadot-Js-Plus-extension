@@ -93,51 +93,43 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
   }, [rescuerAccount]);
 
   useEffect(() => {
-    if (!api || !lostAccount) {
-      return;
-    }
-
     // eslint-disable-next-line no-void
-    void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
+    api && lostAccount && void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
       setLostAccountRecoveryInfo(r.isSome ? r.unwrap() : null);
       console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
   }, [api, lostAccount]);
 
   useEffect(() => {
-    if (lostAccount) {
-      if (lostAccountRecoveryInfo === undefined) {
-        return;
-      }
-
-      if (lostAccountRecoveryInfo === null) {
-        return setLostAccountHelperText({ severity: 'error', text: t<string>('The account is not recoverable') });
-      }
-
-      setLostAccountHelperText({ severity: 'success', text: t<string>('The account is recoverable') });
+    if (lostAccountRecoveryInfo === undefined) {
+      return;
     }
-  }, [lostAccount, lostAccountRecoveryInfo, t]);
+
+    if (lostAccountRecoveryInfo === null) {
+      return setLostAccountHelperText({ severity: 'error', text: t<string>('The account is not recoverable') });
+    }
+
+    setLostAccountHelperText({ severity: 'success', text: t<string>('The account is recoverable') });
+  }, [lostAccountRecoveryInfo, t]);
 
   useEffect(() => {
-    if (rescuerAccount && lostAccountRecoveryInfo) {
-      if (activeRecoveries === undefined) {
-        return;
-      }
-
-      if (activeRecoveries === null) {
-        return setRescuerAccountHelperText({ severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') });
-      }
-
-      if (activeRecoveries.friends.find((f) => String(f) === String(account?.accountId))) {
-        return setRescuerAccountHelperText({ severity: 'warning', text: t<string>('You have already vouched for these accounts!') });
-      }
-
-      setRescuerAccountHelperText({ severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') });
+    if (activeRecoveries === undefined) {
+      return;
     }
-  }, [account?.accountId, activeRecoveries, lostAccountRecoveryInfo, rescuerAccount, t]);
+
+    if (activeRecoveries === null) {
+      return setRescuerAccountHelperText({ severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') });
+    }
+
+    if (activeRecoveries.friends.find((f) => String(f) === String(account?.accountId))) {
+      return setRescuerAccountHelperText({ severity: 'warning', text: t<string>('You have already vouched for these accounts!') });
+    }
+
+    setRescuerAccountHelperText({ severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') });
+  }, [account?.accountId, activeRecoveries, t]);
 
   useEffect(() => {
-    if (!api || !rescuerAccount?.accountId || !lostAccount || !lostAccountRecoveryInfo) {
+    if (!api || !rescuerAccount?.accountId || !lostAccount) {
       return;
     }
 
@@ -155,7 +147,7 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
 
       setIsProxy(proxy === lostAccount.accountId);
     });
-  }, [api, lostAccount, lostAccountRecoveryInfo, rescuerAccount]);
+  }, [api, lostAccount, rescuerAccount]);
 
   return (
     <Popup handleClose={handleCloseAsFriend} showModal={showAsFriendModal}>
