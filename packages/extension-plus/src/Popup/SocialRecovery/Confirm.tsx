@@ -456,9 +456,9 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={stateInHuman(state)} />
       <Grid alignItems='center' container>
-        <Grid alignItems='center' container item justifyContent='space-between' sx={{ backgroundColor: '#f7f7f7', textAlign: 'center', fontSize: 12, p: '15px 40px 10px' }} xs={12}>
+        <Grid alignItems='center' container item justifyContent='space-between' sx={{ backgroundColor: '#f7f7f7', textAlign: 'center', fontSize: 12, p: '15px 40px 5px' }} xs={12}>
           <Grid container item sx={{ fontFamily: 'sans-serif', fontWeight: 'bold', pl: 6 }} xs={12}>
-            <Identity accountInfo={lostAccount} chain={chain} showAddress title={t('Recoverable account')} />
+            <Identity accountInfo={account} chain={chain} showAddress title={t('Your account')} />
           </Grid>
           <Grid container item xs={12}>
             <Divider />
@@ -490,7 +490,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           </Grid>
           }
           {['closeRecovery', 'initiateRecovery', 'vouchRecovery', 'removeRecovery', 'withdrawAsRecovered', 'withdrawWithClaim'].includes(state) &&
-            <Grid container item justifyContent='center' p='15px 30px'>
+            <Grid alignItems='center' container item justifyContent='center' px='20px' pb='10px'>
               <WriteAppropriateMessage state={state} />
             </Grid>
           }
@@ -503,6 +503,9 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           }
           {['closeRecovery', 'vouchRecovery'].includes(state) &&
             <Grid container item sx={{ fontFamily: 'sans-serif', fontWeight: 'bold', pl: 11 }} xs={12}>
+              {state === 'vouchRecovery' &&
+                <Identity accountInfo={lostAccount} chain={chain} showAddress title={'Lost account'} />
+              }
               <Identity accountInfo={rescuer} chain={chain} showAddress title={'Rescuer account'} />
             </Grid>
           }
