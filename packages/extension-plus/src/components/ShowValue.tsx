@@ -25,11 +25,11 @@ function ShowValue({ direction = 'row', title, unit, value }: Props): React.Reac
   return (
     <Grid container direction={direction} item justifyContent='space-between' xs={12}>
       {title &&
-        <Grid item m={unit && 'auto'}>
+        <Grid item>
           {title}
         </Grid>
       }
-      <Grid item fontWeight={unit && 700} m={unit && 'auto'}>
+      <Grid item>
         {value !== undefined && value !== null
           ? <>
             {value}{' '}{unit}
@@ -37,7 +37,7 @@ function ShowValue({ direction = 'row', title, unit, value }: Props): React.Reac
           : <Skeleton sx={{ display: 'inline-block', fontWeight: 'bold', width: '70px' }} />
         }
       </Grid>
-    </Grid >
+    </Grid>
   );
 }
 
