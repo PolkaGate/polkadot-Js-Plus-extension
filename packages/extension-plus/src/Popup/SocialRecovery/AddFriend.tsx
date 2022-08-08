@@ -11,8 +11,8 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AddCircleRounded as AddCircleRoundedIcon, NavigateBefore as NavigateBeforeIcon,NavigateNext as NavigateNextIcon, NoAccounts as NoAccountsIcon } from '@mui/icons-material';
-import { Autocomplete, Grid, TextField,Typography } from '@mui/material';
+import { AddCircleRounded as AddCircleRoundedIcon, NavigateBefore as NavigateBeforeIcon, NavigateNext as NavigateNextIcon, NoAccounts as NoAccountsIcon } from '@mui/icons-material';
+import { Autocomplete, Grid, TextField, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -158,7 +158,7 @@ function AddFriend({ account, accountsInfo, addresesOnThisChain, chain, friends,
   const AccountTextBox = () => (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
       <Grid item xs={1}>
-        {text
+        {isValidAddress(text)
           ? <Identicon
             prefix={chain?.ss58Format ?? 42}
             size={40}
