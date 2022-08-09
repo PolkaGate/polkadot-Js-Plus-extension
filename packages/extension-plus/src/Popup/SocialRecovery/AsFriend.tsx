@@ -15,7 +15,7 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { AdminPanelSettingsOutlined as AdminPanelSettingsOutlinedIcon } from '@mui/icons-material';
 import { Alert, Grid, Typography } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
 
 import { Chain } from '@polkadot/extension-chains/types';
@@ -42,9 +42,7 @@ interface Props extends ThemeProps {
 function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, handleCloseAsFriend, recoveryConsts, showAsFriendModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [lostAccount, setLostAccount] = useState<DeriveAccountInfo | undefined>();
-  const [lostAccountHelperText, setLostAccountHelperText] = useState<AlertType | undefined>();
   const [rescuerAccount, setRescuerAccount] = useState<DeriveAccountInfo | undefined>();
-  const [rescuerAccountHelperText, setRescuerAccountHelperText] = useState<AlertType | undefined>();
   const [lostAccountRecoveryInfo, setLostAccountRecoveryInfo] = useState<PalletRecoveryRecoveryConfig | undefined | null>();
   const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
   const [state, setState] = useState<string | undefined>();
@@ -75,8 +73,6 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
 
   useEffect(() => {
     if (!lostAccount) {
-      setRescuerAccountHelperText(undefined);
-      setLostAccountHelperText(undefined);
       setIsFriend(undefined);
       setActiveRecoveries(undefined);
       setLostAccountRecoveryInfo(undefined);
@@ -85,46 +81,45 @@ function AsFriend({ account, accountsInfo, addresesOnThisChain, api, chain, hand
 
   useEffect(() => {
     if (!rescuerAccount) {
-      setRescuerAccountHelperText(undefined);
       setActiveRecoveries(undefined);
     }
   }, [rescuerAccount]);
 
   useEffect(() => {
     // eslint-disable-next-line no-void
-    api && lostAccount && void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
+    api && lostAccount?.accountId && void api.query.recovery.recoverable(lostAccount.accountId).then((r) => {
       setLostAccountRecoveryInfo(r.isSome ? r.unwrap() : null);
       console.log('is lost account recoverable:', r.isSome ? JSON.parse(JSON.stringify(r.unwrap())) : 'noch');
     });
   }, [api, lostAccount]);
 
-  useEffect(() => {
-    if (lostAccountRecoveryInfo === undefined || !t) {
+  const lostAccountHelperText = useMemo((): AlertType | undefined => {
+    if (lostAccountRecoveryInfo === undefined || !t || !lostAccount) {
       return;
     }
 
     if (lostAccountRecoveryInfo === null) {
-      return setLostAccountHelperText({ severity: 'error', text: t<string>('The account is not recoverable') });
+      return { severity: 'error', text: t<string>('The account is not recoverable') };
     }
 
-    setLostAccountHelperText({ severity: 'success', text: t<string>('The account is recoverable') });
-  }, [lostAccountRecoveryInfo, t]);
+    return { severity: 'success', text: t<string>('The account is recoverable') };
+  }, [lostAccount, lostAccountRecoveryInfo, t]);
 
-  useEffect(() => {
-    if (activeRecoveries === undefined) {
+  const rescuerAccountHelperText = useMemo((): AlertType | undefined => {
+    if (activeRecoveries === undefined || !lostAccount || !rescuerAccount) {
       return;
     }
 
     if (activeRecoveries === null) {
-      return setRescuerAccountHelperText({ severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') });
+      return { severity: 'error', text: t<string>('Account recovery for the lost account has not been initiated by this rescuer') };
     }
 
     if (activeRecoveries.friends.find((f) => String(f) === String(account?.accountId))) {
-      return setRescuerAccountHelperText({ severity: 'warning', text: t<string>('You have already vouched for these accounts!') });
+      return { severity: 'warning', text: t<string>('You have already vouched for these accounts!') };
     }
 
-    setRescuerAccountHelperText({ severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') });
-  }, [account?.accountId, activeRecoveries, t]);
+    return { severity: 'info', text: t<string>('The rescuer has initiated the recovery, proceed') };
+  }, [account?.accountId, activeRecoveries, lostAccount, rescuerAccount, t]);
 
   useEffect(() => {
     if (!api || !rescuerAccount?.accountId || !lostAccount) {
