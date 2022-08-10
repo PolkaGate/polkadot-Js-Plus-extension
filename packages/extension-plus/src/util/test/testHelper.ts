@@ -12,7 +12,7 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
 import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
 import { AccountsStore } from '../../../../extension-base/src/stores';
-import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, Rescuer, StakingConsts, ValidatorsName } from '../../util/plusTypes';
 import { SHORT_ADDRESS_CHARACTERS } from '../constants';
 import { Auction } from '../plusTypes';
 
@@ -1982,3 +1982,19 @@ export const poolsInfo: PoolInfo[] = [
     }
   }
 ];
+
+export const lostAccfriends = [validatorsIdentities[1], validatorsIdentities[2]];
+export const signerAcc = validatorsIdentities[0];
+export const lostAccount = validatorsIdentities[3];
+export const rescuerAcc = validatorsIdentities[4].accountId;
+export const rescuer: Rescuer = {
+  accountId: rescuerAcc,
+  identity: {
+    display: validatorsName[4].name
+  },
+  option: {
+    created: new BN('11907021'),
+    deposit: new BN('5000000000000'),
+    friends: [lostAccfriends[0].accountId?.toString()]
+  }
+};
