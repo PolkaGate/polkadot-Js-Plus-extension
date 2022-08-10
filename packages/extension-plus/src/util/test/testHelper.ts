@@ -12,7 +12,7 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import Extension from '../../../../extension-base/src/background/handlers/Extension';
 import State, { AuthUrls } from '../../../../extension-base/src/background/handlers/State';
 import { AccountsStore } from '../../../../extension-base/src/stores';
-import { Crowdloan, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, Rescuer, StakingConsts, ValidatorsName } from '../../util/plusTypes';
+import { Crowdloan, MembersMapEntry, MyPoolInfo, nameAddress, PoolInfo, PoolStakingConsts, PutInFrontInfo, RebagInfo, Rescuer, StakingConsts, ValidatorsName } from '../../util/plusTypes';
 import { SHORT_ADDRESS_CHARACTERS } from '../constants';
 import { Auction } from '../plusTypes';
 
@@ -1206,9 +1206,9 @@ export const validatorsName: ValidatorsName[] = [
   { address: '5HTGweepNDc7dCa34YtPn6kF4BLJvaMxbW3i3vzXBGn41Nz3', name: 'AmirEF' },
   { address: '5FbSap4BsWfjyRhCchoVdZHkDnmDm3NEgLZ25mesq4aw2WvX', name: 'Adam' },
   { address: '5EfEfh3pW9GaquFvpBpeeVwQJCGUS7CuVpSMXXXked3Xi6hp', name: 'Diego' },
-  { address: '5G6TeiXHZJFV3DtPABJ22thuLguSEPJgH7FkqcRPrn88mFKh', name: 'Moly' },
+  { address: '5G6TeiXHZJFV3DtPABJ22thuLguSEPJgH7FkqcRPrn88mFKh', name: 'Amir EF' },
   { address: '5GVzG3QJvRc6MEtxaJZnLB3PAhQT8eMgesqgHxYiiQJE4HNv', name: 'Mary' },
-  { address: '5CPDNHdbZMNNeHLq7t9Cc434CM1fBL6tkaifiCG3kaQ8KHv8', name: 'NewYork Times' },
+  { address: '5DRbuYvzokyX7X4QDxrk1BNRxYS6NP4V9CHiciPXdTe2vT4Z', name: 'Kami' },
   { address: '5C864nyotaG4cNoR3YBUqnPVnnvqF1NN1s9t9CuAebyQkQGF', name: 'Olivia' },
   { address: '5HEbNn6F37c9oW8E9PnnVnZBkCvz8ucjTbAQLi5H1goDqEbA', name: 'Amir' },
   { address: '5GYaYNVq6e855t5hVCyk4Wuqssaf6ADTrvdPZ3QXyHvFXTip', name: 'Emma' },
@@ -1983,14 +1983,17 @@ export const poolsInfo: PoolInfo[] = [
   }
 ];
 
-export const lostAccfriends = [validatorsIdentities[1], validatorsIdentities[2]];
+export const lostAccfriends = [validatorsIdentities[3], validatorsIdentities[5]];
 export const signerAcc = validatorsIdentities[0];
-export const lostAccount = validatorsIdentities[3];
-export const rescuerAcc = validatorsIdentities[4].accountId;
+export const lostAccount = validatorsIdentities[0];
+export const rescuerAcc = validatorsIdentities[2].accountId;
+export const notRecoverableAcc = validatorsIdentities[4].accountId;
+export const notRescuerAcc = validatorsIdentities[6].accountId;
+export const addresesOnThisChain: nameAddress[] = [validatorsName[0], validatorsName[1], validatorsName[2]];
 export const rescuer: Rescuer = {
   accountId: rescuerAcc,
   identity: {
-    display: validatorsName[4].name
+    display: validatorsName[2].name
   },
   option: {
     created: new BN('11907021'),
