@@ -124,7 +124,7 @@ describe('Testing Social Recovery component', () => {
     });
     expect(queryByText('{{token}}s needed to be reserved per added friend:')).toBeTruthy();
     expect(queryAllByTestId('ShowBalance2')[1].textContent).toEqual(ShowValue(recoveryConsts.friendDepositFactor));
-    expect(queryByText('The maximum amount of friends allowed in a recovery configuration:')).toBeTruthy();
+    expect(queryByText('The maximum number of friends allowed in a recovery configuration:')).toBeTruthy();
     expect(queryByText(recoveryConsts.maxFriends)).toBeTruthy();
     expect(queryByText('The base amount of {{token}}s needed to reserve for initiating a recovery:')).toBeTruthy();
     expect(queryAllByTestId('ShowBalance2')[2].textContent).toEqual(ShowValue(recoveryConsts.recoveryDeposit));
