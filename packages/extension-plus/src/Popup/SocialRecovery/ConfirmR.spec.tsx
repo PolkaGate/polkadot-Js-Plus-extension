@@ -26,7 +26,7 @@ let recoveryConsts: RecoveryConsts;
 const showConfirmModal = () => true;
 const setConfirmModalOpen = jest.fn();
 const setState = jest.fn();
-const states = ['makeRecoverable', 'removeRecovery', 'closeRecovery', 'initiateRecovery', 'vouchRecovery', 'withdrawAsRecovered', 'withdrawWithClaim'];
+const states = ['makeRecoverable', 'removeRecovery', 'closeRecovery', 'initiateRecovery', 'vouchRecovery', 'withdrawWithClaim', 'withdrawAsRecovered'];
 const recoveryDelay = 2; // 2 Days
 const recoveryThreshold = 1; // 1 friend
 
@@ -161,9 +161,9 @@ describe('Testing Confirm component', () => {
     }
   });
 
-  test('Confirm: withdrawAsRecovered - withdrawWithClaim', async () => {
+  test('Confirm: withdrawWithClaim - withdrawAsRecovered', async () => {
     for (let i = 5; i <= 6; i++) {
-      const { debug,getByRole, queryAllByTestId, queryByLabelText, queryByText } = render(
+      const { debug, getByRole, queryAllByTestId, queryByLabelText, queryByText } = render(
         <Confirm
           account={signerAcc}
           api={chainInfo.api} // don't care
@@ -195,15 +195,23 @@ describe('Testing Confirm component', () => {
       expect(queryByText(lostAccount.identity.display as unknown as Matcher)).toBeTruthy();
       expect(queryByText(String(lostAccount.accountId))).toBeTruthy();
 
+      if (i === 6) {
+        expect(queryByText('Recovery threshold')).toBeFalsy();
+        expect(queryByText('Recovery delay')).toBeFalsy();
+      } else {
+        expect(queryByText('Recovery threshold')).toBeTruthy();
+        expect(queryByText(`${recoveryThreshold} friends`)).toBeTruthy();
+        expect(queryByText('Recovery delay')).toBeTruthy();
+        expect(queryByText(`${recoveryDelay} days`)).toBeTruthy();
+      }
+
       expect(queryByText('Fee')).toBeTruthy();
       expect(queryAllByTestId('ShowBalance2')[0]?.textContent).toEqual('Fee');
 
-      expect(queryByText('Withdrawing {{amount}}')).toBeTruthy();
-      debug(undefined,30000)
-      expect(queryByText('Recovery threshold')).toBeFalsy();
       expect(queryByText('Deposit')).toBeFalsy();
-      expect(queryByText('Recovery delay')).toBeFalsy();
       expect(queryByText('List of friends')).toBeFalsy();
+
+      expect(queryByText('Withdrawing {{amount}}')).toBeTruthy();
 
       expect(queryByLabelText('Password')).toBeTruthy();
       expect(queryByLabelText('Password')?.hasAttribute('disabled')).toBe(true);
