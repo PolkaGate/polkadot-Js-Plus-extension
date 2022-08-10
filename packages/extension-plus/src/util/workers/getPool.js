@@ -53,14 +53,18 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
 
   const unwrappedRewardPools = rewardPools.isSome ? rewardPools.unwrap() : null;
   const unwrappedBondedPool = bondedPools.isSome ? bondedPools.unwrap() : null;
+  console.log('rewardPools:', JSON.parse(JSON.stringify(unwrappedRewardPools)))
 
   const poolRewardClaimable = bnMax(BN_ZERO, rewardIdBalance.data.free.sub(api.consts.balances.existentialDeposit));
-  const lastTotalEarnings = unwrappedRewardPools?.totalEarnings;
-  const currTotalEarnings = bnMax(BN_ZERO, poolRewardClaimable.sub(unwrappedRewardPools.balance)).add(unwrappedRewardPools.totalEarnings);
+  const lastTotalEarnings = unwrappedRewardPools?.totalEarnings ?? BN_ZERO;
+  const currTotalEarnings = bnMax(BN_ZERO, poolRewardClaimable.sub(unwrappedRewardPools?.balance ?? BN_ZERO)).add(unwrappedRewardPools?.totalEarnings ?? BN_ZERO);
   const newEarnings = bnMax(BN_ZERO, currTotalEarnings.sub(lastTotalEarnings));
   const newPoints = unwrappedBondedPool.points.mul(newEarnings);
-  const currentPoints = unwrappedRewardPools.points.add(newPoints);
-  const newEarningsSinceLastClaim = member ? bnMax(BN_ZERO, currTotalEarnings.sub(member.rewardPoolTotalEarnings)) : BN_ZERO;
+  const currentPoints = (unwrappedRewardPools?.points ?? BN_ZERO).add(newPoints);
+  console.log('currTotalEarnings', currTotalEarnings)
+  console.log('member.member', member)
+  console.log('member.rewardPoolTotalEarnings', member.rewardPoolTotalEarnings)
+  const newEarningsSinceLastClaim = member ? bnMax(BN_ZERO, currTotalEarnings.sub(member?.rewardPoolTotalEarnings ?? BN_ZERO)) : BN_ZERO;
   const delegatorVirtualPoints = member ? member.points.mul(newEarningsSinceLastClaim) : BN_ZERO;
   const myClaimable = delegatorVirtualPoints.isZero() || currentPoints.isZero() || poolRewardClaimable.isZero()
     ? BN_ZERO
@@ -69,9 +73,9 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
   const rewardPool = {};
 
   if (unwrappedRewardPools) {
-    rewardPool.balance = String(unwrappedRewardPools.balance);
-    rewardPool.points = String(unwrappedRewardPools.points);
-    rewardPool.totalEarnings = String(unwrappedRewardPools.totalEarnings);
+    rewardPool.balance = unwrappedRewardPools?.balance ? String(unwrappedRewardPools.balance) : undefined;
+    rewardPool.points = unwrappedRewardPools?.points ? String(unwrappedRewardPools.points) : undefined;
+    rewardPool.totalEarnings = unwrappedRewardPools?.totalEarnings ? String(unwrappedRewardPools.totalEarnings) : undefined;
   }
 
   const poolInfo = {
