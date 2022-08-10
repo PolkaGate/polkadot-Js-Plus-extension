@@ -480,7 +480,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             }
             {recoveryDelay !== undefined && !['withdrawAsRecovered'].includes(state) &&
               <Grid container item justifyContent='flex-end' sx={{ textAlign: 'right' }} xs={3}>
-                <ShowValue direction='column' title={t('Recovery delay ')} value={recoveryDelay} unit={t('days')} />
+                <ShowValue direction='column' title={t('Recovery delay')} value={recoveryDelay} unit={t('days')} />
               </Grid>
             }
           </Grid>
