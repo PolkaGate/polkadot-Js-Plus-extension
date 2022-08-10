@@ -14,7 +14,7 @@ import { ChainInfo, RecoveryConsts } from '../../util/plusTypes';
 import { addresesOnThisChain, chain, lostAccfriends, lostAccount, notRecoverableAcc, notRescuerAcc, rescuerAcc, validatorsIdentities as accountWithId } from '../../util/test/testHelper';
 import AsFriend from './AsFriend';
 
-jest.setTimeout(90000);
+jest.setTimeout(120000);
 ReactDOM.createPortal = jest.fn((modal) => modal);
 
 let chainInfo: ChainInfo;
