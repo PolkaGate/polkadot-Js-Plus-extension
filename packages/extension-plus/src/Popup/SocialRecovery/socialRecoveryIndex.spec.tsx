@@ -69,7 +69,7 @@ describe('Testing Social Recovery component', () => {
 
     await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });
@@ -95,7 +95,7 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('Checking if the account is recoverable')).toBeTruthy();
     await waitForElementToBeRemoved(() => queryByText('Checking if the account is recoverable'), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });
@@ -118,7 +118,7 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('The base {{token}}s needed to reserve to make an account recoverable:')).toBeTruthy();
     await waitFor(() => expect(queryAllByTestId('ShowBalance2')[0].textContent).toEqual(ShowValue(recoveryConsts.configDepositBase)), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });
@@ -150,7 +150,7 @@ describe('Testing Social Recovery component', () => {
 
     await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });
@@ -170,7 +170,7 @@ describe('Testing Social Recovery component', () => {
 
     await waitForElementToBeRemoved(() => getByRole('progressbar', { hidden: true }), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });
@@ -190,9 +190,9 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('Loading identities ...')).toBeTruthy();
     await waitForElementToBeRemoved(() => queryByText('Loading identities ...'), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
-      timeout: 30000
+      timeout: 50000
     });
     expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
@@ -218,7 +218,7 @@ describe('Testing Social Recovery component', () => {
 
     await waitFor(() => expect(queryByText(`Social Recovery on ${chain('kusama').definition.chain}`)).toBeTruthy(), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });
@@ -235,7 +235,7 @@ describe('Testing Social Recovery component', () => {
     expect(queryByText('Loading identities ...')).toBeTruthy();
     await waitForElementToBeRemoved(() => queryByText('Loading identities ...'), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });

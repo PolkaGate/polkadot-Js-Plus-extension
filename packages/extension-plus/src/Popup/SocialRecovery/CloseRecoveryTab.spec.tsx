@@ -63,7 +63,7 @@ describe('Testing CloseRecoveryTab component', () => {
     expect(queryByText('The following account has initiated a recovery process for your account:')).toBeTruthy();
     await waitFor(() => expect(queryByText(makeShortAddr(rescuerAcc as unknown as string) as Matcher)).toBeTruthy(), {
       onTimeout: () => {
-        throw new Error('Slow connection detected!\nRun the test again.');
+        throw new Error('Slow connection detected! Run the test again.');
       },
       timeout: 30000
     });
