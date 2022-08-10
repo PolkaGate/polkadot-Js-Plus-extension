@@ -47,14 +47,6 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
 
   const poolId = pool?.poolId || pool?.member?.poolId as BN;
 
-  // const rewardClaimable = pool?.rewardClaimable && api ? api.createType('Balance', pool.rewardClaimable) : undefined;
-  // const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
-  // const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
-  // const balance = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.balance) : undefined;
-  // const totalEarnings = pool?.rewardPool && api ? api.createType('Balance', pool.rewardPool.totalEarnings) : undefined;
-  // const staked = pool?.ledger && api ? api.createType('Balance', pool.ledger.active) : undefined;
-  // const rewardClaimable = pool?.rewardClaimable && api ? api.createType('Balance', pool.rewardClaimable) : undefined;
-
   useEffect(() => {
     if (!(api && pool)) { return; }
 
