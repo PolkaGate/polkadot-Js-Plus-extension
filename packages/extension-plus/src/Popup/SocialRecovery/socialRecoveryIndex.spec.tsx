@@ -237,7 +237,7 @@ describe('Testing Social Recovery component', () => {
       onTimeout: () => {
         throw new Error('Slow connection detected! Run the test again.');
       },
-      timeout: 30000
+      timeout: 50000
     });
     expect(getByRole('button', { hidden: true, name: 'Next' })).toBeTruthy();
     expect(getByRole('button', { hidden: true, name: 'Next' }).hasAttribute('disabled')).toBe(true);
