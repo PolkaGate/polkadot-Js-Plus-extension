@@ -27,7 +27,7 @@ import { Option } from '@polkadot/types-codec';
 import { BN } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../extension-ui/src/components/contexts';
-import { updateMeta } from '../../../extension-ui/src/messaging';
+import { getMetadata, updateMeta } from '../../../extension-ui/src/messaging';
 import useApi from '../hooks/useApi';
 import useEndPoint from '../hooks/useEndPoint';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
@@ -36,11 +36,12 @@ import Configure from '../Popup/SocialRecovery/Configure';
 import StakingIndex from '../Popup/Staking/StakingIndex';
 import TransferFunds from '../Popup/Transfer';
 import { getPriceInUsd } from '../util/api/getPrice';
-import { SUPPORTED_CHAINS } from '../util/constants';
+import { SOCIAL_RECOVERY_CHAINS, SUPPORTED_STAKING_CHAINS } from '../util/constants';
 import { AccountsBalanceType, BalanceType, Close, Initiation, Rescuer, SavedMetaData } from '../util/plusTypes';
 import { prepareMetaData } from '../util/plusUtils';
 import { getCloses, getInitiations } from '../util/subquery';
 import { Balance } from './';
+import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
 
 interface Props {
   address?: string | null;
@@ -63,7 +64,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const endpoint = useEndPoint(accounts, address, chain);
   const api = useApi(endpoint);
   const onAction = useContext(ActionContext);
-  const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
+  const isStakingSupported = (chain: Chain) => SUPPORTED_STAKING_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
   const [balance, setBalance] = useState<AccountsBalanceType | null>(null);
   const [balanceChangeSubscribtion, setBalanceChangeSubscribtion] = useState<Subscription>(defaultSubscribtion);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -79,6 +80,15 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const [recoverable, setRecoverable] = useState<boolean | undefined>();
   const [rescuer, setRescuer] = useState<Rescuer | undefined | null>();
   const [isRecoveringAlert, setIsRecoveringAlert] = useState<boolean | undefined>();
+  const [supportedRecveryChains, setSupportedRecveryChains] = useState<Chain[] | undefined>();
+  console.log('supportedRecveryChains:', supportedRecveryChains)
+
+  useEffect(() => {
+    SOCIAL_RECOVERY_CHAINS.map((genesisHash) => getMetadata(genesisHash, true)
+      .then((ch) =>
+        ch && setSupportedRecveryChains((prevChain) => prevChain ? prevChain.concat(ch) : [ch])
+      ));
+  }, []);
 
   const getLedger = useCallback((): void => {
     if (!endpoint || !address) { return; }
@@ -230,9 +240,11 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   }, [api, chain, formattedAddress]);
 
   useEffect((): void => {
-    if (!chain) { return; }
+    if (!chain) {
+      return;
+    }
 
-    if (supported(chain) && endpoint) {
+    if (isStakingSupported(chain) && endpoint) {
       getLedger();
     }
   }, [getLedger, chain, endpoint]);
@@ -326,7 +338,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   }, [chain]);
 
   const handleStaking = useCallback((): void => {
-    if (chain && supported(chain)) { setStakingModalOpen(true); }
+    if (chain && isStakingSupported(chain)) { setStakingModalOpen(true); }
   }, [chain]);
 
   const handlerefreshBalance = useCallback((): void => {
@@ -459,7 +471,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
             <Grid item xs={3}>
               <Link color='inherit' href='#' underline='none'>
                 <FontAwesomeIcon
-                  color={!chain || !supported(chain) ? grey[300] : (ledger?.active ? deepOrange[400] : grey[600])}
+                  color={!chain || !isStakingSupported(chain) ? grey[300] : (ledger?.active ? deepOrange[400] : grey[600])}
                   icon={faCoins}
                   id='staking'
                   onClick={handleStaking}

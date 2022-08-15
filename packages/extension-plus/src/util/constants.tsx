@@ -59,12 +59,12 @@ export const SOCIAL_RECOVERY_CHAINS = [
 ];
 
 // used to enable/disable staking icon in acount page
-export const SUPPORTED_CHAINS = ['Polkadot', 'Kusama', 'Westend'];
+export const SUPPORTED_STAKING_CHAINS = ['Polkadot', 'Kusama', 'Westend'];
 
 // used in history to categorize transactions
 export const STAKING_ACTIONS = ['bond', 'unbond', 'bond_extra', 'nominate', 'redeem', 'stop_nominating', 'chill', 'tuneUp'];
 
-// used in confirm page
+// used in staking confirm page
 export const STATES_NEEDS_MESSAGE = ['withdrawUnbound', 'unstake', 'stopNominating', 'tuneUp'];
 export const CONFIRMING_STATE = ['fail', 'success', 'confirming'];
 
