@@ -283,6 +283,11 @@ export interface AddressState {
   address: string;
 }
 
+export interface NameAddress {
+  name?: string;
+  address: string;
+}
+
 export interface nameAddress {
   name?: string;
   address: string;
