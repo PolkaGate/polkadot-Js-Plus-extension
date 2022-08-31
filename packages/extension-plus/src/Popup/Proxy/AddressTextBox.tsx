@@ -57,18 +57,18 @@ export default function AddressTextBox({ addresesOnThisChain, chain, label, addr
 
   return (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
-      <Grid item xs={1}>
+      <Grid item xs={1.5}>
         {isValidAddress(address)
           ? <Identicon
             prefix={chain?.ss58Format ?? 42}
-            size={40}
+            size={43}
             theme={chain?.icon || 'polkadot'}
             value={address}
           />
           : <NoAccountsIcon sx={{ color: grey[400], fontSize: 43 }} />
         }
       </Grid>
-      <Grid item xs={11}>
+      <Grid item xs>
         <Autocomplete
           ListboxProps={{ sx: { fontSize: 12 } }}
           autoFocus
