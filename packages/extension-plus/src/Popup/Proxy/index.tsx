@@ -23,6 +23,7 @@ import { AccountContext, ActionContext } from '../../../../extension-ui/src/comp
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { createAccountExternal, getMetadata } from '../../../../extension-ui/src/messaging';
 import { Header } from '../../../../extension-ui/src/partials';
+import { Progress, ShortAddress } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
 import { NameAddress } from '../../util/plusTypes';
 import AddressTextBox from './AddressTextBox';
@@ -36,21 +37,25 @@ interface DropdownOption {
   value: string;
 }
 
+interface Proxy {
+  delay: number;
+  delegate: string;
+  typroxyType: 'Any' | 'Staking' | 'NonTransfer' | 'Governance' | 'SudoBalances' | 'SudoBalances' | 'CancelProxy';
+}
+
 function Proxy({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const onAction = useContext(ActionContext);
 
   const [addresesOnThisChain, setAddresesOnThisChain] = useState<NameAddress[]>([]);
-
   const [realAddress, setRealAddress] = useState<string | undefined>();
   const [chain, setChain] = useState<Chain>();
-  const [proxies, setProxies] = useState<Chain>();
   const [name, setName] = useState<string | undefined>();
+  const [proxies, setProxies] = useState<Proxy[] | undefined>();
 
   const endpoint = useEndpoint(accounts, realAddress, chain);
   const api = useApi(endpoint);
-
   const genesisOptions = useGenesisHashOptions();
 
   const handleAlladdressesOnThisChain = useCallback((prefix: number): void => {
@@ -65,6 +70,8 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
     setAddresesOnThisChain(allAddresesOnSameChain);
   }, [accounts]);
 
+  const isAvailable = useCallback((address: string): boolean => !!addresesOnThisChain?.find((a) => a.address === address), [addresesOnThisChain]);
+
   useEffect(() => {
     // eslint-disable-next-line no-void
     void cryptoWaitReady().then(() => {
@@ -73,14 +80,22 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
   }, []);
 
   useEffect(() => {
-    api && api.query.proxy?.proxies(realAddress).then((proxies) => {
-      console.log('proxies:', JSON.parse(JSON.stringify(proxies[0])));
+    chain?.ss58Format && handleAlladdressesOnThisChain(chain.ss58Format);
+  }, [chain, handleAlladdressesOnThisChain]);
+
+  useEffect(() => {
+    (!realAddress || !chain) && setProxies(undefined);
+  }, [realAddress, chain]);
+
+  useEffect(() => {
+    realAddress && api && api.query.proxy?.proxies(realAddress).then((proxies) => {
+      setProxies(JSON.parse(JSON.stringify(proxies[0])));
+      console.log('proxies:', JSON.parse(JSON.stringify(proxies)));
     });
   }, [api, chain, realAddress]);
 
   const _onChangeGenesis = useCallback((genesisHash?: string | null): void => {
-    console.log('genesisHash:', genesisHash)
-
+    setProxies(undefined);
     genesisHash && getMetadata(genesisHash, true).then(setChain).catch((error): void => {
       console.error(error);
     });
@@ -130,35 +145,69 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
 
   return (
     <>
-      <Header
-        showAdd
-        showBackArrow
-        showSettings
-        smallMargin
-        text={t<string>('Proxy')}
-      />
-      <Container sx={{ p: '30px' }}>
+      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Proxy')} />
+      <Container sx={{ pt: '10px', px: '30px' }}>
+        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} chain={chain} label={t('Real account')} setAddress={setRealAddress} />
+        <Grid item py='20px' xs>
+          <PSelect defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
+        </Grid>
         <TextField
-          // InputLabelProps={{ shrink: true }}
           autoFocus
           color='warning'
           fullWidth
-          // helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
+          helperText={t('Enter a name for your real account')}
           label={t('Name')}
           name='name'
           onChange={() => setName(event.target.value)}
           sx={{ pb: '20px' }}
           variant='outlined'
         />
-        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} chain={chain} label={t('Real account')} setAddress={setRealAddress} />
-        <Grid item xs pt='30px' >
-          <PSelect defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
+        <Grid container item sx={{ fontWeight: 500 }}>
+          <Grid item xs={5}>
+            {t('Address')}
+          </Grid>
+          <Grid item xs={3}>
+            {t('type')}
+          </Grid>
+          <Grid item xs={2}>
+            {t('delay')}
+          </Grid>
+          <Grid item xs={2}>
+            {t('available')}
+          </Grid>
         </Grid>
-        <Grid item xs={12} sx={{ pt: '30px' }}>
+        <Grid container item sx={{ pt: '15px', height: 120, overflowY: 'auto' }} xs={12}>
+          {chain && realAddress &&
+            <>
+              {proxies
+                ? proxies.length
+                  ? proxies.map((proxy, index) => (
+                    <Grid container item key={index}>
+                      <Grid item xs={5}>
+                        <ShortAddress address={proxy.delegate} />
+                      </Grid>
+                      <Grid item xs={3}>
+                        {proxy.proxyType}
+                      </Grid>
+                      <Grid item xs={2}>
+                        {proxy.delay}
+                      </Grid>
+                      <Grid item xs={2}>
+                        {isAvailable(proxy.delegate) ? 'Yes' : 'No'}
+                      </Grid>
+                    </Grid>
+                  ))
+                  : <Grid item pt='10px'>
+                    {t('No proxies found for the entered real account on {{chain}}', { replace: { chain: chain?.name } })}
+                  </Grid>
+                : <Progress pt={'10px'} title={'Loading proxies ...'} />
+              }
+            </>}
+        </Grid>
+        <Grid item sx={{ pt: '30px' }} xs={12}>
           <NextStepButton
-            data-button-action='Add'
-            // isBusy={nextToStakeButtonBusy}
-            // isDisabled={nextToStakeButtonDisabled}
+            data-button-action='Add proxy real account'
+            isDisabled={!name || !realAddress | !proxies?.length}
             onClick={handleAdd}
           >
             {t('Add proxy real account')}
