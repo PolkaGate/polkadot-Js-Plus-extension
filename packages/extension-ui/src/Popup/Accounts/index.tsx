@@ -30,6 +30,7 @@ function Accounts({ className }: Props): React.ReactElement {
   const { hierarchy } = useContext(AccountContext);
   const networkMap = useMemo(() => getNetworkMap(), []);
 
+  hierarchy?.length && console.log('hirerarchy', hierarchy);
   // added for plus
   useEffect(() => {
     // eslint-disable-next-line no-void

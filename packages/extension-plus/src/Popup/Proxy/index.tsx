@@ -8,19 +8,20 @@
 */
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Container, FormControl, Grid, InputLabel, MenuItem, Select } from '@mui/material';
+import { Container, FormControl, Grid, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { AccountsStore } from '@polkadot/extension-base/stores';
 import { Chain } from '@polkadot/extension-chains/types';
+import { NextStepButton } from '@polkadot/extension-ui/components';
 import useGenesisHashOptions from '@polkadot/extension-ui/hooks/useGenesisHashOptions';
 import keyring from '@polkadot/ui-keyring';
 import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
-import { AccountContext } from '../../../../extension-ui/src/components/contexts';
+import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { getMetadata } from '../../../../extension-ui/src/messaging';
+import { createAccountExternal, getMetadata } from '../../../../extension-ui/src/messaging';
 import { Header } from '../../../../extension-ui/src/partials';
 import { useApi, useEndpoint } from '../../hooks';
 import { NameAddress } from '../../util/plusTypes';
@@ -38,14 +39,14 @@ interface DropdownOption {
 function Proxy({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
+  const onAction = useContext(ActionContext);
 
   const [addresesOnThisChain, setAddresesOnThisChain] = useState<NameAddress[]>([]);
 
   const [realAddress, setRealAddress] = useState<string | undefined>();
-  const [showCouncilModal, setCouncilModalOpen] = useState<boolean>(false);
-  const [showTreasuryModal, setTreasuryModalOpen] = useState<boolean>(false);
   const [chain, setChain] = useState<Chain>();
   const [proxies, setProxies] = useState<Chain>();
+  const [name, setName] = useState<string | undefined>();
 
   const endpoint = useEndpoint(accounts, realAddress, chain);
   const api = useApi(endpoint);
@@ -70,9 +71,6 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
       keyring.loadAll({ store: new AccountsStore() });
     }).catch(console.error);
   }, []);
-  console.log('chain:', chain)
-  console.log('endpoint:', endpoint)
-  console.log('api:', api)
 
   useEffect(() => {
     api && api.query.proxy?.proxies(realAddress).then((proxies) => {
@@ -87,6 +85,12 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
       console.error(error);
     });
   }, []);
+
+  const handleAdd = useCallback(() => {
+    name && realAddress && chain?.genesisHash && createAccountExternal(name, realAddress, chain.genesisHash)
+      .then(() => onAction('/'))
+      .catch((error: Error) => console.error(error));
+  }, [chain?.genesisHash, name, onAction, realAddress]);
 
   const PSelect = ({ defaultValue, label, onChange, options }: { defaultValue: string | undefined, onChange?: (value: string) => void, options: DropdownOption[], label: string }) => {
     const _onChange = useCallback(
@@ -134,12 +138,34 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
         text={t<string>('Proxy')}
       />
       <Container sx={{ p: '30px' }}>
+        <TextField
+          // InputLabelProps={{ shrink: true }}
+          autoFocus
+          color='warning'
+          fullWidth
+          // helperText={zeroBalanceAlert ? t('No available fund to stake') : ''}
+          label={t('Name')}
+          name='name'
+          onChange={() => setName(event.target.value)}
+          sx={{ pb: '20px' }}
+          variant='outlined'
+        />
         <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} chain={chain} label={t('Real account')} setAddress={setRealAddress} />
         <Grid item xs pt='30px' >
           <PSelect defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
         </Grid>
-      </Container>
+        <Grid item xs={12} sx={{ pt: '30px' }}>
+          <NextStepButton
+            data-button-action='Add'
+            // isBusy={nextToStakeButtonBusy}
+            // isDisabled={nextToStakeButtonDisabled}
+            onClick={handleAdd}
+          >
+            {t('Add proxy real account')}
+          </NextStepButton>
+        </Grid>
 
+      </Container>
     </>
   );
 }
