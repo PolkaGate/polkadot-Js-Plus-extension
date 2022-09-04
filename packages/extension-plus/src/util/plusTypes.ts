@@ -441,9 +441,11 @@ export interface AlertType {
   severity: 'error' | 'warning' | 'info' | 'success'
 }
 
+export type ProxyTypes = 'Any' | 'Staking' | 'NonTransfer' | 'Governance' | 'SudoBalances' | 'SudoBalances' | 'CancelProxy';
+
 export interface Proxy {
   delay: number;
   delegate: string;
-  proxyType: 'Any' | 'Staking' | 'NonTransfer' | 'Governance' | 'SudoBalances' | 'SudoBalances' | 'CancelProxy';
+  proxyType: ProxyTypes;
 }
 
