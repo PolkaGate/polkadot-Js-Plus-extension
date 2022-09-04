@@ -72,7 +72,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   const [nextButtonCaption, setNextButtonCaption] = useState<string>(t('Next'));
   const [recepientAddressIsValid, setRecepientAddressIsValid] = useState(false);
   const [recepient, setRecepient] = useState<AccountsBalanceType | null>();
-  // const [allAddresesOnThisChain, setAllAddresesOnThisChain] = useState<AccountsBalanceType[] | null>();
   const [transferBetweenMyAccountsButtonText, setTransferBetweenMyAccountsButtonText] = useState<string>(t('Transfer between my accounts'));
   const [ED, setED] = useState<bigint>(0n);
   const [allAmountLoading, setAllAmountLoading] = useState(false);
@@ -351,7 +350,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   return (
     <>
       {sender.hasProxy && !proxy
-        ? <SelectProxy allAddresesOnSameChain={allAddresesOnSameChain} setTransferModalOpen={setTransferModalOpen} api={api} chain={chain} realAddress={sender.address} setProxy={setProxy} selectProxyModalOpen={selectProxyModalOpen} setSelectProxyModalOpen={setSelectProxyModalOpen} />
+        ? <SelectProxy acceptableTypes={['Any']} allAddresesOnSameChain={allAddresesOnSameChain} setTransferModalOpen={setTransferModalOpen} api={api} chain={chain} realAddress={sender.address} setProxy={setProxy} selectProxyModalOpen={selectProxyModalOpen} setSelectProxyModalOpen={setSelectProxyModalOpen} />
         : <Popup handleClose={handleTransferModalClose} showModal={transferModalOpen}>
           <PlusHeader action={handleTransferModalClose} chain={chain} closeText={'Close'} icon={<SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />} title={'Transfer Funds'} />
           <Grid alignItems='center' container justifyContent='center' sx={{ padding: '5px 20px' }}>
