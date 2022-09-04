@@ -7,9 +7,11 @@ import type { DeriveAccountInfo, DeriveCollectiveProposal, DeriveElectionsInfo, 
 import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletNominationPoolsRewardPool, PalletRecoveryActiveRecovery } from '@polkadot/types/lookup';
 import type { BN } from '@polkadot/util';
+import type { KeypairType } from '@polkadot/util-crypto/types';
 
 import { ApiPromise } from '@polkadot/api';
 import { Balance } from '@polkadot/types/interfaces';
+import { AccountJson } from '@polkadot/extension-base/background/types';
 
 export interface TransactionStatus {
   blockNumber: string | null;
@@ -449,3 +451,10 @@ export interface Proxy {
   proxyType: ProxyTypes;
 }
 
+export interface Recoded {
+  account: AccountJson | null;
+  formatted: string | null;
+  genesisHash?: string | null;
+  prefix?: number;
+  type: KeypairType;
+}
