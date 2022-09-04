@@ -271,9 +271,10 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       address: String(formattedAddress),
       balanceInfo: balance ? balance.balanceInfo : undefined,
       chain: chain?.name || null,
+      hasProxy: !!account?.isExternal,
       name: String(name)
     });
-  }, [balance, chain, formattedAddress, name]);
+  }, [account?.isExternal, balance, chain, formattedAddress, name]);
 
   useEffect((): void => {
     if (!accounts || !chain || !endpoint) {
@@ -482,7 +483,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
         </Grid>
 
       </Grid>
-      {transferModalOpen && sender && chain &&
+      {transferModalOpen && sender && chain && 
         <TransferFunds
           api={api}
           chain={chain}

@@ -35,6 +35,7 @@ export interface AccountsBalanceType {
   balanceInfo?: BalanceType;
   name: string | null;
   txHistory?: string;
+  hasProxy?: boolean;
 }
 
 export interface StakingConsts {
@@ -439,3 +440,10 @@ export interface AlertType {
   text: string;
   severity: 'error' | 'warning' | 'info' | 'success'
 }
+
+export interface Proxy {
+  delay: number;
+  delegate: string;
+  proxyType: 'Any' | 'Staking' | 'NonTransfer' | 'Governance' | 'SudoBalances' | 'SudoBalances' | 'CancelProxy';
+}
+

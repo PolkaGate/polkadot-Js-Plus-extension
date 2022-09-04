@@ -24,9 +24,9 @@ import { AccountContext } from '../../../../extension-ui/src/components/contexts
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
-import broadcast from '../../util/api/broadcast';
+import { broadcast, signAndSend } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
-import { AccountsBalanceType, TransactionDetail } from '../../util/plusTypes';
+import { AccountsBalanceType, Proxy, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
 
 interface Props {
@@ -41,9 +41,10 @@ interface Props {
   transferAmount: bigint;
   handleTransferModalClose: () => void;
   transferAllType?: string;
+  proxy?: Proxy;
 }
 
-export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
+export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, proxy, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [newFee, setNewFee] = useState<Balance | null>();
@@ -116,17 +117,22 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
     setState('confirming');
 
     try {
-      const signer = keyring.getPair(sender.address);
+      const realSigner = proxy?.delegate ?? sender.address;
+      const signer = keyring.getPair(realSigner);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
       // const KeepAlive = transferAllType === 'Max';
       const params = transferAllType === 'All' ? [recepient.address, false] : [recepient.address, transferAmount];
 
-      const { block, failureText, fee, status, txHash } = await broadcast(api, transfer, params, signer, sender.address);
+      const tx = proxy ? api.tx.proxy.proxy(sender.address, proxy.proxyType, transfer(...params)) : transfer(...params);
+
+      const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, realSigner);
+
+      // const { block, failureText, fee, status, txHash } = await broadcast(api, transfer, params, signer, sender.address);
 
       const currentTransactionDetail: TransactionDetail = {
-        action: 'send',
+        action: proxy?.delegate ? 'send_as_proxy' : 'send',
         amount: amountToHuman(String(transferAmount), decimals),
         block,
         date: Date.now(),
@@ -147,7 +153,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
       setState('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chain, api, decimals, hierarchy, password, recepient.address, sender.address, transfer, transferAllType, transferAmount]);
+  }, [chain, api, decimals, hierarchy, password, recepient.address, proxy, sender.address, transfer, transferAllType, transferAmount]);
 
   // function disable(flag: boolean) {
   //   return {

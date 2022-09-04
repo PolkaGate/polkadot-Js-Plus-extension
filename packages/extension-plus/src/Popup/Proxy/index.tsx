@@ -25,8 +25,9 @@ import { createAccountExternal, getMetadata } from '../../../../extension-ui/src
 import { Header } from '../../../../extension-ui/src/partials';
 import { Progress, ShortAddress } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
-import { NameAddress } from '../../util/plusTypes';
+import { NameAddress, Proxy } from '../../util/plusTypes';
 import AddressTextBox from './AddressTextBox';
+import { grey } from '@mui/material/colors';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -37,13 +38,7 @@ interface DropdownOption {
   value: string;
 }
 
-interface Proxy {
-  delay: number;
-  delegate: string;
-  typroxyType: 'Any' | 'Staking' | 'NonTransfer' | 'Governance' | 'SudoBalances' | 'SudoBalances' | 'CancelProxy';
-}
-
-function Proxy({ className }: Props): React.ReactElement<Props> {
+export default function AddProxy({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const onAction = useContext(ActionContext);
@@ -70,7 +65,7 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
     setAddresesOnThisChain(allAddresesOnSameChain);
   }, [accounts]);
 
-  const isAvailable = useCallback((address: string): boolean => !!addresesOnThisChain?.find((a) => a.address === address), [addresesOnThisChain]);
+  const isAvailable = useCallback((address: string): NameAddress => addresesOnThisChain?.find((a) => a.address === address), [addresesOnThisChain]);
 
   useEffect(() => {
     // eslint-disable-next-line no-void
@@ -162,8 +157,8 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
           sx={{ pb: '20px' }}
           variant='outlined'
         />
-        <Grid container item sx={{ fontWeight: 500 }}>
-          <Grid item xs={5}>
+        <Grid container item sx={{ fontWeight: 600, bgcolor: grey[200], borderRadius: '10px' }}>
+          <Grid item xs={4}>
             {t('Address')}
           </Grid>
           <Grid item xs={3}>
@@ -172,7 +167,7 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
           <Grid item xs={2}>
             {t('delay')}
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={3}>
             {t('available')}
           </Grid>
         </Grid>
@@ -181,22 +176,26 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
             <>
               {proxies
                 ? proxies.length
-                  ? proxies.map((proxy, index) => (
-                    <Grid container item key={index}>
-                      <Grid item xs={5}>
-                        <ShortAddress address={proxy.delegate} />
+                  ? proxies.map((proxy, index) => {
+                    const localAccount = isAvailable(proxy.delegate);
+
+                    return (
+                      <Grid container item key={index} sx={{ fontSize: 11 }}>
+                        <Grid item xs={4}>
+                          <ShortAddress address={proxy.delegate} fontSize={11} />
+                        </Grid>
+                        <Grid item xs={3}>
+                          {proxy.proxyType}
+                        </Grid>
+                        <Grid item xs={2}>
+                          {proxy.delay}
+                        </Grid>
+                        <Grid item xs={3} >
+                          {!!localAccount ? `Yes (${localAccount.name})` : 'No'}
+                        </Grid>
                       </Grid>
-                      <Grid item xs={3}>
-                        {proxy.proxyType}
-                      </Grid>
-                      <Grid item xs={2}>
-                        {proxy.delay}
-                      </Grid>
-                      <Grid item xs={2}>
-                        {isAvailable(proxy.delegate) ? 'Yes' : 'No'}
-                      </Grid>
-                    </Grid>
-                  ))
+                    )
+                  })
                   : <Grid item pt='10px'>
                     {t('No proxies found for the entered real account on {{chain}}', { replace: { chain: chain?.name } })}
                   </Grid>
@@ -218,17 +217,3 @@ function Proxy({ className }: Props): React.ReactElement<Props> {
     </>
   );
 }
-
-export default styled(Proxy)`
-      height: calc(100vh - 2px);
-      overflow: auto;
-      scrollbar - width: none;
-
-      &:: -webkit - scrollbar {
-        display: none;
-      width:0,
-  }
-      .empty-list {
-        text - align: center;
-  }
-      `;
