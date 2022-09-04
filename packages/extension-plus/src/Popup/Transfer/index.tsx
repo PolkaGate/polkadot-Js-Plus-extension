@@ -19,7 +19,7 @@ import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Alert, Avatar, Box, Button, Divider, Grid, IconButton, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Skeleton, TextField, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, useState, useMemo } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import Identicon from '@polkadot/react-identicon';
@@ -31,12 +31,12 @@ import { AccountContext, SettingsContext } from '../../../../extension-ui/src/co
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { DEFAULT_TYPE } from '../../../../extension-ui/src/util/defaultType';
 import { PlusHeader, Popup } from '../../components';
+import SelectProxy from '../../partials/SelectProxy';
 import getLogo from '../../util/getLogo';
-import { AccountsBalanceType } from '../../util/plusTypes';
+import { AccountsBalanceType, Recoded } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
 import isValidAddress from '../../util/validateAddress';
 import ConfirmTransfer from './ConfirmTransfer';
-import SelectProxy from './SelectProxy';
 
 interface Props {
   api: ApiPromise | undefined;
@@ -49,13 +49,6 @@ interface Props {
   givenType?: KeypairType;
 }
 
-interface Recoded {
-  account: AccountJson | null;
-  formatted: string | null;
-  genesisHash?: string | null;
-  prefix?: number;
-  type: KeypairType;
-}
 
 export default function TransferFunds({ api, chain, givenType, sender, setTransferModalOpen, transferModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -80,7 +73,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   const [senderAddressOpacity, setSenderAddressOpacity] = useState<number>(0.2);
   const [estimatedFee, setEstimatedFee] = useState<Balance>();
   const [transferAllType, setTransferAllType] = useState<string | undefined>(undefined);
-  //Select Proxy states
+  //SelectProxy states
   const [proxy, setProxy] = useState<AccountJson | undefined>();
   const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
@@ -347,12 +340,14 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
     setConfirmModalOpen(true);
   }
 
+  const HeaderIcon = <SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />
+
   return (
     <>
       {sender.hasProxy && !proxy
-        ? <SelectProxy acceptableTypes={['Any']} allAddresesOnSameChain={allAddresesOnSameChain} setTransferModalOpen={setTransferModalOpen} api={api} chain={chain} realAddress={sender.address} setProxy={setProxy} selectProxyModalOpen={selectProxyModalOpen} setSelectProxyModalOpen={setSelectProxyModalOpen} />
+        ? <SelectProxy acceptableTypes={['Any']} allAddresesOnSameChain={allAddresesOnSameChain} setActionModalOpen={setTransferModalOpen} api={api} chain={chain} icon={HeaderIcon} realAddress={sender.address} setProxy={setProxy} selectProxyModalOpen={selectProxyModalOpen} setSelectProxyModalOpen={setSelectProxyModalOpen} />
         : <Popup handleClose={handleTransferModalClose} showModal={transferModalOpen}>
-          <PlusHeader action={handleTransferModalClose} chain={chain} closeText={'Close'} icon={<SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />} title={'Transfer Funds'} />
+          <PlusHeader action={handleTransferModalClose} chain={chain} closeText={'Close'} icon={HeaderIcon} title={'Transfer Funds'} />
           <Grid alignItems='center' container justifyContent='center' sx={{ padding: '5px 20px' }}>
             <Grid alignItems='center' container id='senderAddress' item justifyContent='flex-start' spacing={1} sx={{ opacity: senderAddressOpacity, padding: '20px 10px 50px' }} xs={12}>
               <Grid item sx={{ color: grey[800], fontSize: 13, textAlign: 'left' }} xs={1}>
