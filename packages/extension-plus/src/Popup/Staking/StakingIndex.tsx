@@ -399,7 +399,7 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
   return (
     <>
       {account?.isExternal && !proxy
-        ? <SelectProxy acceptableTypes={['Any', 'Staking']} api={api} chain={chain} icon={HeaderIcon} realAddress={staker.address} selectProxyModalOpen={selectProxyModalOpen} setActionModalOpen={setStakingModalOpen} setProxy={setProxy} setSelectProxyModalOpen={setSelectProxyModalOpen} />
+        ? <SelectProxy acceptableTypes={['Any', 'Staking', 'NonTransfer']} api={api} chain={chain} icon={HeaderIcon} realAddress={staker.address} selectProxyModalOpen={selectProxyModalOpen} setActionModalOpen={setStakingModalOpen} setProxy={setProxy} setSelectProxyModalOpen={setSelectProxyModalOpen} />
         : <Popup handleClose={handleStakingModalClose} showModal={showStakingModal}>
           <PlusHeader action={handleStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
           <Grid alignItems='center' container justifyContent='space-around' sx={{ p: '60px 10px' }}>
