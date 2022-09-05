@@ -24,9 +24,7 @@ export default async function broadcast (
 
     const tx = proxy ? api.tx.proxy.proxy(senderAddress, proxy.proxyType, extrinsic(...params)) : extrinsic(...params);
 
-    const realSigner = proxy?.delegate ?? senderAddress;
-
-    return signAndSend(api, tx, signer, realSigner);
+    return signAndSend(api, tx, signer, proxy?.delegate ?? senderAddress);
   } catch (e) {
     console.log('something went wrong while broadcasting', e);
 
