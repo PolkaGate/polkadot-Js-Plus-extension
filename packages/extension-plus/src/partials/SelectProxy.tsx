@@ -187,7 +187,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
                       </Grid>
                     )
                   })
-                  : <Grid item pt='10px'>
+                  : <Grid item pt='50px' textAlign='center'>
                     {t('No proxies found for the entered real account on {{chain}}', { replace: { chain: chain?.name } })}
                   </Grid>
                 : <Progress pt={'30px'} title={'Loading proxies ...'} />
