@@ -117,19 +117,14 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
     setState('confirming');
 
     try {
-      const realSigner = proxy?.delegate ?? sender.address;
-      const signer = keyring.getPair(realSigner);
+      const signer = keyring.getPair(proxy?.delegate ?? sender.address);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
       // const KeepAlive = transferAllType === 'Max';
       const params = transferAllType === 'All' ? [recepient.address, false] : [recepient.address, transferAmount];
 
-      const tx = proxy ? api.tx.proxy.proxy(sender.address, proxy.proxyType, transfer(...params)) : transfer(...params);
-
-      const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, realSigner);
-
-      // const { block, failureText, fee, status, txHash } = await broadcast(api, transfer, params, signer, sender.address);
+      const { block, failureText, fee, status, txHash } = await broadcast(api, transfer, params, signer, sender.address, proxy);
 
       const currentTransactionDetail: TransactionDetail = {
         action: proxy?.delegate ? 'send_as_proxy' : 'send',
