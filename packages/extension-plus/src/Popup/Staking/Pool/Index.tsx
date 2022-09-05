@@ -30,6 +30,7 @@ import { updateMeta } from '../../../../../extension-ui/src/messaging';
 import { PlusHeader, Popup } from '../../../components';
 import { useMapEntries } from '../../../hooks';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
+import { Proxy } from '../../../util/plusTypes';
 import { prepareMetaData } from '../../../util/plusUtils';
 import Nominations from '../Pool/Nominations';
 import Unstake from '../pool/Unstake';
@@ -53,7 +54,7 @@ interface Props {
   endpoint: string | undefined;
   validatorsIdentities: DeriveAccountInfo[] | undefined;
   validatorsInfo: Validators | undefined;
-  // localStrorageIsUpdate: boolean;
+  proxy?: Proxy;
   currentEraIndex: number | undefined;
   gettingNominatedValidatorsInfoFromChain: boolean;
   validatorsInfoIsUpdated: boolean;

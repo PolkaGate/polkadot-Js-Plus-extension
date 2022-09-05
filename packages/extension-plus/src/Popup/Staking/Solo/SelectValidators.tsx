@@ -24,7 +24,7 @@ import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, PlusHeader, Popup } from '../../../components';
 import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
-import { AccountsBalanceType, StakingConsts, Validators } from '../../../util/plusTypes';
+import { AccountsBalanceType, Proxy, StakingConsts, Validators } from '../../../util/plusTypes';
 import ConfirmStaking from './ConfirmStaking';
 import ShowValidator from './ShowValidator';
 import ValidatorInfo from './ValidatorInfo';
@@ -43,6 +43,7 @@ interface Props {
   state: string;
   ledger: StakingLedger | null;
   validatorsIdentities: DeriveAccountInfo[] | undefined;
+  proxy?: Proxy;
 }
 
 interface Data {
@@ -302,7 +303,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, ledger, nominatedValidators, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function SelectValidators({ api, chain, ledger, nominatedValidators, proxy, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
@@ -469,6 +470,7 @@ export default function SelectValidators({ api, chain, ledger, nominatedValidato
           chain={chain}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
+          proxy={proxy}
           selectedValidators={selected}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}

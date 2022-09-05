@@ -32,7 +32,7 @@ interface Props {
   api: ApiPromise | undefined;
   selectProxyModalOpen: boolean;
   chain: Chain;
-  setProxy: React.Dispatch<React.SetStateAction<AccountJson | undefined>>
+  setProxy: React.Dispatch<React.SetStateAction<Proxy | undefined>>
   setSelectProxyModalOpen: Dispatch<SetStateAction<boolean>>;
   realAddress: string;
   allAddresesOnSameChain?: { formattedAddress: string, account: AccountJson }[];

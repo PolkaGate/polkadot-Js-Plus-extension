@@ -29,7 +29,7 @@ import broadcast from '../../../util/api/broadcast';
 import { bondOrBondExtra } from '../../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import getLogo from '../../../util/getLogo';
-import { AccountsBalanceType, PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
+import { AccountsBalanceType, Proxy,PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
 import ValidatorsList from './ValidatorsList';
 
@@ -51,9 +51,10 @@ interface Props {
   selectedValidators: DeriveStakingQuery[] | null;
   putInFrontInfo?: PutInFrontInfo | undefined;
   rebagInfo?: RebagInfo | undefined;
+  proxy?: Proxy;
 }
 
-export default function ConfirmStaking({ amount, api, chain, handleSoloStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, chain, handleSoloStakingModalClose, ledger, nominatedValidators, proxy, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string | undefined>();
@@ -318,15 +319,14 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
 
     try {
       setConfirmingState('confirming');
-
-      const signer = keyring.getPair(staker.address);
+      const signer = keyring.getPair(proxy?.delegate ?? staker.address);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
       const alreadyBondedAmount = BigInt(String(ledger?.total)); // TODO: double check it, it might be ledger?.active but works if unstacked in this era
 
       if (['stakeAuto', 'stakeManual', 'stakeKeepNominated'].includes(localState) && surAmount !== 0n) {
-        const { block, failureText, fee, status, txHash } = await bondOrBondExtra(chain, staker.address, signer, surAmount, alreadyBondedAmount);
+        const { block, failureText, fee, status, txHash } = await bondOrBondExtra(api, staker.address, signer, surAmount, alreadyBondedAmount, proxy);
 
         history.push({
           action: alreadyBondedAmount ? 'bond_extra' : 'bond',
@@ -373,7 +373,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           }
         }
 
-        const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, [selectedValidatorsAccountId], signer, staker.address);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, nominated, [selectedValidatorsAccountId], signer, staker.address, proxy);
 
         history.push({
           action: 'nominate',
@@ -393,7 +393,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
       if (localState === 'unstake' && surAmount > 0n) {
         if (surAmount === currentlyStaked) {
           /**  if unstaking all, should chill first */
-          const { failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
+          const { failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address, proxy);
 
           history.push({
             action: 'chill',
@@ -417,7 +417,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           }
         }
 
-        const { block, failureText, fee, status, txHash } = await broadcast(api, unbonded, [surAmount], signer, staker.address);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, unbonded, [surAmount], signer, staker.address, proxy);
 
         history.push({
           action: 'unbond',
@@ -440,7 +440,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
 
-        const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, [spanCount || 0], signer, staker.address);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, redeem, [spanCount || 0], signer, staker.address, proxy);
 
         history.push({
           action: 'redeem',
@@ -459,7 +459,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
       }
 
       if (localState === 'stopNominating') {
-        const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, chilled, [], signer, staker.address, proxy);
 
         history.push({
           action: 'stop_nominating',
@@ -478,7 +478,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
       if (localState === 'tuneUp') {
         const tx = rebagInfo?.shouldRebag ? rebaged : putInFrontOf;
         const params = rebagInfo?.shouldRebag ? staker.address : putInFrontInfo?.lighter;
-        const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [params], signer, staker.address);
+        const { block, failureText, fee, status, txHash } = await broadcast(api, tx, [params], signer, staker.address, proxy);
 
         history.push({
           action: 'tuneUp',
@@ -502,7 +502,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
       setState(localState);
       setConfirmingState(undefined);
     }
-  }, [api, chain, chilled, currentlyStaked, decimals, hierarchy, ledger?.total, nominated, nominatedValidatorsId, password, putInFrontInfo?.lighter, putInFrontOf, rebagInfo?.shouldRebag, rebaged, redeem, selectedValidators, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded]);
+  }, [api, chain, chilled, currentlyStaked, decimals, hierarchy, ledger?.total, nominated, nominatedValidatorsId, password, proxy, putInFrontInfo?.lighter, putInFrontOf, rebagInfo?.shouldRebag, rebaged, redeem, selectedValidators, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded]);
 
   const handleReject = useCallback((): void => {
     setState('');

@@ -9,19 +9,18 @@
  * */
 
 import type { Chain } from '@polkadot/extension-chains/types';
-import type { StakingLedger } from '@polkadot/types/interfaces';
-import type { AccountId } from '@polkadot/types/interfaces';
+import type { AccountId,StakingLedger } from '@polkadot/types/interfaces';
 import type { AccountsBalanceType, NominatorInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CircleOutlined as CircleOutlinedIcon, GroupWorkOutlined as GroupWorkOutlinedIcon } from '@mui/icons-material';
-import { Button, Card, CardMedia, Divider, Grid, Paper } from '@mui/material';
+import { Button, Divider, Grid, Paper } from '@mui/material';
 import { blue, green, grey, red } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { BN, bnMax } from '@polkadot/util';
@@ -30,6 +29,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShowBalance2 } from '../../components';
 import useEndPoint from '../../hooks/useEndPoint';
 import SelectProxy from '../../partials/SelectProxy';
+import { Proxy } from '../../util/plusTypes';
 import { prepareMetaData } from '../../util/plusUtils';
 import PoolStaking from './Pool/Index';
 import SoloStaking from './Solo/Index';
@@ -66,8 +66,7 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
   const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | undefined>();
   const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
-  //SelectProxy states
-  const [proxy, setProxy] = useState<AccountJson | undefined>();
+  const [proxy, setProxy] = useState<Proxy | undefined>(); //SelectProxy states
   const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
   const getStakingConsts = useCallback((chain: Chain, endpoint: string) => {
@@ -355,7 +354,7 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
   const HeaderIcon = <FontAwesomeIcon icon={faCoins} size='sm' />
 
   const Option = ({ _onClick, condition = true, conditionalText, icon, min, subTitle, text, title, titleColor, type }:
-  { conditionalText?: string, condition?: boolean, min: BN | undefined, subTitle: string, text: string, type: 'solo' | 'pool', _onClick: React.MouseEventHandler<HTMLAnchorElement>, icon: JSX.Element, title: string, titleColor: any }) => (
+    { conditionalText?: string, condition?: boolean, min: BN | undefined, subTitle: string, text: string, type: 'solo' | 'pool', _onClick: React.MouseEventHandler<HTMLAnchorElement>, icon: JSX.Element, title: string, titleColor: any }) => (
     <Paper elevation={stakingType === type ? 8 : 4} onClick={_onClick} onMouseOver={() => setStakingType(type)} sx={{ borderRadius: '10px', height: 400, pt: 1, width: '45%', cursor: 'pointer' }}>
       <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 1 }}>
         <Grid item>
@@ -438,6 +437,7 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
               ledger={ledger}
               localStrorageIsUpdate={localStrorageIsUpdate}
               nominatorInfo={nominatorInfo}
+              proxy={proxy}
               setStakingModalOpen={setStakingModalOpen}
               showStakingModal={showStakingModal}
               staker={staker}
@@ -456,6 +456,7 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
               endpoint={endpoint}
               gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
               poolStakingConsts={poolStakingConsts}
+              proxy={proxy}
               setStakingModalOpen={setStakingModalOpen}
               showStakingModal={showStakingModal}
               staker={staker}
