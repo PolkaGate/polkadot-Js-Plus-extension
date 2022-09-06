@@ -62,7 +62,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
   const settings = useContext(SettingsContext);
 
   const [proxies, setProxies] = useState<Proxy[] | undefined>();
-  const [selectedOption, setSelectedOption] = useState<number | undefined>();
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | undefined>();
 
   const recodeAddress = useCallback((address: string, accounts: AccountWithChildren[], settings: SettingsStruct, chain?: Chain | null): Recoded => {
     /** decode and create a shortcut for the encoded address */
@@ -116,13 +116,13 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
   }, [setSelectProxyModalOpen, setActionModalOpen]);
 
   const handleOptionChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedOption(Number(event.target.value));
+    setSelectedOptionIndex(Number(event.target.value));
   }, []);
 
   const handleSetProxy = useCallback(() => {
-    selectedOption && proxies && setProxy(proxies[selectedOption]);
+    selectedOptionIndex !== undefined && proxies && setProxy(proxies[selectedOptionIndex]);
     setSelectProxyModalOpen(false);
-  }, [proxies, selectedOption, setProxy, setSelectProxyModalOpen]);
+  }, [proxies, selectedOptionIndex, setProxy, setSelectProxyModalOpen]);
 
   return (
     <Popup handleClose={handleSelectProxyModalClose} showModal={selectProxyModalOpen}>
@@ -176,7 +176,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
                           <FormControlLabel
                             control={
                               <Radio
-                                checked={selectedOption === index}
+                                checked={selectedOptionIndex === index}
                                 disabled={!localAccount || !acceptableTypes.includes(proxy.proxyType)}
                                 onChange={handleOptionChange}
                                 size='small'
@@ -197,7 +197,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
         <Grid item sx={{ pt: '30px' }} xs={12}>
           <NextStepButton
             data-button-action='OK'
-            isDisabled={!realAddress || !selectedOption}
+            isDisabled={!realAddress || selectedOptionIndex === undefined}
             onClick={handleSetProxy}
           >
             {t('Next')}
