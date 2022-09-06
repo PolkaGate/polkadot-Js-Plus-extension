@@ -3,6 +3,7 @@
 
 import type { AccountJson } from '@polkadot/extension-base/background/types';
 
+import { faPeopleRoof, faSitemap, faTent, faUserShield } from '@fortawesome/free-solid-svg-icons';// added for plus,
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';// added for plus, useContext
 import styled from 'styled-components';
 
@@ -18,7 +19,6 @@ import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useTranslation from '../../hooks/useTranslation';
 import { editAccount, tieAccount, updateMeta } from '../../messaging';// added for plus, updateMeta
 import { Name } from '../../partials';
-import { faUserShield, faTent, faPeopleRoof } from '@fortawesome/free-solid-svg-icons';// added for plus,
 
 interface Props extends AccountJson {
   className?: string;
@@ -98,7 +98,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
         return;
       }
 
-      if (link === 'socialRecovery' && !SOCIAL_RECOVERY_CHAINS.includes(genesisHash)) {
+      if (link === 'social-recovery' && !SOCIAL_RECOVERY_CHAINS.includes(genesisHash)) {
         return;
       }
 
@@ -129,8 +129,16 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
         <ActionText
           className={SOCIAL_RECOVERY_CHAINS.includes(genesisHash) ? 'newMenu' : 'disabledMenu'}
           icon={faUserShield}
-          onClick={() => _goToLink('socialRecovery')}
+          onClick={() => _goToLink('social-recovery')}
           text={t<string>('Social Recovery')}
+        />
+      </MenuItem>
+      <MenuItem className='newMenu'>
+        <ActionText
+          className={ 'newMenu' }
+          icon={faSitemap}
+          onClick={() => _goToLink('manage-proxies')}
+          text={t<string>('Manage Proxies')}
         />
       </MenuItem>
       <MenuDivider />
