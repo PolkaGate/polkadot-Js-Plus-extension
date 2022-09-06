@@ -4,7 +4,7 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description
+ * @description this component render the create pool
  *
  * */
 

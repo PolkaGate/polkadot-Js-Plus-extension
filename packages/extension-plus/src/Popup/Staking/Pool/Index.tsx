@@ -87,7 +87,7 @@ const OPT_ENTRIES = {
     }, {})
 };
 
-export default function Index({ account, api, chain, currentEraIndex, endpoint, gettingNominatedValidatorsInfoFromChain, poolStakingConsts, setStakingModalOpen, showStakingModal, staker, stakingConsts, validatorsIdentities, validatorsInfo, validatorsInfoIsUpdated }: Props): React.ReactElement<Props> {
+export default function Index({ account, api, chain, currentEraIndex, endpoint, gettingNominatedValidatorsInfoFromChain, poolStakingConsts, proxy, setStakingModalOpen, showStakingModal, staker, stakingConsts, validatorsIdentities, validatorsInfo, validatorsInfoIsUpdated }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const poolsMembers: MembersMapEntry[] | undefined = useMapEntries(api?.query?.nominationPools?.poolMembers, OPT_ENTRIES);
 
@@ -465,6 +465,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           nominatedValidators={nominatedValidators}
           pool={myPool}
           poolsMembers={poolsMembers}
+          proxy={proxy}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
           setState={setState}
           showSelectValidatorsModal={showSelectValidatorsModal}
@@ -487,6 +488,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           nominatedValidators={nominatedValidators}
           pool={['createPool', 'joinPool', 'editPool'].includes(state) ? newPool : myPool}
           poolsMembers={poolsMembers}
+          proxy={proxy}
           selectedValidators={selectedValidators}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setNewPool={setNewPool}

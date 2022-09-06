@@ -9,14 +9,14 @@
  **/
 import type { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, Proxy, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded as DeleteSweepRoundedIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
 import { grey, pink } from '@mui/material/colors';
 import Typography from '@mui/material/Typography';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FixedSizeList as List } from "react-window";
+import { FixedSizeList as List } from 'react-window';
 
 import { ApiPromise } from '@polkadot/api';
 import { BN, BN_ZERO } from '@polkadot/util';
@@ -44,6 +44,7 @@ interface Props {
   validatorsIdentities: DeriveAccountInfo[] | undefined;
   pool: MyPoolInfo;
   poolsMembers: MembersMapEntry[] | undefined;
+  proxy?: Proxy;
 }
 
 interface Data {
@@ -301,7 +302,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, nominatedValidators, pool, poolsMembers, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function SelectValidators({ api, chain, nominatedValidators, pool, poolsMembers, proxy, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
@@ -478,6 +479,7 @@ export default function SelectValidators({ api, chain, nominatedValidators, pool
           stakingConsts={stakingConsts}
           state={state}
           validatorsIdentities={validatorsIdentities}
+          proxy={proxy}
         />
       }
     </Popup>

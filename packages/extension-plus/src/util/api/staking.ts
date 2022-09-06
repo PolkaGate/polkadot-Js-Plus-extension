@@ -249,29 +249,32 @@ export async function poolJoinOrBondExtra(
 }
 
 export async function createPool(
-  _api: ApiPromise,
-  _depositor: string | null,
-  _signer: KeyringPair,
-  _value: BN,
-  _poolId: BN,
-  _roles: any,
-  _poolName: string
+  api: ApiPromise,
+  depositor: string | null,
+  signer: KeyringPair,
+  value: BN,
+  poolId: BN,
+  roles: any,
+  poolName: string,
+  proxy?: Proxy
 ): Promise<TxInfo> {
   try {
     console.log('createPool is called!');
 
-    if (!_depositor) {
+    if (!depositor) {
       console.log('createPool:  _depositor is empty!');
 
       return { status: 'failed' };
     }
 
-    const created = _api.tx.utility.batch([
-      _api.tx.nominationPools.create(_value, _roles.root, _roles.nominator, _roles.stateToggler),
-      _api.tx.nominationPools.setMetadata(_poolId, _poolName)
+    const created = api.tx.utility.batch([
+      api.tx.nominationPools.create(value, roles.root, roles.nominator, roles.stateToggler),
+      api.tx.nominationPools.setMetadata(poolId, poolName)
     ]);
 
-    return signAndSend(_api, created, _signer, _depositor);
+    const tx = proxy ? api.tx.proxy.proxy(depositor, proxy.proxyType, created) : created;
+
+    return signAndSend(api, tx, signer, depositor);
   } catch (error) {
     console.log('Something went wrong while createPool', error);
 
@@ -280,43 +283,45 @@ export async function createPool(
 }
 
 export async function editPool(
-  _api: ApiPromise,
-  _depositor: string | null,
-  _signer: KeyringPair,
-  _pool: MyPoolInfo,
-  _basePool: MyPoolInfo
+  api: ApiPromise,
+  depositor: string | null,
+  signer: KeyringPair,
+  pool: MyPoolInfo,
+  basePool: MyPoolInfo,
+  proxy?: Proxy
 ): Promise<TxInfo> {
   try {
     console.log('editPool is called!');
 
-    if (!_depositor) {
+    if (!depositor) {
       console.log('editPool:  _depositor is empty!');
 
       return { status: 'failed' };
     }
 
     const getRole = (role: string) => {
-      if (!_pool.bondedPool.roles[role]) {
+      if (!pool.bondedPool.roles[role]) {
         return 'Remove';
       }
 
-      if (_pool.bondedPool.roles[role] === _basePool.bondedPool.roles[role]) {
+      if (pool.bondedPool.roles[role] === basePool.bondedPool.roles[role]) {
         return 'Noop';
       }
 
-      return { set: _pool.bondedPool.roles[role] };
+      return { set: pool.bondedPool.roles[role] };
     };
 
     const calls = [];
 
-    _basePool.metadata !== _pool.metadata &&
-      calls.push(_api.tx.nominationPools.setMetadata(_pool.member.poolId, _pool.metadata));
-    JSON.stringify(_basePool.bondedPool.roles) !== JSON.stringify(_pool.bondedPool.roles) &&
-      calls.push(_api.tx.nominationPools.updateRoles(_pool.member.poolId, getRole('root'), getRole('nominator'), getRole('stateToggler')))
+    basePool.metadata !== pool.metadata &&
+      calls.push(api.tx.nominationPools.setMetadata(pool.member.poolId, pool.metadata));
+    JSON.stringify(basePool.bondedPool.roles) !== JSON.stringify(pool.bondedPool.roles) &&
+      calls.push(api.tx.nominationPools.updateRoles(pool.member.poolId, getRole('root'), getRole('nominator'), getRole('stateToggler')))
 
-    const created = _api.tx.utility.batch(calls);
+    const updated = api.tx.utility.batch(calls);
+    const tx = proxy ? api.tx.proxy.proxy(depositor, proxy.proxyType, updated) : updated;
 
-    return signAndSend(_api, created, _signer, _depositor);
+    return signAndSend(api, tx, signer, depositor);
   } catch (error) {
     console.log('Something went wrong while editPool', error);
 

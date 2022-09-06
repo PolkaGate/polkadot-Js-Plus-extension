@@ -9,7 +9,7 @@
  * */
 
 import type { Chain } from '@polkadot/extension-chains/types';
-import type { AccountId,StakingLedger } from '@polkadot/types/interfaces';
+import type { AccountId, StakingLedger } from '@polkadot/types/interfaces';
 import type { AccountsBalanceType, NominatorInfo, PoolStakingConsts, SavedMetaData, StakingConsts, Validators } from '../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
@@ -354,7 +354,18 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
   const HeaderIcon = <FontAwesomeIcon icon={faCoins} size='sm' />
 
   const Option = ({ _onClick, condition = true, conditionalText, icon, min, subTitle, text, title, titleColor, type }:
-    { conditionalText?: string, condition?: boolean, min: BN | undefined, subTitle: string, text: string, type: 'solo' | 'pool', _onClick: React.MouseEventHandler<HTMLAnchorElement>, icon: JSX.Element, title: string, titleColor: any }) => (
+  {
+    conditionalText?: string,
+    condition?: boolean,
+    min: BN | undefined,
+    subTitle: string,
+    text: string,
+    type: 'solo' | 'pool',
+    _onClick: React.MouseEventHandler<HTMLButtonElement | HTMLDivElement>,
+    icon: JSX.Element,
+    title: string,
+    titleColor: string
+  }) => (
     <Paper elevation={stakingType === type ? 8 : 4} onClick={_onClick} onMouseOver={() => setStakingType(type)} sx={{ borderRadius: '10px', height: 400, pt: 1, width: '45%', cursor: 'pointer' }}>
       <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 1 }}>
         <Grid item>

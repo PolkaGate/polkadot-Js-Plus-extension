@@ -8,13 +8,13 @@
  * render stake tab in pool staking
  * */
 
+import type { Balance } from '@polkadot/types/interfaces';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, PoolInfo, PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Alert, Avatar, Badge, Button as MuiButton, Grid, InputAdornment, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { styled } from '@mui/material/styles';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Balance } from '@polkadot/types/interfaces';
 
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -22,7 +22,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { FormatBalance, Progress, ShowBalance2 } from '../../../components';
+import { Progress, ShowBalance2 } from '../../../components';
 import { amountToHuman, amountToMachine, fixFloatingPoint } from '../../../util/plusUtils';
 import CreatePool from './CreatePool';
 import JoinPool from './JoinPool';
@@ -51,7 +51,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const [zeroBalanceAlert, setZeroBalanceAlert] = useState(false);
   const [nextButtonCaption, setNextButtonCaption] = useState<string>(t('Next'));
   const [nextToStakeButtonDisabled, setNextToStakeButtonDisabled] = useState(true);
-  const [maxStakeable, setMaxStakeable] = useState<BN|undefined>();
+  const [maxStakeable, setMaxStakeable] = useState<BN | undefined>();
   const [maxStakeableAsNumber, setMaxStakeableAsNumber] = useState<number>(0);
   const [showCreatePoolModal, setCreatePoolModalOpen] = useState<boolean>(false);
   const [showJoinPoolModal, setJoinPoolModalOpen] = useState<boolean>(false);
@@ -73,7 +73,9 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [decimals, setStakeAmount, stakeAmountInHuman]);
 
   const handleStakeAmountInput = useCallback((value: string): void => {
-    if (!api || !decimals || !staker?.balanceInfo?.total) { return; }
+    if (!api || !decimals || !staker?.balanceInfo?.total) {
+      return;
+    }
 
     setAlert('');
     const valueAsBN = new BN(String(amountToMachine(value, decimals)));
@@ -99,7 +101,9 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     if (staker?.balanceInfo?.available) {
       setCreatePoolModalOpen(true);
 
-      if (!state) { setState('createPool'); }
+      if (!state) {
+        setState('createPool');
+      }
     }
   }, [staker?.balanceInfo?.available, state, setState]);
 
@@ -107,22 +111,30 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     if (staker?.balanceInfo?.available) {
       setJoinPoolModalOpen(true);
 
-      if (!state) { setState('joinPool'); }
+      if (!state) {
+        setState('joinPool');
+      }
     }
   }, [staker?.balanceInfo?.available, state, setState]);
 
   const handleNextToStake = useCallback((): void => {
-    if (!decimals) { return; }
+    if (!decimals) {
+      return;
+    }
 
     if (Number(stakeAmountInHuman)) {
       handleConfirmStakingModalOpen();
 
-      if (!state) { setState('bondExtra'); }
+      if (!state) {
+        setState('bondExtra');
+      }
     }
   }, [stakeAmountInHuman, decimals, handleConfirmStakingModalOpen, state, setState]);
 
   useEffect(() => {
-    if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available || !estimatedMaxFee) { return; }
+    if (!poolStakingConsts || existentialDeposit === undefined || !staker?.balanceInfo?.available || !estimatedMaxFee) {
+      return;
+    }
 
     let max = new BN(String(staker.balanceInfo.available)).sub(existentialDeposit.muln(2)).sub(estimatedMaxFee);
 
@@ -134,7 +146,9 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [poolStakingConsts, existentialDeposit, staker, myPool, estimatedMaxFee]);
 
   useEffect(() => {
-    if (!decimals || !maxStakeable) { return; }
+    if (!decimals || !maxStakeable) {
+      return;
+    }
 
     const maxStakeableAsNumber = Number(amountToHuman(maxStakeable.toString(), decimals));
 
@@ -148,7 +162,9 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [maxStakeableAsNumber, stakeAmountInHuman]);
 
   useEffect(() => {
-    if (!decimals) { return; }
+    if (!decimals) {
+      return;
+    }
 
     if (!staker?.balanceInfo?.available) {
       return setZeroBalanceAlert(true);
@@ -170,7 +186,9 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [stakeAmountInHuman, t, staker?.balanceInfo?.available, decimals]);
 
   const handleMaxStakeClicked = useCallback(() => {
-    if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') { return; }
+    if (myPool?.bondedPool?.state?.toLowerCase() === 'destroying') {
+      return;
+    }
 
     handleStakeAmountInput(String(maxStakeableAsNumber));
   }, [handleStakeAmountInput, maxStakeableAsNumber, myPool?.bondedPool?.state]);
@@ -189,19 +207,19 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
         borderRadius: '50%',
         animation: 'ripple 1.2s infinite ease-in-out',
         border: '1px solid currentColor',
-        content: '""',
-      },
+        content: '""'
+      }
     },
     '@keyframes ripple': {
       '0%': {
         transform: 'scale(.8)',
-        opacity: 1,
+        opacity: 1
       },
       '100%': {
         transform: 'scale(2.4)',
-        opacity: 0,
-      },
-    },
+        opacity: 0
+      }
+    }
   }));
 
   const StakeInitialChoice = () => (
