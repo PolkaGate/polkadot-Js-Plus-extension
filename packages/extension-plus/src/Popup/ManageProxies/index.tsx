@@ -140,7 +140,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
   return (
     <>
-      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Proxy')} />
+      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Manage Proxies')} />
       <Container sx={{ pt: '10px', px: '30px' }}>
         <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} chain={chain} label={t('Real account')} setAddress={setRealAddress} />
         <Grid item py='20px' xs>
