@@ -56,7 +56,7 @@ function findSubstrateAccount(accounts: AccountJson[], publicKey: Uint8Array): A
   ) || null;
 }
 
-export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, api, chain, icon, realAddress, selectProxyModalOpen, setProxy, setSelectProxyModalOpen, setActionModalOpen }: Props): React.ReactElement<Props> {
+export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, api, chain, icon, realAddress, selectProxyModalOpen, setActionModalOpen, setProxy, setSelectProxyModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
@@ -133,7 +133,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
             {t('Since this is a real address (can not sign transactions), hence, you need to select an appropriate proxy of the account to do transaction on behalf')}
           </Typography>
         </Grid>
-        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderRadius: '5px', py: '5px', px: '10px' }}>
+        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
           <Grid item xs={3}>
             {t('address')}
           </Grid>
@@ -204,6 +204,6 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
           </NextStepButton>
         </Grid>
       </Container>
-    </Popup>
+    </Popup >
   );
 }
