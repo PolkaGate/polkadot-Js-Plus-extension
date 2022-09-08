@@ -63,6 +63,7 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
               stakingConsts={stakingConsts}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={nominatedValidators}
+              ledger={ledger}
             />
           </Grid>
           <Grid container item justifyContent='space-between' pt='5px' xs={12}>

@@ -8,6 +8,8 @@
  *  this component show a list of validators, which is utilized in other components  
  * */
 
+import type { StakingLedger } from '@polkadot/types/interfaces';
+
 import { Grid } from '@mui/material';
 import React, { useState } from 'react';
 
@@ -30,10 +32,10 @@ interface Props {
   validatorsIdentities: DeriveAccountInfo[] | undefined;
   height: number;
   staker?: AccountsBalanceType | string;
-
+  ledger?: StakingLedger | null;
 }
 
-export default function ValidatorsList({ activeValidator, api, chain, height, staker, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function ValidatorsList({ activeValidator, api, chain, height, ledger, staker, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showValidatorInfoModal, setShowValidatorInfoModal] = useState<boolean>(false);
   const [info, setInfo] = useState<DeriveStakingQuery | null>(null);
@@ -75,6 +77,7 @@ export default function ValidatorsList({ activeValidator, api, chain, height, st
           showValidatorInfoModal={showValidatorInfoModal}
           staker={staker}
           validatorsIdentities={validatorsIdentities}
+          ledger={ledger}
         />
       }
     </>

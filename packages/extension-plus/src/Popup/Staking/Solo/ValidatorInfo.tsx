@@ -8,10 +8,12 @@
  *  this component shows a validator's info in a page including its nominators listand a link to subscan
  * */
 
+import type { StakingLedger } from '@polkadot/types/interfaces';
+
 import { BubbleChart as BubbleChartIcon } from '@mui/icons-material';
 import { Avatar, Container, Divider, Grid, Link, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { Dispatch, SetStateAction, useCallback, useState, useEffect } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
@@ -32,9 +34,10 @@ interface Props {
   info: DeriveStakingQuery;
   validatorsIdentities: DeriveAccountInfo[] | undefined;
   staker?: AccountsBalanceType | string;
+  ledger?: StakingLedger | null;
 }
 
-export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoModal, showValidatorInfoModal, staker, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ValidatorInfo({ api, chain, info, ledger, setShowValidatorInfoModal, showValidatorInfoModal, staker, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined>();
   const chainName = chain?.name.replace(' Relay Chain', '');
@@ -64,6 +67,7 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
   const sortedNominators = info?.exposure?.others.sort((a, b) => b.value - a.value);
   const stakerAddress = staker?.address ?? staker;
   const myIndex = stakerAddress ? sortedNominators.findIndex((n) => n.who.toString() === stakerAddress) : -1;
+  const myPossibleIndex = ledger && stakerAddress && myIndex === -1 ? sortedNominators.findIndex((n) => n.value < ledger.active) : -1;
 
   return (
     <Popup handleClose={handleDetailsModalClose} id='scrollArea' showModal={showValidatorInfoModal}>
@@ -101,9 +105,13 @@ export default function ValidatorInfo({ api, chain, info, setShowValidatorInfoMo
               <Grid item sx={{ pl: 3, pt: 1, textAlign: 'left' }} xs={6}>
                 {t('Commission')}{': '}   {info.validatorPrefs.commission === 1 ? 0 : info.validatorPrefs.commission / (10 ** 7)}%
               </Grid>
-              {myIndex && myIndex !== -1 &&
-                <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
+              {myIndex && myIndex !== -1
+                ? <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
                   {t('Your rank')}{': '}{myIndex + 1}
+                </Grid>
+                : myPossibleIndex && myPossibleIndex !== -1 &&
+                <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
+                  {t('Your possible rank')}{': '}{myPossibleIndex + 1}
                 </Grid>
               }
             </Grid>
