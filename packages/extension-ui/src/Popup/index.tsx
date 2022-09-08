@@ -151,7 +151,7 @@ export default function Popup(): React.ReactElement {
                         <Route path='/endecrypt/:address'>{wrapWithErrorBoundary(<EnDecrypt />, 'encrypt-decrypt')}</Route>
                         <Route path='/social-recovery/:genesisHash/:address'>{wrapWithErrorBoundary(<SocialRecovery />, 'social-recovery')}</Route>
                         <Route path='/account/proxy'>{wrapWithErrorBoundary(<AddProxy />, 'add-proxy')}</Route>
-                        <Route path='/manage-proxies'>{wrapWithErrorBoundary(<ManageProxies />, 'manage-proxies')}</Route>
+                        <Route path='/manage-proxies/:genesisHash/:address'>{wrapWithErrorBoundary(<ManageProxies />, 'manage-proxies')}</Route>
 
                         <Route path='/auth-list'>{wrapWithErrorBoundary(<AuthList />, 'auth-list')}</Route>
                         <Route path='/account/create'>{wrapWithErrorBoundary(<CreateAccount />, 'account-creation')}</Route>

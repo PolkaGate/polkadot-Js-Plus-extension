@@ -4,30 +4,30 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description list all governance options e.g., Democracy, Council, Treasury, etc.
+ * @description  shows a simple address text box or an address selection box depending on the value of addresesOnThisChain
 */
 
+import { NoAccounts as NoAccountsIcon } from '@mui/icons-material';
 import { Autocomplete, Grid, TextField } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback } from 'react';
 
+import { Chain } from '@polkadot/extension-chains/types';
+import { Identicon } from '@polkadot/extension-ui/components';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import isValidAddress from '../../util/validateAddress';
-import { Identicon } from '@polkadot/extension-ui/components';
-import { NoAccounts as NoAccountsIcon } from '@mui/icons-material';
-import { grey } from '@mui/material/colors';
 import { NameAddress } from '../../util/plusTypes';
-import { Chain } from '@polkadot/extension-chains/types';
+import isValidAddress from '../../util/validateAddress';
 
 interface Props {
   chain: Chain;
-  addresesOnThisChain: NameAddress[] | undefined;
+  addresesOnThisChain?: NameAddress[];
   label: string;
   address: string | undefined;
   setAddress: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
-export default function AddressTextBox({ addresesOnThisChain, chain, label, address, setAddress }: Props) {
+export default function AddressTextBox({ addresesOnThisChain, address, chain, label, setAddress }: Props) {
   const { t } = useTranslation();
 
   const handleAddress = useCallback((value: string | null) => {
@@ -45,7 +45,7 @@ export default function AddressTextBox({ addresesOnThisChain, chain, label, addr
     if (mayBeAddress) {
       setAddress(mayBeAddress);
     }
-  }, []);
+  }, [setAddress]);
 
   const handleAutoComplateChange = useCallback((_event: React.SyntheticEvent<Element, Event>, value: string | null) => {
     handleAddress(value);
@@ -57,16 +57,17 @@ export default function AddressTextBox({ addresesOnThisChain, chain, label, addr
 
   return (
     <Grid alignItems='center' container sx={{ pt: 2 }}>
-      <Grid item xs={1.5}>
-        {isValidAddress(address)
-          ? <Identicon
-            prefix={chain?.ss58Format ?? 42}
-            size={43}
-            theme={chain?.icon || 'polkadot'}
-            value={address}
-          />
-          : <NoAccountsIcon sx={{ color: grey[400], fontSize: 43 }} />
-        }
+      <Grid item sx={{ height: '70px' }} xs={1.5}>
+        <div style={{ transform: 'scale(0.7)' }}>
+          {isValidAddress(address)
+            ? <Identicon
+              prefix={chain?.ss58Format ?? 42}
+              theme={chain?.icon || 'polkadot'}
+              value={address}
+            />
+            : <NoAccountsIcon sx={{ color: grey[400], fontSize: 64 }} />
+          }
+        </div>
       </Grid>
       <Grid item xs>
         <Autocomplete
@@ -82,10 +83,11 @@ export default function AddressTextBox({ addresesOnThisChain, chain, label, addr
           renderInput={(params) =>
             <TextField
               {...params}
-              InputLabelProps={{ shrink: true, style: { fontSize: 17 } }}
+              InputLabelProps={{ style: { fontSize: 17 } }}
               autoFocus
               error={!address}
               label={label}
+              placeholder={t('Add an address')}
             />
           }
           sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}

@@ -4,13 +4,13 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description list all governance options e.g., Democracy, Council, Treasury, etc.
+ * @description  
 */
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Container, FormControl, Grid, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { Container, Grid, TextField } from '@mui/material';
+import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import styled from 'styled-components';
 
 import { AccountsStore } from '@polkadot/extension-base/stores';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -27,15 +27,10 @@ import { Progress, ShortAddress } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
 import { NameAddress, Proxy } from '../../util/plusTypes';
 import AddressTextBox from './AddressTextBox';
-import { grey } from '@mui/material/colors';
+import SelectChain from './SelectChain';
 
 interface Props extends ThemeProps {
   className?: string;
-}
-
-interface DropdownOption {
-  text: string;
-  value: string;
 }
 
 export default function AddProxy({ className }: Props): React.ReactElement<Props> {
@@ -102,62 +97,28 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
       .catch((error: Error) => console.error(error));
   }, [chain?.genesisHash, name, onAction, realAddress]);
 
-  const PSelect = ({ defaultValue, label, onChange, options }: { defaultValue: string | undefined, onChange?: (value: string) => void, options: DropdownOption[], label: string }) => {
-    const _onChange = useCallback(
-      ({ target: { value } }: React.ChangeEvent<HTMLSelectElement>) =>
-        onChange && onChange(value.trim()),
-      [onChange]
-    );
-
-    return (
-      <FormControl
-        // variant='standard'
-        sx={{ width: '100%' }}>
-        <InputLabel
-          htmlFor='selectChain'
-        // sx={{ transformOrigin: 'left bottom', fontWeight: 300, letterSpacing: '-0.015em' }}
-        >
-          {label}
-        </InputLabel>
-        <Select
-          defaultValue={defaultValue}
-          id='selectChain'
-          label={label}
-          // input={<BootstrapInput />}
-          onChange={_onChange}
-        // sx={{ width: '100%', height: 31 }}
-        // value={defaultValue}
-        >
-          {options.map(({ text, value }): React.ReactNode => (
-            <MenuItem key={value} sx={{ fontSize: '14px', fontWeight: 300, letterSpacing: '-0.015em' }} value={value}>
-              {text}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    )
-  };
-
   return (
     <>
-      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Proxy')} />
-      <Container sx={{ pt: '10px', px: '30px' }}>
-        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} chain={chain} label={t('Real account')} setAddress={setRealAddress} />
-        <Grid item py='20px' xs>
-          <PSelect defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
-        </Grid>
+      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Proxied- add a real account')} />
+      <Container sx={{ px: '30px' }}>
         <TextField
           autoFocus
           color='warning'
+          error={!name}
+          // helperText={t('Enter a name for your real account')}
           fullWidth
-          helperText={t('Enter a name for your real account')}
           label={t('Name')}
           name='name'
           onChange={() => setName(event.target.value)}
-          sx={{ pb: '20px' }}
+          placeholder={t<string>('Enter a name for your real account')}
+          sx={{ py: 1 }}
           variant='outlined'
         />
-        <Grid container item sx={{ fontWeight: 600, bgcolor: grey[200], borderRadius: '10px' }}>
+        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} chain={chain} label={t('Real account')} setAddress={setRealAddress} />
+        <Grid item py='20px' xs>
+          <SelectChain defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
+        </Grid>
+        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
           <Grid item xs={4}>
             {t('Address')}
           </Grid>
@@ -171,7 +132,7 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
             {t('available')}
           </Grid>
         </Grid>
-        <Grid container item sx={{ pt: '15px', height: 120, overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], pt: '15px', pl: '10px', height: 140, overflowY: 'auto' }} xs={12}>
           {chain && realAddress &&
             <>
               {proxies
@@ -194,7 +155,7 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
                           {!!localAccount ? `Yes (${localAccount.name})` : 'No'}
                         </Grid>
                       </Grid>
-                    )
+                    );
                   })
                   : <Grid item pt='10px'>
                     {t('No proxies found for the entered real account on {{chain}}', { replace: { chain: chain?.name } })}
@@ -203,13 +164,13 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
               }
             </>}
         </Grid>
-        <Grid item sx={{ pt: '30px' }} xs={12}>
+        <Grid item sx={{ pt: '20px' }} xs={12}>
           <NextStepButton
-            data-button-action='Add proxy real account'
-            isDisabled={!name || !realAddress | !proxies?.length}
+            data-button-action='Add'
+            isDisabled={!name || !realAddress || !proxies?.length}
             onClick={handleAdd}
           >
-            {t('Add proxy real account')}
+            {t('Add')}
           </NextStepButton>
         </Grid>
 
