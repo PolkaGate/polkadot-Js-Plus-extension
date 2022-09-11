@@ -9,8 +9,8 @@
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
-import { Container, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Clear as ClearIcon } from '@mui/icons-material';
+import { Container, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
@@ -28,14 +28,11 @@ import { AccountContext, ActionContext, SettingsContext } from '../../../../exte
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { createAccountExternal, getMetadata } from '../../../../extension-ui/src/messaging';
 import { Header } from '../../../../extension-ui/src/partials';
-import { Hint, Identity, Progress, ShortAddress, ShowBalance2 } from '../../components';
+import { Hint, Identity, Progress, ShortAddress } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
 import { AddressState, NameAddress, Proxy } from '../../util/plusTypes';
-import { getAllFormattedAddressesOnThisChain, getFormattedAddress } from '../../util/plusUtils';
+import { getFormattedAddress } from '../../util/plusUtils';
 import AddressTextBox from './AddressTextBox';
-import { BN, BN_MILLION, BN_ZERO, u8aConcat } from '@polkadot/util';
-import { AccountJson } from '@polkadot/extension-base/background/types';
-import AddProxy from './AddProxy';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -56,33 +53,22 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const endpoint = useEndpoint(accounts, address, chain);
   const api = useApi(endpoint);
   const [proxies, setProxies] = useState<Proxy[] | undefined>();
-  const [newProxies, setNewProxies] = useState<Proxy[] | undefined>();
   const [deletedProxies, setDeletedProxies] = useState<Proxy[] | undefined>();
   const [proxyInfo, setProxyInfo] = useState<DeriveAccountInfo[] | undefined>();
-  const [addressesOnThisChain, setAddressesOnThisChain] = useState<NameAddress[]>([]);
-  const [showAddProxyModal, setShowAddProxyModal] = useState<boolean>(false);
-
-  const proxyDepositBase = api ? api.consts.proxy.proxyDepositBase : BN_ZERO;
-  const proxyDepositFactor = api ? api.consts.proxy.proxyDepositFactor : BN_ZERO;
-  const deposit = proxyDepositBase.add(proxyDepositFactor.muln(proxies?.length ?? 0));
 
   // const removeProxy=api.tx.proxy.removeProxy /** (delegate, proxyType, delay) **/
-  // const addProxy=api.tx.proxy.addProxy /** (delegate, proxyType, delay) **/
-
-  const handleAddProxy = useCallback(() => {
-    setShowAddProxyModal(true);
-  }, []);
-
   const handleremoveProxy = useCallback(
     (index: number): void => {
       proxies && setDeletedProxies((pr) => pr ? pr.concat(proxies[index]) : [proxies[index]]);
     }, [proxies]);
 
-  useEffect(() => {
-    chain && settings?.prefix && accounts && address && setAddressesOnThisChain(getAllFormattedAddressesOnThisChain(chain, settings.prefix, accounts, address));
-  }, [accounts, address, chain, settings]);
+  console.log('deletedProxies:', deletedProxies);
 
-  console.log('addressesOnThisChain:', addressesOnThisChain);
+  useEffect(() => {
+    console.log('address', address);
+    console.log('genesisHash', genesisHash);
+    console.log('settings', settings);
+  }, [address, genesisHash, settings]);
 
   const formatted = useMemo(() => address && chain && settings && getFormattedAddress(address, chain, settings.prefix), [address, chain, settings]);
 
@@ -108,7 +94,6 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
       return { accountId: proxy.delegate, nickname: mayBeFound?.name };
     });
-
     setProxyInfo(proxyInfo);
   }, [accounts, chain, formatted, proxies, settings?.prefix]);
 
@@ -116,31 +101,6 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
     <>
       <Header showBackArrow showSettings smallMargin text={t<string>('Manage Proxies')} />
       <Container sx={{ pt: '10px', px: '30px' }}>
-
-        <Grid alignItems='center' container item justifyContent='space-between' pb='10px' pt='15px' xs={12}>
-          <Grid alignItems='center' container item justifyContent='flex-start' xs={6}>
-            <Grid item p='7px 15px 7px'>
-              <Typography sx={{ color: 'text.primary' }} variant='body2'>
-                {t('Your proxies')} {`(${proxies?.length ?? 0})`}
-              </Typography>
-            </Grid>
-            <Grid item>
-              <Hint id='addProxy' place='right' tip={t('add a proxy')}>
-                <IconButton
-                  aria-label='addProxy'
-                  color='warning'
-                  onClick={handleAddProxy}
-                  size='small'
-                >
-                  <AddCircleRoundedIcon sx={{ fontSize: 25 }} />
-                </IconButton>
-              </Hint>
-            </Grid>
-          </Grid>
-          <Grid alignItems='center' item pr='7px' sx={{ fontSize: 13, color: grey[600] }} xs={3.5}>
-            <ShowBalance2 api={api} balance={deposit} direction='row' title={`${t('deposit')}:`} />
-          </Grid>
-        </Grid>
         <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
           <Grid item xs={6}>
             {t('identity')}
@@ -155,20 +115,10 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
             {t('action')}
           </Grid>
         </Grid>
-        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 320, overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 180, overflowY: 'auto' }} xs={12}>
           {!proxies &&
-            <Progress title={t('Loading proxies ...')} pt='20px' />
-          }
-          {proxies?.length === 0 &&
-            <Grid alignItems='center' container justifyContent='center' sx={{ px: 3 }} xs={12}>
-              <Grid item>
-                <Typography sx={{ color: 'text.secondary' }} variant='caption'>
-                  {t('No proxies found!')}
-                </Typography>
-              </Grid>
-            </Grid>
-          }
-          {!!proxies?.length && proxyInfo &&
+            <Progress title={t('Loading proxes ...')} pt='20px' />}
+          {proxies?.length && proxyInfo &&
             <>
               {proxies.filter((p) => !deletedProxies?.includes(p)).map((proxy, index) => {
                 const info = proxyInfo.find((p) => p.accountId === proxy.delegate);
@@ -207,18 +157,8 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
             {t('Done')}
           </NextStepButton>
         </Grid>
+
       </Container>
-      {showAddProxyModal &&
-        <AddProxy
-          address={address}
-          settingsPrefix={settings.prefix}
-          addressesOnThisChain={addressesOnThisChain}
-          chain={chain}
-          proxies={newProxies}
-          setProxies={setNewProxies}
-          setShowAddProxyModal={setShowAddProxyModal}
-          showAddProxyModal={showAddProxyModal} />
-      }
     </>
   );
 }

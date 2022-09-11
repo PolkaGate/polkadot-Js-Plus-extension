@@ -15,7 +15,7 @@ import CrowdLoans from '../../../extension-plus/src/Popup/CrowdLoans';// added f
 import Governance from '../../../extension-plus/src/Popup/Governance';// added for plus
 import EnDecrypt from '../../../extension-plus/src/Popup/Encryption';// added for plus
 import SocialRecovery from '../../../extension-plus/src/Popup/SocialRecovery';// added for plus
-import AddProxy from '../../../extension-plus/src/Popup/AddProxy';// added for plus
+import AddProxy from '../../../extension-plus/src/Popup/AddProxied';// added for plus
 import ManageProxies from '../../../extension-plus/src/Popup/ManageProxies';// added for plus
 
 import { ErrorBoundary, Loading } from '../components';
