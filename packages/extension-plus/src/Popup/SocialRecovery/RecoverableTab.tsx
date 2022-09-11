@@ -109,8 +109,8 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
       return f;
     });
 
-    friendsWithLocalNamesIfNeeded?.lenght && setFriends([...friendsWithLocalNamesIfNeeded]);
-  }, [addresesOnThisChain, friends?.length]);
+    friendsWithLocalNamesIfNeeded?.length && setFriends([...friendsWithLocalNamesIfNeeded]);
+  }, [addresesOnThisChain, friends, friends.length]);
 
   return (
     <>
