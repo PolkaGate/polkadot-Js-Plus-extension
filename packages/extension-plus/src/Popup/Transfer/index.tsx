@@ -500,13 +500,13 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
                       autoFocus
                       color='warning'
                       error={reapeAlert || feeAlert || zeroBalanceAlert}
-                      fullWidth
+                      // fullWidth
                       helperText={reapeAlert
                         ? (t('Account will be reaped, existential deposit:') + amountToHuman(String(ED), decimals) + ' ' + token)
                         : (feeAlert ? t('Fee must be considered, use MAX button instead.') : (zeroBalanceAlert ? t('No available fund to transfer') : ''))}
-                      label={t('Transfer Amount')}
+                      label={t('Transfer Amounttttttttttttttt')}
                       margin='dense'
-                      name='transfeAmount'
+                      name='transferAmount'
                       onChange={handleTransferAmountChange}
                       size='medium'
                       type='number'

@@ -58,13 +58,14 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const [proxies, setProxies] = useState<Proxy[] | undefined>();
   const [newProxies, setNewProxies] = useState<Proxy[] | undefined>();
   const [deletedProxies, setDeletedProxies] = useState<Proxy[] | undefined>();
+  const [proxiesToShow, setProxiesToShow] = useState<Proxy[] | undefined>();
   const [proxyInfo, setProxyInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [addressesOnThisChain, setAddressesOnThisChain] = useState<NameAddress[]>([]);
   const [showAddProxyModal, setShowAddProxyModal] = useState<boolean>(false);
 
   const proxyDepositBase = api ? api.consts.proxy.proxyDepositBase : BN_ZERO;
   const proxyDepositFactor = api ? api.consts.proxy.proxyDepositFactor : BN_ZERO;
-  const deposit = proxyDepositBase.add(proxyDepositFactor.muln(proxies?.length ?? 0));
+  const deposit = proxyDepositBase.add(proxyDepositFactor.muln(proxiesToShow?.length ?? 0));
 
   // const removeProxy=api.tx.proxy.removeProxy /** (delegate, proxyType, delay) **/
   // const addProxy=api.tx.proxy.addProxy /** (delegate, proxyType, delay) **/
@@ -75,14 +76,27 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
   const handleremoveProxy = useCallback(
     (index: number): void => {
-      proxies && setDeletedProxies((pr) => pr ? pr.concat(proxies[index]) : [proxies[index]]);
-    }, [proxies]);
+      if (proxies?.length && index < proxies.length) {
+        setDeletedProxies((pre) => (pre ?? []).concat(proxies[index]));
+
+        return setProxies((pre) => {
+          pre?.splice(index, 1);
+
+          return pre;
+        });
+      }
+
+      newProxies?.splice(index - (proxies?.length ?? 0), 1);
+      newProxies !== undefined && setNewProxies([...newProxies]);
+    }, [newProxies, proxies]);
+
+  useEffect(() => {
+    setProxiesToShow((proxies ?? []).concat(newProxies ?? []));
+  }, [newProxies, newProxies?.length, proxies, proxies?.length]);
 
   useEffect(() => {
     chain && settings?.prefix && accounts && address && setAddressesOnThisChain(getAllFormattedAddressesOnThisChain(chain, settings.prefix, accounts, address));
   }, [accounts, address, chain, settings]);
-
-  console.log('addressesOnThisChain:', addressesOnThisChain);
 
   const formatted = useMemo(() => address && chain && settings && getFormattedAddress(address, chain, settings.prefix), [address, chain, settings]);
 
@@ -94,13 +108,14 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   }, [api, chain, formatted]);
 
   useEffect(() => {
-    if (!proxies?.length) {
+    if (!proxiesToShow?.length) {
       return;
     }
 
-    const proxyInfo = proxies.map((proxy) => {
+    const proxyInfo = proxiesToShow.map((proxy) => {
       const mayBeFound = accounts.find((acc) => {
         const formattedAcc = getFormattedAddress(acc.address, chain, settings.prefix);
+
         if (formattedAcc === proxy.delegate) {
           return acc;
         }
@@ -110,7 +125,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
     });
 
     setProxyInfo(proxyInfo);
-  }, [accounts, chain, formatted, proxies, settings?.prefix]);
+  }, [accounts, chain, formatted, proxiesToShow, settings?.prefix]);
 
   return (
     <>
@@ -156,22 +171,22 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           </Grid>
         </Grid>
         <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 320, overflowY: 'auto' }} xs={12}>
-          {!proxies &&
+          {proxies === undefined &&
             <Progress title={t('Loading proxies ...')} pt='20px' />
           }
-          {proxies?.length === 0 &&
+          {proxies !== undefined && proxiesToShow?.length === 0 &&
             <Grid alignItems='center' container justifyContent='center' sx={{ px: 3 }} xs={12}>
-              <Grid item>
+              <Grid item sx={{ pt: 15 }}>
                 <Typography sx={{ color: 'text.secondary' }} variant='caption'>
                   {t('No proxies found!')}
                 </Typography>
               </Grid>
             </Grid>
           }
-          {!!proxies?.length && proxyInfo &&
+          {!!proxiesToShow?.length && proxyInfo &&
             <>
-              {proxies.filter((p) => !deletedProxies?.includes(p)).map((proxy, index) => {
-                const info = proxyInfo.find((p) => p.accountId === proxy.delegate);
+              {proxiesToShow.map((proxy, index) => {
+                const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
 
                 return (
                   <Grid container item key={index} sx={{ fontSize: 14 }}>
@@ -201,22 +216,23 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
         <Grid item sx={{ pt: '30px' }} xs={12}>
           <NextStepButton
             data-button-action='Done'
-          // isDisabled={}
-          // onClick={handleAdd}
+            isDisabled={!deletedProxies?.length && !newProxies?.length}
+          // onClick={handleNext}
           >
-            {t('Done')}
+            {t('Next')}
           </NextStepButton>
         </Grid>
       </Container>
       {showAddProxyModal &&
         <AddProxy
           address={address}
-          settingsPrefix={settings.prefix}
           addressesOnThisChain={addressesOnThisChain}
+          api={api}
           chain={chain}
           proxies={newProxies}
           setProxies={setNewProxies}
           setShowAddProxyModal={setShowAddProxyModal}
+          settingsPrefix={settings.prefix}
           showAddProxyModal={showAddProxyModal} />
       }
     </>

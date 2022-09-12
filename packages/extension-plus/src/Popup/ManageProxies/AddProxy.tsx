@@ -8,11 +8,12 @@
  * this component opens a page, where you can add a proxy
  * */
 
+import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
 import { AddCircleRounded as AddCircleRoundedIcon, NavigateBefore as NavigateBeforeIcon, NavigateNext as NavigateNextIcon, NoAccounts as NoAccountsIcon } from '@mui/icons-material';
-import { Autocomplete, Grid, InputAdornment, TextField, Typography } from '@mui/material';
+import { Autocomplete, FormControl, Grid, InputAdornment, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
@@ -22,31 +23,38 @@ import { Button } from '@polkadot/extension-ui/components';
 import Identicon from '@polkadot/react-identicon';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, Progress } from '../../components';
+import { Hint, PlusHeader, Popup, Progress } from '../../components';
 import { NameAddress, Proxy } from '../../util/plusTypes';
 import { getFormattedAddress, isValidAddress } from '../../util/plusUtils';
 
 interface Props extends ThemeProps {
+  api: ApiPromise | undefined;
   address: string;
   settingsPrefix: number;
   addressesOnThisChain: NameAddress[] | undefined;
   chain: Chain | null;
   className?: string;
-  proxies: Proxy[];
+  proxies: Proxy[] | undefined;
   showAddProxyModal: boolean;
   setShowAddProxyModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setProxies: React.Dispatch<React.SetStateAction<Proxy[]>>;
+  setProxies: React.Dispatch<React.SetStateAction<Proxy[] | undefined>>;
 }
 
-const proxyType = ['Any', 'NonTransfer', 'Staking', 'Governance', 'SudoBalances', 'SudoBalances', 'CancelProxy']
+const PROXY_TYPE_POLKADOT = ['Any', 'NonTransfer', 'Staking', 'Governance', 'IdentityJudgement', 'CancelProxy', 'Auction'];
+const PROXY_TYPE_KUSAMA = ['Any', 'NonTransfer', 'Staking', 'Society', 'Governance', 'IdentityJudgement', 'CancelProxy', 'Auction'];
+const PROXY_TYPE_WESTEND = ['Any', 'NonTransfer', 'Staking', 'SudoBalances', 'IdentityJudgement', 'CancelProxy', 'Auction'];
+const PROXY_TYPES = { Kusama: PROXY_TYPE_KUSAMA, Polkadot: PROXY_TYPE_POLKADOT, Westend: PROXY_TYPE_WESTEND }
 
-function AddProxy({ address, addressesOnThisChain, chain, proxies, setProxies, setShowAddProxyModal, settingsPrefix, showAddProxyModal }: Props): React.ReactElement<Props> {
+function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxies, setShowAddProxyModal, settingsPrefix, showAddProxyModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
-  const [filteredAccountsInfo, setFilteredAccountsInfo] = useState<DeriveAccountInfo[] | undefined | null>();
   const [text, setText] = useState<string | undefined>();
+  const [proxyType, setProxyType] = useState<string | undefined | null>();
+  const [delay, setDelay] = useState<number>(0);
   const formatted = getFormattedAddress(address, chain, settingsPrefix);
 
+  const chainName = chain?.name.replace(' Relay Chain', '');
+  const PROXY_TYPE = PROXY_TYPES[chainName];
 
   const handleAddress = useCallback((value: string | null) => {
     if (!value) {
@@ -71,58 +79,36 @@ function AddProxy({ address, addressesOnThisChain, chain, proxies, setProxies, s
     handleAddress(value);
   }, [handleAddress]);
 
+  const handleProxyTypeChange = useCallback((event: SelectChangeEvent<string | null>): void => {
+    setProxyType(event.target.value);
+  }, []);
+
   const handleInputChange = useCallback((event: React.SyntheticEvent<Element, Event>, value: string) => {
     setText(value);
     setAccountInfo(undefined);
   }, []);
 
-  // const handleSearchProxy = useCallback(() => {
-  //   if (!accountsInfo?.length) { return; }
+  useEffect(() => {
+    if (!isValidAddress(text)) {
+      return;
+    }
 
-  //   if (!text) {
-  //     return setFilteredAccountsInfo(undefined);
-  //   }
+    api && api.derive.accounts.info(text).then((info) => {
 
-  //   let filtered;
-
-  //   if (text) {
-  //     filtered = accountsInfo.filter((id) => JSON.stringify(id).toLowerCase().includes(text.toLocaleLowerCase()));
-
-  //     if (filtered?.length) {
-  //       setFilteredAccountsInfo(filtered);
-
-  //       return setAccountInfo(filtered[0]);
-  //     }
-
-  //     setAccountInfo(null);
-  //   }
-
-  //   setFilteredAccountsInfo(null);
-  // }, [accountsInfo, text]);
-
-  // useEffect(() => {
-  //   handleSearchProxy();
-  // }, [handleSearchProxy, text]);
+      if (info.identity.display) {
+        setAccountInfo(info);
+      } else {
+        setAccountInfo(null);
+      }
+    });
+  }, [api, text]);
 
   const handleAddProxy = useCallback(() => {
-    const mayBeAddress = isValidAddress(text) ? text : undefined;
-
-    const isEnteredMeAsMySelfProxy = String(account.accountId) === mayBeAddress;
-
-    if ((!mayBeAddress && !accountInfo?.accountId) || isEnteredMeAsMySelfProxy) { return; }
-
-    const mayBeNewProxy = mayBeAddress || accountInfo?.accountId?.toString();
-
-    if (!proxies.find((i) => i.accountId === mayBeNewProxy)) { // if the account is not already added
-      const temp = [...proxies];
-
-      accountInfo ? temp.push(accountInfo) : temp.push({ accountId: mayBeNewProxy, identity: undefined });
-
-      console.log('setting proxies to ', [...temp]);
-      setProxies([...temp]);
-      setShowAddProxyModal(false);
-    }
-  }, [address, accountInfo, proxies, setProxies, setShowAddProxyModal, text]);
+    const proxy = { delay, delegate: text, proxyType: PROXY_TYPE[proxyType] };
+    console.log('proxy:', proxy)
+    setProxies((pre) => pre?.length ? pre.concat(proxy) : [proxy]);
+    setShowAddProxyModal(false);
+  }, [delay, proxyType, setProxies, setShowAddProxyModal, text]);
 
   const handleCloseModal = useCallback((): void => {
     setShowAddProxyModal(false);
@@ -144,7 +130,6 @@ function AddProxy({ address, addressesOnThisChain, chain, proxies, setProxies, s
       <Grid item xs={11}>
         <Autocomplete
           ListboxProps={{ sx: { fontSize: 12 } }}
-          autoFocus
           // defaultValue={text}
           freeSolo
           inputValue={text}
@@ -156,7 +141,6 @@ function AddProxy({ address, addressesOnThisChain, chain, proxies, setProxies, s
             <TextField
               {...params}
               InputLabelProps={{ shrink: true, style: { fontSize: 17 } }}
-              autoFocus
               error={!text}
               label={t('New proxy')}
             // onChange={handleChange}
@@ -168,45 +152,43 @@ function AddProxy({ address, addressesOnThisChain, chain, proxies, setProxies, s
     </Grid>
   );
 
+  const ProxyTypeSelect = () => (
+    <FormControl fullWidth>
+      <InputLabel id='proxyType'>{t('Proxy type')}</InputLabel>
+      <Select
+        id='proxyType-select'
+        label={t('Proxy type')}
+        labelId='proxyType'
+        labelId='proxyType-select-label'
+        onChange={handleProxyTypeChange}
+        sx={{ fontSize: 14, p: 0 }}
+        value={proxyType}
+      >
+        {PROXY_TYPE.map((p, index) => (
+          <MenuItem key={index} sx={{ fontSize: 14 }} value={index}>{p}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+
   const DelayTextBox = () => (
     <TextField
-      InputLabelProps={{ shrink: true }}
+      InputLabelProps={{ shrink: true, style: { fontSize: 17 } }}
       InputProps={{
-        endAdornment: (<InputAdornment position='end'>{t('day(s)')}</InputAdornment>),
-        inputProps: { min: 0 }
+        endAdornment: (<InputAdornment position='end'>{t('block(s)')}</InputAdornment>),
+        inputProps: { min: 0 },
+        style: { fontSize: 13 }
       }}
       color='warning'
       fullWidth
       inputProps={{ step: '1' }}
-      label={t('Announcement delay')}
+      label={t('Delay')}
       name='announcementDelay'
-      // onChange={handleRecoveryDelay}
+      onChange={() => setDelay(event.target.value)}
       placeholder='0'
       type='number'
-      // value={recoveryDelay}
+      value={delay}
       variant='outlined'
-    />
-  );
-
-  const ProxyTypeSelect = () => (
-    <Autocomplete
-      ListboxProps={{ sx: { fontSize: 12 } }}
-      defaultValue={proxyType[0]}
-      // inputValue={text}
-      // onChange={handleAutoComplateChange}
-      // onInputChange={handleInputChange}
-      options={proxyType}
-      // eslint-disable-next-line react/jsx-no-bind
-      renderInput={(params) =>
-        <TextField
-          {...params}
-          InputLabelProps={{ shrink: true, style: { fontSize: 17 } }}
-          autoFocus
-          label={t('Proxy type')}
-        // onChange={handleChange}
-        />
-      }
-      sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}
     />
   );
 
@@ -223,25 +205,13 @@ function AddProxy({ address, addressesOnThisChain, chain, proxies, setProxies, s
 
   const ShowAccountInfo = ({ info }: { info: DeriveAccountInfo }) => (
     <Grid alignItems='center' container item xs={12}>
-      <Grid item xs={1}>
-        {filteredAccountsInfo && filteredAccountsInfo.length > 1 &&
-          <NavigateBeforeIcon onClick={() => navigateBefore(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
-        }
-      </Grid>
-      <Grid item xs>
-        <ShowItem title={t<string>('Display')} value={info.identity.display} />
-        <ShowItem title={t<string>('Legal')} value={info.identity.legal} />
-        <ShowItem title={t<string>('Email')} value={info.identity.email} />
-        <ShowItem title={t<string>('Element')} value={info.identity.riot} />
-        <ShowItem title={t<string>('Twitter')} value={info.identity.twitter} />
-        <ShowItem title={t<string>('Web')} value={info.identity.web} />
-        {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(info.accountId)} />}
-      </Grid>
-      {filteredAccountsInfo && filteredAccountsInfo.length > 1 &&
-        <Grid item xs={0.5}>
-          <NavigateNextIcon fontSize='large' onClick={() => navigateNext(info)} sx={{ cursor: 'pointer', fontSize: 26 }} />
-        </Grid>
-      }
+      <ShowItem title={t<string>('Display')} value={info.identity.display} />
+      <ShowItem title={t<string>('Legal')} value={info.identity.legal} />
+      <ShowItem title={t<string>('Email')} value={info.identity.email} />
+      <ShowItem title={t<string>('Element')} value={info.identity.riot} />
+      <ShowItem title={t<string>('Twitter')} value={info.identity.twitter} />
+      <ShowItem title={t<string>('Web')} value={info.identity.web} />
+      {!isValidAddress(text) && <ShowItem title={t<string>('Account Id')} value={String(info.accountId)} />}
     </Grid>
   );
 
@@ -249,40 +219,52 @@ function AddProxy({ address, addressesOnThisChain, chain, proxies, setProxies, s
     <Popup handleClose={handleCloseModal} showModal={showAddProxyModal}>
       <PlusHeader action={handleCloseModal} chain={chain} closeText={'Close'} icon={<AddCircleRoundedIcon fontSize='small' />} title={'Add Proxy'} />
       <Grid container sx={{ p: '35px 30px' }}>
-        <Grid item sx={{ height: '110px' }} xs={12}>
-          <Typography sx={{ color: 'text.primary', p: '15px' }} variant='body1'>
+        <Grid item xs={12}>
+          <Typography sx={{ color: 'text.primary' }} variant='body1'>
             {t('Enter/Select an account Id')}:
           </Typography>
           <AccountTextBox />
-          <Grid container justifyContent='space-around' sx={{ pt: '25px' }}>
-            <Grid item xs={5}>
-              <ProxyTypeSelect />
+          <Grid container justifyContent='space-between' sx={{ pt: '30px' }}>
+            <Grid alignItems='center' container justifyContent='space-between' xs={5}>
+              <Grid item xs={1.5}>
+                <Hint icon id='proxTypeHint' place='bottom-end' tip={t('The permissions allowed for this proxy account')}>
+                </Hint>
+              </Grid>
+              <Grid item xs>
+                <ProxyTypeSelect />
+              </Grid>
             </Grid>
-            <Grid item xs={5}>
-              <DelayTextBox />
+            <Grid alignItems='center' container justifyContent='space-between' xs={5}>
+              <Grid item xs={1.5}>
+                <Hint icon id='proxyDelay' place='bottom' tip={t('The announcement period required of the initial proxy. Will generally be zero')}>
+                </Hint>
+              </Grid>
+              <Grid item xs>
+                <DelayTextBox />
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
-        <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '280px', pt: '40px' }} xs={12}>
+        <Grid alignItems='center' container item justifyContent='center' sx={{ fontSize: 12, height: '220px', pt: '40px' }} xs={12}>
           {accountInfo
             ? <ShowAccountInfo info={accountInfo} />
             : accountInfo === null
               ? <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
                 {t('No indetity found')}
               </Grid>
-              : accountInfo === undefined &&
+              : accountInfo === undefined && text &&
               <Progress title={t('Loading identities ...')} />
           }
         </Grid>
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''
+            isDisabled={!text || proxyType === undefined}
             onClick={handleAddProxy}
           >
             {t('Add')}
           </Button>
         </Grid>
-
       </Grid>
     </Popup>
   );
