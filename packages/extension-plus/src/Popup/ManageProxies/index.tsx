@@ -4,38 +4,30 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description list all governance options e.g., Democracy, Council, Treasury, etc.
+ * @description list all proxies,so that can manage them to add, edit , and remove.
 */
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon } from '@mui/icons-material';
-import { Container, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon, Undo as UndoIcon } from '@mui/icons-material';
+import { Container, Divider, Grid, IconButton, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
-import styled from 'styled-components';
 
-import { AccountsStore } from '@polkadot/extension-base/stores';
-import { Chain } from '@polkadot/extension-chains/types';
 import { NextStepButton } from '@polkadot/extension-ui/components';
-import useGenesisHashOptions from '@polkadot/extension-ui/hooks/useGenesisHashOptions';
 import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
-import keyring from '@polkadot/ui-keyring';
-import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
+import { BN_ZERO } from '@polkadot/util';
 
-import { AccountContext, ActionContext, SettingsContext } from '../../../../extension-ui/src/components/contexts';
+import { AccountContext, SettingsContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { createAccountExternal, getMetadata } from '../../../../extension-ui/src/messaging';
 import { Header } from '../../../../extension-ui/src/partials';
-import { Hint, Identity, Progress, ShortAddress, ShowBalance2 } from '../../components';
+import { Hint, Identity, Progress, ShowBalance2 } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
 import { AddressState, NameAddress, Proxy } from '../../util/plusTypes';
 import { getAllFormattedAddressesOnThisChain, getFormattedAddress } from '../../util/plusUtils';
-import AddressTextBox from './AddressTextBox';
-import { BN, BN_MILLION, BN_ZERO, u8aConcat } from '@polkadot/util';
-import { AccountJson } from '@polkadot/extension-base/background/types';
 import AddProxy from './AddProxy';
+import { isEqualProxiy } from './utils';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -45,6 +37,26 @@ interface DropdownOption {
   text: string;
   value: string;
 }
+
+const isEqualProxies = (a: any[] | undefined, b: any[] | undefined) => {
+  if (a?.length !== b?.length) { return false; }
+
+  if (a === undefined) { return true; }
+
+  let _isEqual = true;
+
+  a.forEach((itemA) => {
+    const mayBeFound = b.find((itemB) => isEqualProxiy(itemA, itemB))
+
+    if (!mayBeFound) {
+      _isEqual = false;
+
+      return;
+    }
+  });
+
+  return _isEqual;
+};
 
 export default function ManageProxies({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -62,6 +74,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const [proxyInfo, setProxyInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [addressesOnThisChain, setAddressesOnThisChain] = useState<NameAddress[]>([]);
   const [showAddProxyModal, setShowAddProxyModal] = useState<boolean>(false);
+  const [nextIsDisabled, setNextIsDisabled] = useState<boolean>(false);
 
   const proxyDepositBase = api ? api.consts.proxy.proxyDepositBase : BN_ZERO;
   const proxyDepositFactor = api ? api.consts.proxy.proxyDepositFactor : BN_ZERO;
@@ -70,11 +83,13 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   // const removeProxy=api.tx.proxy.removeProxy /** (delegate, proxyType, delay) **/
   // const addProxy=api.tx.proxy.addProxy /** (delegate, proxyType, delay) **/
 
+  console.log('deletedProxies:', deletedProxies)
+  console.log('newProxies:', newProxies)
   const handleAddProxy = useCallback(() => {
     setShowAddProxyModal(true);
   }, []);
 
-  const handleremoveProxy = useCallback(
+  const handleRemoveProxy = useCallback(
     (index: number): void => {
       if (proxies?.length && index < proxies.length) {
         setDeletedProxies((pre) => (pre ?? []).concat(proxies[index]));
@@ -89,6 +104,46 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
       newProxies?.splice(index - (proxies?.length ?? 0), 1);
       newProxies !== undefined && setNewProxies([...newProxies]);
     }, [newProxies, proxies]);
+
+  const handleUndoRemoveProxy = useCallback(
+    (index: number): void => {
+      proxies.push(deletedProxies[index]);
+      setProxies([...proxies]);
+      deletedProxies.splice(index, 1);
+      setDeletedProxies([...deletedProxies]);
+    }, [deletedProxies, proxies]);
+
+  useEffect(() => {
+    setNextIsDisabled((!deletedProxies?.length && !newProxies?.length) || isEqualProxies(deletedProxies, newProxies));
+  }, [newProxies, deletedProxies]);
+
+  useEffect(() => {
+    const alreadyExistingProxy = newProxies?.find((n) => deletedProxies?.find((d) => isEqualProxiy(n, d)));
+
+    if (alreadyExistingProxy) {
+      setProxies((pre) => {
+        pre.push(alreadyExistingProxy);
+
+        return pre;
+      });
+
+      setDeletedProxies((pre) => {
+        const index = pre.findIndex((p) => isEqualProxiy(p, alreadyExistingProxy))
+
+        pre.splice(index, 1);
+
+        return pre;
+      });
+
+      setNewProxies((pre) => {
+        const index = pre.findIndex((p) => isEqualProxiy(p, alreadyExistingProxy))
+
+        pre.splice(index, 1);
+
+        return pre;
+      });
+    }
+  }, [deletedProxies, newProxies]);
 
   useEffect(() => {
     setProxiesToShow((proxies ?? []).concat(newProxies ?? []));
@@ -174,7 +229,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           {proxies === undefined &&
             <Progress title={t('Loading proxies ...')} pt='20px' />
           }
-          {proxies !== undefined && proxiesToShow?.length === 0 &&
+          {proxies !== undefined && !deletedProxies?.length && proxiesToShow?.length === 0 &&
             <Grid alignItems='center' container justifyContent='center' sx={{ px: 3 }} xs={12}>
               <Grid item sx={{ pt: 15 }}>
                 <Typography sx={{ color: 'text.secondary' }} variant='caption'>
@@ -183,8 +238,33 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
               </Grid>
             </Grid>
           }
-          {!!proxiesToShow?.length && proxyInfo &&
+          {(!!proxiesToShow?.length || !!deletedProxies?.length) && proxyInfo &&
             <>
+              {deletedProxies?.map((proxy, index) => {
+                const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
+
+                return (
+                  <Grid container item key={index} sx={{ fontSize: 14, textDecorationLine: 'line-through', textDecorationColor: 'red' }}>
+                    <Grid item xs={6}>
+                      <Identity accountInfo={info} chain={chain} />
+                    </Grid>
+                    <Grid item xs={3}>
+                      {proxy.proxyType}
+                    </Grid>
+                    <Grid item xs={2}>
+                      {proxy.delay}
+                    </Grid>
+                    <Grid item xs={1}>
+                      <Hint id='removeProxy' place='left' tip={t('remove proxy')}>
+                        <IconButton aria-label='removeProxy' color='success' onClick={() => handleUndoRemoveProxy(index)} size='small'>
+                          <UndoIcon sx={{ fontSize: 15 }} />
+                        </IconButton>
+                      </Hint>
+                    </Grid>
+                  </Grid>
+                );
+              })
+              }
               {proxiesToShow.map((proxy, index) => {
                 const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
 
@@ -201,7 +281,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
                     </Grid>
                     <Grid item xs={1}>
                       <Hint id='removeProxy' place='left' tip={t('remove proxy')}>
-                        <IconButton aria-label='removeProxy' color='error' onClick={() => handleremoveProxy(index)} size='small'>
+                        <IconButton aria-label='removeProxy' color='error' onClick={() => handleRemoveProxy(index)} size='small'>
                           <ClearIcon sx={{ fontSize: 15 }} />
                         </IconButton>
                       </Hint>
@@ -215,8 +295,8 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
         </Grid>
         <Grid item sx={{ pt: '30px' }} xs={12}>
           <NextStepButton
-            data-button-action='Done'
-            isDisabled={!deletedProxies?.length && !newProxies?.length}
+            data-button-action='Next'
+            isDisabled={nextIsDisabled}
           // onClick={handleNext}
           >
             {t('Next')}
@@ -229,8 +309,9 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           addressesOnThisChain={addressesOnThisChain}
           api={api}
           chain={chain}
-          proxies={newProxies}
-          setProxies={setNewProxies}
+          newProxies={newProxies}
+          proxiesToShow={proxiesToShow}
+          setNewProxies={setNewProxies}
           setShowAddProxyModal={setShowAddProxyModal}
           settingsPrefix={settings.prefix}
           showAddProxyModal={showAddProxyModal} />

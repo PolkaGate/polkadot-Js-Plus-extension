@@ -26,6 +26,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, PlusHeader, Popup, Progress } from '../../components';
 import { NameAddress, Proxy } from '../../util/plusTypes';
 import { getFormattedAddress, isValidAddress } from '../../util/plusUtils';
+import { isEqualProxiy } from './utils';
 
 interface Props extends ThemeProps {
   api: ApiPromise | undefined;
@@ -34,10 +35,11 @@ interface Props extends ThemeProps {
   addressesOnThisChain: NameAddress[] | undefined;
   chain: Chain | null;
   className?: string;
-  proxies: Proxy[] | undefined;
+  newProxies: Proxy[] | undefined;
   showAddProxyModal: boolean;
   setShowAddProxyModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setProxies: React.Dispatch<React.SetStateAction<Proxy[] | undefined>>;
+  setNewProxies: React.Dispatch<React.SetStateAction<Proxy[] | undefined>>;
+  proxiesToShow: Proxy[] | undefined;
 }
 
 const PROXY_TYPE_POLKADOT = ['Any', 'NonTransfer', 'Staking', 'Governance', 'IdentityJudgement', 'CancelProxy', 'Auction'];
@@ -45,12 +47,15 @@ const PROXY_TYPE_KUSAMA = ['Any', 'NonTransfer', 'Staking', 'Society', 'Governan
 const PROXY_TYPE_WESTEND = ['Any', 'NonTransfer', 'Staking', 'SudoBalances', 'IdentityJudgement', 'CancelProxy', 'Auction'];
 const PROXY_TYPES = { Kusama: PROXY_TYPE_KUSAMA, Polkadot: PROXY_TYPE_POLKADOT, Westend: PROXY_TYPE_WESTEND }
 
-function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxies, setShowAddProxyModal, settingsPrefix, showAddProxyModal }: Props): React.ReactElement<Props> {
+function AddProxy({ address, addressesOnThisChain, api, chain, newProxies, proxiesToShow, setNewProxies, setShowAddProxyModal, settingsPrefix, showAddProxyModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [text, setText] = useState<string | undefined>();
   const [proxyType, setProxyType] = useState<string | undefined | null>();
   const [delay, setDelay] = useState<number>(0);
+  const [addButtonCaption, setAddButonCaption] = useState<string>(t('Add'));
+  const [addButtonDisabled, setAddButtonDisabled] = useState<boolean>(true);
+
   const formatted = getFormattedAddress(address, chain, settingsPrefix);
 
   const chainName = chain?.name.replace(' Relay Chain', '');
@@ -89,12 +94,32 @@ function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxi
   }, []);
 
   useEffect(() => {
+    if (!isValidAddress(text) || proxyType === undefined) {
+      setAddButtonDisabled(true);
+      setAddButonCaption(t('Add'));
+
+      return;
+    }
+
+    const possibleProxy = { delay, delegate: text, proxyType: PROXY_TYPE[proxyType] };
+    const alreadyExisting = proxiesToShow?.find((p) => isEqualProxiy(p, possibleProxy));
+
+    if (alreadyExisting) {
+      setAddButtonDisabled(true);
+
+      return setAddButonCaption(t('This proxy is already exists'));
+    }
+
+    setAddButtonDisabled(false);
+    setAddButonCaption(t('Add'));
+  }, [PROXY_TYPE, delay, proxiesToShow, proxyType, t, text]);
+
+  useEffect(() => {
     if (!isValidAddress(text)) {
       return;
     }
 
     api && api.derive.accounts.info(text).then((info) => {
-
       if (info.identity.display) {
         setAccountInfo(info);
       } else {
@@ -105,10 +130,10 @@ function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxi
 
   const handleAddProxy = useCallback(() => {
     const proxy = { delay, delegate: text, proxyType: PROXY_TYPE[proxyType] };
-    console.log('proxy:', proxy)
-    setProxies((pre) => pre?.length ? pre.concat(proxy) : [proxy]);
+
+    setNewProxies((pre) => pre?.length ? pre.concat(proxy) : [proxy]);
     setShowAddProxyModal(false);
-  }, [delay, proxyType, setProxies, setShowAddProxyModal, text]);
+  }, [PROXY_TYPE, delay, proxyType, setNewProxies, setShowAddProxyModal, text]);
 
   const handleCloseModal = useCallback((): void => {
     setShowAddProxyModal(false);
@@ -226,21 +251,21 @@ function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxi
           <AccountTextBox />
           <Grid container justifyContent='space-between' sx={{ pt: '30px' }}>
             <Grid alignItems='center' container justifyContent='space-between' xs={5}>
+              <Grid item xs>
+                <ProxyTypeSelect />
+              </Grid>
               <Grid item xs={1.5}>
                 <Hint icon id='proxTypeHint' place='bottom-end' tip={t('The permissions allowed for this proxy account')}>
                 </Hint>
               </Grid>
-              <Grid item xs>
-                <ProxyTypeSelect />
-              </Grid>
             </Grid>
             <Grid alignItems='center' container justifyContent='space-between' xs={5}>
+              <Grid item xs>
+                <DelayTextBox />
+              </Grid>
               <Grid item xs={1.5}>
                 <Hint icon id='proxyDelay' place='bottom' tip={t('The announcement period required of the initial proxy. Will generally be zero')}>
                 </Hint>
-              </Grid>
-              <Grid item xs>
-                <DelayTextBox />
               </Grid>
             </Grid>
           </Grid>
@@ -259,10 +284,10 @@ function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxi
         <Grid item sx={{ pt: 7 }} xs={12}>
           <Button
             data-button-action=''
-            isDisabled={!text || proxyType === undefined}
+            isDisabled={addButtonDisabled}
             onClick={handleAddProxy}
           >
-            {t('Add')}
+            {addButtonCaption}
           </Button>
         </Grid>
       </Grid>
