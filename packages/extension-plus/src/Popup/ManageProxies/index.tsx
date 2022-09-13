@@ -8,6 +8,7 @@
 */
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
+import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon, Undo as UndoIcon } from '@mui/icons-material';
 import { Container, Divider, Grid, IconButton, Typography } from '@mui/material';
@@ -17,7 +18,6 @@ import { useParams } from 'react-router';
 
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
-import { BN_ZERO } from '@polkadot/util';
 
 import { AccountContext, SettingsContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -28,6 +28,7 @@ import { AddressState, NameAddress, Proxy } from '../../util/plusTypes';
 import { getAllFormattedAddressesOnThisChain, getFormattedAddress } from '../../util/plusUtils';
 import AddProxy from './AddProxy';
 import { isEqualProxiy } from './utils';
+import Confirm from './Confirm';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -69,22 +70,18 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const api = useApi(endpoint);
   const [proxies, setProxies] = useState<Proxy[] | undefined>();
   const [newProxies, setNewProxies] = useState<Proxy[] | undefined>();
-  const [deletedProxies, setDeletedProxies] = useState<Proxy[] | undefined>();
+  const [removedProxies, setRemovedProxies] = useState<Proxy[] | undefined>();
   const [proxiesToShow, setProxiesToShow] = useState<Proxy[] | undefined>();
   const [proxyInfo, setProxyInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [addressesOnThisChain, setAddressesOnThisChain] = useState<NameAddress[]>([]);
   const [showAddProxyModal, setShowAddProxyModal] = useState<boolean>(false);
   const [nextIsDisabled, setNextIsDisabled] = useState<boolean>(false);
+  const [showConfirmModal, setConfirmModalOpen] = useState<boolean>(false);
 
   const proxyDepositBase = api ? api.consts.proxy.proxyDepositBase : BN_ZERO;
   const proxyDepositFactor = api ? api.consts.proxy.proxyDepositFactor : BN_ZERO;
-  const deposit = proxyDepositBase.add(proxyDepositFactor.muln(proxiesToShow?.length ?? 0));
+  const deposit = proxyDepositBase.add(proxyDepositFactor.muln(proxiesToShow?.length ?? 0)) as BN;
 
-  // const removeProxy=api.tx.proxy.removeProxy /** (delegate, proxyType, delay) **/
-  // const addProxy=api.tx.proxy.addProxy /** (delegate, proxyType, delay) **/
-
-  console.log('deletedProxies:', deletedProxies)
-  console.log('newProxies:', newProxies)
   const handleAddProxy = useCallback(() => {
     setShowAddProxyModal(true);
   }, []);
@@ -92,7 +89,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const handleRemoveProxy = useCallback(
     (index: number): void => {
       if (proxies?.length && index < proxies.length) {
-        setDeletedProxies((pre) => (pre ?? []).concat(proxies[index]));
+        setRemovedProxies((pre) => (pre ?? []).concat(proxies[index]));
 
         return setProxies((pre) => {
           pre?.splice(index, 1);
@@ -107,18 +104,18 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
   const handleUndoRemoveProxy = useCallback(
     (index: number): void => {
-      proxies.push(deletedProxies[index]);
+      proxies.push(removedProxies[index]);
       setProxies([...proxies]);
-      deletedProxies.splice(index, 1);
-      setDeletedProxies([...deletedProxies]);
-    }, [deletedProxies, proxies]);
+      removedProxies.splice(index, 1);
+      setRemovedProxies([...removedProxies]);
+    }, [removedProxies, proxies]);
 
   useEffect(() => {
-    setNextIsDisabled((!deletedProxies?.length && !newProxies?.length) || isEqualProxies(deletedProxies, newProxies));
-  }, [newProxies, deletedProxies]);
+    setNextIsDisabled((!removedProxies?.length && !newProxies?.length) || isEqualProxies(removedProxies, newProxies));
+  }, [newProxies, removedProxies]);
 
   useEffect(() => {
-    const alreadyExistingProxy = newProxies?.find((n) => deletedProxies?.find((d) => isEqualProxiy(n, d)));
+    const alreadyExistingProxy = newProxies?.find((n) => removedProxies?.find((d) => isEqualProxiy(n, d)));
 
     if (alreadyExistingProxy) {
       setProxies((pre) => {
@@ -127,7 +124,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
         return pre;
       });
 
-      setDeletedProxies((pre) => {
+      setRemovedProxies((pre) => {
         const index = pre.findIndex((p) => isEqualProxiy(p, alreadyExistingProxy))
 
         pre.splice(index, 1);
@@ -143,7 +140,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
         return pre;
       });
     }
-  }, [deletedProxies, newProxies]);
+  }, [removedProxies, newProxies]);
 
   useEffect(() => {
     setProxiesToShow((proxies ?? []).concat(newProxies ?? []));
@@ -182,14 +179,17 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
     setProxyInfo(proxyInfo);
   }, [accounts, chain, formatted, proxiesToShow, settings?.prefix]);
 
+  const handleNext = useCallback(() => {
+    setConfirmModalOpen(true);
+  }, []);
+
   return (
     <>
       <Header showBackArrow showSettings smallMargin text={t<string>('Manage Proxies')} />
       <Container sx={{ pt: '10px', px: '30px' }}>
-
         <Grid alignItems='center' container item justifyContent='space-between' pb='10px' pt='15px' xs={12}>
           <Grid alignItems='center' container item justifyContent='flex-start' xs={6}>
-            <Grid item p='7px 15px 7px'>
+            <Grid item p='7px 15px 7px 0px'>
               <Typography sx={{ color: 'text.primary' }} variant='body2'>
                 {t('Your proxies')} {`(${proxies?.length ?? 0})`}
               </Typography>
@@ -229,7 +229,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           {proxies === undefined &&
             <Progress title={t('Loading proxies ...')} pt='20px' />
           }
-          {proxies !== undefined && !deletedProxies?.length && proxiesToShow?.length === 0 &&
+          {proxies !== undefined && !removedProxies?.length && proxiesToShow?.length === 0 &&
             <Grid alignItems='center' container justifyContent='center' sx={{ px: 3 }} xs={12}>
               <Grid item sx={{ pt: 15 }}>
                 <Typography sx={{ color: 'text.secondary' }} variant='caption'>
@@ -238,9 +238,9 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
               </Grid>
             </Grid>
           }
-          {(!!proxiesToShow?.length || !!deletedProxies?.length) && proxyInfo &&
+          {(!!proxiesToShow?.length || !!removedProxies?.length) && proxyInfo &&
             <>
-              {deletedProxies?.map((proxy, index) => {
+              {removedProxies?.map((proxy, index) => {
                 const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
 
                 return (
@@ -255,7 +255,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
                       {proxy.delay}
                     </Grid>
                     <Grid item xs={1}>
-                      <Hint id='removeProxy' place='left' tip={t('remove proxy')}>
+                      <Hint id='removeProxy' place='left' tip={t('undo remove')}>
                         <IconButton aria-label='removeProxy' color='success' onClick={() => handleUndoRemoveProxy(index)} size='small'>
                           <UndoIcon sx={{ fontSize: 15 }} />
                         </IconButton>
@@ -297,7 +297,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           <NextStepButton
             data-button-action='Next'
             isDisabled={nextIsDisabled}
-          // onClick={handleNext}
+            onClick={handleNext}
           >
             {t('Next')}
           </NextStepButton>
@@ -315,6 +315,20 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           setShowAddProxyModal={setShowAddProxyModal}
           settingsPrefix={settings.prefix}
           showAddProxyModal={showAddProxyModal} />
+      }
+      {showConfirmModal && chain && api && formatted &&
+        <Confirm
+          api={api}
+          chain={chain}
+          setConfirmModalOpen={setConfirmModalOpen}
+          showConfirmModal={showConfirmModal}
+          removedProxies={removedProxies}
+          newProxies={newProxies}
+          formatted={formatted}
+          deposit={deposit}
+          proxyInfo={proxyInfo}
+        />
+
       }
     </>
   );
