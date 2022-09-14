@@ -39,7 +39,6 @@ interface Props extends ThemeProps {
   proxyInfo: DeriveAccountInfo[];
 }
 
-
 export default function Confirm({ api, chain, className, deposit, formatted, proxies, proxyInfo, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
@@ -171,7 +170,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
         <Grid container item sx={{ borderLeft: '2px solid', borderBottom: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 170, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
           {proxyInfo &&
             <>
-              {proxies?.map((item, index) => {
+              {proxies.filter((item) => item.status !== 'current').map((item, index) => {
                 const proxy = item.proxy;
                 const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
 
