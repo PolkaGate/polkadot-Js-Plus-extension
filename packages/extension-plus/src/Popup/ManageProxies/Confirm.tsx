@@ -50,7 +50,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [notEnoughBalance, setNotEnoughBalance] = useState<boolean | undefined>();
 
-  const adding = proxies?.filter((item) => item.status === 'new')?.length ?? 0;
+  const adding = proxies?.filter((item: ProxyItem) => item.status === 'new')?.length ?? 0;
   const removing = proxies?.filter((item) => item.status === 'remove')?.length ?? 0;
 
   const removeProxy = api.tx.proxy.removeProxy; /** (delegate, proxyType, delay) **/
@@ -68,7 +68,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
 
   const tx = batchAll(calls);
 
-  console.log('Fee:',estimatedFee?.toString())
+  console.log('Fee:', estimatedFee?.toString())
   useEffect(() => {
     // eslint-disable-next-line no-void
     void tx.paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
