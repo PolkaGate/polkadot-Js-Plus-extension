@@ -28,7 +28,7 @@ import { Progress } from '../../../components';
 import ValidatorsList from '../Solo/ValidatorsList';
 
 interface Props {
-  activeValidator: DeriveStakingQuery[] | undefined;
+  activeValidators: DeriveStakingQuery[] | undefined;
   nominatedValidators: DeriveStakingQuery[] | null;
   poolStakingConsts: PoolStakingConsts | undefined;
   stakingConsts: StakingConsts | undefined;
