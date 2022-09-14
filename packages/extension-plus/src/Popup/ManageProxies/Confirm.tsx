@@ -11,6 +11,7 @@ import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
+import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Container, Grid } from '@mui/material';
@@ -20,12 +21,15 @@ import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Chain } from '@polkadot/extension-chains/types';
 import keyring from '@polkadot/ui-keyring';
 import { BN } from '@polkadot/util';
+import { updateMeta } from '@polkadot/extension-ui/messaging';
 
-import { ActionContext } from '../../../../extension-ui/src/components/contexts';
+import { ActionContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Identity, Password, PlusHeader, Popup, ShowBalance2 } from '../../components';
 import { PASS_MAP } from '../../util/constants';
 import { ProxyItem, TransactionDetail } from '../../util/plusTypes';
+import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
+import { signAndSend } from '../../util/api/signAndSend';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -39,11 +43,25 @@ interface Props extends ThemeProps {
   proxyInfo: DeriveAccountInfo[];
 }
 
+async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
+  if (!history.length) {
+    return false;
+  }
+
+  const accountSubstrateAddress = getSubstrateAddress(address);
+  const savedHistory: TransactionDetail[] = getTransactionHistoryFromLocalStorage(chain, hierarchy, accountSubstrateAddress);
+
+  savedHistory.push(...history);
+
+  return updateMeta(accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory));
+}
+
 export default function Confirm({ api, chain, className, deposit, formatted, proxies, proxyInfo, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
+  const { hierarchy } = useContext(AccountContext);
 
-  const [confirmingState, setConfirmingState] = useState<string>('');
+  const [confirmingState, setConfirmingState] = useState<string | undefined>();
   const [password, setPassword] = useState<string>('');
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
@@ -69,9 +87,10 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
 
   console.log('Fee:', estimatedFee?.toString())
   useEffect(() => {
+    console.log('callllls:', calls)
     // eslint-disable-next-line no-void
-    void tx.paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
-  }, [formatted, tx]);
+    void batchAll(calls).paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
+  }, [batchAll, calls, formatted, tx]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -79,7 +98,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
 
   const handleReject = useCallback((): void => {
     // setState('');
-    // setConfirmingState('');
+    setConfirmingState('');
     onAction('/');
   }, [onAction]);
 
@@ -101,39 +120,31 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      // if (localState === 'makeRecoverable' && recoveryDelay !== undefined) {
-      //   const recoveryDelayInBlocks = Math.floor(recoveryDelay * 24 * 60 * 10);
+      const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, formatted);
 
-      //   const params = [friendIds, recoveryThreshold, recoveryDelayInBlocks];
-      //   const { block, failureText, fee, status, txHash } = await broadcast(api, createRecovery, params, signer, account.accountId);
+      history.push({
+        action: 'manage_proxies',
+        amount: '0',
+        block,
+        date: Date.now(),
+        fee: fee || '',
+        from: String(formatted),
+        hash: txHash || '',
+        status: failureText || status,
+        to: ''
+      });
 
-      //   history.push({
-      //     action: 'make_recoverable',
-      //     amount: recoveryConsts && friendIds?.length
-      //       ? amountToHuman(String(recoveryConsts.configDepositBase.add(recoveryConsts.friendDepositFactor.muln(friendIds.length))), decimals)
-      //       : '0',
-      //     block,
-      //     date: Date.now(),
-      //     fee: fee || '',
-      //     from: String(account.accountId),
-      //     hash: txHash || '',
-      //     status: failureText || status,
-      //     to: 'deposited'
-      //   });
-
-      //   setConfirmingState(status);
-      // }
-
+      setConfirmingState(status);
 
       // eslint-disable-next-line no-void
-      // account?.accountId && void saveHistory(chain, hierarchy, String(account.accountId), history);
+      void saveHistory(chain, hierarchy, formatted, history);
     } catch (e) {
       console.log('error:', e);
       setPasswordStatus(PASS_MAP.INCORRECT);
       // setState(localState);
       setConfirmingState('');
     }
-  }, [password]);
+  }, [api, chain, formatted, hierarchy, password, tx]);
 
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
@@ -199,9 +210,9 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
       </Container>
       <Grid container item sx={{ pt: '25px', px: '26px' }} xs={12}>
         <Password
-          autofocus={!['confirming', 'failed', 'success'].includes(confirmingState)}
+          autofocus
           handleIt={handleConfirm}
-          isDisabled={!estimatedFee}
+          // isDisabled={!estimatedFee}
           password={password}
           passwordStatus={passwordStatus}
           setPassword={setPassword}
