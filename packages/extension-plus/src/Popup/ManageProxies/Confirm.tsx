@@ -4,39 +4,28 @@
 /* eslint-disable react/jsx-max-props-per-line */
 
 /**
- * @description list all governance options e.g., Democracy, Council, Treasury, etc.
+ * @description  confirm manage proxies
 */
+
+import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
+import type { Balance } from '@polkadot/types/interfaces';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Clear as ClearIcon } from '@mui/icons-material';
-import { Container, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField } from '@mui/material';
-import { grey } from '@mui/material/colors';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
-import type { ApiPromise } from '@polkadot/api';
-import type { Balance } from '@polkadot/types/interfaces';
-
-import { AccountsStore } from '@polkadot/extension-base/stores';
-import { Chain } from '@polkadot/extension-chains/types';
-import { NextStepButton } from '@polkadot/extension-ui/components';
-import useGenesisHashOptions from '@polkadot/extension-ui/hooks/useGenesisHashOptions';
-import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
-import keyring from '@polkadot/ui-keyring';
-import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
-
-import { AccountContext, ActionContext, SettingsContext } from '../../../../extension-ui/src/components/contexts';
-import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { createAccountExternal, getMetadata } from '../../../../extension-ui/src/messaging';
-import { Header } from '../../../../extension-ui/src/partials';
-import { ConfirmButton, Hint, Identity, Password, PlusHeader, Popup, Progress, ShortAddress, ShowBalance2 } from '../../components';
-import { useApi, useEndpoint } from '../../hooks';
-import { AddressState, NameAddress, Proxy, TransactionDetail } from '../../util/plusTypes';
-import { getFormattedAddress } from '../../util/plusUtils';
-import AddressTextBox from './AddressTextBox';
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
+import { Container, Grid } from '@mui/material';
+import { grey } from '@mui/material/colors';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+
+import { Chain } from '@polkadot/extension-chains/types';
+import keyring from '@polkadot/ui-keyring';
+import { BN } from '@polkadot/util';
+
+import { ActionContext } from '../../../../extension-ui/src/components/contexts';
+import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
+import { ConfirmButton, Identity, Password, PlusHeader, Popup, ShowBalance2 } from '../../components';
 import { PASS_MAP } from '../../util/constants';
-import { BN, BN_ZERO } from '@polkadot/util';
+import { ProxyItem, TransactionDetail } from '../../util/plusTypes';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -44,15 +33,14 @@ interface Props extends ThemeProps {
   chain: Chain;
   showConfirmModal: boolean;
   setConfirmModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  removedProxies: Proxy[] | undefined;
-  newProxies: Proxy[] | undefined;
   formatted: string;
   deposit: BN;
+  proxies: ProxyItem[];
   proxyInfo: DeriveAccountInfo[];
 }
 
 
-export default function Confirm({ api, chain, className, deposit, formatted, newProxies, proxyInfo, removedProxies, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
+export default function Confirm({ api, chain, className, deposit, formatted, proxies, proxyInfo, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
 
@@ -62,7 +50,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [notEnoughBalance, setNotEnoughBalance] = useState<boolean | undefined>();
 
-  const totalProxies = (removedProxies?.length ?? 0) + (newProxies?.length ?? 0);
+  const adding = proxies?.filter((item) => item.status === 'new')?.length ?? 0;
+  const removing = proxies?.filter((item) => item.status === 'remove')?.length ?? 0;
 
   const removeProxy = api.tx.proxy.removeProxy; /** (delegate, proxyType, delay) **/
   const addProxy = api.tx.proxy.addProxy; /** (delegate, proxyType, delay) **/
@@ -70,10 +59,16 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
 
   const calls = [];
 
-  removedProxies?.length && calls.push(...removedProxies.map((r: Proxy) => removeProxy(r.delegate, r.proxyType, r.delay)));
-  newProxies?.length && calls.push(...newProxies.map((r: Proxy) => addProxy(r.delegate, r.proxyType, r.delay)));
+  proxies.forEach((item: ProxyItem) => {
+    const p = item.proxy;
+
+    item.status === 'remove' && calls.push(removeProxy(p.delegate, p.proxyType, p.delay));
+    item.status === 'new' && calls.push(addProxy(p.delegate, p.proxyType, p.delay));
+  });
+
   const tx = batchAll(calls);
 
+  console.log('Fee:',estimatedFee?.toString())
   useEffect(() => {
     // eslint-disable-next-line no-void
     void tx.paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
@@ -147,7 +142,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
       <Container sx={{ pt: '10px', px: '30px' }}>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[100], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', fontSize: 14, fontWeight: 500, my: '13px', py: '10px', px: '10px' }}>
           <Grid item sx={{ fontSize: 15, fontWeight: 500, color: grey[700], textAlign: 'center', pb: '5px' }} xs={12}>
-            {newProxies?.length ? t('Adding {{num}}', { replace: { num: newProxies.length } }) : ''}     {removedProxies?.length ? t('Removing {{num}}', { replace: { num: removedProxies.length } }) : ''}  {totalProxies > 1 ? t('Proxies') : t('Proxy')}
+            {adding ? t('Adding {{adding}}', { replace: { adding } }) : ''}     {removing ? t('Removing {{removing}}', { replace: { removing } }) : ''}  {removing + adding > 1 ? t('Proxies') : t('Proxy')}
           </Grid>
           <Grid item xs={3.5} >
             <ShowBalance2 alignItems='flext-start' api={api} balance={deposit} title={`${t('Deposit')}`} />
@@ -176,7 +171,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
         <Grid container item sx={{ borderLeft: '2px solid', borderBottom: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 170, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
           {proxyInfo &&
             <>
-              {removedProxies?.map((proxy, index) => {
+              {proxies?.map((item, index) => {
+                const proxy = item.proxy;
                 const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
 
                 return (
@@ -191,28 +187,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
                       {proxy.delay}
                     </Grid>
                     <Grid item xs={1.5}>
-                      {t('Removing')}
-                    </Grid>
-                  </Grid>
-                );
-              })
-              }
-              {newProxies?.map((proxy, index) => {
-                const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
-
-                return (
-                  <Grid container item key={index} sx={{ fontSize: 13 }}>
-                    <Grid item xs={5.5}>
-                      <Identity accountInfo={info} chain={chain} />
-                    </Grid>
-                    <Grid item xs={3}>
-                      {proxy.proxyType}
-                    </Grid>
-                    <Grid item xs={2}>
-                      {proxy.delay}
-                    </Grid>
-                    <Grid item xs={1.5}>
-                      {t('Adding')}
+                      {item.status === 'remove' ? t('Removing') : ''}
+                      {item.status === 'new' ? t('Adding') : ''}
                     </Grid>
                   </Grid>
                 );

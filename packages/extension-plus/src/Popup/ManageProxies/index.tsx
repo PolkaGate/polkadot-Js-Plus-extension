@@ -24,7 +24,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
 import { Hint, Identity, Progress, ShowBalance2 } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
-import { AddressState, NameAddress, Proxy } from '../../util/plusTypes';
+import { AddressState, NameAddress, Proxy, ProxyItem } from '../../util/plusTypes';
 import { getAllFormattedAddressesOnThisChain, getFormattedAddress } from '../../util/plusUtils';
 import AddProxy from './AddProxy';
 import { isEqualProxiy } from './utils';
@@ -68,10 +68,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const chain = useMetadata(genesisHash, true);
   const endpoint = useEndpoint(accounts, address, chain);
   const api = useApi(endpoint);
-  const [proxies, setProxies] = useState<Proxy[] | undefined>();
-  const [newProxies, setNewProxies] = useState<Proxy[] | undefined>();
-  const [removedProxies, setRemovedProxies] = useState<Proxy[] | undefined>();
-  const [proxiesToShow, setProxiesToShow] = useState<Proxy[] | undefined>();
+  const [proxies, setProxies] = useState<ProxyItem[] | undefined>();
   const [proxyInfo, setProxyInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [addressesOnThisChain, setAddressesOnThisChain] = useState<NameAddress[]>([]);
   const [showAddProxyModal, setShowAddProxyModal] = useState<boolean>(false);
@@ -80,71 +77,29 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
   const proxyDepositBase = api ? api.consts.proxy.proxyDepositBase : BN_ZERO;
   const proxyDepositFactor = api ? api.consts.proxy.proxyDepositFactor : BN_ZERO;
-  const deposit = proxyDepositBase.add(proxyDepositFactor.muln(proxiesToShow?.length ?? 0)) as BN;
+
+  const available = proxies?.filter((item) => item.status !== 'remove')?.length ?? 0;
+  const deposit = !available ? BN_ZERO : proxyDepositBase.add(proxyDepositFactor.muln(available)) as BN;
 
   const handleAddProxy = useCallback(() => {
     setShowAddProxyModal(true);
   }, []);
 
-  const handleRemoveProxy = useCallback(
-    (index: number): void => {
-      if (proxies?.length && index < proxies.length) {
-        setRemovedProxies((pre) => (pre ?? []).concat(proxies[index]));
+  const handleRemoveProxy = useCallback((index: number): void => {
+    proxies[index].status === 'current' ? proxies[index].status = 'remove' : proxies?.splice(index, 1);
+    setProxies([...proxies]);
+  }, [proxies]);
 
-        return setProxies((pre) => {
-          pre?.splice(index, 1);
-
-          return pre;
-        });
-      }
-
-      newProxies?.splice(index - (proxies?.length ?? 0), 1);
-      newProxies !== undefined && setNewProxies([...newProxies]);
-    }, [newProxies, proxies]);
-
-  const handleUndoRemoveProxy = useCallback(
-    (index: number): void => {
-      proxies.push(removedProxies[index]);
-      setProxies([...proxies]);
-      removedProxies.splice(index, 1);
-      setRemovedProxies([...removedProxies]);
-    }, [removedProxies, proxies]);
+  const handleUndoRemoveProxy = useCallback((index: number): void => {
+    proxies[index].status = 'current';
+    setProxies([...proxies]);
+  }, [proxies]);
 
   useEffect(() => {
-    setNextIsDisabled((!removedProxies?.length && !newProxies?.length) || isEqualProxies(removedProxies, newProxies));
-  }, [newProxies, removedProxies]);
+    const hasChanged = proxies?.find((item) => item.status !== 'current');
 
-  useEffect(() => {
-    const alreadyExistingProxy = newProxies?.find((n) => removedProxies?.find((d) => isEqualProxiy(n, d)));
-
-    if (alreadyExistingProxy) {
-      setProxies((pre) => {
-        pre.push(alreadyExistingProxy);
-
-        return pre;
-      });
-
-      setRemovedProxies((pre) => {
-        const index = pre.findIndex((p) => isEqualProxiy(p, alreadyExistingProxy))
-
-        pre.splice(index, 1);
-
-        return pre;
-      });
-
-      setNewProxies((pre) => {
-        const index = pre.findIndex((p) => isEqualProxiy(p, alreadyExistingProxy))
-
-        pre.splice(index, 1);
-
-        return pre;
-      });
-    }
-  }, [removedProxies, newProxies]);
-
-  useEffect(() => {
-    setProxiesToShow((proxies ?? []).concat(newProxies ?? []));
-  }, [newProxies, newProxies?.length, proxies, proxies?.length]);
+    setNextIsDisabled(!hasChanged);
+  }, [proxies]);
 
   useEffect(() => {
     chain && settings?.prefix && accounts && address && setAddressesOnThisChain(getAllFormattedAddressesOnThisChain(chain, settings.prefix, accounts, address));
@@ -154,32 +109,31 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
   useEffect(() => {
     formatted && api && api.query.proxy?.proxies(formatted).then((proxies) => {
-      setProxies(JSON.parse(JSON.stringify(proxies[0])));
-      console.log('proxies:', JSON.parse(JSON.stringify(proxies[0])));
+      const proxiyItems = (JSON.parse(JSON.stringify(proxies[0])))?.map((p) => ({ proxy: p, status: 'current' }));
+      setProxies(proxiyItems);
+      console.log('proxies:', proxiyItems);
     });
   }, [api, chain, formatted]);
 
   useEffect(() => {
-    if (!proxiesToShow?.length && !removedProxies?.length) {
+    if (!proxies?.length) {
       return;
     }
 
-    const AllProxies = (proxiesToShow ?? []).concat(removedProxies ?? []);
-
-    const proxyInfo = AllProxies?.map((proxy) => {
+    const proxyInfo = proxies?.map((p) => {
       const mayBeFound = accounts.find((acc) => {
         const formattedAcc = getFormattedAddress(acc.address, chain, settings.prefix);
 
-        if (formattedAcc === proxy.delegate) {
+        if (formattedAcc === p.proxy.delegate) {
           return acc;
         }
       });
 
-      return { accountId: proxy.delegate, nickname: mayBeFound?.name };
+      return { accountId: p.proxy.delegate, nickname: mayBeFound?.name };
     });
 
     setProxyInfo(proxyInfo);
-  }, [accounts, chain, formatted, proxiesToShow, removedProxies, settings.prefix]);
+  }, [accounts, chain, formatted, proxies, settings.prefix]);
 
   const handleNext = useCallback(() => {
     setConfirmModalOpen(true);
@@ -193,7 +147,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           <Grid alignItems='center' container item justifyContent='flex-start' xs={6}>
             <Grid item p='7px 15px 7px 0px'>
               <Typography sx={{ color: 'text.primary' }} variant='body2'>
-                {t('Your proxies')} {`(${proxiesToShow?.length ?? 0})`}
+                {t('Your proxies')} {`(${available})`}
               </Typography>
             </Grid>
             <Grid item>
@@ -229,9 +183,9 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
         </Grid>
         <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 320, overflowY: 'auto' }} xs={12}>
           {proxies === undefined &&
-            <Progress title={t('Loading proxies ...')} pt='20px' />
+            <Progress pt='20px' title={t('Loading proxies ...')} />
           }
-          {proxies !== undefined && !removedProxies?.length && proxiesToShow?.length === 0 &&
+          {proxies?.length === 0 &&
             <Grid alignItems='center' container justifyContent='center' sx={{ px: 3 }} xs={12}>
               <Grid item sx={{ pt: 15 }}>
                 <Typography sx={{ color: 'text.secondary' }} variant='caption'>
@@ -240,53 +194,35 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
               </Grid>
             </Grid>
           }
-          {(!!proxiesToShow?.length || !!removedProxies?.length) && proxyInfo &&
+          {!!proxies?.length && proxyInfo &&
             <>
-              {removedProxies?.map((proxy, index) => {
-                const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
+              {proxies?.map((item, index) => {
+                const info = proxyInfo.find((p) => p.accountId == item.proxy.delegate);
 
                 return (
-                  <Grid container item key={index} sx={{ fontSize: 14, textDecorationLine: 'line-through', textDecorationColor: 'red' }}>
+                  <Grid container fontSize={14} item key={index} sx={item.status === 'remove' ? { textDecorationLine: 'line-through', textDecorationColor: 'red' } : ''} >
                     <Grid item xs={6}>
                       <Identity accountInfo={info} chain={chain} />
                     </Grid>
                     <Grid item xs={3}>
-                      {proxy.proxyType}
+                      {item.proxy.proxyType}
                     </Grid>
                     <Grid item xs={2}>
-                      {proxy.delay}
+                      {item.proxy.delay}
                     </Grid>
                     <Grid item xs={1}>
-                      <Hint id='removeProxy' place='left' tip={t('undo remove')}>
-                        <IconButton aria-label='removeProxy' color='success' onClick={() => handleUndoRemoveProxy(index)} size='small'>
-                          <UndoIcon sx={{ fontSize: 15 }} />
-                        </IconButton>
-                      </Hint>
-                    </Grid>
-                  </Grid>
-                );
-              })
-              }
-              {proxiesToShow.map((proxy, index) => {
-                const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
-
-                return (
-                  <Grid container item key={index} sx={{ fontSize: 14 }}>
-                    <Grid item xs={6}>
-                      <Identity accountInfo={info} chain={chain} />
-                    </Grid>
-                    <Grid item xs={3}>
-                      {proxy.proxyType}
-                    </Grid>
-                    <Grid item xs={2}>
-                      {proxy.delay}
-                    </Grid>
-                    <Grid item xs={1}>
-                      <Hint id='removeProxy' place='left' tip={t('remove proxy')}>
-                        <IconButton aria-label='removeProxy' color='error' onClick={() => handleRemoveProxy(index)} size='small'>
-                          <ClearIcon sx={{ fontSize: 15 }} />
-                        </IconButton>
-                      </Hint>
+                      {item.status === 'remove'
+                        ? <Hint id='undoProxy' place='left' tip={t('undo remove')}>
+                          <IconButton aria-label='undoProxy' color='success' onClick={() => handleUndoRemoveProxy(index)} size='small'>
+                            <UndoIcon sx={{ fontSize: 15 }} />
+                          </IconButton>
+                        </Hint>
+                        : <Hint id='removeProxy' place='left' tip={t('remove proxy')}>
+                          <IconButton aria-label='removeProxy' color='error' onClick={() => handleRemoveProxy(index)} size='small'>
+                            <ClearIcon sx={{ fontSize: 15 }} />
+                          </IconButton>
+                        </Hint>
+                      }
                     </Grid>
                   </Grid>
                 );
@@ -305,30 +241,30 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           </NextStepButton>
         </Grid>
       </Container>
-      {showAddProxyModal &&
+      {
+        showAddProxyModal &&
         <AddProxy
           address={address}
           addressesOnThisChain={addressesOnThisChain}
           api={api}
           chain={chain}
-          newProxies={newProxies}
-          proxiesToShow={proxiesToShow}
-          setNewProxies={setNewProxies}
+          proxies={proxies ?? []}
+          setProxies={setProxies}
           setShowAddProxyModal={setShowAddProxyModal}
           settingsPrefix={settings.prefix}
           showAddProxyModal={showAddProxyModal} />
       }
-      {showConfirmModal && chain && api && formatted &&
+      {
+        showConfirmModal && chain && api && formatted &&
         <Confirm
           api={api}
           chain={chain}
+          deposit={deposit}
+          formatted={formatted}
+          proxies={proxies}
+          proxyInfo={proxyInfo}
           setConfirmModalOpen={setConfirmModalOpen}
           showConfirmModal={showConfirmModal}
-          removedProxies={removedProxies}
-          newProxies={newProxies}
-          formatted={formatted}
-          deposit={deposit}
-          proxyInfo={proxyInfo}
         />
 
       }

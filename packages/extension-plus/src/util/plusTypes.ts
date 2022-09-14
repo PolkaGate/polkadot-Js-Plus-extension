@@ -451,6 +451,11 @@ export interface Proxy {
   proxyType: ProxyTypes;
 }
 
+export interface ProxyItem {
+  proxy: Proxy;
+  status: 'current' | 'new' | 'remove';
+}
+
 export interface Recoded {
   account: AccountJson | null;
   formatted: string | null;

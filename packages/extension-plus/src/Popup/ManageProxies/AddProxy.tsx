@@ -24,7 +24,7 @@ import Identicon from '@polkadot/react-identicon';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, PlusHeader, Popup, Progress } from '../../components';
-import { NameAddress, Proxy } from '../../util/plusTypes';
+import { NameAddress, Proxy, ProxyItem } from '../../util/plusTypes';
 import { getFormattedAddress, isValidAddress } from '../../util/plusUtils';
 import { isEqualProxiy } from './utils';
 
@@ -35,11 +35,10 @@ interface Props extends ThemeProps {
   addressesOnThisChain: NameAddress[] | undefined;
   chain: Chain | null;
   className?: string;
-  newProxies: Proxy[] | undefined;
+  proxies: ProxyItem[] | undefined;
   showAddProxyModal: boolean;
   setShowAddProxyModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setNewProxies: React.Dispatch<React.SetStateAction<Proxy[] | undefined>>;
-  proxiesToShow: Proxy[] | undefined;
+  setProxies: React.Dispatch<React.SetStateAction<ProxyItem[] | undefined>>;
 }
 
 const PROXY_TYPE_POLKADOT = ['Any', 'NonTransfer', 'Staking', 'Governance', 'IdentityJudgement', 'CancelProxy', 'Auction'];
@@ -47,7 +46,7 @@ const PROXY_TYPE_KUSAMA = ['Any', 'NonTransfer', 'Staking', 'Society', 'Governan
 const PROXY_TYPE_WESTEND = ['Any', 'NonTransfer', 'Staking', 'SudoBalances', 'IdentityJudgement', 'CancelProxy', 'Auction'];
 const PROXY_TYPES = { Kusama: PROXY_TYPE_KUSAMA, Polkadot: PROXY_TYPE_POLKADOT, Westend: PROXY_TYPE_WESTEND }
 
-function AddProxy({ address, addressesOnThisChain, api, chain, newProxies, proxiesToShow, setNewProxies, setShowAddProxyModal, settingsPrefix, showAddProxyModal }: Props): React.ReactElement<Props> {
+function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxies, setShowAddProxyModal, settingsPrefix, showAddProxyModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
   const [text, setText] = useState<string | undefined>();
@@ -101,8 +100,8 @@ function AddProxy({ address, addressesOnThisChain, api, chain, newProxies, proxi
       return;
     }
 
-    const possibleProxy = { delay, delegate: text, proxyType: PROXY_TYPE[proxyType] };
-    const alreadyExisting = proxiesToShow?.find((p) => isEqualProxiy(p, possibleProxy));
+    const possibleProxy = { delay, delegate: text, proxyType: PROXY_TYPE[proxyType] } as Proxy;
+    const alreadyExisting = proxies?.find((item) => isEqualProxiy(item.proxy, possibleProxy));
 
     if (alreadyExisting) {
       setAddButtonDisabled(true);
@@ -112,7 +111,7 @@ function AddProxy({ address, addressesOnThisChain, api, chain, newProxies, proxi
 
     setAddButtonDisabled(false);
     setAddButonCaption(t('Add'));
-  }, [PROXY_TYPE, delay, proxiesToShow, proxyType, t, text]);
+  }, [PROXY_TYPE, delay, proxies, proxyType, t, text]);
 
   useEffect(() => {
     if (!isValidAddress(text)) {
@@ -129,11 +128,13 @@ function AddProxy({ address, addressesOnThisChain, api, chain, newProxies, proxi
   }, [api, text]);
 
   const handleAddProxy = useCallback(() => {
-    const proxy = { delay, delegate: text, proxyType: PROXY_TYPE[proxyType] };
+    const proxy = { delay, delegate: text, proxyType: PROXY_TYPE[proxyType] } as Proxy;
 
-    setNewProxies((pre) => pre?.length ? pre.concat(proxy) : [proxy]);
+    proxies?.push({ proxy, status: 'new' });
+
+    setProxies([...proxies]);
     setShowAddProxyModal(false);
-  }, [PROXY_TYPE, delay, proxyType, setNewProxies, setShowAddProxyModal, text]);
+  }, [PROXY_TYPE, delay, proxies, proxyType, setProxies, setShowAddProxyModal, text]);
 
   const handleCloseModal = useCallback((): void => {
     setShowAddProxyModal(false);
