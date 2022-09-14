@@ -8,56 +8,33 @@
 */
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
-import { BN, BN_ZERO } from '@polkadot/util';
 
 import { AddCircleRounded as AddCircleRoundedIcon, Clear as ClearIcon, Undo as UndoIcon } from '@mui/icons-material';
-import { Container, Divider, Grid, IconButton, Typography } from '@mui/material';
+import { Container, Grid, IconButton, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
+import { AccountsStore } from '@polkadot/extension-base/stores';
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
+import keyring from '@polkadot/ui-keyring';
+import { BN, BN_ZERO } from '@polkadot/util';
+import { cryptoWaitReady } from '@polkadot/util-crypto';
 
 import { AccountContext, SettingsContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
 import { Hint, Identity, Progress, ShowBalance2 } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
-import { AddressState, NameAddress, Proxy, ProxyItem } from '../../util/plusTypes';
+import { AddressState, NameAddress, ProxyItem } from '../../util/plusTypes';
 import { getAllFormattedAddressesOnThisChain, getFormattedAddress } from '../../util/plusUtils';
 import AddProxy from './AddProxy';
-import { isEqualProxiy } from './utils';
 import Confirm from './Confirm';
 
 interface Props extends ThemeProps {
   className?: string;
 }
-
-interface DropdownOption {
-  text: string;
-  value: string;
-}
-
-const isEqualProxies = (a: any[] | undefined, b: any[] | undefined) => {
-  if (a?.length !== b?.length) { return false; }
-
-  if (a === undefined) { return true; }
-
-  let _isEqual = true;
-
-  a.forEach((itemA) => {
-    const mayBeFound = b.find((itemB) => isEqualProxiy(itemA, itemB))
-
-    if (!mayBeFound) {
-      _isEqual = false;
-
-      return;
-    }
-  });
-
-  return _isEqual;
-};
 
 export default function ManageProxies({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -110,6 +87,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   useEffect(() => {
     formatted && api && api.query.proxy?.proxies(formatted).then((proxies) => {
       const proxiyItems = (JSON.parse(JSON.stringify(proxies[0])))?.map((p) => ({ proxy: p, status: 'current' }));
+
       setProxies(proxiyItems);
       console.log('proxies:', proxiyItems);
     });
@@ -137,6 +115,13 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
   const handleNext = useCallback(() => {
     setConfirmModalOpen(true);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line no-void
+    void cryptoWaitReady().then(() => {
+      keyring.loadAll({ store: new AccountsStore() });
+    }).catch(() => null);
   }, []);
 
   return (
