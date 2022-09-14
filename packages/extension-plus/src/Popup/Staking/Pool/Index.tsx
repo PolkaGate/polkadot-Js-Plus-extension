@@ -106,7 +106,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   const [state, setState] = useState<string>('');
   const [tabValue, setTabValue] = useState(4);
   const [oversubscribedsCount, setOversubscribedsCount] = useState<number | undefined>();
-  const [activeValidator, setActiveValidator] = useState<DeriveStakingQuery>();
+  const [activeValidators, setActiveValidators] = useState<DeriveStakingQuery[]>();
 
   const chainName = chain?.name.replace(' Relay Chain', '');
 
@@ -334,9 +334,9 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
       return;
     }
 
-    const active = nominatedValidators?.find((n) => n.exposure.others.find(({ who }) => who.toString() === myPool.accounts.stashId));
+    const actives = nominatedValidators?.filter((n) => n.exposure.others.find(({ who }) => who.toString() === myPool.accounts.stashId));
 
-    setActiveValidator(active);
+    setActiveValidators(actives);
   }, [myPool?.accounts, nominatedValidators]);
 
   const PoolsIcon = useMemo((): React.ReactElement<any> => (
@@ -350,7 +350,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
         ? <Tooltip placement='top' title={t('No validators nominated')}>
           <NotificationsActiveIcon color='error' fontSize='small' sx={{ pr: 1 }} />
         </Tooltip>
-        : !activeValidator && nominatedValidators?.length
+        : !activeValidators && nominatedValidators?.length
           ? <Tooltip placement='top' title={t('No active validator in this era')}>
             <ReportOutlinedIcon color='warning' fontSize='small' sx={{ pr: 1 }} />
           </Tooltip>
@@ -361,7 +361,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
               </Badge>
             </Tooltip>
             : <PanToolOutlinedIcon sx={{ fontSize: '17px' }} />
-  ), [gettingNominatedValidatorsInfoFromChain, currentlyStaked, nominatedValidators?.length, t, activeValidator, oversubscribedsCount]);
+  ), [gettingNominatedValidatorsInfoFromChain, currentlyStaked, nominatedValidators?.length, t, activeValidators, oversubscribedsCount]);
 
   return (
     <Popup handleClose={handlePoolStakingModalClose} showModal={showStakingModal}>
@@ -431,7 +431,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
           </TabPanel>
           <TabPanel index={3} padding={1} value={tabValue}>
             <Nominations
-              activeValidator={activeValidator}
+              activeValidators={activeValidators}
               api={api}
               chain={chain}
               endpoint={endpoint}

@@ -25,7 +25,7 @@ import { Progress } from '../../../components';
 import ValidatorsList from './ValidatorsList';
 
 interface Props {
-  activeValidator: DeriveStakingQuery | undefined;
+  activeValidators: DeriveStakingQuery[] | undefined;
   ledger: StakingLedger | null;
   nominatedValidators: DeriveStakingQuery[] | null;
   stakingConsts: StakingConsts | undefined;
@@ -44,7 +44,7 @@ interface Props {
   staker: AccountsBalanceType;
 }
 
-export default function Nominations({ activeValidator, api, chain, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, putInFrontInfo, rebagInfo, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function Nominations({ activeValidators, api, chain, handleRebag, handleSelectValidatorsModalOpen, handleStopNominating, ledger, noNominatedValidators, nominatedValidators, nominatorInfo, putInFrontInfo, rebagInfo, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const currentlyStaked = BigInt(ledger ? ledger.active.toString() : '0');
   const tuneUpButtonEnable = !noNominatedValidators && nominatorInfo && !nominatorInfo?.isInList && (rebagInfo?.shouldRebag || putInFrontInfo?.shouldPutInFront);
@@ -55,7 +55,7 @@ export default function Nominations({ activeValidator, api, chain, handleRebag, 
         ? <Grid container px='5px'>
           <Grid item sx={{ height: '245px' }} xs={12}>
             <ValidatorsList
-              activeValidator={activeValidator}
+              activeValidators={activeValidators}
               api={api}
               chain={chain}
               height={220}

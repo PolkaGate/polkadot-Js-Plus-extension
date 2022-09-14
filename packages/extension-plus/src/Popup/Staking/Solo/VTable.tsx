@@ -20,7 +20,7 @@ import ShowValidator from './ShowValidator';
 
 interface Props {
   api: ApiPromise;
-  activeValidator?: DeriveStakingQuery;
+  activeValidators?: DeriveStakingQuery[];
   chain: Chain;
   validators: DeriveStakingQuery[];
   stakingConsts: StakingConsts | undefined;
@@ -30,7 +30,7 @@ interface Props {
   height?: number;
 }
 
-export default function VTable({ activeValidator, api, chain, height = 180, setInfo, setShowValidatorInfoModal, stakingConsts, validators, validatorsIdentities }: Props) {
+export default function VTable({ activeValidators, api, chain, height = 180, setInfo, setShowValidatorInfoModal, stakingConsts, validators, validatorsIdentities }: Props) {
   const { t } = useTranslation();
 
   const handleMoreInfo = useCallback((info: DeriveStakingQuery) => {
@@ -63,7 +63,7 @@ export default function VTable({ activeValidator, api, chain, height = 180, setI
         <Grid id='body' item xs={12}>
           {validators.slice().map((v, index) =>
             <ShowValidator
-              activeValidator={activeValidator}
+              activeValidators={activeValidators}
               api={api}
               chain={chain}
               handleMoreInfo={handleMoreInfo}

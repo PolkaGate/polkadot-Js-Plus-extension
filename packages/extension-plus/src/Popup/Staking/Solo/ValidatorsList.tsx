@@ -24,7 +24,7 @@ import ValidatorInfo from './ValidatorInfo';
 import VTable from './VTable';
 
 interface Props {
-  activeValidator?: DeriveStakingQuery;
+  activeValidators?: DeriveStakingQuery[];
   chain: Chain;
   api: ApiPromise | undefined;
   validatorsInfo: DeriveStakingQuery[] | null;
@@ -35,27 +35,29 @@ interface Props {
   ledger?: StakingLedger | null;
 }
 
-export default function ValidatorsList({ activeValidator, api, chain, height, ledger, staker, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function ValidatorsList({ activeValidators, api, chain, height, ledger, staker, stakingConsts, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showValidatorInfoModal, setShowValidatorInfoModal] = useState<boolean>(false);
   const [info, setInfo] = useState<DeriveStakingQuery | null>(null);
 
-  // put active validator at the top of list
+  /** put active validators at the top of the list **/
   React.useMemo(() => {
-    const index = validatorsInfo?.findIndex((v) => v.accountId === activeValidator?.accountId);
+    activeValidators?.forEach((activeValidator) => {
+      const index = validatorsInfo?.findIndex((v) => v.accountId === activeValidator?.accountId);
 
-    if (validatorsInfo && index && activeValidator && index !== -1) {
-      validatorsInfo.splice(index, 1);
-      validatorsInfo.unshift(activeValidator);
-    }
-  }, [validatorsInfo, activeValidator]);
+      if (validatorsInfo && index && activeValidator && index !== -1) {
+        validatorsInfo.splice(index, 1);
+        validatorsInfo.unshift(activeValidator);
+      }
+    });
+  }, [validatorsInfo, activeValidators]);
 
   return (
     <>
       <Grid item xs={12}>
         {validatorsInfo && api
           ? <VTable
-            activeValidator={activeValidator}
+            activeValidators={activeValidators}
             api={api}
             chain={chain}
             height={height}

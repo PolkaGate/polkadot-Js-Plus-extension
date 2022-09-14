@@ -33,17 +33,17 @@ interface Props {
   isSelected?: (arg0: DeriveStakingQuery) => boolean;
   isInNominatedValidators?: (arg0: DeriveStakingQuery) => boolean;
   validatorsIdentities: DeriveAccountInfo[] | undefined;
-  activeValidator?: DeriveStakingQuery;
+  activeValidators?: DeriveStakingQuery[];
   showSocial?: boolean;
   t: TFunction;
 }
 
-function ShowValidator({ activeValidator, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSocial = true, showSwitch = false, stakingConsts, t, validator, validatorsIdentities }: Props) {
+function ShowValidator({ activeValidators, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSocial = true, showSwitch = false, stakingConsts, t, validator, validatorsIdentities }: Props) {
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined>();
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? SELECTED_COLOR : '');
   const nominatorCount = validator.exposure.others.length;
-  const isActive = validator.accountId === activeValidator?.accountId;
+  const isActive = activeValidators?.find((activeValidator) => validator.accountId === activeValidator?.accountId);
   const isOverSubscribed = stakingConsts && validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
   const total = String(validator.exposure.total).indexOf('.') === -1 && api.createType('Balance', validator.exposure.total);
 
