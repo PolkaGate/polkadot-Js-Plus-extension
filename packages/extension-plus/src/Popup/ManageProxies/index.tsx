@@ -160,11 +160,13 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   }, [api, chain, formatted]);
 
   useEffect(() => {
-    if (!proxiesToShow?.length) {
+    if (!proxiesToShow?.length && !removedProxies?.length) {
       return;
     }
 
-    const proxyInfo = proxiesToShow.map((proxy) => {
+    const AllProxies = (proxiesToShow ?? []).concat(removedProxies ?? []);
+
+    const proxyInfo = AllProxies?.map((proxy) => {
       const mayBeFound = accounts.find((acc) => {
         const formattedAcc = getFormattedAddress(acc.address, chain, settings.prefix);
 
@@ -177,7 +179,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
     });
 
     setProxyInfo(proxyInfo);
-  }, [accounts, chain, formatted, proxiesToShow, settings?.prefix]);
+  }, [accounts, chain, formatted, proxiesToShow, removedProxies, settings.prefix]);
 
   const handleNext = useCallback(() => {
     setConfirmModalOpen(true);
@@ -186,12 +188,12 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   return (
     <>
       <Header showBackArrow showSettings smallMargin text={t<string>('Manage Proxies')} />
-      <Container sx={{ pt: '10px', px: '30px' }}>
+      <Container disableGutters sx={{ pt: '10px', px: '30px' }}>
         <Grid alignItems='center' container item justifyContent='space-between' pb='10px' pt='15px' xs={12}>
           <Grid alignItems='center' container item justifyContent='flex-start' xs={6}>
             <Grid item p='7px 15px 7px 0px'>
               <Typography sx={{ color: 'text.primary' }} variant='body2'>
-                {t('Your proxies')} {`(${proxies?.length ?? 0})`}
+                {t('Your proxies')} {`(${proxiesToShow?.length ?? 0})`}
               </Typography>
             </Grid>
             <Grid item>
@@ -293,7 +295,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
             </>
           }
         </Grid>
-        <Grid item sx={{ pt: '30px' }} xs={12}>
+        <Grid item sx={{ pt: '29px' }} xs={12}>
           <NextStepButton
             data-button-action='Next'
             isDisabled={nextIsDisabled}

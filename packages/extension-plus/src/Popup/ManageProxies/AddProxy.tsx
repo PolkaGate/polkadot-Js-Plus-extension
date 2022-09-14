@@ -186,11 +186,11 @@ function AddProxy({ address, addressesOnThisChain, api, chain, newProxies, proxi
         labelId='proxyType'
         labelId='proxyType-select-label'
         onChange={handleProxyTypeChange}
-        sx={{ fontSize: 14, p: 0 }}
+        sx={{ fontSize: 13, p: 0 }}
         value={proxyType}
       >
         {PROXY_TYPE.map((p, index) => (
-          <MenuItem key={index} sx={{ fontSize: 14 }} value={index}>{p}</MenuItem>
+          <MenuItem key={index} sx={{ fontSize: 13 }} value={index}>{p}</MenuItem>
         ))}
       </Select>
     </FormControl>
@@ -274,22 +274,22 @@ function AddProxy({ address, addressesOnThisChain, api, chain, newProxies, proxi
           {accountInfo
             ? <ShowAccountInfo info={accountInfo} />
             : accountInfo === null
-              ? <Grid item sx={{ fontSize: 12, fontWeight: 600 }}>
+              ? <Grid item sx={{ fontSize: 13, fontWeight: 600 }}>
                 {t('No indetity found')}
               </Grid>
               : accountInfo === undefined && text &&
               <Progress title={t('Loading identities ...')} />
           }
         </Grid>
-        <Grid item sx={{ pt: 7 }} xs={12}>
-          <Button
-            data-button-action=''
-            isDisabled={addButtonDisabled}
-            onClick={handleAddProxy}
-          >
-            {addButtonCaption}
-          </Button>
-        </Grid>
+      </Grid>
+      <Grid item sx={{ bottom: '15px', position: 'absolute', px: '31px', width: '100%' }} >
+        <Button
+          data-button-action=''
+          isDisabled={addButtonDisabled}
+          onClick={handleAddProxy}
+        >
+          {addButtonCaption}
+        </Button>
       </Grid>
     </Popup>
   );

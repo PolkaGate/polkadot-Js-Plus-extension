@@ -62,6 +62,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [notEnoughBalance, setNotEnoughBalance] = useState<boolean | undefined>();
 
+  const totalProxies = (removedProxies?.length ?? 0) + (newProxies?.length ?? 0);
+
   const removeProxy = api.tx.proxy.removeProxy; /** (delegate, proxyType, delay) **/
   const addProxy = api.tx.proxy.addProxy; /** (delegate, proxyType, delay) **/
   const batchAll = api.tx.utility.batchAll;
@@ -139,21 +141,26 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
     }
   }, [password]);
 
-
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={t('Confirm')} />
       <Container sx={{ pt: '10px', px: '30px' }}>
-        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', fontSize: 14, fontWeight: 500, mb: '20px', py: '30px', px: '10px' }}>
-          <Grid item>
-            <ShowBalance2 api={api} balance={deposit} direction='row' title={`${t('deposit')}:`} />
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[100], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', fontSize: 14, fontWeight: 500, my: '13px', py: '10px', px: '10px' }}>
+          <Grid item sx={{ fontSize: 15, fontWeight: 500, color: grey[700], textAlign: 'center', pb: '5px' }} xs={12}>
+            {newProxies?.length ? t('Adding {{num}}', { replace: { num: newProxies.length } }) : ''}     {removedProxies?.length ? t('Removing {{num}}', { replace: { num: removedProxies.length } }) : ''}  {totalProxies > 1 ? t('Proxies') : t('Proxy')}
           </Grid>
-          <Grid item>
-            <ShowBalance2 api={api} balance={estimatedFee} direction='row' title={`${t('fee')}:`} />
+          <Grid item xs={3.5} >
+            <ShowBalance2 alignItems='flext-start' api={api} balance={deposit} title={`${t('Deposit')}`} />
+          </Grid>
+          <Grid item xs={3}>
+            <ShowBalance2 alignItems='flex-end' api={api} balance={estimatedFee} title={`${t('Fee')}`} />
           </Grid>
         </Grid>
-        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '15px', px: '10px' }}>
-          <Grid item xs={5}>
+        <Grid item sx={{ color: grey[600], fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
+          {t('PROXIES')}
+        </Grid>
+        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
+          <Grid item xs={5.5}>
             {t('identity')}
           </Grid>
           <Grid item xs={3}>
@@ -162,19 +169,19 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
           <Grid item xs={2}>
             {t('delay')}
           </Grid>
-          <Grid item xs={2}>
-            {t('action')}
+          <Grid item xs={1.5}>
+            {t('state')}
           </Grid>
         </Grid>
-        <Grid container item sx={{ borderLeft: '2px solid', borderBottom: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 180, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
-          {(!!removedProxies?.length) && proxyInfo &&
+        <Grid container item sx={{ borderLeft: '2px solid', borderBottom: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 170, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
+          {proxyInfo &&
             <>
               {removedProxies?.map((proxy, index) => {
                 const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
 
                 return (
                   <Grid container item key={index} sx={{ fontSize: 13 }}>
-                    <Grid item xs={5}>
+                    <Grid item xs={5.5}>
                       <Identity accountInfo={info} chain={chain} />
                     </Grid>
                     <Grid item xs={3}>
@@ -183,8 +190,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
                     <Grid item xs={2}>
                       {proxy.delay}
                     </Grid>
-                    <Grid item xs={2}>
-                      {t('To be Remove')}
+                    <Grid item xs={1.5}>
+                      {t('Removing')}
                     </Grid>
                   </Grid>
                 );
@@ -195,7 +202,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
 
                 return (
                   <Grid container item key={index} sx={{ fontSize: 13 }}>
-                    <Grid item xs={5}>
+                    <Grid item xs={5.5}>
                       <Identity accountInfo={info} chain={chain} />
                     </Grid>
                     <Grid item xs={3}>
@@ -204,8 +211,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
                     <Grid item xs={2}>
                       {proxy.delay}
                     </Grid>
-                    <Grid item xs={2}>
-                      {t('To be Add')}
+                    <Grid item xs={1.5}>
+                      {t('Adding')}
                     </Grid>
                   </Grid>
                 );
@@ -214,30 +221,30 @@ export default function Confirm({ api, chain, className, deposit, formatted, new
             </>
           }
         </Grid>
-        <Grid container item sx={{ pt: '30px' }} xs={12}>
-          <Password
-            autofocus={!['confirming', 'failed', 'success'].includes(confirmingState)}
-            handleIt={handleConfirm}
-            isDisabled={!estimatedFee}
-            password={password}
-            passwordStatus={passwordStatus}
-            setPassword={setPassword}
-            setPasswordStatus={setPasswordStatus}
-          />
-          <Grid alignItems='center' container item xs={12}>
-            <Grid container item xs={12}>
-              <ConfirmButton
-                handleBack={handleBack}
-                handleConfirm={handleConfirm}
-                handleReject={handleReject}
-                isDisabled={notEnoughBalance}
-                state={confirmingState}
-                text={notEnoughBalance ? t('Not enough balance') : t('Confirm')}
-              />
-            </Grid>
+      </Container>
+      <Grid container item sx={{ pt: '25px', px: '26px' }} xs={12}>
+        <Password
+          autofocus={!['confirming', 'failed', 'success'].includes(confirmingState)}
+          handleIt={handleConfirm}
+          isDisabled={!estimatedFee}
+          password={password}
+          passwordStatus={passwordStatus}
+          setPassword={setPassword}
+          setPasswordStatus={setPasswordStatus}
+        />
+        <Grid alignItems='center' container item xs={12}>
+          <Grid container item xs={12}>
+            <ConfirmButton
+              handleBack={handleBack}
+              handleConfirm={handleConfirm}
+              handleReject={handleReject}
+              isDisabled={notEnoughBalance}
+              state={confirmingState}
+              text={notEnoughBalance ? t('Not enough balance') : t('Confirm')}
+            />
           </Grid>
         </Grid>
-      </Container>
+      </Grid>
     </Popup>
   );
 }
