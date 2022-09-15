@@ -131,7 +131,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
         amount: amountToHuman(String(transferAmount), decimals),
         block,
         date: Date.now(),
-        fee: fee || '',
+        fee: fee || String(lastFee) || '',
         from: sender.address,
         hash: txHash || '',
         status: failureText || status,
@@ -148,7 +148,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
       setState('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chain, api, decimals, hierarchy, password, recepient.address, proxy, sender.address, transfer, transferAllType, transferAmount]);
+  }, [lastFee, chain, api, decimals, hierarchy, password, recepient.address, proxy, sender.address, transfer, transferAllType, transferAmount]);
 
   // function disable(flag: boolean) {
   //   return {

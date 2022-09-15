@@ -99,22 +99,23 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
 
   return (
     <>
-      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Proxied- add a real account')} />
+      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Add a Proxied Account')} />
       <Container sx={{ px: '30px' }}>
         <TextField
           autoFocus
           color='warning'
           error={!name}
-          // helperText={t('Enter a name for your real account')}
-          fullWidth
           label={t('Name')}
           name='name'
           onChange={() => setName(event.target.value)}
-          placeholder={t<string>('Enter a name for your real account')}
+          placeholder={t<string>('Enter a name for your proxied account')}
           sx={{ py: 1 }}
           variant='outlined'
+          InputLabelProps={{ shrink: true }}
+          // helperText={t('Enter a name for your real account')}
+          fullWidth
         />
-        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} chain={chain} label={t('Real account')} setAddress={setRealAddress} />
+        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} autoFocus={false} chain={chain} label={t('Proxied account id')} setAddress={setRealAddress} />
         <Grid item py='20px' xs>
           <SelectChain defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
         </Grid>

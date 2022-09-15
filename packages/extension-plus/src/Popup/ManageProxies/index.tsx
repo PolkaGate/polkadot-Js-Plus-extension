@@ -240,7 +240,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           showAddProxyModal={showAddProxyModal} />
       }
       {
-        showConfirmModal && chain && api && formatted &&
+        showConfirmModal && chain && api && formatted && proxies && proxyInfo &&
         <Confirm
           api={api}
           chain={chain}

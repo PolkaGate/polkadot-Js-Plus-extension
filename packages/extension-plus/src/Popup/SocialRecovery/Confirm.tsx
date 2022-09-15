@@ -239,7 +239,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
             : '0',
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
@@ -257,7 +257,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           amount: '0',
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
@@ -277,7 +277,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           amount: recoveryConsts ? amountToHuman(recoveryConsts.recoveryDeposit.toString(), decimals) : '0',
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
@@ -296,7 +296,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           amount: amountToHuman(String(rescuer.option.deposit), decimals),
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: String(rescuer.accountId),
           hash: txHash || '',
           status: failureText || status,
@@ -315,7 +315,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           amount: amountToHuman(String(withdrawAmounts.available.add(withdrawAmounts.redeemable).add(withdrawAmounts.staked)), decimals),
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: String(lostAccount.accountId),
           hash: txHash || '',
           status: failureText || status,
@@ -336,7 +336,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           amount: amountToHuman(String(withdrawAmounts.available.add(withdrawAmounts.redeemable).add(withdrawAmounts.staked)), decimals),
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: String(lostAccount.accountId),
           hash: txHash || '',
           status: failureText || status,
@@ -355,7 +355,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
           amount: '0',
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: String(account.accountId),
           hash: txHash || '',
           status: failureText || status,
@@ -373,7 +373,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
       setState(localState);
       setConfirmingState('');
     }
-  }, [account.accountId, asRecovered, api, batchAll, recoveryConsts, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
+  }, [account.accountId, asRecovered, api, batchAll, estimatedFee, recoveryConsts, batchWithdraw, chain, withdrawAmounts, vouchRecovery, closeRecovery, claimRecovery, createRecovery, decimals, friendIds, hierarchy, initiateRecovery, lostAccount?.accountId, password, recoveryDelay, recoveryThreshold, removeRecovery, rescuer, setState, state]);
  
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);

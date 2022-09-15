@@ -20,6 +20,7 @@ import { NameAddress } from '../../util/plusTypes';
 import isValidAddress from '../../util/validateAddress';
 
 interface Props {
+  autoFocus?: boolean;
   chain: Chain;
   addresesOnThisChain?: NameAddress[];
   label: string;
@@ -27,7 +28,7 @@ interface Props {
   setAddress: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
-export default function AddressTextBox({ addresesOnThisChain, address, chain, label, setAddress }: Props) {
+export default function AddressTextBox({ addresesOnThisChain, address, autoFocus = true, chain, label, setAddress }: Props) {
   const { t } = useTranslation();
 
   const handleAddress = useCallback((value: string | null) => {
@@ -72,7 +73,6 @@ export default function AddressTextBox({ addresesOnThisChain, address, chain, la
       <Grid item xs>
         <Autocomplete
           ListboxProps={{ sx: { fontSize: 12 } }}
-          autoFocus
           // defaultValue={address}
           freeSolo
           inputValue={address}
@@ -83,8 +83,8 @@ export default function AddressTextBox({ addresesOnThisChain, address, chain, la
           renderInput={(params) =>
             <TextField
               {...params}
-              InputLabelProps={{ style: { fontSize: 17 } }}
-              autoFocus
+              InputLabelProps={{ style: { fontSize: 16 } }}
+              autoFocus={autoFocus}
               error={!address}
               label={label}
               placeholder={t('Add an address')}

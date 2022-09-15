@@ -98,7 +98,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
         amount: contributionAmountInHuman,
         block,
         date: Date.now(),
-        fee: fee || '',
+        fee: fee || String(estimatedFee) || '',
         from: encodedAddressInfo.address,
         hash: txHash || '',
         status: failureText || status,
@@ -113,7 +113,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
       setPasswordStatus(PASS_MAP.INCORRECT);
       setConfirmingState('');
     }
-  }, [api, chain, contributionAmount, contributionAmountInHuman, crowdloan.fund.paraId, encodedAddressInfo, hierarchy, password, tx]);
+  }, [api, chain, contributionAmount, estimatedFee, contributionAmountInHuman, crowdloan.fund.paraId, encodedAddressInfo, hierarchy, password, tx]);
 
   const handleReject = useCallback((): void => {
     setConfirmingState('');

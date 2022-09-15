@@ -333,7 +333,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           amount: amountToHuman(String(surAmount), decimals),
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
@@ -380,7 +380,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           amount: '',
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
@@ -399,7 +399,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
             action: 'chill',
             amount: '',
             date: Date.now(),
-            fee: fee || '',
+            fee: fee || String(estimatedFee) || '',
             from: staker.address,
             hash: txHash || '',
             status: failureText || status,
@@ -424,7 +424,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           amount: amountToHuman(String(surAmount), decimals),
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
@@ -447,7 +447,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           amount: amountToHuman(String(surAmount), decimals),
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
@@ -465,7 +465,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           action: 'stop_nominating',
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
@@ -484,7 +484,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           action: 'tuneUp',
           block,
           date: Date.now(),
-          fee: fee || '',
+          fee: fee || String(estimatedFee) || '',
           from: staker.address,
           hash: txHash || '',
           status: failureText || status,
@@ -502,7 +502,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
       setState(localState);
       setConfirmingState(undefined);
     }
-  }, [api, chain, chilled, currentlyStaked, decimals, hierarchy, ledger?.total, nominated, nominatedValidatorsId, password, proxy, putInFrontInfo?.lighter, putInFrontOf, rebagInfo?.shouldRebag, rebaged, redeem, selectedValidators, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded]);
+  }, [api, chain, chilled, currentlyStaked, decimals, estimatedFee, hierarchy, ledger?.total, nominated, nominatedValidatorsId, password, proxy, putInFrontInfo?.lighter, putInFrontOf, rebagInfo?.shouldRebag, rebaged, redeem, selectedValidators, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded]);
 
   const handleReject = useCallback((): void => {
     setState('');

@@ -8,28 +8,29 @@
 */
 
 import type { ApiPromise } from '@polkadot/api';
+import type { SubmittableExtrinsic } from '@polkadot/api/types';
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
-import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Container, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState, useMemo } from 'react';
 
+import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
+import { updateMeta } from '@polkadot/extension-ui/messaging';
 import keyring from '@polkadot/ui-keyring';
 import { BN } from '@polkadot/util';
-import { updateMeta } from '@polkadot/extension-ui/messaging';
 
-import { ActionContext, AccountContext } from '../../../../extension-ui/src/components/contexts';
+import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Identity, Password, PlusHeader, Popup, ShowBalance2 } from '../../components';
+import { signAndSend } from '../../util/api/signAndSend';
 import { PASS_MAP } from '../../util/constants';
 import { ProxyItem, TransactionDetail } from '../../util/plusTypes';
-import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../util/plusUtils';
-import { signAndSend } from '../../util/api/signAndSend';
+import { getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -70,27 +71,36 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
   const adding = proxies?.filter((item: ProxyItem) => item.status === 'new')?.length ?? 0;
   const removing = proxies?.filter((item) => item.status === 'remove')?.length ?? 0;
 
+  const batchedCallsLimit = api.consts.utility.batchedCallsLimit;
+
   const removeProxy = api.tx.proxy.removeProxy; /** (delegate, proxyType, delay) **/
   const addProxy = api.tx.proxy.addProxy; /** (delegate, proxyType, delay) **/
   const batchAll = api.tx.utility.batchAll;
 
-  const calls = [];
+  const calls = useMemo((): SubmittableExtrinsic<'promise'> => {
+    let temp: SubmittableExtrinsic<'promise'> = [];
+    console.log('1')
 
-  proxies.forEach((item: ProxyItem) => {
-    const p = item.proxy;
+    proxies.forEach((item: ProxyItem) => {
+      const p = item.proxy;
 
-    item.status === 'remove' && calls.push(removeProxy(p.delegate, p.proxyType, p.delay));
-    item.status === 'new' && calls.push(addProxy(p.delegate, p.proxyType, p.delay));
-  });
+      item.status === 'remove' && temp.push(removeProxy(p.delegate, p.proxyType, p.delay));
+      item.status === 'new' && temp.push(addProxy(p.delegate, p.proxyType, p.delay));
+    });
+
+    return temp;
+  }, [addProxy, proxies, removeProxy]);
 
   const tx = batchAll(calls);
 
-  console.log('Fee:', estimatedFee?.toString())
+  console.log('api.tx.proxy.addProxy.meta.args.length:', api.tx.proxy.addProxy.meta.args.length);
+
   useEffect(() => {
-    console.log('callllls:', calls)
+  console.log('2')
+
     // eslint-disable-next-line no-void
-    void batchAll(calls).paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
-  }, [batchAll, calls, formatted, tx]);
+    void tx.paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
+  }, [formatted]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -127,7 +137,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
         amount: '0',
         block,
         date: Date.now(),
-        fee: fee || '',
+        fee: fee || estimatedFee?.toString(),
         from: String(formatted),
         hash: txHash || '',
         status: failureText || status,
@@ -144,7 +154,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
       // setState(localState);
       setConfirmingState('');
     }
-  }, [api, chain, formatted, hierarchy, password, tx]);
+  }, [api, chain, estimatedFee, formatted, hierarchy, password, tx]);
 
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>

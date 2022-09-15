@@ -46,7 +46,6 @@ function SocialRecovery({ className }: Props): React.ReactElement<Props> {
   const { accounts } = useContext(AccountContext);
   const { address, genesisHash } = useParams<AddressState>();
   const [acceptedGenesisHashes, setAcceptedGenesisHashes] = useState<string>();
-
   const [accountsInfo, setAcountsInfo] = useState<DeriveAccountInfo[]>();
   const [account, setAccount] = useState<DeriveAccountInfo | undefined>();
   const [addresesOnThisChain, setAddresesOnThisChain] = useState<nameAddress[]>([]);
