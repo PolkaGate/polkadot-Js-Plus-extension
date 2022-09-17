@@ -48,15 +48,15 @@ function MenuAdd ({ className, reference }: Props): React.ReactElement<Props> {
       reference={reference}
     >
       <MenuItem className='menuItem'>
-        <Link to={'/account/proxy'}>
-          <FontAwesomeIcon icon={faPlusCircle} />
-          <span>{ t(' Add a proxied account')}</span>
-        </Link>
-      </MenuItem>
-      <MenuItem className='menuItem'>
         <Link to={'/account/create'}>
           <FontAwesomeIcon icon={faPlusCircle} />
           <span>{ t('Create new account')}</span>
+        </Link>
+      </MenuItem>
+      <MenuItem className='menuItem'>
+        <Link to={'/account/proxy'}>
+          <FontAwesomeIcon icon={faPlusCircle} />
+          <span>{ t('Add proxied account')}</span>
         </Link>
       </MenuItem>
       <MenuDivider />

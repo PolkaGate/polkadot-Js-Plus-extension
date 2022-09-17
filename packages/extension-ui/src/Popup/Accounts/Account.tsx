@@ -11,7 +11,7 @@ import { canDerive } from '@polkadot/extension-base/utils';
 import { ThemeProps } from '@polkadot/extension-ui/types';
 
 import useEndpoints from '../../../../extension-plus/src/hooks/useEndpoints';// added for plus
-import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS, SOCIAL_RECOVERY_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
+import { CROWDLOANS_CHAINS, GOVERNANCE_CHAINS, SOCIAL_RECOVERY_CHAINS, PROXIES_CHAINS } from '../../../../extension-plus/src/util/constants';// added for plus
 import { SavedMetaData } from '../../../../extension-plus/src/util/plusTypes';// added for plus
 import { prepareMetaData } from '../../../../extension-plus/src/util/plusUtils';// added for plus
 import { AccountContext, ActionContext, ActionText, Address, Dropdown, Link, MenuDivider, MenuItem, Svg } from '../../components';// added for plus, AccountContext, ActionContext, Svg
@@ -90,15 +90,13 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
   // added for plus
   const _goToLink = useCallback(
     (link: string) => {
-      if (link === 'crowdloans' && !CROWDLOANS_CHAINS.includes(genesisHash)) {
-        return;
-      }
-
-      if (link === 'governance' && !GOVERNANCE_CHAINS.includes(genesisHash)) {
-        return;
-      }
-
-      if (link === 'social-recovery' && !SOCIAL_RECOVERY_CHAINS.includes(genesisHash)) {
+      if (
+        !genesisHash ||
+        (link === 'crowdloans' && !CROWDLOANS_CHAINS.includes(genesisHash)) ||
+        (link === 'governance' && !GOVERNANCE_CHAINS.includes(genesisHash)) ||
+        (link === 'social-recovery' && !SOCIAL_RECOVERY_CHAINS.includes(genesisHash)) ||
+        (link === 'manage-proxies' && !PROXIES_CHAINS.includes(genesisHash))
+      ) {
         return;
       }
 
@@ -135,7 +133,7 @@ function Account({ address, className, genesisHash, isExternal, isHardware, isHi
       </MenuItem>
       <MenuItem className='newMenu'>
         <ActionText
-          className={ 'newMenu' }
+          className={PROXIES_CHAINS.includes(genesisHash) ? 'newMenu' : 'disabledMenu'}
           icon={faSitemap}
           onClick={() => _goToLink('manage-proxies')}
           text={t<string>('Manage Proxies')}
