@@ -8,7 +8,7 @@
 */
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { Container, Grid, TextField } from '@mui/material';
+import { Container, Grid, TextField, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
@@ -101,23 +101,32 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
     <>
       <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Add a Proxied Account')} />
       <Container sx={{ px: '30px' }}>
-        <TextField
-          autoFocus
-          color='warning'
-          error={!name}
-          label={t('Name')}
-          name='name'
-          onChange={() => setName(event.target.value)}
-          placeholder={t<string>('Enter a name for your proxied account')}
-          sx={{ py: 1 }}
-          variant='outlined'
-          InputLabelProps={{ shrink: true }}
-          // helperText={t('Enter a name for your real account')}
-          fullWidth
-        />
-        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} autoFocus={false} chain={chain} label={t('Proxied account id')} setAddress={setRealAddress} />
-        <Grid item py='20px' xs>
-          <SelectChain defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
+        <Typography sx={{ pb: '20px' }} variant='subtitle1'>
+          {t('Enter Just your proxied account\'s public information, no private key!')}
+        </Typography>
+        <Grid container py='10px' spacing={0.5}>
+          <Grid item xs={5}>
+            <TextField
+              autoFocus
+              color='warning'
+              error={!name}
+              label={t('Name')}
+              name='name'
+              onChange={() => setName(event.target.value)}
+              placeholder={t<string>('Enter a name')}
+              variant='outlined'
+              InputLabelProps={{ shrink: true }}
+              // helperText={t('Enter a name for your real account')}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs>
+            <SelectChain defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
+          </Grid>
+        </Grid>
+        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} autoFocus={false} chain={chain} label={t('Proxied account id')} setAddress={setRealAddress} style={{ pb: '10px' }} />
+        <Grid item sx={{ color: grey[600], fontSize: 16, p: '10px 50px 5px', textAlign: 'center' }} xs={12}>
+          {t('PROXIES')}
         </Grid>
         <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
           <Grid item xs={4}>
@@ -133,7 +142,7 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
             {t('available')}
           </Grid>
         </Grid>
-        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], pt: '15px', pl: '10px', height: 140, overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 155, overflowY: 'auto' }} xs={12}>
           {chain && realAddress &&
             <>
               {proxies

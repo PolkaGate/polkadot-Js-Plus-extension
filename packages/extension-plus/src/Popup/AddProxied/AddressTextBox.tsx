@@ -8,7 +8,7 @@
 */
 
 import { NoAccounts as NoAccountsIcon } from '@mui/icons-material';
-import { Autocomplete, Grid, TextField } from '@mui/material';
+import { Autocomplete, Grid, SxProps, TextField, Theme } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback } from 'react';
 
@@ -26,9 +26,10 @@ interface Props {
   label: string;
   address: string | undefined;
   setAddress: React.Dispatch<React.SetStateAction<string | undefined>>
+  style?: SxProps<Theme>;
 }
 
-export default function AddressTextBox({ addresesOnThisChain, address, autoFocus = true, chain, label, setAddress }: Props) {
+export default function AddressTextBox({ addresesOnThisChain, address, autoFocus = true, style = {}, chain, label, setAddress }: Props) {
   const { t } = useTranslation();
 
   const handleAddress = useCallback((value: string | null) => {
@@ -57,19 +58,7 @@ export default function AddressTextBox({ addresesOnThisChain, address, autoFocus
   }, [setAddress]);
 
   return (
-    <Grid alignItems='center' container sx={{ pt: 2 }}>
-      <Grid item sx={{ height: '70px' }} xs={1.5}>
-        <div style={{ transform: 'scale(0.7)' }}>
-          {isValidAddress(address)
-            ? <Identicon
-              prefix={chain?.ss58Format ?? 42}
-              theme={chain?.icon || 'polkadot'}
-              value={address}
-            />
-            : <NoAccountsIcon sx={{ color: grey[400], fontSize: 64 }} />
-          }
-        </div>
-      </Grid>
+    <Grid alignItems='center' container sx={style}>
       <Grid item xs>
         <Autocomplete
           ListboxProps={{ sx: { fontSize: 12 } }}
@@ -85,13 +74,25 @@ export default function AddressTextBox({ addresesOnThisChain, address, autoFocus
               {...params}
               InputLabelProps={{ style: { fontSize: 16 } }}
               autoFocus={autoFocus}
-              error={!address}
+              // error={!address}
               label={label}
-              placeholder={t('Add an address')}
+              placeholder={t('Enter the address of your proxied account')}
             />
           }
           sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}
         />
+      </Grid>
+      <Grid item sx={{ height: '70px' }} xs={1.2}>
+        <div style={{ transform: 'scale(0.7)' }}>
+          {isValidAddress(address)
+            ? <Identicon
+              prefix={chain?.ss58Format ?? 42}
+              theme={chain?.icon || 'polkadot'}
+              value={address}
+            />
+            : <NoAccountsIcon sx={{ color: grey[400], fontSize: 64 }} />
+          }
+        </div>
       </Grid>
     </Grid>
   );

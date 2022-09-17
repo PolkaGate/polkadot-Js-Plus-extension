@@ -188,10 +188,11 @@ function Address({ actions, address, children, className, genesisHash, isExterna
               />
             )
             : (
-              <FontAwesomeIcon
+              <FontAwesomeIcon // added for plus
                 className='externalIcon'
                 icon={faSitemap}
                 rotation={270}
+                size={'xs'}
                 style={{width: 20}}
                 title={t('external account')}
               />

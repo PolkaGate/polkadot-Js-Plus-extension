@@ -7,11 +7,11 @@
  * @description  shows a simple address text box or an address selection box depending on the value of addresesOnThisChain
 */
 
+import CameraIcon from '@mui/icons-material/Camera';
 import { Avatar, FormControl, Grid, InputLabel, MenuItem, Select } from '@mui/material';
 import React, { useCallback, useState } from 'react';
 
 import getLogo from '../../util/getLogo';
-import CameraIcon from '@mui/icons-material/Camera';
 
 interface DropdownOption {
   text: string;
@@ -40,16 +40,7 @@ export default function SelectChain({ defaultValue, label, onChange, options }: 
 
   return (
     <Grid alignItems='center' container>
-      <Grid item container justifyContent='center' xs={1.5}>
-        <Avatar
-          alt={'logo'}
-          src={getLogo(chainName)}
-          sx={{ height: 38, width: 38 }}
-        >
-          {!chainName && <CameraIcon />}
-        </Avatar>
-      </Grid>
-      <Grid item xs={10.5}>
+      <Grid item xs>
         <FormControl
           // variant='standard'
           sx={{ width: '100%' }}>
@@ -75,6 +66,15 @@ export default function SelectChain({ defaultValue, label, onChange, options }: 
             ))}
           </Select>
         </FormControl>
+      </Grid>
+      <Grid item container justifyContent='center' xs={2}>
+        <Avatar
+          alt={'logo'}
+          src={getLogo(chainName)}
+          sx={{ height: 38, width: 38 }}
+        >
+          {!chainName && <CameraIcon />}
+        </Avatar>
       </Grid>
     </Grid >
   );
