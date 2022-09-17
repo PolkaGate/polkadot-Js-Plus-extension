@@ -27,7 +27,7 @@ import { BN, bnMax } from '@polkadot/util';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShowBalance2 } from '../../components';
-import useEndPoint from '../../hooks/useEndPoint';
+import { useEndpoint} from '../../hooks';
 import SelectProxy from '../../partials/SelectProxy';
 import { Proxy } from '../../util/plusTypes';
 import { prepareMetaData } from '../../util/plusUtils';
@@ -48,7 +48,7 @@ const workers: Worker[] = [];
 
 export default function StakingIndex({ account, api, chain, ledger, setStakingModalOpen, showStakingModal, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const endpoint = useEndPoint(account, undefined, chain);
+  const endpoint = useEndpoint(account, undefined, chain);
   const chainName = chain?.name.replace(' Relay Chain', '');
 
   const [stakingConsts, setStakingConsts] = useState<StakingConsts | undefined>();

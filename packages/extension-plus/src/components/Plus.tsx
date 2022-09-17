@@ -28,8 +28,7 @@ import { BN } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../extension-ui/src/components/contexts';
 import { updateMeta } from '../../../extension-ui/src/messaging';
-import useApi from '../hooks/useApi';
-import useEndPoint from '../hooks/useEndPoint';
+import { useApi, useEndpoint } from '../hooks';
 import AddressQRcode from '../Popup/AddressQRcode/AddressQRcode';
 import TransactionHistory from '../Popup/History';
 import Configure from '../Popup/SocialRecovery/Configure';
@@ -60,7 +59,7 @@ const defaultSubscribtion = { chainName: '', endpoint: '' };
 
 function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): React.ReactElement<Props> {
   const { accounts } = useContext(AccountContext);
-  const endpoint = useEndPoint(accounts, address, chain);
+  const endpoint = useEndpoint(accounts, address, chain);
   const api = useApi(endpoint);
   const onAction = useContext(ActionContext);
   const supported = (chain: Chain) => SUPPORTED_CHAINS.includes(chain?.name.replace(' Relay Chain', ''));
@@ -483,7 +482,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
         </Grid>
 
       </Grid>
-      {transferModalOpen && sender && chain && 
+      {transferModalOpen && sender && chain &&
         <TransferFunds
           api={api}
           chain={chain}
