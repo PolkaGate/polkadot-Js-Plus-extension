@@ -37,7 +37,7 @@ export interface AccountsBalanceType {
   balanceInfo?: BalanceType;
   name: string | null;
   txHistory?: string;
-  hasProxy?: boolean;
+  isProxied?: boolean;
 }
 
 export interface StakingConsts {

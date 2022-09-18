@@ -270,7 +270,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
       address: String(formattedAddress),
       balanceInfo: balance ? balance.balanceInfo : undefined,
       chain: chain?.name || null,
-      hasProxy: !!account?.isExternal,
+      isProxied: !!account?.isExternal,
       name: String(name)
     });
   }, [account?.isExternal, balance, chain, formattedAddress, name]);

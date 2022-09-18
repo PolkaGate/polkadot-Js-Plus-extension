@@ -73,17 +73,10 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   const [senderAddressOpacity, setSenderAddressOpacity] = useState<number>(0.2);
   const [estimatedFee, setEstimatedFee] = useState<Balance>();
   const [transferAllType, setTransferAllType] = useState<string | undefined>(undefined);
-  //SelectProxy states
-  const [proxy, setProxy] = useState<AccountJson | undefined>();
-  const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
   const decimals = api && api.registry.chainDecimals[0];
   const token = api && api.registry.chainTokens[0];
   const transfer = api && api.tx?.balances && api.tx.balances.transfer;
-
-  useEffect(() => {
-    sender.hasProxy && !proxy && setSelectProxyModalOpen(true);
-  }, [proxy, sender.hasProxy]);
 
   useEffect(() => {
     if (!api || !transfer) { return; }
@@ -339,212 +332,206 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   function handleConfirmModaOpen(): void {
     setConfirmModalOpen(true);
   }
-
-  const HeaderIcon = <SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />
+  
+  const SendHeaderIcon = <SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />;
 
   return (
-    <>
-      {sender.hasProxy && !proxy
-        ? <SelectProxy acceptableTypes={['Any']} allAddresesOnSameChain={allAddresesOnSameChain} setActionModalOpen={setTransferModalOpen} api={api} chain={chain} icon={HeaderIcon} realAddress={sender.address} setProxy={setProxy} selectProxyModalOpen={selectProxyModalOpen} setSelectProxyModalOpen={setSelectProxyModalOpen} />
-        : <Popup handleClose={handleTransferModalClose} showModal={transferModalOpen}>
-          <PlusHeader action={handleTransferModalClose} chain={chain} closeText={'Close'} icon={HeaderIcon} title={'Transfer Funds'} />
-          <Grid alignItems='center' container justifyContent='center' sx={{ padding: '5px 20px' }}>
-            <Grid alignItems='center' container id='senderAddress' item justifyContent='flex-start' spacing={1} sx={{ opacity: senderAddressOpacity, padding: '20px 10px 50px' }} xs={12}>
-              <Grid item sx={{ color: grey[800], fontSize: 13, textAlign: 'left' }} xs={1}>
-                {t('Sender')}:
-              </Grid>
-              <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                <Identicon
-                  prefix={chain?.ss58Format ?? 42}
-                  size={20}
-                  theme={chain?.icon || 'polkadot'}
-                  value={sender.address}
-                />
-              </Grid>
-              <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={10}>
-                <Grid item sx={{ fontSize: 14, overflow: 'hidden', textAlign: 'left', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
-                  {sender.name}
-                </Grid>
-                <Grid item sx={{ fontSize: 14, textAlign: 'left' }}>
-                  {sender.address}
-                </Grid>
-              </Grid>
+    <Popup handleClose={handleTransferModalClose} showModal={transferModalOpen}>
+      <PlusHeader action={handleTransferModalClose} chain={chain} closeText={'Close'} icon={SendHeaderIcon} title={'Transfer Funds'} />
+      <Grid alignItems='center' container justifyContent='center' sx={{ padding: '5px 20px' }}>
+        <Grid alignItems='center' container id='senderAddress' item justifyContent='flex-start' spacing={1} sx={{ opacity: senderAddressOpacity, padding: '20px 10px 50px' }} xs={12}>
+          <Grid item sx={{ color: grey[800], fontSize: 13, textAlign: 'left' }} xs={1}>
+            {t('Sender')}:
+          </Grid>
+          <Grid item sx={{ textAlign: 'center' }} xs={1}>
+            <Identicon
+              prefix={chain?.ss58Format ?? 42}
+              size={20}
+              theme={chain?.icon || 'polkadot'}
+              value={sender.address}
+            />
+          </Grid>
+          <Grid container item sx={{ fontSize: 14, textAlign: 'left' }} xs={10}>
+            <Grid item sx={{ fontSize: 14, overflow: 'hidden', textAlign: 'left', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={12}>
+              {sender.name}
             </Grid>
-            <Grid item sx={{ paddingBottom: '20px' }} xs={12}>
-              <TextField
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <IconButton
-                        onClick={handleClearRecepientAddress}
-                      >
-                        {recepient !== null ? <ClearIcon /> : ''}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      {recepientAddressIsValid ? <CheckRoundedIcon color='success' /> : ''}
-                    </InputAdornment>
-                  ),
-                  style: { fontSize: 14 }
-                }}
-                fullWidth
-                helperText={t('Reciever and sender must be on the same network')}
-                label={t('Recipient')}
-                onChange={handleRecepientAddressChange}
-                placeholder={t('Search, Public address')}
-                size='medium'
-                type='string'
-                value={recepient ? recepient.address : ''}
-                variant='outlined'
-              />
-              {!recepientAddressIsValid && recepient &&
-                <Alert severity='error'>
-                  {t('Recipient address is invalid')}
-                </Alert>
-              }
+            <Grid item sx={{ fontSize: 14, textAlign: 'left' }}>
+              {sender.address}
             </Grid>
           </Grid>
-          {!recepientAddressIsValid &&
-            <Grid item sx={{ paddingLeft: '20px' }} xs={12}>
-              <Button
-                fullWidth
-                onClick={showAlladdressesOnThisChain}
-                startIcon={transferBetweenMyAccountsButtonText === t('Back to all') ? <ArrowBackIosRounded /> : null}
-                sx={{ justifyContent: 'flex-start', marginTop: 2, textAlign: 'left' }}
-                variant='text'
-              >
-                {transferBetweenMyAccountsButtonText}
-              </Button>
-              {acountList}
-            </Grid>
+        </Grid>
+        <Grid item sx={{ paddingBottom: '20px' }} xs={12}>
+          <TextField
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>
+                  <IconButton
+                    onClick={handleClearRecepientAddress}
+                  >
+                    {recepient !== null ? <ClearIcon /> : ''}
+                  </IconButton>
+                </InputAdornment>
+              ),
+              startAdornment: (
+                <InputAdornment position='start'>
+                  {recepientAddressIsValid ? <CheckRoundedIcon color='success' /> : ''}
+                </InputAdornment>
+              ),
+              style: { fontSize: 14 }
+            }}
+            fullWidth
+            helperText={t('Reciever and sender must be on the same network')}
+            label={t('Recipient')}
+            onChange={handleRecepientAddressChange}
+            placeholder={t('Search, Public address')}
+            size='medium'
+            type='string'
+            value={recepient ? recepient.address : ''}
+            variant='outlined'
+          />
+          {!recepientAddressIsValid && recepient &&
+            <Alert severity='error'>
+              {t('Recipient address is invalid')}
+            </Alert>
           }
-          {recepientAddressIsValid &&
-            <div id='transferBody'>
-              <Grid container item justifyContent='space-between' sx={{ padding: '30px 30px 20px' }} xs={12}>
-                <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: 5, textAlign: 'left' }} xs={3}>
-                  {t('Asset:')}
-                </Grid>
-                <Grid item xs={9}>
-                  <Box mt={2} sx={{ border: '1px groove silver', borderRadius: '10px', p: 1 }}>
-                    <Grid container justifyContent='flex-start' spacing={1}>
-                      <Grid item xs={2}>
-                        <Avatar
-                          alt={`${token ?? ''} logo`}
-                          src={getLogo(chain)}
-                          sx={{ height: 45, width: 45 }}
-                        />
-                      </Grid>
-                      <Grid container item justifyContent='flex-start' xs={10}>
-                        <Grid sx={{ fontSize: '14px', textAlign: 'left' }} xs={12}>
-                          {token || <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-                          }
-                        </Grid>
-                        <Grid container item justifyContent='space-between' xs={12}>
-                          <Grid id='availableBalance' sx={{ fontSize: '12px', textAlign: 'left' }}>
-                            {t('Available Balance')}: {availableBalance}
-                          </Grid>
-                          <Grid item sx={{ fontSize: '11px', textAlign: 'left', color: grey[600] }} >
-                            {t('Fee')} {': '}
-                            {estimatedFee
-                              ? estimatedFee.toHuman()
-                              : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
-                            }
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Grid>
-                <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={3}>
-                  {t('Amount:')}
-                  <Grid data-testid='allButton' item>
-                    <Tooltip placement='right' title={t<string>('Transfer all amount and deactivate the account.')}>
-                      <LoadingButton
-                        color='primary'
-                        disabled={safeMaxAmountLoading || !transfer}
-                        loading={allAmountLoading}
-                        name='All'
-                        onClick={HandleSetMax}
-                        size='small'
-                        sx={{ display: 'inline-block', fontSize: '11px', padding: 0 }}
-                        variant='outlined'
-                      >
-                        {t('All')}
-                      </LoadingButton>
-                    </Tooltip>
-                  </Grid>
-                  <Grid data-testid='safeMaxButton' item>
-                    <Tooltip placement='right' title={t<string>('Transfer max amount where the account remains active.')}>
-                      <LoadingButton
-                        color='primary'
-                        disabled={allAmountLoading || !transfer}
-                        loading={safeMaxAmountLoading}
-                        name='Max'
-                        onClick={HandleSetMax}
-                        size='small'
-                        sx={{ display: 'inline-block', fontSize: '11px', padding: 0 }}
-                        variant='outlined'
-                      >
-                        {t('Max')}
-                      </LoadingButton>
-                    </Tooltip>
-                  </Grid>
-                </Grid>
-                <Grid container item justifyContent='flex-start' sx={{ marginTop: '20px' }} xs={9}>
-                  <Grid item sx={{ height: '20px' }} xs={12}>
-                    <TextField
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
-                      autoFocus
-                      color='warning'
-                      error={reapeAlert || feeAlert || zeroBalanceAlert}
-                      fullWidth
-                      helperText={reapeAlert
-                        ? (t('Account will be reaped, existential deposit:') + amountToHuman(String(ED), decimals) + ' ' + token)
-                        : (feeAlert ? t('Fee must be considered, use MAX button instead.') : (zeroBalanceAlert ? t('No available fund to transfer') : ''))}
-                      label={t('Transfer Amount')}
-                      margin='dense'
-                      name='transferAmount'
-                      onChange={handleTransferAmountChange}
-                      size='medium'
-                      type='number'
-                      value={transferAmountInHuman}
-                      variant='outlined'
+        </Grid>
+      </Grid>
+      {!recepientAddressIsValid &&
+        <Grid item sx={{ paddingLeft: '20px' }} xs={12}>
+          <Button
+            fullWidth
+            onClick={showAlladdressesOnThisChain}
+            startIcon={transferBetweenMyAccountsButtonText === t('Back to all') ? <ArrowBackIosRounded /> : null}
+            sx={{ justifyContent: 'flex-start', marginTop: 2, textAlign: 'left' }}
+            variant='text'
+          >
+            {transferBetweenMyAccountsButtonText}
+          </Button>
+          {acountList}
+        </Grid>
+      }
+      {recepientAddressIsValid &&
+        <div id='transferBody'>
+          <Grid container item justifyContent='space-between' sx={{ padding: '30px 30px 20px' }} xs={12}>
+            <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: 5, textAlign: 'left' }} xs={3}>
+              {t('Asset:')}
+            </Grid>
+            <Grid item xs={9}>
+              <Box mt={2} sx={{ border: '1px groove silver', borderRadius: '10px', p: 1 }}>
+                <Grid container justifyContent='flex-start' spacing={1}>
+                  <Grid item xs={2}>
+                    <Avatar
+                      alt={`${token ?? ''} logo`}
+                      src={getLogo(chain)}
+                      sx={{ height: 45, width: 45 }}
                     />
                   </Grid>
+                  <Grid container item justifyContent='flex-start' xs={10}>
+                    <Grid sx={{ fontSize: '14px', textAlign: 'left' }} xs={12}>
+                      {token || <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+                      }
+                    </Grid>
+                    <Grid container item justifyContent='space-between' xs={12}>
+                      <Grid id='availableBalance' sx={{ fontSize: '12px', textAlign: 'left' }}>
+                        {t('Available Balance')}: {availableBalance}
+                      </Grid>
+                      <Grid item sx={{ fontSize: '11px', textAlign: 'left', color: grey[600] }} >
+                        {t('Fee')} {': '}
+                        {estimatedFee
+                          ? estimatedFee.toHuman()
+                          : <Skeleton sx={{ display: 'inline-block', fontWeight: '600', width: '50px' }} />
+                        }
+                      </Grid>
+                    </Grid>
+                  </Grid>
                 </Grid>
+              </Box>
+            </Grid>
+            <Grid item sx={{ color: grey[800], fontSize: '15px', fontWeight: '600', marginTop: '30px', textAlign: 'left' }} xs={3}>
+              {t('Amount:')}
+              <Grid data-testid='allButton' item>
+                <Tooltip placement='right' title={t<string>('Transfer all amount and deactivate the account.')}>
+                  <LoadingButton
+                    color='primary'
+                    disabled={safeMaxAmountLoading || !transfer}
+                    loading={allAmountLoading}
+                    name='All'
+                    onClick={HandleSetMax}
+                    size='small'
+                    sx={{ display: 'inline-block', fontSize: '11px', padding: 0 }}
+                    variant='outlined'
+                  >
+                    {t('All')}
+                  </LoadingButton>
+                </Tooltip>
               </Grid>
-              <Grid data-testid='nextButton' sx={{ padding: '35px 30px 10px' }}>
-                <NextStepButton
-                  data-button-action=''
-                  // isBusy={}
-                  isDisabled={nextButtonDisabled}
-                  onClick={handleNext}
-                >
-                  {nextButtonCaption}
-                </NextStepButton>
+              <Grid data-testid='safeMaxButton' item>
+                <Tooltip placement='right' title={t<string>('Transfer max amount where the account remains active.')}>
+                  <LoadingButton
+                    color='primary'
+                    disabled={allAmountLoading || !transfer}
+                    loading={safeMaxAmountLoading}
+                    name='Max'
+                    onClick={HandleSetMax}
+                    size='small'
+                    sx={{ display: 'inline-block', fontSize: '11px', padding: 0 }}
+                    variant='outlined'
+                  >
+                    {t('Max')}
+                  </LoadingButton>
+                </Tooltip>
               </Grid>
-              {recepient && api && api?.tx?.balances &&
-                <ConfirmTransfer
-                  api={api}
-                  chain={chain}
-                  confirmModalOpen={confirmModalOpen}
-                  handleTransferModalClose={handleTransferModalClose}
-                  lastFee={estimatedFee}
-                  recepient={recepient}
-                  sender={sender}
-                  setConfirmModalOpen={setConfirmModalOpen}
-                  transferAllType={transferAllType}
-                  transferAmount={transferAmount}
-                  proxy={proxy}
+            </Grid>
+            <Grid container item justifyContent='flex-start' sx={{ marginTop: '20px' }} xs={9}>
+              <Grid item sx={{ height: '20px' }} xs={12}>
+                <TextField
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{ endAdornment: (<InputAdornment position='end'>{token}</InputAdornment>) }}
+                  autoFocus
+                  color='warning'
+                  error={reapeAlert || feeAlert || zeroBalanceAlert}
+                  fullWidth
+                  helperText={reapeAlert
+                    ? (t('Account will be reaped, existential deposit:') + amountToHuman(String(ED), decimals) + ' ' + token)
+                    : (feeAlert ? t('Fee must be considered, use MAX button instead.') : (zeroBalanceAlert ? t('No available fund to transfer') : ''))}
+                  label={t('Transfer Amount')}
+                  margin='dense'
+                  name='transferAmount'
+                  onChange={handleTransferAmountChange}
+                  size='medium'
+                  type='number'
+                  value={transferAmountInHuman}
+                  variant='outlined'
                 />
-              }
-            </div>
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid data-testid='nextButton' sx={{ padding: '35px 30px 10px' }}>
+            <NextStepButton
+              data-button-action=''
+              // isBusy={}
+              isDisabled={nextButtonDisabled}
+              onClick={handleNext}
+            >
+              {nextButtonCaption}
+            </NextStepButton>
+          </Grid>
+          {recepient && api && api?.tx?.balances &&
+            <ConfirmTransfer
+              api={api}
+              chain={chain}
+              confirmModalOpen={confirmModalOpen}
+              handleTransferModalClose={handleTransferModalClose}
+              lastFee={estimatedFee}
+              recepient={recepient}
+              sender={sender}
+              setConfirmModalOpen={setConfirmModalOpen}
+              transferAllType={transferAllType}
+              transferAmount={transferAmount}
+            />
           }
-        </Popup>
+        </div>
       }
-    </>
+    </Popup>
   );
 }

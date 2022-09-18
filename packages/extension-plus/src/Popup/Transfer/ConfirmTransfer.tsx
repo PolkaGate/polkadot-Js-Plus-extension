@@ -8,13 +8,14 @@
  *  here users can double check their transfer information before submitting it to the blockchain 
  * */
 
-import { ArrowForwardRounded, InfoTwoTone as InfoTwoToneIcon, RefreshRounded } from '@mui/icons-material';
+import { ArrowForwardRounded, InfoTwoTone as InfoTwoToneIcon, RefreshRounded, SendOutlined as SendOutlinedIcon } from '@mui/icons-material';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
-import { Alert, Avatar, Box, CircularProgress, Divider, Grid, IconButton, Tooltip } from '@mui/material';
+import { Alert, Avatar, Box, CircularProgress, Divider, Grid, IconButton, Tooltip, Button as MuiButton } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
+import { Button } from '@polkadot/extension-ui/components';
 import Identicon from '@polkadot/react-identicon';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
@@ -24,10 +25,12 @@ import { AccountContext } from '../../../../extension-ui/src/components/contexts
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
-import { broadcast, signAndSend } from '../../util/api';
+import SelectProxy from '../../partials/SelectProxy';
+import { broadcast } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
 import { AccountsBalanceType, Proxy, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
+import { AccountJson } from '@polkadot/extension-base/background/types';
 
 interface Props {
   api: ApiPromise;
@@ -44,7 +47,7 @@ interface Props {
   proxy?: Proxy;
 }
 
-export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, proxy, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
+export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const [newFee, setNewFee] = useState<Balance | null>();
@@ -56,6 +59,9 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
   const [transferAmountInHuman, setTransferAmountInHuman] = useState('');
   const { hierarchy } = useContext(AccountContext);
   const [state, setState] = useState<string>('');
+  //SelectProxy states
+  const [proxy, setProxy] = useState<AccountJson | undefined>();
+  const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
@@ -92,6 +98,10 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
     setConfirmModalOpen(false);
     handleTransferModalClose();
   }, [handleTransferModalClose, setConfirmModalOpen]);
+
+  const handleUseProxy = useCallback((): void => {
+    setSelectProxyModalOpen(true);
+  }, []);
 
   const refreshNetworkFee = useCallback(async (): Promise<void> => {
     setNewFee(null);
@@ -177,6 +187,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
         }
       </Grid>
     </>);
+  const SendHeaderIcon = <SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />;
 
   return (
     <Popup handleClose={handleConfirmModaClose} showModal={confirmModalOpen}>
@@ -258,15 +269,33 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
         </Grid>
       </Grid>
       <Grid container item sx={{ p: '35px 20px' }} xs={12}>
-        <Password
-          autofocus={true}
-          handleIt={handleConfirm}
-          isDisabled={['confirming', 'success', 'failed'].includes(state)}
-          password={password}
-          passwordStatus={passwordStatus}
-          setPassword={setPassword}
-          setPasswordStatus={setPasswordStatus}
-        />
+        <Grid container item spacing={0.5} xs={12}>
+          <Grid item xs>
+            <Password
+              autofocus={true}
+              handleIt={handleConfirm}
+              helper={proxy ? t('Please enter the proxy account password') : undefined}
+              isDisabled={['confirming', 'success', 'failed'].includes(state)}
+              password={password}
+              passwordStatus={passwordStatus}
+              setPassword={setPassword}
+              setPasswordStatus={setPasswordStatus}
+            />
+          </Grid>
+          <Grid item sx={{ mr: 1, mt: '8px' }} xs={3}>
+            <MuiButton
+              color='info'
+              fullWidth
+              onClick={handleUseProxy}
+              size='large'
+              sx={{ height: '51.69px', px: '5px' }}
+              variant='outlined'
+
+            >
+              {proxy ? t('Using proxy') : t('Use proxy')}
+            </MuiButton>
+          </Grid>
+        </Grid>
         <ConfirmButton
           handleBack={handleConfirmModaClose}
           handleConfirm={handleConfirm}
@@ -274,6 +303,19 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           state={state}
         />
       </Grid>
+      {selectProxyModalOpen &&
+        <SelectProxy
+          acceptableTypes={['Any']}
+          api={api}
+          chain={chain}
+          icon={SendHeaderIcon}
+          realAddress={sender.address}
+          selectProxyModalOpen={selectProxyModalOpen}
+          setActionModalOpen={setSelectProxyModalOpen}
+          setProxy={setProxy}
+          setSelectProxyModalOpen={setSelectProxyModalOpen}
+        />
+      }
     </Popup>
   );
 }
