@@ -137,7 +137,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                 {showRoles &&
                   <Grid item xs={12}>
                     <Accordion disableGutters expanded={expanded === 'roles'} onChange={handleAccordionChange('roles')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>
-                      <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11 }}>
+                      <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11, height: '32px', minHeight: 'auto' }}>
                         {t('Roles')}
                       </AccordionSummary>
                       <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
@@ -154,9 +154,9 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                   </Grid>
                 }
                 {showIds && pool?.accounts &&
-                  <Grid item xs={12}>
+                  <Grid py={'4px'} item xs={12}>
                     <Accordion disableGutters expanded={expanded === 'ids'} onChange={handleAccordionChange('ids')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>
-                      <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11 }}>
+                      <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11, height: '30px', minHeight: 'auto' }}>
                         {t('Ids')}
                       </AccordionSummary>
                       <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
@@ -172,7 +172,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                 }
                 {showRewards && (!!pool?.rewardClaimable || !!pool?.rewardPool?.totalEarnings) &&
                   <Accordion disableGutters expanded={expanded === 'rewards'} onChange={handleAccordionChange('rewards')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>
-                    <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11 }}>
+                    <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11, height: '30px', minHeight: 'auto' }}>
                       {t('Rewards')}
                     </AccordionSummary>
                     <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
