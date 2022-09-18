@@ -340,7 +340,7 @@ function Plus({ address, chain, formattedAddress, givenType, name, t }: Props): 
   const handleOpenRecovery = useCallback((): void => {
     if (!chain || !onAction) { return; }
 
-    onAction(`/socialRecovery/${chain.genesisHash}/${address}`);
+    onAction(`/social-recovery/${chain.genesisHash}/${address}`);
   }, [address, chain, onAction]);
 
   const handleCloseRecovery = useCallback((): void => {
