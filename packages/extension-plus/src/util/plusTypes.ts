@@ -10,8 +10,8 @@ import type { BN } from '@polkadot/util';
 import type { KeypairType } from '@polkadot/util-crypto/types';
 
 import { ApiPromise } from '@polkadot/api';
-import { Balance } from '@polkadot/types/interfaces';
 import { AccountJson } from '@polkadot/extension-base/background/types';
+import { Balance } from '@polkadot/types/interfaces';
 
 export interface TransactionStatus {
   blockNumber: string | null;
