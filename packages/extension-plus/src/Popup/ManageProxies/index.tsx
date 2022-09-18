@@ -27,7 +27,7 @@ import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
 import { Hint, Identity, Progress, ShowBalance2 } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
-import { AddressState, NameAddress, ProxyItem } from '../../util/plusTypes';
+import { AddressState, NameAddress, Proxy, ProxyItem } from '../../util/plusTypes';
 import { getAllFormattedAddressesOnThisChain, getFormattedAddress } from '../../util/plusUtils';
 import AddProxy from './AddProxy';
 import Confirm from './Confirm';
@@ -59,8 +59,8 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const deposit = !available ? BN_ZERO : proxyDepositBase.add(proxyDepositFactor.muln(available)) as BN;
 
   const handleAddProxy = useCallback(() => {
-    setShowAddProxyModal(true);
-  }, []);
+    proxies && setShowAddProxyModal(true);
+  }, [proxies]);
 
   const handleRemoveProxy = useCallback((index: number): void => {
     proxies[index].status === 'current' ? proxies[index].status = 'remove' : proxies?.splice(index, 1);
@@ -86,7 +86,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
 
   useEffect(() => {
     formatted && api && api.query.proxy?.proxies(formatted).then((proxies) => {
-      const proxiyItems = (JSON.parse(JSON.stringify(proxies[0])))?.map((p) => ({ proxy: p, status: 'current' }));
+      const proxiyItems = (JSON.parse(JSON.stringify(proxies[0])))?.map((p: Proxy) => ({ proxy: p, status: 'current' })) as ProxyItem[];
 
       setProxies(proxiyItems);
       console.log('proxies:', proxiyItems);
@@ -139,7 +139,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
               <Hint id='addProxy' place='right' tip={t('add a proxy')}>
                 <IconButton
                   aria-label='addProxy'
-                  color='warning'
+                  color={proxies ? 'warning' : 'default'}
                   onClick={handleAddProxy}
                   size='small'
                 >
