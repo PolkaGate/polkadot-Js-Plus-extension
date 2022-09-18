@@ -39,6 +39,7 @@ interface Props {
   setActionModalOpen: Dispatch<SetStateAction<boolean>>;
   acceptableTypes: ProxyTypes[];
   icon: React.ReactElement<any, string | React.JSXElementConstructor<any>>;
+  loadedProxies?: Proxy[];
 }
 
 /** find an account in our list */
@@ -56,12 +57,12 @@ function findSubstrateAccount(accounts: AccountJson[], publicKey: Uint8Array): A
   ) || null;
 }
 
-export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, api, chain, icon, realAddress, selectProxyModalOpen, setActionModalOpen, setProxy, setSelectProxyModalOpen }: Props): React.ReactElement<Props> {
+export default function SelectProxy({ acceptableTypes, loadedProxies, allAddresesOnSameChain, api, chain, icon, realAddress, selectProxyModalOpen, setActionModalOpen, setProxy, setSelectProxyModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
 
-  const [proxies, setProxies] = useState<Proxy[] | undefined>();
+  const [proxies, setProxies] = useState<Proxy[] | undefined>(loadedProxies?.length ? loadedProxies : undefined);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | undefined>();
 
   const recodeAddress = useCallback((address: string, accounts: AccountWithChildren[], settings: SettingsStruct, chain?: Chain | null): Recoded => {
@@ -105,7 +106,8 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
   }, [allAddresesOnSameChain, accounts, chain, recodeAddress, settings, realAddress]);
 
   useEffect(() => {
-    realAddress && api && api.query.proxy?.proxies(realAddress).then((proxies) => setProxies(JSON.parse(JSON.stringify(proxies[0]))));
+    !proxies && realAddress && api && api.query.proxy?.proxies(realAddress).then((proxies) => setProxies(JSON.parse(JSON.stringify(proxies[0]))));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, chain, realAddress]);
 
   const isAvailable = useCallback((address: string): NameAddress => allAddreses?.find((a) => a.formattedAddress === address), [allAddreses]);

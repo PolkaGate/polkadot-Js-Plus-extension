@@ -10,12 +10,12 @@
 
 import { ArrowForwardRounded, InfoTwoTone as InfoTwoToneIcon, RefreshRounded, SendOutlined as SendOutlinedIcon } from '@mui/icons-material';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
-import { Alert, Avatar, Box, CircularProgress, Divider, Grid, IconButton, Tooltip, Button as MuiButton } from '@mui/material';
+import { Alert, Avatar, Box, Button as MuiButton, CircularProgress, Divider, Grid, IconButton, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { Button } from '@polkadot/extension-ui/components';
+import { AccountJson } from '@polkadot/extension-base/background/types';
 import Identicon from '@polkadot/react-identicon';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
@@ -25,12 +25,12 @@ import { AccountContext } from '../../../../extension-ui/src/components/contexts
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
+import useProxies from '../../hooks/useProxies';
 import SelectProxy from '../../partials/SelectProxy';
 import { broadcast } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
 import { AccountsBalanceType, Proxy, TransactionDetail } from '../../util/plusTypes';
 import { amountToHuman, fixFloatingPoint, saveHistory } from '../../util/plusUtils';
-import { AccountJson } from '@polkadot/extension-base/background/types';
 
 interface Props {
   api: ApiPromise;
@@ -49,7 +49,7 @@ interface Props {
 
 export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-
+  const proxies = useProxies(api, sender.address);
   const [newFee, setNewFee] = useState<Balance | null>();
   const [total, setTotal] = useState<string | null>(null);
   const [confirmDisabled, setConfirmDisabled] = useState<boolean>(true);
@@ -59,7 +59,6 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
   const [transferAmountInHuman, setTransferAmountInHuman] = useState('');
   const { hierarchy } = useContext(AccountContext);
   const [state, setState] = useState<string>('');
-  //SelectProxy states
   const [proxy, setProxy] = useState<AccountJson | undefined>();
   const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
@@ -275,26 +274,28 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
               autofocus={true}
               handleIt={handleConfirm}
               helper={proxy ? t('Please enter the proxy account password') : undefined}
-              isDisabled={['confirming', 'success', 'failed'].includes(state)}
+              isDisabled={['confirming', 'success', 'failed'].includes(state) || (sender.isProxied && !proxy)}
               password={password}
               passwordStatus={passwordStatus}
               setPassword={setPassword}
               setPasswordStatus={setPasswordStatus}
             />
           </Grid>
-          <Grid item sx={{ mr: 1, mt: '8px' }} xs={3}>
-            <MuiButton
-              color='info'
-              fullWidth
-              onClick={handleUseProxy}
-              size='large'
-              sx={{ height: '51.69px', px: '5px' }}
-              variant='outlined'
+          {!!proxies?.length &&
+            <Grid item sx={{ mr: 1, mt: '8px' }} xs={3}>
+              <MuiButton
+                color='info'
+                fullWidth
+                onClick={handleUseProxy}
+                size='large'
+                sx={{ height: '51.69px', px: '5px' }}
+                variant='outlined'
 
-            >
-              {proxy ? t('Using proxy') : t('Use proxy')}
-            </MuiButton>
-          </Grid>
+              >
+                {proxy ? t('Using proxy') : t('Use proxy')}
+              </MuiButton>
+            </Grid>
+          }
         </Grid>
         <ConfirmButton
           handleBack={handleConfirmModaClose}
@@ -313,6 +314,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           selectProxyModalOpen={selectProxyModalOpen}
           setActionModalOpen={setSelectProxyModalOpen}
           setProxy={setProxy}
+          proxies={proxies}
           setSelectProxyModalOpen={setSelectProxyModalOpen}
         />
       }
