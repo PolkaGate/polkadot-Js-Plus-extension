@@ -142,7 +142,7 @@ export default function ValidatorInfo({ api, chain, info, ledger, setShowValidat
         <Grid item sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%' }} xs={12}>
           {sortedNominators.map(({ value, who }, index) => {
             const staked = api.createType('Balance', value);
-            const precent = (parseFloat(value.toString()) * 100 / parseFloat(total.toString())).toFixed(2);
+            const precent = (Number(value.toString()) * 100 / Number(total.toString())).toFixed(2);
 
             return (
               <Paper elevation={2} key={index} sx={{ bgcolor: index === myIndex ? SELECTED_COLOR : '', my: 1, p: '5px' }}>
