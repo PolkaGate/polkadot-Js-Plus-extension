@@ -25,7 +25,7 @@ import { AccountContext } from '../../../../extension-ui/src/components/contexts
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
-import useProxies from '../../hooks/useProxies';
+import {useProxies} from '../../hooks';
 import SelectProxy from '../../partials/SelectProxy';
 import { broadcast } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
@@ -312,7 +312,6 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           loadedProxies={proxies}
           realAddress={sender.address}
           selectProxyModalOpen={selectProxyModalOpen}
-          setActionModalOpen={setSelectProxyModalOpen}
           setProxy={setProxy}
           setSelectProxyModalOpen={setSelectProxyModalOpen}
         />
