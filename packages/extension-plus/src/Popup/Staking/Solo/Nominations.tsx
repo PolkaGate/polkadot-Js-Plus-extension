@@ -22,7 +22,7 @@ import { Chain } from '../../../../../extension-chains/src/types';
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
-import ValidatorsList from './ValidatorsList';
+import ValidatorsList from '../common/ValidatorsList';
 
 interface Props {
   activeValidators: DeriveStakingQuery[] | undefined;

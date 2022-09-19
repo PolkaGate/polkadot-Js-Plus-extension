@@ -19,6 +19,7 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { Chain } from '@polkadot/extension-chains/types';
 import Identicon from '@polkadot/react-identicon';
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Identity, PlusHeader, Popup, ShortAddress } from '../../../components';
@@ -105,9 +106,9 @@ export default function ValidatorInfo({ api, chain, info, ledger, setShowValidat
               <Grid item sx={{ pl: 3, pt: 1, textAlign: 'left' }} xs={6}>
                 {t('Commission')}{': '}   {info.validatorPrefs.commission === 1 ? 0 : info.validatorPrefs.commission / (10 ** 7)}%
               </Grid>
-              {myIndex && myIndex !== -1
+              {myIndex >= 0
                 ? <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
-                  {t('Your rank')}{': '}{myIndex + 1}
+                  {t('My rank')}{': '}{myIndex + 1}
                 </Grid>
                 : myPossibleIndex && myPossibleIndex !== -1 &&
                 <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
@@ -117,17 +118,31 @@ export default function ValidatorInfo({ api, chain, info, ledger, setShowValidat
             </Grid>
           </Paper>
         </Grid>
-        <Grid container item justifyContent='center' spacing={1} xs={12}>
-          <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 15, textAlign: 'center', p: '10px 0px 5px' }}>
+        <Grid alignItems='center' container item justifyContent='center' spacing={1} sx={{ p: '10px 0px 5px' }} xs={12}>
+          <Grid item sx={{ color: grey[600], fontSize: 15, fontWeight: 500, textAlign: 'center' }}>
             {t('Nominators')}
           </Grid>
           <Grid item sx={{ fontSize: 12 }}>
             ({info?.exposure?.others?.length})
           </Grid>
         </Grid>
-        <Grid item sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: 2 }} xs={12}>
+        <Paper elevation={2} sx={{ bgcolor: grey[100], p: '5px' }}>
+          <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
+            <Grid item pl='40px' xs={7}>
+              {t('account')}
+            </Grid>
+            <Grid item pr='20px' sx={{ textAlign: 'right' }} xs={3}>
+              {t('staked')}
+            </Grid>
+            <Grid item pr='10px' sx={{ textAlign: 'right' }} xs={2}>
+              {t('percent')}
+            </Grid>
+          </Grid>
+        </Paper>
+        <Grid item sx={{ bgcolor: 'background.paper', height: '300px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%' }} xs={12}>
           {sortedNominators.map(({ value, who }, index) => {
             const staked = api.createType('Balance', value);
+            const precent = (parseFloat(value.toString()) * 100 / parseFloat(total.toString())).toFixed(2);
 
             return (
               <Paper elevation={2} key={index} sx={{ bgcolor: index === myIndex ? SELECTED_COLOR : '', my: 1, p: '5px' }}>
@@ -143,8 +158,11 @@ export default function ValidatorInfo({ api, chain, info, ledger, setShowValidat
                   <Grid item sx={{ textAlign: 'left' }} xs={6}>
                     <ShortAddress address={who} charsCount={8} fontSize={12} />
                   </Grid>
-                  <Grid item sx={{ textAlign: 'right' }} xs={5}>
+                  <Grid item sx={{ textAlign: 'right' }} xs={3}>
                     {staked.toHuman()}
+                  </Grid>
+                  <Grid item sx={{ textAlign: 'right' }} xs={2}>
+                    {precent.toString()}%
                   </Grid>
                 </Grid>
               </Paper>

@@ -31,7 +31,7 @@ import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import getLogo from '../../../util/getLogo';
 import { AccountsBalanceType, Proxy,PutInFrontInfo, RebagInfo, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
-import ValidatorsList from './ValidatorsList';
+import ValidatorsList from '../common/ValidatorsList';
 
 interface Props {
   chain: Chain;

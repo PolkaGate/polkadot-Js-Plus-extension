@@ -20,8 +20,8 @@ import { Chain } from '@polkadot/extension-chains/types';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
 import { AccountsBalanceType, StakingConsts } from '../../../util/plusTypes';
-import ValidatorInfo from './ValidatorInfo';
 import VTable from './VTable';
+import ValidatorInfo from './ValidatorInfo';
 
 interface Props {
   activeValidators?: DeriveStakingQuery[];

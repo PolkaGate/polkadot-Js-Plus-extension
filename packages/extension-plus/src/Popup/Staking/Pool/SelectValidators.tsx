@@ -25,8 +25,8 @@ import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, PlusHeader, Popup } from '../../../components';
 import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
-import ShowValidator from '../Solo/ShowValidator';
-import ValidatorInfo from '../Solo/ValidatorInfo';
+import ValidatorInfo from '../common/ValidatorInfo';
+import ShowValidator from '../common/ShowValidator';
 import ConfirmStaking from './ConfirmStaking';
 
 interface Props {

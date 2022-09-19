@@ -29,7 +29,7 @@ import { ConfirmButton, FormatBalance, Hint, Password, PlusHeader, Popup } from 
 import { broadcast, createPool, editPool, signAndSend } from '../../../util/api';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
-import ValidatorsList from '../Solo/ValidatorsList';
+import ValidatorsList from '../common/ValidatorsList';
 import Pool from './Pool';
 
 interface Props {

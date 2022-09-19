@@ -25,9 +25,9 @@ import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation
 import { Hint, PlusHeader, Popup } from '../../../components';
 import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
 import { AccountsBalanceType, Proxy, StakingConsts, Validators } from '../../../util/plusTypes';
+import ValidatorInfo from '../common/ValidatorInfo';
 import ConfirmStaking from './ConfirmStaking';
-import ShowValidator from './ShowValidator';
-import ValidatorInfo from './ValidatorInfo';
+import ShowValidator from '../common/ShowValidator';
 
 interface Props {
   chain: Chain;

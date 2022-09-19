@@ -25,7 +25,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
-import ValidatorsList from '../Solo/ValidatorsList';
+import ValidatorsList from '../common/ValidatorsList';
 
 interface Props {
   activeValidators: DeriveStakingQuery[] | undefined;
