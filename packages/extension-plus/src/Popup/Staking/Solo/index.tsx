@@ -28,7 +28,6 @@ import { PlusHeader, Popup } from '../../../components';
 import getRewardsSlashes from '../../../util/api/getRewardsSlashes';
 import { getStakingReward } from '../../../util/api/staking';
 import { MAX_ACCEPTED_COMMISSION, MAX_REWARDS_TO_SHOW } from '../../../util/constants';
-import { Proxy } from '../../../util/plusTypes';
 import { amountToHuman, balanceToHuman, prepareMetaData } from '../../../util/plusUtils';
 import { getRewards } from '../../../util/subquery/staking';
 import ConfirmStaking from './ConfirmStaking';
@@ -58,7 +57,6 @@ interface Props {
   currentEraIndex: number | undefined;
   gettingNominatedValidatorsInfoFromChain: boolean;
   validatorsInfoIsUpdated: boolean;
-  proxy?: Proxy;
 }
 
 const workers: Worker[] = [];
@@ -67,7 +65,7 @@ BigInt.prototype.toJSON = function () {
   return this.toString()
 };
 
-export default function SoloStaking({ account, api, chain, currentEraIndex, endpoint, gettingNominatedValidatorsInfoFromChain, ledger, localStrorageIsUpdate, nominatorInfo, proxy, setStakingModalOpen, showStakingModal, staker, stakingConsts, validatorsIdentities, validatorsInfo, validatorsInfoIsUpdated }: Props): React.ReactElement<Props> {
+export default function SoloStaking({ account, api, chain, currentEraIndex, endpoint, gettingNominatedValidatorsInfoFromChain, ledger, localStrorageIsUpdate, nominatorInfo, setStakingModalOpen, showStakingModal, staker, stakingConsts, validatorsIdentities, validatorsInfo, validatorsInfoIsUpdated }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [totalReceivedReward, setTotalReceivedReward] = useState<string>();
   const [showConfirmStakingModal, setConfirmStakingModalOpen] = useState<boolean>(false);
@@ -547,7 +545,6 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
               state={state}
               validatorsIdentities={validatorsIdentities}
               validatorsInfo={validatorsInfo}
-              proxy={proxy}
             />
           </TabPanel>
           <TabPanel index={3} value={tabValue}>
@@ -566,7 +563,6 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
           chain={chain}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
-          proxy={proxy}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}
           setState={setState}
           showSelectValidatorsModal={showSelectValidatorsModal}
@@ -586,7 +582,6 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
           handleSoloStakingModalClose={handleSoloStakingModalClose}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
-          proxy={proxy}
           putInFrontInfo={putInFrontInfo}
           rebagInfo={rebagInfo}
           selectedValidators={selectedValidators}

@@ -27,9 +27,7 @@ import { BN, bnMax } from '@polkadot/util';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { PlusHeader, Popup, ShowBalance2 } from '../../components';
-import { useEndpoint} from '../../hooks';
-import SelectProxy from '../../partials/SelectProxy';
-import { Proxy } from '../../util/plusTypes';
+import { useEndpoint } from '../../hooks';
 import { prepareMetaData } from '../../util/plusUtils';
 import PoolStaking from './Pool/Index';
 import SoloStaking from './Solo/Index';
@@ -66,8 +64,6 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
   const [validatorsIdentities, setValidatorsIdentities] = useState<DeriveAccountInfo[] | undefined>();
   const [localStrorageIsUpdate, setStoreIsUpdate] = useState<boolean>(false);
   const [currentEraIndex, setCurrentEraIndex] = useState<number | undefined>();
-  const [proxy, setProxy] = useState<Proxy | undefined>(); //SelectProxy states
-  const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
   const getStakingConsts = useCallback((chain: Chain, endpoint: string) => {
     /** 1- get some staking constant like min Nominator Bond ,... */
@@ -187,10 +183,6 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
       getValidatorsInfoWorker.terminate();
     };
   };
-
-  useEffect(() => {
-    account?.isExternal && !proxy && setSelectProxyModalOpen(true);
-  }, [proxy, account?.isExternal]);
 
   useEffect(() => {
     /** retrive validatorInfo from local sorage */
@@ -351,21 +343,19 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
     api?.tx?.nominationPools && setPoolStakingOpen(true);
   }, [api]);
 
-  const HeaderIcon = <FontAwesomeIcon icon={faCoins} size='sm' />
-
   const Option = ({ _onClick, condition = true, conditionalText, icon, min, subTitle, text, title, titleColor, type }:
-  {
-    conditionalText?: string,
-    condition?: boolean,
-    min: BN | undefined,
-    subTitle: string,
-    text: string,
-    type: 'solo' | 'pool',
-    _onClick: React.MouseEventHandler<HTMLButtonElement | HTMLDivElement>,
-    icon: JSX.Element,
-    title: string,
-    titleColor: string
-  }) => (
+    {
+      conditionalText?: string,
+      condition?: boolean,
+      min: BN | undefined,
+      subTitle: string,
+      text: string,
+      type: 'solo' | 'pool',
+      _onClick: React.MouseEventHandler<HTMLButtonElement | HTMLDivElement>,
+      icon: JSX.Element,
+      title: string,
+      titleColor: string
+    }) => (
     <Paper elevation={stakingType === type ? 8 : 4} onClick={_onClick} onMouseOver={() => setStakingType(type)} sx={{ borderRadius: '10px', height: 400, pt: 1, width: '45%', cursor: 'pointer' }}>
       <Grid alignItems='center' container direction='column' justifyContent='center' sx={{ fontSize: 14, fontWeight: 700, py: 1 }}>
         <Grid item>
@@ -408,77 +398,70 @@ export default function StakingIndex({ account, api, chain, ledger, setStakingMo
   );
 
   return (
-    <>
-      {account?.isExternal && !proxy
-        ? <SelectProxy acceptableTypes={['Any', 'Staking', 'NonTransfer']} api={api} chain={chain} icon={HeaderIcon} realAddress={staker.address} selectProxyModalOpen={selectProxyModalOpen} setActionModalOpen={setStakingModalOpen} setProxy={setProxy} setSelectProxyModalOpen={setSelectProxyModalOpen} />
-        : <Popup handleClose={handleStakingModalClose} showModal={showStakingModal}>
-          <PlusHeader action={handleStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
-          <Grid alignItems='center' container justifyContent='space-around' sx={{ p: '60px 10px' }}>
-            <Option
-              _onClick={() => setSoloStakingOpen(true)}
-              icon={<CircleOutlinedIcon sx={{ color: blue[900], fontSize: 30 }} />}
-              min={minToReceiveRewardsInSolo}
-              subTitle={t('Min to receive rewards')}
-              text={t('Stakers (nominators) with sufficient amount of tokens can choose solo staking. Each solo staker will be responsible to nominate validators and keep eyes on them to re-nominate if needed.')}
-              title={t('SOLO STAKING')}
-              titleColor={blue[600]}
-              type='solo'
-            />
-            <Option
-              _onClick={handlePoolStakingModalOpen}
-              condition={!api ? true : !!api?.tx?.nominationPools}
-              conditionalText={t('Pool staking is not available on {{chainName}} yet', { replace: { chainName } })}
-              icon={<GroupWorkOutlinedIcon sx={{ color: green[900], fontSize: 30 }} />}
-              min={poolStakingConsts?.minJoinBond}
-              subTitle={t('Min to join a pool')}
-              text={t('Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member\'s stake in the bonded pool.')}
-              title={t('POOL STAKING')}
-              titleColor={green[600]}
-              type='pool'
-            />
-          </Grid>
-          {soloStakingOpen &&
-            <SoloStaking
-              account={account}
-              api={api}
-              chain={chain}
-              currentEraIndex={currentEraIndex}
-              endpoint={endpoint}
-              gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
-              ledger={ledger}
-              localStrorageIsUpdate={localStrorageIsUpdate}
-              nominatorInfo={nominatorInfo}
-              proxy={proxy}
-              setStakingModalOpen={setStakingModalOpen}
-              showStakingModal={showStakingModal}
-              staker={staker}
-              stakingConsts={stakingConsts}
-              validatorsIdentities={validatorsIdentities}
-              validatorsInfo={validatorsInfo}
-              validatorsInfoIsUpdated={validatorsInfoIsUpdated}
-            />
-          }
-          {poolStakingOpen &&
-            <PoolStaking
-              account={account}
-              api={api}
-              chain={chain}
-              currentEraIndex={currentEraIndex}
-              endpoint={endpoint}
-              gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
-              poolStakingConsts={poolStakingConsts}
-              proxy={proxy}
-              setStakingModalOpen={setStakingModalOpen}
-              showStakingModal={showStakingModal}
-              staker={staker}
-              stakingConsts={stakingConsts}
-              validatorsIdentities={validatorsIdentities}
-              validatorsInfo={validatorsInfo}
-              validatorsInfoIsUpdated={validatorsInfoIsUpdated}
-            />
-          }
-        </Popup>
+    <Popup handleClose={handleStakingModalClose} showModal={showStakingModal}>
+      <PlusHeader action={handleStakingModalClose} chain={chain} closeText={'Close'} icon={<FontAwesomeIcon icon={faCoins} size='sm' />} title={'Easy Staking'} />
+      <Grid alignItems='center' container justifyContent='space-around' sx={{ p: '60px 10px' }}>
+        <Option
+          _onClick={() => setSoloStakingOpen(true)}
+          icon={<CircleOutlinedIcon sx={{ color: blue[900], fontSize: 30 }} />}
+          min={minToReceiveRewardsInSolo}
+          subTitle={t('Min to receive rewards')}
+          text={t('Stakers (nominators) with sufficient amount of tokens can choose solo staking. Each solo staker will be responsible to nominate validators and keep eyes on them to re-nominate if needed.')}
+          title={t('SOLO STAKING')}
+          titleColor={blue[600]}
+          type='solo'
+        />
+        <Option
+          _onClick={handlePoolStakingModalOpen}
+          condition={!api ? true : !!api?.tx?.nominationPools}
+          conditionalText={t('Pool staking is not available on {{chainName}} yet', { replace: { chainName } })}
+          icon={<GroupWorkOutlinedIcon sx={{ color: green[900], fontSize: 30 }} />}
+          min={poolStakingConsts?.minJoinBond}
+          subTitle={t('Min to join a pool')}
+          text={t('Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member\'s stake in the bonded pool.')}
+          title={t('POOL STAKING')}
+          titleColor={green[600]}
+          type='pool'
+        />
+      </Grid>
+      {soloStakingOpen &&
+        <SoloStaking
+          account={account}
+          api={api}
+          chain={chain}
+          currentEraIndex={currentEraIndex}
+          endpoint={endpoint}
+          gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
+          ledger={ledger}
+          localStrorageIsUpdate={localStrorageIsUpdate}
+          nominatorInfo={nominatorInfo}
+          setStakingModalOpen={setStakingModalOpen}
+          showStakingModal={showStakingModal}
+          staker={staker}
+          stakingConsts={stakingConsts}
+          validatorsIdentities={validatorsIdentities}
+          validatorsInfo={validatorsInfo}
+          validatorsInfoIsUpdated={validatorsInfoIsUpdated}
+        />
       }
-    </>
+      {poolStakingOpen &&
+        <PoolStaking
+          account={account}
+          api={api}
+          chain={chain}
+          currentEraIndex={currentEraIndex}
+          endpoint={endpoint}
+          gettingNominatedValidatorsInfoFromChain={gettingNominatedValidatorsInfoFromChain}
+          poolStakingConsts={poolStakingConsts}
+          setStakingModalOpen={setStakingModalOpen}
+          showStakingModal={showStakingModal}
+          staker={staker}
+          stakingConsts={stakingConsts}
+          validatorsIdentities={validatorsIdentities}
+          validatorsInfo={validatorsInfo}
+          validatorsInfoIsUpdated={validatorsInfoIsUpdated}
+        />
+      }
+    </Popup>
   );
 }
