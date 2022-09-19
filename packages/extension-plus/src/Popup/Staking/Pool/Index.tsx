@@ -454,6 +454,7 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
             <InfoTab
               api={api}
               info={poolStakingConsts}
+              currentlyExistingPoolsCount={poolsInfo?.length}
             />
           </TabPanel>
         </Grid>

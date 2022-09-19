@@ -23,9 +23,10 @@ import { ShowBalance2, ShowValue } from '../../../components';
 interface Props {
   api: ApiPromise | undefined;
   info: PoolStakingConsts | undefined;
+  currentlyExistingPoolsCount: number | undefined;
 }
 
-function InfoTab({ api, info }: Props): React.ReactElement<Props> {
+function InfoTab({ api, currentlyExistingPoolsCount, info }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const token = api && api.registry.chainTokens[0];
 
@@ -46,7 +47,7 @@ function InfoTab({ api, info }: Props): React.ReactElement<Props> {
           <ShowBalance2 api={api} balance={info?.minCreationBond} direction='row' title={`${t('Minimum {{token}}s needed to create a pool', { replace: { token: token } })}:`} />
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <ShowValue title={`${t('The number of currenttly existing pools')}:`} value={info?.lastPoolId?.toString()} />
+          <ShowValue title={`${t('The number of currenttly existing pools')}:`} value={currentlyExistingPoolsCount} />
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <ShowValue title={`${t('Maximum possible pools')}:`} value={info?.maxPools === -1 ? t('unlimited') : info?.maxPools} />
