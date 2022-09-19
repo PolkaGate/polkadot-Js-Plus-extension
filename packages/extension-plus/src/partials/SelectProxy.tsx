@@ -36,7 +36,6 @@ interface Props {
   setSelectProxyModalOpen: Dispatch<SetStateAction<boolean>>;
   realAddress: string;
   allAddresesOnSameChain?: { formattedAddress: string, account: AccountJson }[];
-  setActionModalOpen: Dispatch<SetStateAction<boolean>>;
   acceptableTypes: ProxyTypes[];
   icon: React.ReactElement<any, string | React.JSXElementConstructor<any>>;
   loadedProxies?: Proxy[];
@@ -57,7 +56,7 @@ function findSubstrateAccount(accounts: AccountJson[], publicKey: Uint8Array): A
   ) || null;
 }
 
-export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, api, chain, icon, loadedProxies, realAddress, selectProxyModalOpen, setActionModalOpen, setProxy, setSelectProxyModalOpen }: Props): React.ReactElement<Props> {
+export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, api, chain, icon, loadedProxies, realAddress, selectProxyModalOpen, setProxy, setSelectProxyModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
@@ -114,8 +113,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
 
   const handleSelectProxyModalClose = useCallback((): void => {
     setSelectProxyModalOpen(false);
-    setActionModalOpen(false);
-  }, [setSelectProxyModalOpen, setActionModalOpen]);
+  }, [setSelectProxyModalOpen]);
 
   const handleOptionChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOptionIndex(Number(event.target.value));
