@@ -75,8 +75,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
   const addProxy = api.tx.proxy.addProxy; /** (delegate, proxyType, delay) **/
   const batchAll = api.tx.utility.batchAll;
 
-  const calls = useMemo((): SubmittableExtrinsic<'promise'> => {
-    let temp: SubmittableExtrinsic<'promise'> = [];
+  const calls = useMemo((): SubmittableExtrinsic<'promise'>[] => {
+    const temp: SubmittableExtrinsic<'promise'>[] = [];
 
     proxies.forEach((item: ProxyItem) => {
       const p = item.proxy;
@@ -88,7 +88,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
     return temp;
   }, [addProxy, proxies, removeProxy]);
 
-  const tx = batchAll(calls);
+  const tx = calls.length > 1 ? batchAll(calls) : calls[0];
 
   console.log('api.tx.proxy.addProxy.meta.args.length:', api.tx.proxy.addProxy.meta.args.length);
 
@@ -186,7 +186,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
         <Grid container item sx={{ borderLeft: '2px solid', borderBottom: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 170, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
           {proxies.filter((item) => item.status !== 'current').map((item, index) => {
             const proxy = item.proxy;
-           
+
             return (
               <Grid container item key={index} sx={{ fontSize: 13 }}>
                 <Grid item xs={5.5}>
