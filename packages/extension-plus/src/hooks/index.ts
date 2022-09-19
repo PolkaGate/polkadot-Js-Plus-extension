@@ -4,3 +4,4 @@
 export { useMapEntries } from './useMapEntries';
 export { default as useApi } from './useApi';
 export { default as useEndpoint } from './useEndpoint';
+export { default as useProxies } from './useProxies';
