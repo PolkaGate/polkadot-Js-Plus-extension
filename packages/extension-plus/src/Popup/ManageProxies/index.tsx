@@ -25,7 +25,7 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import { AccountContext, SettingsContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Header } from '../../../../extension-ui/src/partials';
-import { Hint, Identity, Progress, ShowBalance2 } from '../../components';
+import { Hint, Identity2, Progress, ShowBalance2 } from '../../components';
 import { useApi, useEndpoint } from '../../hooks';
 import { AddressState, NameAddress, Proxy, ProxyItem } from '../../util/plusTypes';
 import { getAllFormattedAddressesOnThisChain, getFormattedAddress } from '../../util/plusUtils';
@@ -46,7 +46,6 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const endpoint = useEndpoint(accounts, address, chain);
   const api = useApi(endpoint);
   const [proxies, setProxies] = useState<ProxyItem[] | undefined>();
-  const [proxyInfo, setProxyInfo] = useState<DeriveAccountInfo[] | undefined>();
   const [addressesOnThisChain, setAddressesOnThisChain] = useState<NameAddress[]>([]);
   const [showAddProxyModal, setShowAddProxyModal] = useState<boolean>(false);
   const [nextIsDisabled, setNextIsDisabled] = useState<boolean>(false);
@@ -92,26 +91,6 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
       console.log('proxies:', proxiyItems);
     });
   }, [api, chain, formatted]);
-
-  useEffect(() => {
-    if (!proxies?.length) {
-      return;
-    }
-
-    const proxyInfo = proxies?.map((p) => {
-      const mayBeFound = accounts.find((acc) => {
-        const formattedAcc = getFormattedAddress(acc.address, chain, settings.prefix);
-
-        if (formattedAcc === p.proxy.delegate) {
-          return acc;
-        }
-      });
-
-      return { accountId: p.proxy.delegate, nickname: mayBeFound?.name };
-    });
-
-    setProxyInfo(proxyInfo);
-  }, [accounts, chain, formatted, proxies, settings.prefix]);
 
   const handleNext = useCallback(() => {
     setConfirmModalOpen(true);
@@ -179,15 +158,14 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
               </Grid>
             </Grid>
           }
-          {!!proxies?.length && proxyInfo &&
+          {!!proxies?.length && 
             <>
               {proxies?.map((item, index) => {
-                const info = proxyInfo.find((p) => p.accountId == item.proxy.delegate);
 
                 return (
                   <Grid container fontSize={14} item key={index} sx={item.status === 'remove' ? { textDecorationLine: 'line-through', textDecorationColor: 'red' } : ''} >
                     <Grid item xs={6}>
-                      <Identity accountInfo={info} chain={chain} />
+                      <Identity2 address={item.proxy.delegate} api={api} chain={chain} />
                     </Grid>
                     <Grid item xs={3}>
                       {item.proxy.proxyType}
@@ -240,14 +218,13 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
           showAddProxyModal={showAddProxyModal} />
       }
       {
-        showConfirmModal && chain && api && formatted && proxies && proxyInfo &&
+        showConfirmModal && chain && api && formatted && proxies &&
         <Confirm
           api={api}
           chain={chain}
           deposit={deposit}
           formatted={formatted}
           proxies={proxies}
-          proxyInfo={proxyInfo}
           setConfirmModalOpen={setConfirmModalOpen}
           showConfirmModal={showConfirmModal}
         />

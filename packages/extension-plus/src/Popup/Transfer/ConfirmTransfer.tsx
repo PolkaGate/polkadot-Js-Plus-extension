@@ -44,7 +44,6 @@ interface Props {
   transferAmount: bigint;
   handleTransferModalClose: () => void;
   transferAllType?: string;
-  proxy?: Proxy;
 }
 
 export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
@@ -59,7 +58,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
   const [transferAmountInHuman, setTransferAmountInHuman] = useState('');
   const { hierarchy } = useContext(AccountContext);
   const [state, setState] = useState<string>('');
-  const [proxy, setProxy] = useState<AccountJson | undefined>();
+  const [proxy, setProxy] = useState<Proxy | undefined>();
   const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
   const decimals = api.registry.chainDecimals[0];
@@ -310,11 +309,11 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
           api={api}
           chain={chain}
           icon={SendHeaderIcon}
+          loadedProxies={proxies}
           realAddress={sender.address}
           selectProxyModalOpen={selectProxyModalOpen}
           setActionModalOpen={setSelectProxyModalOpen}
           setProxy={setProxy}
-          proxies={proxies}
           setSelectProxyModalOpen={setSelectProxyModalOpen}
         />
       }

@@ -76,7 +76,7 @@ export default function AddressTextBox({ addresesOnThisChain, address, autoFocus
               autoFocus={autoFocus}
               // error={!address}
               label={label}
-              placeholder={t('Enter the address of your proxied account')}
+              placeholder={t('Enter the address of your account')}
             />
           }
           sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}

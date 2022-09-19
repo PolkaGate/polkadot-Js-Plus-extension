@@ -16,7 +16,7 @@ import type { ThemeProps } from '../../../../extension-ui/src/types';
 import { ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Container, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useContext, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
@@ -26,7 +26,7 @@ import { BN } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
-import { ConfirmButton, Identity, Password, PlusHeader, Popup, ShowBalance2 } from '../../components';
+import { ConfirmButton, Identity, Identity2, Password, PlusHeader, Popup, ShowBalance2 } from '../../components';
 import { signAndSend } from '../../util/api/signAndSend';
 import { PASS_MAP } from '../../util/constants';
 import { ProxyItem, TransactionDetail } from '../../util/plusTypes';
@@ -41,7 +41,6 @@ interface Props extends ThemeProps {
   formatted: string;
   deposit: BN;
   proxies: ProxyItem[];
-  proxyInfo: DeriveAccountInfo[];
 }
 
 async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
@@ -57,7 +56,7 @@ async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], addre
   return updateMeta(accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory));
 }
 
-export default function Confirm({ api, chain, className, deposit, formatted, proxies, proxyInfo, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
+export default function Confirm({ api, chain, className, deposit, formatted, proxies, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
   const { hierarchy } = useContext(AccountContext);
@@ -70,7 +69,6 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
 
   const adding = proxies?.filter((item: ProxyItem) => item.status === 'new')?.length ?? 0;
   const removing = proxies?.filter((item) => item.status === 'remove')?.length ?? 0;
-
   const batchedCallsLimit = api.consts.utility.batchedCallsLimit;
 
   const removeProxy = api.tx.proxy.removeProxy; /** (delegate, proxyType, delay) **/
@@ -79,7 +77,6 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
 
   const calls = useMemo((): SubmittableExtrinsic<'promise'> => {
     let temp: SubmittableExtrinsic<'promise'> = [];
-    console.log('1')
 
     proxies.forEach((item: ProxyItem) => {
       const p = item.proxy;
@@ -96,11 +93,9 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
   console.log('api.tx.proxy.addProxy.meta.args.length:', api.tx.proxy.addProxy.meta.args.length);
 
   useEffect(() => {
-  console.log('2')
-
     // eslint-disable-next-line no-void
     void tx.paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
-  }, [formatted]);
+  }, [formatted, tx]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);
@@ -189,33 +184,27 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
           </Grid>
         </Grid>
         <Grid container item sx={{ borderLeft: '2px solid', borderBottom: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 170, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
-          {proxyInfo &&
-            <>
-              {proxies.filter((item) => item.status !== 'current').map((item, index) => {
-                const proxy = item.proxy;
-                const info = proxyInfo.find((p) => p.accountId == proxy.delegate);
-
-                return (
-                  <Grid container item key={index} sx={{ fontSize: 13 }}>
-                    <Grid item xs={5.5}>
-                      <Identity accountInfo={info} chain={chain} />
-                    </Grid>
-                    <Grid item xs={3}>
-                      {proxy.proxyType}
-                    </Grid>
-                    <Grid item xs={2}>
-                      {proxy.delay}
-                    </Grid>
-                    <Grid item xs={1.5}>
-                      {item.status === 'remove' ? t('Removing') : ''}
-                      {item.status === 'new' ? t('Adding') : ''}
-                    </Grid>
-                  </Grid>
-                );
-              })
-              }
-            </>
-          }
+          {proxies.filter((item) => item.status !== 'current').map((item, index) => {
+            const proxy = item.proxy;
+           
+            return (
+              <Grid container item key={index} sx={{ fontSize: 13 }}>
+                <Grid item xs={5.5}>
+                  <Identity2 address={proxy.delegate} api={api} chain={chain} />
+                </Grid>
+                <Grid item xs={3}>
+                  {proxy.proxyType}
+                </Grid>
+                <Grid item xs={2}>
+                  {proxy.delay}
+                </Grid>
+                <Grid item xs={1.5}>
+                  {item.status === 'remove' ? t('Removing') : ''}
+                  {item.status === 'new' ? t('Adding') : ''}
+                </Grid>
+              </Grid>
+            );
+          })}
         </Grid>
       </Container>
       <Grid container item sx={{ pt: '25px', px: '26px' }} xs={12}>

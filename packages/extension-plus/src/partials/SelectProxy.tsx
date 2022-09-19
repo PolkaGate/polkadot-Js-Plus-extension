@@ -25,7 +25,7 @@ import { Chain } from '../../../extension-chains/src/types';
 import { AccountContext, SettingsContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { DEFAULT_TYPE } from '../../../extension-ui/src/util/defaultType';
-import { PlusHeader, Popup, Progress, ShortAddress } from '../components';
+import { PlusHeader, Popup, Progress, Identity2, Hint } from '../components';
 import { NameAddress, Proxy, ProxyTypes, Recoded } from '../util/plusTypes';
 
 interface Props {
@@ -57,7 +57,7 @@ function findSubstrateAccount(accounts: AccountJson[], publicKey: Uint8Array): A
   ) || null;
 }
 
-export default function SelectProxy({ acceptableTypes, loadedProxies, allAddresesOnSameChain, api, chain, icon, realAddress, selectProxyModalOpen, setActionModalOpen, setProxy, setSelectProxyModalOpen }: Props): React.ReactElement<Props> {
+export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, api, chain, icon, loadedProxies, realAddress, selectProxyModalOpen, setActionModalOpen, setProxy, setSelectProxyModalOpen }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
@@ -107,7 +107,7 @@ export default function SelectProxy({ acceptableTypes, loadedProxies, allAddrese
 
   useEffect(() => {
     !proxies && realAddress && api && api.query.proxy?.proxies(realAddress).then((proxies) => setProxies(JSON.parse(JSON.stringify(proxies[0]))));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, chain, realAddress]);
 
   const isAvailable = useCallback((address: string): NameAddress => allAddreses?.find((a) => a.formattedAddress === address), [allAddreses]);
@@ -136,17 +136,14 @@ export default function SelectProxy({ acceptableTypes, loadedProxies, allAddrese
           </Typography>
         </Grid>
         <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
-          <Grid item xs={3}>
-            {t('address')}
+          <Grid item xs={6}>
+            {t('account')}
           </Grid>
           <Grid item xs={3}>
             {t('type')}
           </Grid>
           <Grid item xs={2}>
             {t('delay')}
-          </Grid>
-          <Grid item xs={3}>
-            {t('available')}
           </Grid>
           <Grid item xs={1}>
             {t('select')}
@@ -158,12 +155,12 @@ export default function SelectProxy({ acceptableTypes, loadedProxies, allAddrese
               {proxies
                 ? proxies.length
                   ? proxies.map((proxy, index) => {
-                    const localAccount = isAvailable(proxy.delegate)?.account;
+                    const availability = isAvailable(proxy.delegate) && acceptableTypes.includes(proxy.proxyType);
 
                     return (
                       <Grid alignItems='center' container item key={index} sx={{ fontSize: 12 }}>
-                        <Grid item xs={3}>
-                          <ShortAddress address={proxy.delegate} fontSize={12} />
+                        <Grid item xs={6}>
+                          <Identity2 address={proxy.delegate} api={api} chain={chain} />
                         </Grid>
                         <Grid item xs={3}>
                           {proxy.proxyType}
@@ -171,20 +168,20 @@ export default function SelectProxy({ acceptableTypes, loadedProxies, allAddrese
                         <Grid item xs={2}>
                           {proxy.delay}
                         </Grid>
-                        <Grid item xs={3} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {!!localAccount ? `Yes (${localAccount.name})` : 'No'}
-                        </Grid>
                         <Grid item xs={1}>
-                          <FormControlLabel
-                            control={
-                              <Radio
-                                checked={selectedOptionIndex === index}
-                                disabled={!localAccount || !acceptableTypes.includes(proxy.proxyType)}
-                                onChange={handleOptionChange}
-                                size='small'
-                                value={index} />
-                            }
-                            label='' value={index} />
+                          <Hint id='availability' tip={availability ? t('Available') : t('Not available')}>
+                            <FormControlLabel
+                              control={
+                                <Radio
+                                  checked={selectedOptionIndex === index}
+                                  disabled={!availability}
+                                  onChange={handleOptionChange}
+                                  size='small'
+                                  value={index} />
+                              }
+                              label='' value={index}
+                            />
+                          </Hint>
                         </Grid>
                       </Grid>
                     )

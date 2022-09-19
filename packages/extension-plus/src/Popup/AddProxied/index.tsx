@@ -28,6 +28,7 @@ import { useApi, useEndpoint } from '../../hooks';
 import { NameAddress, Proxy } from '../../util/plusTypes';
 import AddressTextBox from './AddressTextBox';
 import SelectChain from './SelectChain';
+import Identity2 from '../../components/Identity2';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -99,10 +100,10 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
 
   return (
     <>
-      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Add a Proxied Account')} />
+      <Header showAdd showBackArrow showSettings smallMargin text={t<string>('Address only account')} />
       <Container sx={{ px: '30px' }}>
         <Typography sx={{ pb: '20px' }} variant='subtitle1'>
-          {t('Enter Just your proxied account\'s public information, no private key!')}
+          {t('Enter just your account\'s public information (no private key), this can be used as e.g., watch only, and proxied account.')}
         </Typography>
         <Grid container py='10px' spacing={0.5}>
           <Grid item xs={5}>
@@ -124,60 +125,58 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
             <SelectChain defaultValue={chain?.genesisHash} label={'Select the chain'} onChange={_onChangeGenesis} options={genesisOptions} />
           </Grid>
         </Grid>
-        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} autoFocus={false} chain={chain} label={t('Proxied account id')} setAddress={setRealAddress} style={{ pb: '10px' }} />
-        <Grid item sx={{ color: grey[600], fontSize: 16, p: '10px 50px 5px', textAlign: 'center' }} xs={12}>
+        <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} autoFocus={false} chain={chain} label={t('Account id')} setAddress={setRealAddress} style={{ pb: '10px' }} />
+        <Grid item sx={{ color: grey[600], fontSize: 16, p: '0px 50px 5px', textAlign: 'center' }} xs={12}>
           {t('PROXIES')}
         </Grid>
         <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
-          <Grid item xs={4}>
-            {t('Address')}
+          <Grid item xs={6}>
+            {t('address')}
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             {t('type')}
           </Grid>
           <Grid item xs={2}>
             {t('delay')}
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             {t('available')}
           </Grid>
         </Grid>
-        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 155, overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 140, overflowY: 'auto' }} xs={12}>
           {chain && realAddress &&
             <>
               {proxies
                 ? proxies.length
                   ? proxies.map((proxy, index) => {
-                    const localAccount = isAvailable(proxy.delegate);
-
                     return (
-                      <Grid container item key={index} sx={{ fontSize: 11 }}>
-                        <Grid item xs={4}>
-                          <ShortAddress address={proxy.delegate} fontSize={11} />
+                      <Grid container item key={index} sx={{ fontSize: 13 }}>
+                        <Grid item xs={6}>
+                          <Identity2 address={proxy.delegate} api={api} chain={chain} />
                         </Grid>
-                        <Grid item xs={3}>
+                        <Grid item xs={2}>
                           {proxy.proxyType}
                         </Grid>
                         <Grid item xs={2}>
                           {proxy.delay}
                         </Grid>
-                        <Grid item xs={3} >
-                          {!!localAccount ? `Yes (${localAccount.name})` : 'No'}
+                        <Grid item xs={2}>
+                          {isAvailable(proxy.delegate) ? 'Yes' : 'No'}
                         </Grid>
                       </Grid>
                     );
                   })
-                  : <Grid item pt='10px'>
-                    {t('No proxies found for the entered real account on {{chain}}', { replace: { chain: chain?.name } })}
+                  : <Grid item pt='20px' textAlign='center'>
+                    {t('No proxies found for the entered account\'s address on {{chain}}', { replace: { chain: chain?.name } })}
                   </Grid>
                 : <Progress pt={'10px'} title={'Loading proxies ...'} />
               }
             </>}
         </Grid>
-        <Grid item sx={{ pt: '20px' }} xs={12}>
+        <Grid item sx={{ pt: '15px' }} xs={12}>
           <NextStepButton
             data-button-action='Add'
-            isDisabled={!name || !realAddress || !proxies?.length}
+            isDisabled={!name || !realAddress}// || !proxies?.length}
             onClick={handleAdd}
           >
             {t('Add')}

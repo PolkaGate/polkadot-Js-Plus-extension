@@ -4,7 +4,7 @@
 import type { ThemeProps } from '../types';
 
 import { faUsb } from '@fortawesome/free-brands-svg-icons';
-import { faCodeBranch, faFileExport, faFileUpload, faKey, faPlusCircle, faQrcode } from '@fortawesome/free-solid-svg-icons';
+import { faAdd,faCodeBranch, faFileExport, faFileUpload, faKey, faPlusCircle, faQrcode } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useContext } from 'react';
 import styled from 'styled-components';
@@ -55,8 +55,8 @@ function MenuAdd ({ className, reference }: Props): React.ReactElement<Props> {
       </MenuItem>
       <MenuItem className='menuItem'>
         <Link to={'/account/proxy'}>
-          <FontAwesomeIcon icon={faPlusCircle} />
-          <span>{ t('Add proxied account')}</span>
+          <FontAwesomeIcon icon={faAdd} />
+          <span>{ t('Add proxied address')}</span>
         </Link>
       </MenuItem>
       <MenuDivider />
