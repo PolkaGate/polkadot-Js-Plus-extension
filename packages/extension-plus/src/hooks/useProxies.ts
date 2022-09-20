@@ -12,7 +12,7 @@ export default function useProxies(api: ApiPromise | undefined, proxiedAddress: 
 
   useEffect(() => {
     proxiedAddress && api && api.query.proxy?.proxies(proxiedAddress)
-      .then((p) => setProxies(JSON.parse(JSON.stringify(p[0]))));
+      .then((p) => setProxies(JSON.parse(JSON.stringify(p[0]))) as unknown as Proxy[]);
   }, [api, proxiedAddress]);
 
   return proxies;
