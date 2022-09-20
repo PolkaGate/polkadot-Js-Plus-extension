@@ -167,7 +167,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
                           {proxy.delay}
                         </Grid>
                         <Grid item xs={1}>
-                          <Hint id='availability' tip={availability ? t('Available') : t('Not available')}>
+                          <Hint id='availability' place='left' tip={availability ? t('Available') : t('Not available')}>
                             <FormControlLabel
                               control={
                                 <Radio
