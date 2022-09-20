@@ -11,6 +11,8 @@ import type { Chain } from '@polkadot/extension-chains/types';
 import type { Balance } from '@polkadot/types/interfaces';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, Proxy, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 
+import { faCoins } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
 import { Grid, IconButton, Skeleton, Typography } from '@mui/material';
 import { grey, red } from '@mui/material/colors';
@@ -26,6 +28,7 @@ import { BN, BN_ZERO } from '@polkadot/util';
 import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, FormatBalance, Hint, Password, PlusHeader, Popup } from '../../../components';
+import { ChooseProxy } from '../../../partials';
 import { broadcast, createPool, editPool, signAndSend } from '../../../util/api';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
@@ -38,7 +41,6 @@ interface Props {
   chain: Chain;
   handlePoolStakingModalClose?: () => void;
   pool: MyPoolInfo; // FIXME check the type
-  proxy?: Proxy;
   state: string;
   selectedValidators: DeriveStakingQuery[] | null;
   setState: React.Dispatch<React.SetStateAction<string>>;
@@ -55,7 +57,7 @@ interface Props {
   basePool?: MyPoolInfo | undefined;
 }
 
-export default function ConfirmStaking({ amount, api, basePool, chain, handlePoolStakingModalClose, nominatedValidators, pool, poolsMembers, proxy, selectedValidators, setConfirmStakingModalOpen, setNewPool, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
+export default function ConfirmStaking({ amount, api, basePool, chain, handlePoolStakingModalClose, nominatedValidators, pool, poolsMembers, selectedValidators, setConfirmStakingModalOpen, setNewPool, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string | undefined>();
@@ -70,6 +72,8 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const [surAmount, setSurAmount] = useState<BN>(amount); /** SUR: Staking Unstaking Redeem (and Claim) amount  */
   const [note, setNote] = useState<string>('');
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
+  const [proxy, setProxy] = useState<Proxy | undefined>();
+  const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
@@ -706,11 +710,15 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
     }
   }, [existentialDeposit, estimatedFee, availableBalance, pool, setNewPool]);
 
+  const handleChooseProxy = useCallback((): void => {
+    setSelectProxyModalOpen(true);
+  }, []);
+
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmStakingModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={'Confirm'} />
       <Grid alignItems='center' container>
-        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
+        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '20px 40px 10px' }} xs={12}>
           <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center' }}>
             {stateInHuman(confirmingState || state)}
           </Grid>
@@ -795,23 +803,39 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           </Grid>
         }
       </Grid>
-      <Grid container item sx={{ p: '25px 25px' }} xs={12}>
-        <Password
-          autofocus={!confirmingState}
-          handleIt={handleConfirm}
-          isDisabled={confirmButtonDisabled || !!confirmingState}
-          password={password}
-          passwordStatus={passwordStatus}
-          setPassword={setPassword}
-          setPasswordStatus={setPasswordStatus}
-        />
+      <Grid container item sx={{ p: '30px 25px' }} xs={12}>
+        <Grid container item spacing={0.5} xs={12}>
+          <Grid item xs>
+            <Password
+              autofocus={!confirmingState}
+              handleIt={handleConfirm}
+              isDisabled={confirmButtonDisabled || !!confirmingState || (staker.isProxied && !proxy)}
+              password={password}
+              passwordStatus={passwordStatus}
+              setPassword={setPassword}
+              setPasswordStatus={setPasswordStatus}
+            />
+          </Grid>
+          <ChooseProxy
+            acceptableTypes={['Any', 'Staking', 'NonTransfer']}
+            api={api}
+            chain={chain}
+            headerIcon={<FontAwesomeIcon icon={faCoins} size='sm' />}
+            onClick={handleChooseProxy}
+            proxy={proxy}
+            realAddress={staker.address}
+            selectProxyModalOpen={selectProxyModalOpen}
+            setProxy={setProxy}
+            setSelectProxyModalOpen={setSelectProxyModalOpen}
+          />
+        </Grid>
         <Grid alignItems='center' container item xs={12}>
           <Grid container item xs={amountNeedsAdjust ? 11 : 12}>
             <ConfirmButton
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={confirmButtonDisabled}
+              isDisabled={confirmButtonDisabled || (staker.isProxied && !proxy)}
               state={confirmingState ?? ''}
               text={confirmButtonText}
             />

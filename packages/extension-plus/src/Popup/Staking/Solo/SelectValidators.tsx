@@ -43,7 +43,6 @@ interface Props {
   state: string;
   ledger: StakingLedger | null;
   validatorsIdentities: DeriveAccountInfo[] | undefined;
-  proxy?: Proxy;
 }
 
 interface Data {
@@ -303,7 +302,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, ledger, nominatedValidators, proxy, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function SelectValidators({ api, chain, ledger, nominatedValidators, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
@@ -470,7 +469,6 @@ export default function SelectValidators({ api, chain, ledger, nominatedValidato
           chain={chain}
           ledger={ledger}
           nominatedValidators={nominatedValidators}
-          proxy={proxy}
           selectedValidators={selected}
           setConfirmStakingModalOpen={setConfirmStakingModalOpen}
           setSelectValidatorsModalOpen={setSelectValidatorsModalOpen}

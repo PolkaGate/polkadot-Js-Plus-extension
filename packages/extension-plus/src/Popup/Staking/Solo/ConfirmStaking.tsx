@@ -12,7 +12,7 @@ import type { StakingLedger } from '@polkadot/types/interfaces';
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BuildCircleRounded as BuildCircleRoundedIcon, ConfirmationNumberOutlined as ConfirmationNumberOutlinedIcon } from '@mui/icons-material';
-import { Avatar, Button as MuiButton, Grid, IconButton, Link, Skeleton, Typography } from '@mui/material';
+import { Avatar, Grid, IconButton, Link, Skeleton, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -27,8 +27,7 @@ import keyring from '@polkadot/ui-keyring';
 import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Hint, Password, PlusHeader, Popup, ShortAddress } from '../../../components';
-import { useProxies } from '../../../hooks';
-import SelectProxy from '../../../partials/SelectProxy';
+import { ChooseProxy } from '../../../partials';
 import broadcast from '../../../util/api/broadcast';
 import { bondOrBondExtra } from '../../../util/api/staking';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
@@ -59,7 +58,6 @@ interface Props {
 
 export default function ConfirmStaking({ amount, api, chain, handleSoloStakingModalClose, ledger, nominatedValidators, putInFrontInfo, rebagInfo, selectedValidators, setConfirmStakingModalOpen, setSelectValidatorsModalOpen, setState, showConfirmStakingModal, staker, stakingConsts, state, validatorsIdentities }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const proxies = useProxies(api, staker.address);
 
   const { hierarchy } = useContext(AccountContext);
   const [confirmingState, setConfirmingState] = useState<string | undefined>();
@@ -526,7 +524,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
     }
   }, [handleCloseModal, handleSoloStakingModalClose, setSelectValidatorsModalOpen, setState]);
 
-  const handleUseProxy = useCallback((): void => {
+  const handleChooseProxy = useCallback((): void => {
     setSelectProxyModalOpen(true);
   }, []);
 
@@ -620,7 +618,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
     <Popup handleClose={handleCloseModal} showModal={showConfirmStakingModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={'Confirm'} />
       <Grid alignItems='center' container>
-        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '25px 40px 10px' }} xs={12}>
+        <Grid container item sx={{ backgroundColor: '#f7f7f7', p: '20px 40px 10px' }} xs={12}>
           <Grid item sx={{ border: '2px double grey', borderRadius: '5px', fontSize: 15, fontVariant: 'small-caps', justifyContent: 'flex-start', p: '5px 10px', textAlign: 'center' }}>
             {stateInHuman(confirmingState || state)}
           </Grid>
@@ -690,7 +688,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           </Grid>
         }
       </Grid>
-      <Grid container item sx={{ p: '25px 25px' }} xs={12}>
+      <Grid container item sx={{ p: '30px 25px' }} xs={12}>
         <Grid container item spacing={0.5} xs={12}>
           <Grid item xs>
             <Password
@@ -703,21 +701,18 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
               setPasswordStatus={setPasswordStatus}
             />
           </Grid>
-          {!!proxies?.length &&
-            <Grid item sx={{ mr: 1, mt: '8px' }} xs={3}>
-              <MuiButton
-                color='info'
-                fullWidth
-                onClick={handleUseProxy}
-                size='large'
-                sx={{ height: '51.69px', px: '5px' }}
-                variant='outlined'
-
-              >
-                {proxy ? t('Using proxy') : t('Use proxy')}
-              </MuiButton>
-            </Grid>
-          }
+          <ChooseProxy
+            acceptableTypes={['Any', 'Staking', 'NonTransfer']}
+            api={api}
+            chain={chain}
+            headerIcon={<FontAwesomeIcon icon={faCoins} size='sm' />}
+            onClick={handleChooseProxy}
+            proxy={proxy}
+            realAddress={staker.address}
+            selectProxyModalOpen={selectProxyModalOpen}
+            setProxy={setProxy}
+            setSelectProxyModalOpen={setSelectProxyModalOpen}
+          />
         </Grid>
         <Grid alignItems='center' container item xs={12}>
           <Grid container item xs={amountNeedsAdjust ? 11 : 12}>
@@ -725,7 +720,7 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={confirmButtonDisabled}
+              isDisabled={confirmButtonDisabled || (staker.isProxied && !proxy)}
               state={confirmingState ?? ''}
               text={confirmButtonText}
             />
@@ -741,18 +736,6 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
           }
         </Grid>
       </Grid>
-      {selectProxyModalOpen &&
-        <SelectProxy
-          acceptableTypes={['Any', 'Staking', 'NonTransfer']}
-          api={api}
-          chain={chain}
-          icon={<FontAwesomeIcon icon={faCoins} size='sm' />}
-          realAddress={staker.address}
-          selectProxyModalOpen={selectProxyModalOpen}
-          setProxy={setProxy}
-          setSelectProxyModalOpen={setSelectProxyModalOpen}
-        />
-      }
     </Popup>
   );
 }

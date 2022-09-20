@@ -44,7 +44,6 @@ interface Props {
   validatorsIdentities: DeriveAccountInfo[] | undefined;
   pool: MyPoolInfo;
   poolsMembers: MembersMapEntry[] | undefined;
-  proxy?: Proxy;
 }
 
 interface Data {
@@ -302,7 +301,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
   );
 }
 
-export default function SelectValidators({ api, chain, nominatedValidators, pool, poolsMembers, proxy, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
+export default function SelectValidators({ api, chain, nominatedValidators, pool, poolsMembers, setSelectValidatorsModalOpen, setState, showSelectValidatorsModal, stakeAmount, staker, stakingConsts, state, validatorsIdentities, validatorsInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [validators, setValidators] = useState<DeriveStakingQuery[]>([]);
   const [searchedValidators, setSearchedValidators] = useState<DeriveStakingQuery[]>([]);
@@ -479,7 +478,6 @@ export default function SelectValidators({ api, chain, nominatedValidators, pool
           stakingConsts={stakingConsts}
           state={state}
           validatorsIdentities={validatorsIdentities}
-          proxy={proxy}
         />
       }
     </Popup>

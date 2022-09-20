@@ -25,7 +25,7 @@ import { AccountContext } from '../../../../extension-ui/src/components/contexts
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../extension-ui/src/messaging';
 import { ConfirmButton, Password, PlusHeader, Popup, ShortAddress } from '../../components';
-import {useProxies} from '../../hooks';
+import { ChooseProxy } from '../../partials';
 import SelectProxy from '../../partials/SelectProxy';
 import { broadcast } from '../../util/api';
 import { PASS_MAP } from '../../util/constants';
@@ -48,7 +48,6 @@ interface Props {
 
 export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransferModalClose, lastFee, recepient, sender, setConfirmModalOpen, transferAllType, transferAmount }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const proxies = useProxies(api, sender.address);
   const [newFee, setNewFee] = useState<Balance | null>();
   const [total, setTotal] = useState<string | null>(null);
   const [confirmDisabled, setConfirmDisabled] = useState<boolean>(true);
@@ -97,7 +96,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
     handleTransferModalClose();
   }, [handleTransferModalClose, setConfirmModalOpen]);
 
-  const handleUseProxy = useCallback((): void => {
+  const handleChooseProxy = useCallback((): void => {
     setSelectProxyModalOpen(true);
   }, []);
 
@@ -135,7 +134,7 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
       const { block, failureText, fee, status, txHash } = await broadcast(api, transfer, params, signer, sender.address, proxy);
 
       const currentTransactionDetail: TransactionDetail = {
-        action: proxy?.delegate ? 'send_as_proxy' : 'send',
+        action: 'send',
         amount: amountToHuman(String(transferAmount), decimals),
         block,
         date: Date.now(),
@@ -185,7 +184,6 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
         }
       </Grid>
     </>);
-  const SendHeaderIcon = <SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />;
 
   return (
     <Popup handleClose={handleConfirmModaClose} showModal={confirmModalOpen}>
@@ -280,42 +278,27 @@ export default function ConfirmTx({ api, chain, confirmModalOpen, handleTransfer
               setPasswordStatus={setPasswordStatus}
             />
           </Grid>
-          {!!proxies?.length &&
-            <Grid item sx={{ mr: 1, mt: '8px' }} xs={3}>
-              <MuiButton
-                color='info'
-                fullWidth
-                onClick={handleUseProxy}
-                size='large'
-                sx={{ height: '51.69px', px: '5px' }}
-                variant='outlined'
-
-              >
-                {proxy ? t('Using proxy') : t('Use proxy')}
-              </MuiButton>
-            </Grid>
-          }
+          <ChooseProxy
+            acceptableTypes={['Any']}
+            api={api}
+            chain={chain}
+            headerIcon={<SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />}
+            onClick={handleChooseProxy}
+            proxy={proxy}
+            realAddress={sender.address}
+            selectProxyModalOpen={selectProxyModalOpen}
+            setProxy={setProxy}
+            setSelectProxyModalOpen={setSelectProxyModalOpen}
+          />
         </Grid>
         <ConfirmButton
           handleBack={handleConfirmModaClose}
           handleConfirm={handleConfirm}
           handleReject={handleReject}
+          isDisabled={sender.isProxied && !proxy}
           state={state}
         />
       </Grid>
-      {selectProxyModalOpen &&
-        <SelectProxy
-          acceptableTypes={['Any']}
-          api={api}
-          chain={chain}
-          icon={SendHeaderIcon}
-          loadedProxies={proxies}
-          realAddress={sender.address}
-          selectProxyModalOpen={selectProxyModalOpen}
-          setProxy={setProxy}
-          setSelectProxyModalOpen={setSelectProxyModalOpen}
-        />
-      }
     </Popup>
   );
 }
