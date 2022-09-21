@@ -18,6 +18,7 @@ import { Container, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { AccountJson } from '@polkadot/extension-base/background/types';
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
@@ -27,13 +28,15 @@ import { BN } from '@polkadot/util';
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { ConfirmButton, Identity, Identity2, Password, PlusHeader, Popup, ShowBalance2 } from '../../components';
+import { ChooseProxy } from '../../partials';
 import { signAndSend } from '../../util/api/signAndSend';
 import { PASS_MAP } from '../../util/constants';
-import { ProxyItem, TransactionDetail } from '../../util/plusTypes';
+import { Proxy, ProxyItem, TransactionDetail } from '../../util/plusTypes';
 import { getSubstrateAddress, getTransactionHistoryFromLocalStorage, prepareMetaData } from '../../util/plusUtils';
 
 interface Props extends ThemeProps {
   className?: string;
+  account: AccountJson | undefined;
   api: ApiPromise;
   chain: Chain;
   showConfirmModal: boolean;
@@ -56,7 +59,7 @@ async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], addre
   return updateMeta(accountSubstrateAddress, prepareMetaData(chain, 'history', savedHistory));
 }
 
-export default function Confirm({ api, chain, className, deposit, formatted, proxies, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
+export default function Confirm({ account, api, chain, className, deposit, formatted, proxies, setConfirmModalOpen, showConfirmModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
   const { hierarchy } = useContext(AccountContext);
@@ -66,6 +69,8 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
   const [passwordStatus, setPasswordStatus] = useState<number>(PASS_MAP.EMPTY);
   const [estimatedFee, setEstimatedFee] = useState<Balance | undefined>();
   const [notEnoughBalance, setNotEnoughBalance] = useState<boolean | undefined>();
+  const [proxy, setProxy] = useState<Proxy | undefined>();
+  const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
 
   const adding = proxies?.filter((item: ProxyItem) => item.status === 'new')?.length ?? 0;
   const removing = proxies?.filter((item) => item.status === 'remove')?.length ?? 0;
@@ -120,12 +125,16 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
     try {
       setConfirmingState('confirming');
 
-      const signer = keyring.getPair(formatted);
+      const signer = keyring.getPair(proxy?.delegate ?? formatted);
 
       signer.unlock(password);
       setPasswordStatus(PASS_MAP.CORRECT);
 
-      const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, formatted);
+      const decidedTx = proxy ? api.tx.proxy.proxy(formatted, proxy.proxyType, tx) : tx;
+
+      const { block, failureText, fee, status, txHash } = await signAndSend(api, decidedTx, signer, proxy?.delegate ?? formatted);
+
+      // const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, formatted);
 
       history.push({
         action: 'manage_proxies',
@@ -149,11 +158,19 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
       // setState(localState);
       setConfirmingState('');
     }
-  }, [api, chain, estimatedFee, formatted, hierarchy, password, tx]);
+  }, [api, chain, estimatedFee, formatted, hierarchy, password, proxy, tx]);
 
+  const handleChooseProxy = useCallback((): void => {
+    setSelectProxyModalOpen(true);
+  }, []);
+
+  const HeaderIcon = <ConfirmationNumberOutlinedIcon fontSize='small' />
+
+  console.log('account?.isExternal',account?.isExternal);
+  
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
-      <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={<ConfirmationNumberOutlinedIcon fontSize='small' />} title={t('Confirm')} />
+      <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={HeaderIcon} title={t('Confirm')} />
       <Container sx={{ pt: '10px', px: '30px' }}>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[100], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', fontSize: 14, fontWeight: 500, my: '13px', py: '10px', px: '10px' }}>
           <Grid item sx={{ fontSize: 15, fontWeight: 500, color: grey[700], textAlign: 'center', pb: '5px' }} xs={12}>
@@ -169,7 +186,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
         <Grid item sx={{ color: grey[600], fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
           {t('PROXIES')}
         </Grid>
-        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
+        <Grid container item sx={{ bgcolor: grey[200], fontSize: 14, fontWeight: 500, borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
           <Grid item xs={5.5}>
             {t('identity')}
           </Grid>
@@ -183,7 +200,7 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
             {t('state')}
           </Grid>
         </Grid>
-        <Grid container item sx={{ borderLeft: '2px solid', borderBottom: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 170, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ borderBottom: '2px solid', borderLeft: '2px solid', borderRight: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', height: 170, pt: '15px', pl: '10px', overflowY: 'auto' }} xs={12}>
           {proxies.filter((item) => item.status !== 'current').map((item, index) => {
             const proxy = item.proxy;
 
@@ -208,23 +225,39 @@ export default function Confirm({ api, chain, className, deposit, formatted, pro
         </Grid>
       </Container>
       <Grid container item sx={{ pt: '25px', px: '26px' }} xs={12}>
-        <Password
-          autofocus
-          handleIt={handleConfirm}
-          // isDisabled={!estimatedFee}
-          password={password}
-          passwordStatus={passwordStatus}
-          setPassword={setPassword}
-          setPasswordStatus={setPasswordStatus}
-        />
+        <Grid container item spacing={0.5} xs={12}>
+          <Grid item xs>
+            <Password
+              autofocus
+              handleIt={handleConfirm}
+              isDisabled={!estimatedFee || (account?.isExternal && !proxy)}
+              password={password}
+              passwordStatus={passwordStatus}
+              setPassword={setPassword}
+              setPasswordStatus={setPasswordStatus}
+            />
+          </Grid>
+          <ChooseProxy
+            acceptableTypes={['Any', 'NonTransfer']}
+            api={api}
+            chain={chain}
+            headerIcon={HeaderIcon}
+            onClick={handleChooseProxy}
+            proxy={proxy}
+            realAddress={formatted}
+            selectProxyModalOpen={selectProxyModalOpen}
+            setProxy={setProxy}
+            setSelectProxyModalOpen={setSelectProxyModalOpen}
+          />
+        </Grid>
         <Grid alignItems='center' container item xs={12}>
           <Grid container item xs={12}>
             <ConfirmButton
               handleBack={handleBack}
               handleConfirm={handleConfirm}
               handleReject={handleReject}
-              isDisabled={notEnoughBalance}
-              state={confirmingState}
+              isDisabled={notEnoughBalance || !password}
+              state={confirmingState ?? ''}
               text={notEnoughBalance ? t('Not enough balance') : t('Confirm')}
             />
           </Grid>

@@ -15,6 +15,7 @@ import { grey } from '@mui/material/colors';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
+import { AccountJson } from '@polkadot/extension-base/background/types';
 import { AccountsStore } from '@polkadot/extension-base/stores';
 import { NextStepButton } from '@polkadot/extension-ui/components';
 import useMetadata from '@polkadot/extension-ui/hooks/useMetadata';
@@ -40,6 +41,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
   const { t } = useTranslation();
   const { address, genesisHash } = useParams<AddressState>();
   const { accounts } = useContext(AccountContext);
+  const account = useMemo((): AccountJson | undefined => accounts?.find((acc) => acc.address === address), [accounts, address]);
   const settings = useContext(SettingsContext);
 
   const chain = useMetadata(genesisHash, true);
@@ -107,6 +109,11 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
     <>
       <Header showBackArrow showSettings smallMargin text={t<string>('Manage Proxies')} />
       <Container disableGutters sx={{ pt: '10px', px: '30px' }}>
+        <Grid item pb='20px'>
+          <Typography sx={{ color: 'text.primary' }} variant='subtitle1'>
+            {t('Add/remove proxies for this account, consider the deposit that will be reserved.')}
+          </Typography>
+        </Grid>
         <Grid alignItems='center' container item justifyContent='space-between' pb='10px' pt='15px' xs={12}>
           <Grid alignItems='center' container item justifyContent='flex-start' xs={6}>
             <Grid item p='7px 15px 7px 0px'>
@@ -131,7 +138,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
             <ShowBalance2 api={api} balance={deposit} direction='row' title={`${t('deposit')}:`} />
           </Grid>
         </Grid>
-        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
+        <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[300], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
           <Grid item xs={6}>
             {t('identity')}
           </Grid>
@@ -145,7 +152,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
             {t('action')}
           </Grid>
         </Grid>
-        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[200], display: 'block', pt: '15px', pl: '10px', height: 320, overflowY: 'auto' }} xs={12}>
+        <Grid container item sx={{ borderLeft: '2px solid', borderRight: '2px solid', borderBottom: '2px solid', borderBottomLeftRadius: '30px 10%', borderColor: grey[300], display: 'block', pt: '15px', height: 250, pl: '10px', overflowY: 'auto' }} xs={12}>
           {proxies === undefined &&
             <Progress pt='20px' title={t('Loading proxies ...')} />
           }
@@ -158,43 +165,35 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
               </Grid>
             </Grid>
           }
-          {!!proxies?.length && 
-            <>
-              {proxies?.map((item, index) => {
-
-                return (
-                  <Grid container fontSize={14} item key={index} sx={item.status === 'remove' ? { textDecorationLine: 'line-through', textDecorationColor: 'red' } : ''} >
-                    <Grid item xs={6}>
-                      <Identity2 address={item.proxy.delegate} api={api} chain={chain} />
-                    </Grid>
-                    <Grid item xs={3}>
-                      {item.proxy.proxyType}
-                    </Grid>
-                    <Grid item xs={2}>
-                      {item.proxy.delay}
-                    </Grid>
-                    <Grid item xs={1}>
-                      {item.status === 'remove'
-                        ? <Hint id='undoProxy' place='left' tip={t('undo remove')}>
-                          <IconButton aria-label='undoProxy' color='success' onClick={() => handleUndoRemoveProxy(index)} size='small'>
-                            <UndoIcon sx={{ fontSize: 15 }} />
-                          </IconButton>
-                        </Hint>
-                        : <Hint id='removeProxy' place='left' tip={t('remove proxy')}>
-                          <IconButton aria-label='removeProxy' color='error' onClick={() => handleRemoveProxy(index)} size='small'>
-                            <ClearIcon sx={{ fontSize: 15 }} />
-                          </IconButton>
-                        </Hint>
-                      }
-                    </Grid>
-                  </Grid>
-                );
-              })
-              }
-            </>
-          }
+          {!!proxies?.length && proxies?.map((item, index) => (
+            <Grid backgroundColor={item.status === 'new' ? grey[100] : ''} container py={1} fontSize={14} item key={index} sx={item.status === 'remove' ? { textDecorationColor: 'red', textDecorationLine: 'line-through' } : ''} >
+              <Grid item xs={6}>
+                <Identity2 address={item.proxy.delegate} api={api} chain={chain} />
+              </Grid>
+              <Grid item xs={3}>
+                {item.proxy.proxyType}
+              </Grid>
+              <Grid item xs={2}>
+                {item.proxy.delay}
+              </Grid>
+              <Grid item xs={1}>
+                {item.status === 'remove'
+                  ? <Hint id='undoProxy' place='left' tip={t('undo remove')}>
+                    <IconButton aria-label='undoProxy' color='success' onClick={() => handleUndoRemoveProxy(index)} size='small'>
+                      <UndoIcon sx={{ fontSize: 15 }} />
+                    </IconButton>
+                  </Hint>
+                  : <Hint id='removeProxy' place='left' tip={t('remove proxy')}>
+                    <IconButton aria-label='removeProxy' color='error' onClick={() => handleRemoveProxy(index)} size='small'>
+                      <ClearIcon sx={{ fontSize: 15 }} />
+                    </IconButton>
+                  </Hint>
+                }
+              </Grid>
+            </Grid>
+          ))}
         </Grid>
-        <Grid item sx={{ pt: '29px' }} xs={12}>
+        <Grid item sx={{ pt: '25px' }} xs={12}>
           <NextStepButton
             data-button-action='Next'
             isDisabled={nextIsDisabled}
@@ -220,6 +219,7 @@ export default function ManageProxies({ className }: Props): React.ReactElement<
       {
         showConfirmModal && chain && api && formatted && proxies &&
         <Confirm
+          account={account}
           api={api}
           chain={chain}
           deposit={deposit}

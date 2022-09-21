@@ -156,7 +156,7 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
                     const availability = isAvailable(proxy.delegate) && acceptableTypes.includes(proxy.proxyType);
 
                     return (
-                      <Grid alignItems='center' container item key={index} sx={{ fontSize: 12 }}>
+                      <Grid alignItems='center' color={!availability ? grey[300] : ''} container item key={index} sx={{ fontSize: 12 }}>
                         <Grid item xs={6}>
                           <Identity2 address={proxy.delegate} api={api} chain={chain} />
                         </Grid>
