@@ -237,7 +237,7 @@ function MakeRecoverableTab({ account, accountsInfo, addresesOnThisChain, api, c
           </Grid>
         </Grid>
       </Grid>
-      <Grid item sx={{ pt: '30px' }} xs={12}>
+      <Grid item sx={{ bottom: '15px', position: 'absolute', pr: '62px', width: '100%' }} >
         <NextStepButton
           data-button-action='next'
           isDisabled={!recoveryThreshold || !friends?.length || recoveryThreshold > friends?.length}
