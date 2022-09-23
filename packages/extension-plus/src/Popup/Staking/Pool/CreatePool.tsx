@@ -295,7 +295,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
             </Grid>
           }
           <Grid container item spacing={'10px'} sx={{ fontSize: 12, p: '18px 40px 5px' }}>
-            <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, pl: '40px', textAlign: 'center' }} xs={12}>
+            <Grid item sx={{ color: grey[600], fontSize: 16, pl: '40px', textAlign: 'center' }} xs={12}>
               <Divider textAlign='left'> {t('Roles')}</Divider>
             </Grid>
             <Grid item xs={12}>

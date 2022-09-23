@@ -222,7 +222,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
             </Grid>
           }
           <Grid item sx={{ p: '20px 35px 10px 20px' }} xs={12}>
-            <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '0px 50px 5px', textAlign: 'center' }} xs={12}>
+            <Grid item sx={{ color: grey[600], fontSize: 16, p: '0px 50px 5px', textAlign: 'center' }} xs={12}>
               {t('Choose a pool to join')}
             </Grid>
             <Paper elevation={2} sx={{ backgroundColor: grey[600], borderRadius: '5px', color: 'white', py: '5px', width: '100%' }}>

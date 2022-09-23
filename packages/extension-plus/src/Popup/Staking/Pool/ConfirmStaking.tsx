@@ -765,7 +765,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           ? <>
             {pool && !['changeValidators', 'setNominees'].includes(state)
               ? <>
-                <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
+                <Grid item sx={{ color: grey[600], fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
                   {t('Pool')}
                 </Grid>
                 <Grid container item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
@@ -782,7 +782,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
                 </Grid>
               </>
               : <>
-                <Grid item sx={{ color: grey[600], fontFamily: 'fantasy', fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
+                <Grid item sx={{ color: grey[600], fontSize: 16, p: '5px 50px 5px', textAlign: 'center' }} xs={12}>
                   {t('VALIDATORS')}{` (${validatorsToList?.length ?? ''})`}
                 </Grid>
                 <Grid item sx={{ fontSize: 14, height: '185px', p: '0px 20px 0px' }} xs={12}>
