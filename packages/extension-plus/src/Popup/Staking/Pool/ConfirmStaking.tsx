@@ -649,7 +649,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
     switch (state) {
       case ('unstake'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
-          {t('Note: The unstaked amount will be redeemable after {{days}} days ', { replace: { days: stakingConsts?.unbondingDuration } })}
+          {t('Note: The unstaked amount will be redeemable after {{days}} days, and your rewards will be automatically claimed ', { replace: { days: stakingConsts?.unbondingDuration } })}
         </Typography>;
       case ('withdrawUnbound'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
@@ -680,6 +680,10 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       case ('open'):
         return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
           {t('The pool state will be changed to open, where anyone can join and no members can be permissionlessly removed')}
+        </Typography>;
+      case ('bondExtra'):
+        return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
+          {t('Note: Your rewards wil be automatically claimed as you change your stake')}
         </Typography>;
       default:
         return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>
