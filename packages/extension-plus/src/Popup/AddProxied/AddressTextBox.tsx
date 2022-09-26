@@ -8,12 +8,12 @@
 */
 
 import { NoAccounts as NoAccountsIcon } from '@mui/icons-material';
-import { Autocomplete, Grid, SxProps, TextField, Theme } from '@mui/material';
+import { Autocomplete, Avatar, Grid, SxProps, TextField, Theme } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback } from 'react';
 
 import { Chain } from '@polkadot/extension-chains/types';
-import { Identicon } from '@polkadot/extension-ui/components';
+import Identicon from '@polkadot/react-identicon';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { NameAddress } from '../../util/plusTypes';
@@ -82,17 +82,18 @@ export default function AddressTextBox({ addresesOnThisChain, address, autoFocus
           sx={{ '& .MuiAutocomplete-input, & .MuiInputLabel-root': { fontSize: 13 } }}
         />
       </Grid>
-      <Grid item sx={{ height: '70px' }} xs={1.2}>
-        <div style={{ transform: 'scale(0.7)' }}>
+      <Grid item sx={{ pt: '5px', pl: '5px' }} xs={1.2}>
+        <Avatar alt={'logo'} sx={{ height: 38, width: 38 }} >
           {isValidAddress(address)
             ? <Identicon
               prefix={chain?.ss58Format ?? 42}
+              size={38}
               theme={chain?.icon || 'polkadot'}
               value={address}
             />
-            : <NoAccountsIcon sx={{ color: grey[400], fontSize: 64 }} />
+            : <NoAccountsIcon sx={{ color: grey[400], fontSize: 46 }} />
           }
-        </div>
+        </Avatar>
       </Grid>
     </Grid>
   );

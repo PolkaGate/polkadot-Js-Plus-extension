@@ -14,7 +14,7 @@ import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { AccountsStore } from '@polkadot/extension-base/stores';
 import { Chain } from '@polkadot/extension-chains/types';
-import { NextStepButton } from '@polkadot/extension-ui/components';
+import { Button } from '@polkadot/extension-ui/components';
 import useGenesisHashOptions from '@polkadot/extension-ui/hooks/useGenesisHashOptions';
 import keyring from '@polkadot/ui-keyring';
 import { cryptoWaitReady, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
@@ -60,7 +60,6 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
 
     setAddresesOnThisChain(allAddresesOnSameChain);
   }, [accounts]);
-
   const isAvailable = useCallback((address: string): NameAddress => addresesOnThisChain?.find((a) => a.address === address), [addresesOnThisChain]);
 
   useEffect(() => {
@@ -71,7 +70,7 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
   }, []);
 
   useEffect(() => {
-    chain?.ss58Format && handleAlladdressesOnThisChain(chain.ss58Format);
+    chain?.ss58Format !== undefined && handleAlladdressesOnThisChain(chain.ss58Format);
   }, [chain, handleAlladdressesOnThisChain]);
 
   useEffect(() => {
@@ -81,7 +80,6 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
   useEffect(() => {
     realAddress && api && api.query.proxy?.proxies(realAddress).then((proxies) => {
       setProxies(JSON.parse(JSON.stringify(proxies[0])));
-      console.log('proxies:', JSON.parse(JSON.stringify(proxies)));
     });
   }, [api, chain, realAddress]);
 
@@ -126,7 +124,7 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
           </Grid>
         </Grid>
         <AddressTextBox addresesOnThisChain={addresesOnThisChain} address={realAddress} autoFocus={false} chain={chain} label={t('Account id')} setAddress={setRealAddress} style={{ pb: '10px' }} />
-        <Grid item sx={{ color: grey[600], fontSize: 16, p: '0px 50px 5px', textAlign: 'center' }} xs={12}>
+        <Grid item sx={{ color: grey[600], fontSize: 16, p: '10px 50px 5px', textAlign: 'center' }} xs={12}>
           {t('PROXIES')}
         </Grid>
         <Grid container item sx={{ fontSize: 14, fontWeight: 500, bgcolor: grey[200], borderTopRightRadius: '5px', borderTopLeftRadius: '5px', py: '5px', px: '10px' }}>
@@ -173,16 +171,15 @@ export default function AddProxy({ className }: Props): React.ReactElement<Props
               }
             </>}
         </Grid>
-        <Grid item sx={{ pt: '15px' }} xs={12}>
-          <NextStepButton
+        <Grid item sx={{ pt: '25px' }} xs={12}>
+          <Button
             data-button-action='Add'
             isDisabled={!name || !realAddress}// || !proxies?.length}
             onClick={handleAdd}
           >
             {t('Add')}
-          </NextStepButton>
+          </Button>
         </Grid>
-
       </Container>
     </>
   );

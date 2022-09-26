@@ -31,7 +31,7 @@ export default function SelectChain({ defaultValue, label, onChange, options }: 
   const _onChange = useCallback(
     ({ target: { value } }: React.ChangeEvent<HTMLSelectElement>) => {
       onChange && onChange(value.trim());
-      const chainName = options.find((o) => o.value === value).text.trim().split(' ')[0];
+      const chainName = options.find((o) => o.value === value)?.text?.trim()?.split(' ')[0];
 
       setChainName(chainName);
     },
