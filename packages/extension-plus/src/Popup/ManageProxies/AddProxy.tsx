@@ -12,10 +12,10 @@ import type { ApiPromise } from '@polkadot/api';
 import type { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import type { ThemeProps } from '../../../../extension-ui/src/types';
 
-import { AddCircleRounded as AddCircleRoundedIcon, NavigateBefore as NavigateBeforeIcon, NavigateNext as NavigateNextIcon, NoAccounts as NoAccountsIcon } from '@mui/icons-material';
+import { AddCircleRounded as AddCircleRoundedIcon, NoAccounts as NoAccountsIcon } from '@mui/icons-material';
 import { Autocomplete, FormControl, Grid, InputAdornment, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { Chain } from '@polkadot/extension-chains/types';
@@ -24,6 +24,7 @@ import Identicon from '@polkadot/react-identicon';
 
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, PlusHeader, Popup, Progress } from '../../components';
+import { CHAIN_PROXY_TYPES } from '../../util/constants';
 import { NameAddress, Proxy, ProxyItem } from '../../util/plusTypes';
 import { getFormattedAddress, isValidAddress } from '../../util/plusUtils';
 import { isEqualProxiy } from './utils';
@@ -41,11 +42,6 @@ interface Props extends ThemeProps {
   setProxies: React.Dispatch<React.SetStateAction<ProxyItem[] | undefined>>;
 }
 
-const PROXY_TYPE_POLKADOT = ['Any', 'NonTransfer', 'Staking', 'Governance', 'IdentityJudgement', 'CancelProxy', 'Auction'];
-const PROXY_TYPE_KUSAMA = ['Any', 'NonTransfer', 'Staking', 'Society', 'Governance', 'IdentityJudgement', 'CancelProxy', 'Auction'];
-const PROXY_TYPE_WESTEND = ['Any', 'NonTransfer', 'Staking', 'SudoBalances', 'IdentityJudgement', 'CancelProxy', 'Auction'];
-const PROXY_TYPES = { Kusama: PROXY_TYPE_KUSAMA, Polkadot: PROXY_TYPE_POLKADOT, Westend: PROXY_TYPE_WESTEND }
-
 function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxies, setShowAddProxyModal, settingsPrefix, showAddProxyModal }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined | null>();
@@ -55,10 +51,8 @@ function AddProxy({ address, addressesOnThisChain, api, chain, proxies, setProxi
   const [addButtonCaption, setAddButonCaption] = useState<string>(t('Add'));
   const [addButtonDisabled, setAddButtonDisabled] = useState<boolean>(true);
 
-  const formatted = getFormattedAddress(address, chain, settingsPrefix);
-
   const chainName = chain?.name.replace(' Relay Chain', '');
-  const PROXY_TYPE = PROXY_TYPES[chainName];
+  const PROXY_TYPE = CHAIN_PROXY_TYPES[chainName];
 
   const handleAddress = useCallback((value: string | null) => {
     if (!value) {
