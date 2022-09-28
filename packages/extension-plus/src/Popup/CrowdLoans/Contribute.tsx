@@ -222,7 +222,7 @@ export default function Contribute({ address, auction, chainInfo, contributeModa
             />
           </Grid>
           <ChooseProxy
-            acceptableTypes={['Any', 'Staking', 'NonTransfer']}
+            acceptableTypes={['Any', 'Auction', 'NonTransfer']}
             api={api}
             chain={chain}
             headerIcon={<FontAwesomeIcon icon={faCoins} size='sm' />}
