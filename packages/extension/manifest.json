@@ -1,7 +1,7 @@
 {
-  "author": "polkadot.{js+}",
+  "author": "PolkaGate",
   "description": "Polkadot js extension, plus new features",
-  "homepage_url": "http://polkadotjs.plus",
+  "homepage_url": "http://polkagate.xyz",
   "name": "polkadot js plus extension",
   "short_name": "Plus",
   "manifest_version": 2,
