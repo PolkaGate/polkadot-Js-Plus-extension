@@ -34,7 +34,7 @@ interface Props {
   showCheck?: boolean;
   showHeader?: boolean;
   selectedPool?: PoolInfo;
-  handleSelectPool: (pool: PoolInfo) => void;
+  handleSelectPool?: (pool: PoolInfo) => void;
   showRoles?: boolean;
   showIds?: boolean;
   showMore?: boolean;
