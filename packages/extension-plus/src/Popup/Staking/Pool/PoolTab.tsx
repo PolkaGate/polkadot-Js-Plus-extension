@@ -12,9 +12,9 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, PlayCircleOutlined as PlayCircleOutlinedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
-import { Button, Grid } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, PlayCircleOutlined as PlayCircleOutlinedIcon, Output as OutputIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
+import { Button, Divider, Grid, Typography } from '@mui/material';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
@@ -38,17 +38,20 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
   const [canChangePoolState, setCanChangePoolState] = useState<boolean | undefined>();
   const [canEditPool, setCanEditPool] = useState<boolean | undefined>();
   const [showEditPoolModal, setEditPoolModalOpen] = useState<boolean>(false);
+  const canCickAll = useMemo(() => pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address), [staker?.address, pool]);
 
   const handleStateChange = useCallback((state: string) => {
     if (!api) { return; }
 
-    console.log('going to change state to ', state);
     setState(state);
     handleConfirmStakingModalOpen();
   }, [api, handleConfirmStakingModalOpen, setState]);
 
+  const handleKickAll = useCallback(() => {
+    handleStateChange('kickAll');
+  }, [handleStateChange]);
+
   const handleEditPool = useCallback(() => {
-    console.log('going to edit pool ');
     setState('editPool');
     setEditPoolModalOpen(true);
   }, [setState]);
@@ -69,8 +72,8 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
         ? pool
           ? <>
             <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!canChangePoolState && !canEditPool} showRoles />
-            {canChangePoolState &&
-              <Grid container item justifyContent='space-between' sx={{ padding: '5px 1px' }} xs={12}>
+            <Grid container item justifyContent='space-between' sx={{ p: '15px 1px' }} xs={12}>
+              {canChangePoolState &&
                 <Grid container item xs={8}>
                   <Grid item>
                     <Button
@@ -110,7 +113,31 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                     </Button>
                   </Grid>
                 </Grid>
-                {canEditPool &&
+              }
+              {canCickAll &&
+                <>
+                  <Grid item>
+                    <Divider orientation='vertical' />
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      color='warning'
+                      disabled={['open'].includes(String(pool?.bondedPool?.state).toLowerCase())}
+                      onClick={handleKickAll}
+                      size='medium'
+                      startIcon={<OutputIcon />}
+                      sx={{ textTransform: 'none' }}
+                      variant='text'
+                    >
+                      {t('Kick all')}
+                    </Button>
+                  </Grid>
+                </>}
+              {canEditPool &&
+                <>
+                  <Grid item>
+                    <Divider orientation='vertical' />
+                  </Grid>
                   <Grid item>
                     <Button
                       color='warning'
@@ -124,9 +151,8 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                       {t('Edit')}
                     </Button>
                   </Grid>
-                }
-              </Grid>
-            }
+                </>}
+            </Grid>
           </>
           : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
             {t('No active pool found')}
