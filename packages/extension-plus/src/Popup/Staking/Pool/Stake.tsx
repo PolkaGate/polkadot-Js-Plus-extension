@@ -98,7 +98,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   }, [handleStakeAmountInput]);
 
   const handleCreatePool = useCallback((): void => {
-    if (staker?.balanceInfo?.available) {
+    if (staker?.balanceInfo?.available && poolStakingConsts?.maxPools > poolsInfo?.length) {
       setCreatePoolModalOpen(true);
 
       if (!state) {
@@ -250,9 +250,15 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
         <Grid item>
           {t('Min to create')}:
         </Grid>
+
         <Grid item>
           <ShowBalance2 api={api} balance={poolStakingConsts?.minCreationBond} />
         </Grid>
+        {poolStakingConsts?.maxPools <= poolsInfo?.length &&
+          <Grid item xs={12} textAlign='center' color='red'>
+            {t('Pools are full')}
+          </Grid>
+        }
       </Grid>
     </Grid>
   );
