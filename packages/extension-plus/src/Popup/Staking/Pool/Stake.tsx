@@ -44,6 +44,35 @@ interface Props {
   poolsMembers: MembersMapEntry[] | undefined
 }
 
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    backgroundColor: '#44b700',
+    color: '#44b700',
+    boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
+    '&::after': {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      borderRadius: '50%',
+      animation: 'ripple 1.2s infinite ease-in-out',
+      border: '1px solid currentColor',
+      content: '""'
+    }
+  },
+  '@keyframes ripple': {
+    '0%': {
+      transform: 'scale(.8)',
+      opacity: 1
+    },
+    '100%': {
+      transform: 'scale(2.4)',
+      opacity: 0
+    }
+  }
+}));
+
 export default function Stake({ api, chain, currentlyStaked, handleConfirmStakingModalOpen, myPool, nextPoolId, poolStakingConsts, poolsInfo, poolsMembers, setNewPool, setStakeAmount, setState, staker, state }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [alert, setAlert] = useState<string>('');
@@ -105,7 +134,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
         setState('createPool');
       }
     }
-  }, [staker?.balanceInfo?.available, state, setState]);
+  }, [staker?.balanceInfo?.available, poolStakingConsts?.maxPools, poolsInfo?.length, state, setState]);
 
   const handleJoinPool = useCallback((): void => {
     if (staker?.balanceInfo?.available) {
@@ -193,35 +222,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     handleStakeAmountInput(String(maxStakeableAsNumber));
   }, [handleStakeAmountInput, maxStakeableAsNumber, myPool?.bondedPool?.state]);
 
-  const StyledBadge = styled(Badge)(({ theme }) => ({
-    '& .MuiBadge-badge': {
-      backgroundColor: '#44b700',
-      color: '#44b700',
-      boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-      '&::after': {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        borderRadius: '50%',
-        animation: 'ripple 1.2s infinite ease-in-out',
-        border: '1px solid currentColor',
-        content: '""'
-      }
-    },
-    '@keyframes ripple': {
-      '0%': {
-        transform: 'scale(.8)',
-        opacity: 1
-      },
-      '100%': {
-        transform: 'scale(2.4)',
-        opacity: 0
-      }
-    }
-  }));
-
   const StakeInitialChoice = () => (
     <Grid container justifyContent='center' sx={{ pt: 5 }}>
       <Grid container item justifyContent='center' spacing={0.5} sx={{ fontSize: 12 }} xs={6}>
@@ -250,7 +250,6 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
         <Grid item>
           {t('Min to create')}:
         </Grid>
-
         <Grid item>
           <ShowBalance2 api={api} balance={poolStakingConsts?.minCreationBond} />
         </Grid>
