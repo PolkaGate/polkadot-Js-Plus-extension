@@ -14,7 +14,7 @@ import type { Chain } from '../../../../../extension-chains/src/types';
 import type { MembersMapEntry, MyPoolInfo, PoolInfo } from '../../../util/plusTypes';
 
 import { ExpandMore, MoreVert as MoreVertIcon } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Grid, Paper, Switch, Tooltip } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Grid, Paper, Radio, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -22,24 +22,26 @@ import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress, ShowAddress, ShowBalance2 } from '../../../components';
+import { SELECTED_COLOR } from '../../../util/constants';
 import PoolMoreInfo from './PoolMoreInfo';
 
 interface Props {
   chain: Chain;
   api: ApiPromise | undefined;
+  index?: number;
   pool: MyPoolInfo | undefined;
   poolsMembers?: MembersMapEntry[] | undefined;
   showCheck?: boolean;
   showHeader?: boolean;
   selectedPool?: PoolInfo;
-  setSelectedPool?: React.Dispatch<React.SetStateAction<PoolInfo | undefined>>;
+  handleSelectPool: (pool: PoolInfo) => void;
   showRoles?: boolean;
   showIds?: boolean;
   showMore?: boolean;
   showRewards?: boolean;
 }
 
-export default function Pool({ api, chain, pool, poolsMembers, selectedPool, setSelectedPool, showCheck = false, showHeader = true, showIds, showMore = true, showRewards, showRoles }: Props): React.ReactElement<Props> {
+export default function Pool({ api, chain, handleSelectPool, index, pool, poolsMembers, selectedPool, showCheck = false, showHeader = true, showIds, showMore = true, showRewards, showRoles }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [showPoolInfo, setShowPoolInfo] = useState(false);
   const [staked, setStaked] = useState<Balance | undefined>();
@@ -87,19 +89,26 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                   <Grid item sx={{ textAlign: 'center' }} xs={4}>
                     {t('Name')}
                   </Grid>
-                  <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                    {t('State')}
-                  </Grid>
+                  {!showCheck &&
+                    <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                      {t('State')}
+                    </Grid>
+                  }
                   <Grid item sx={{ textAlign: 'center' }} xs={showMore ? 3 : 4}>
                     {t('Staked')}
                   </Grid>
                   <Grid item sx={{ textAlign: 'center' }} xs={2}>
                     {t('Members')}
                   </Grid>
+                  {showCheck &&
+                    <Grid item sx={{ textAlign: 'center' }} xs={1}>
+                      {t('Choose')}
+                    </Grid>
+                  }
                 </Grid>
               </Paper>
             }
-            <Paper elevation={2} sx={{ backgroundColor: grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
+            <Paper elevation={2} sx={{ backgroundColor: selectedPool?.poolId?.eq(poolId) ? SELECTED_COLOR : index && index % 2 === 1 ? 'white' : grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
               <Grid alignItems='center' container sx={{ fontSize: 11 }}>
                 {showMore &&
                   <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
@@ -126,8 +135,12 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                   {pool?.bondedPool?.memberCounter}
                 </Grid>
                 {showCheck &&
-                  <Grid item xs={1}>
-                    <Switch checked={selectedPool && selectedPool.poolId.eq(poolId)} color='warning' onChange={() => setSelectedPool(pool)} size='small' />
+                  <Grid item xs={1} container justifyContent='center'>
+                    <Radio
+                      checked={selectedPool && selectedPool.poolId.eq(poolId)}
+                      color='warning' onChange={() => handleSelectPool(pool)}
+                      sx={{ height: '15px', width: '15px' }}
+                    />
                   </Grid>
                 }
               </Grid>
@@ -143,10 +156,10 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                       <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
                         <Grid item xs={12}>
                           <Paper elevation={3} sx={{ p: '10px' }}>
-                            {pool?.bondedPool?.roles?.root && <ShowAddress api={api}  address={String(pool.bondedPool.roles.root)} chain={chain} role={'Root'} />}
-                            {pool?.bondedPool?.roles?.depositor && <ShowAddress api={api}  address={String(pool.bondedPool.roles.depositor)} chain={chain} role={'Depositor'} />}
-                            {pool?.bondedPool?.roles?.nominator && <ShowAddress api={api}  address={String(pool.bondedPool.roles.nominator)} chain={chain} role={'Nominator'} />}
-                            {pool?.bondedPool?.roles?.stateToggler && <ShowAddress api={api}  address={String(pool.bondedPool.roles.stateToggler)} chain={chain} role={'State toggler'} />}
+                            {pool?.bondedPool?.roles?.root && <ShowAddress address={String(pool.bondedPool.roles.root)} api={api} chain={chain} role={'Root'} />}
+                            {pool?.bondedPool?.roles?.depositor && <ShowAddress address={String(pool.bondedPool.roles.depositor)} api={api} chain={chain} role={'Depositor'} />}
+                            {pool?.bondedPool?.roles?.nominator && <ShowAddress address={String(pool.bondedPool.roles.nominator)} api={api} chain={chain} role={'Nominator'} />}
+                            {pool?.bondedPool?.roles?.stateToggler && <ShowAddress address={String(pool.bondedPool.roles.stateToggler)} api={api} chain={chain} role={'State toggler'} />}
                           </Paper>
                         </Grid>
                       </AccordionDetails>
@@ -154,7 +167,7 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                   </Grid>
                 }
                 {showIds && pool?.accounts &&
-                  <Grid py={'4px'} item xs={12}>
+                  <Grid item py={'4px'} xs={12}>
                     <Accordion disableGutters expanded={expanded === 'ids'} onChange={handleAccordionChange('ids')} sx={{ backgroundColor: grey[200], flexGrow: 1 }}>
                       <AccordionSummary expandIcon={<ExpandMore sx={{ fontSize: 15 }} />} sx={{ fontSize: 11, height: '30px', minHeight: 'auto' }}>
                         {t('Ids')}
@@ -162,8 +175,8 @@ export default function Pool({ api, chain, pool, poolsMembers, selectedPool, set
                       <AccordionDetails sx={{ overflowY: 'auto', p: 0 }}>
                         <Grid item xs={12}>
                           <Paper elevation={3} sx={{ p: '10px' }}>
-                            <ShowAddress api={api}  address={pool.accounts.stashId} chain={chain} role={'Stash id'} />
-                            <ShowAddress api={api}  address={pool.accounts.rewardId} chain={chain} role={'Reward id'} />
+                            <ShowAddress address={pool.accounts.stashId} api={api} chain={chain} role={'Stash id'} />
+                            <ShowAddress address={pool.accounts.rewardId} api={api} chain={chain} role={'Reward id'} />
                           </Paper>
                         </Grid>
                       </AccordionDetails>
