@@ -11,7 +11,7 @@ async function getAllValidators (endpoint) {
     const api = await getApi(endpoint);
     const at = await api.rpc.chain.getFinalizedHead();
     const apiAt = await api.at(at);
-    
+
     const [elected, waiting, currentEra] = await Promise.all([
       api.derive.staking.electedInfo({ withController: true, withDestination: true, withExposure: true, withPrefs: true, withNominations: true, withLedger: true }),
       api.derive.staking.waitingInfo({ withController: true, withDestination: true, withExposure: true, withPrefs: true, withNominations: true, withLedger: true }),
