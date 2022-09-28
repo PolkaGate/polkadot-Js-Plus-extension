@@ -75,11 +75,11 @@ export default function ValidatorsList({ activeValidators, api, chain, height, l
           api={api}
           chain={chain}
           info={info}
+          ledger={ledger}
           setShowValidatorInfoModal={setShowValidatorInfoModal}
           showValidatorInfoModal={showValidatorInfoModal}
           staker={staker}
           validatorsIdentities={validatorsIdentities}
-          ledger={ledger}
         />
       }
     </>

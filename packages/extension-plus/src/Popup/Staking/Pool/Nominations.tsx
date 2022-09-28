@@ -77,6 +77,7 @@ function Nominations({ activeValidators, api, chain, endpoint, getPoolInfo, hand
               api={api}
               chain={chain}
               height={220}
+              ledger={myPool?.ledger}
               staker={myPool?.accounts?.stashId}
               stakingConsts={stakingConsts}
               validatorsIdentities={validatorsIdentities}

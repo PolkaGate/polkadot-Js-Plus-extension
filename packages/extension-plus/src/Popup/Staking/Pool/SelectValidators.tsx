@@ -8,8 +8,9 @@
  *  in this component manual selection of validators is provided, with some filtering features to facilitate selection process
  **/
 import type { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
+import type { StakingLedger } from '@polkadot/types/interfaces';
 import type { Chain } from '../../../../../extension-chains/src/types';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, Proxy, StakingConsts, Validators } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, StakingConsts, Validators } from '../../../util/plusTypes';
 
 import { ArrowDropDown as ArrowDropDownIcon, ArrowDropUp as ArrowDropUpIcon, DeleteSweepRounded as DeleteSweepRoundedIcon, RecommendOutlined as RecommendOutlinedIcon, Search as SearchIcon } from '@mui/icons-material';
 import { Box, Checkbox, Container, FormControlLabel, Grid, InputAdornment, Paper, TextField } from '@mui/material';
@@ -25,8 +26,8 @@ import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Hint, PlusHeader, Popup } from '../../../components';
 import { DEFAULT_VALIDATOR_COMMISION_FILTER } from '../../../util/constants';
-import ValidatorInfo from '../common/ValidatorInfo';
 import ShowValidator from '../common/ShowValidator';
+import ValidatorInfo from '../common/ValidatorInfo';
 import ConfirmStaking from './ConfirmStaking';
 
 interface Props {
@@ -54,9 +55,9 @@ interface Data {
 }
 
 interface TableRowProps {
-  chain: Chain;
-  validators: DeriveStakingQuery[];
   api: ApiPromise | undefined;
+  chain: Chain;
+  ledger?: StakingLedger | null;
   nominatedValidators: DeriveStakingQuery[] | null;
   staker: AccountsBalanceType;
   stakingConsts: StakingConsts;
@@ -66,6 +67,7 @@ interface TableRowProps {
   setSelected: React.Dispatch<React.SetStateAction<DeriveStakingQuery[]>>;
   searching: boolean;
   setSearching: React.Dispatch<React.SetStateAction<boolean>>;
+  validators: DeriveStakingQuery[];
   validatorsIdentities: DeriveAccountInfo[] | null;
 }
 
@@ -168,7 +170,7 @@ const TableToolbar = (props: ToolbarProps) => {
   );
 };
 
-function SelectionTable({ api, chain, nominatedValidators, searchedValidators, searching, selected, setSearchedValidators, setSearching, setSelected, staker, stakingConsts, validators, validatorsIdentities }: TableRowProps) {
+function SelectionTable({ api, chain, ledger, nominatedValidators, searchedValidators, searching, selected, setSearchedValidators, setSearching, setSelected, staker, stakingConsts, validators, validatorsIdentities }: TableRowProps) {
   const { t } = useTranslation();
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('name');
@@ -291,6 +293,7 @@ function SelectionTable({ api, chain, nominatedValidators, searchedValidators, s
           api={api}
           chain={chain}
           info={info}
+          ledger={ledger}
           setShowValidatorInfoModal={setShowValidatorInfoModal}
           showValidatorInfoModal={showValidatorInfoModal}
           staker={staker}
@@ -387,6 +390,7 @@ export default function SelectValidators({ api, chain, nominatedValidators, pool
             <SelectionTable
               api={api}
               chain={chain}
+              ledger={pool?.ledger}
               nominatedValidators={nominatedValidators}
               searchedValidators={searchedValidators}
               searching={searching}
