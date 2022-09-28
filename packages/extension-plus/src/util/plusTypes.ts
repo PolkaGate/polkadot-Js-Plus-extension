@@ -443,7 +443,7 @@ export interface AlertType {
   severity: 'error' | 'warning' | 'info' | 'success'
 }
 
-export type ProxyTypes = 'Any' | 'Staking' | 'NonTransfer' | 'Governance' | 'SudoBalances' | 'SudoBalances' | 'CancelProxy';
+export type ProxyTypes = 'Any' | 'Auction' | 'CancelProxy' | 'IdentityJudgement' | 'Governance' | 'NonTransfer' | 'Staking' | 'SudoBalances' | 'SudoBalances' |'Society';
 
 export interface Proxy {
   delay: number;
