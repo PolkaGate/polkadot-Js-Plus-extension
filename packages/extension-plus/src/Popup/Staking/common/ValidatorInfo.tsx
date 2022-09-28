@@ -110,7 +110,7 @@ export default function ValidatorInfo({ api, chain, info, ledger, setShowValidat
                 ? <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
                   {t('My rank')}{': '}{myIndex + 1}
                 </Grid>
-                : myPossibleIndex && myPossibleIndex !== -1 &&
+                : myPossibleIndex >= 0 &&
                 <Grid item sx={{ pr: 3, pt: 1, textAlign: 'right' }} xs={6}>
                   {t('Your possible rank')}{': '}{myPossibleIndex + 1}
                 </Grid>
