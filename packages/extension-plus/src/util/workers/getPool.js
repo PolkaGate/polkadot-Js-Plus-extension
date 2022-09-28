@@ -90,7 +90,7 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
       : null,
     myClaimable: Number(myClaimable),
     // nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
-    poolId: id,
+    poolId: poolId.toNumber(),
     redeemable: Number(stashIdAccount?.redeemable),
     rewardClaimable: Number(poolRewardClaimable),
     rewardIdBalance: rewardIdBalance.data,

@@ -34,6 +34,7 @@ import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
 import ValidatorsList from '../common/ValidatorsList';
 import Pool from './Pool';
+import { toAddress } from '../../../util/toAddress';
 
 interface Props {
   amount: BN;
@@ -74,6 +75,9 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
   const [proxy, setProxy] = useState<Proxy | undefined>();
   const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
+  const poolMembers = useMemo((): string[] => pool?.poolId && poolsMembers ? poolsMembers[pool.poolId]?.map((m) => toAddress(m.accountId)) : [], [pool?.poolId, poolsMembers]);
+
+  console.log('poolsMembers', poolMembers);
 
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
@@ -214,8 +218,12 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
         break;
       case ('unstake'):
-        params = [staker?.address, surAmount];
-        console.log('unlockingLen', unlockingLen); console.log('maxUnlockingChunks', maxUnlockingChunks);
+      case ('kickAll'):
+        // eslint-disable-next-line no-case-declarations
+        const memberAccount = state === 'unstake' ? staker?.address : api.createType('MultiAddress', ...poolMembers);
+
+        params = [memberAccount, surAmount];
+        console.log('...params', ...params);
 
         // eslint-disable-next-line no-void
         void unbonded(...params).paymentInfo(staker.address).then((i) => {
