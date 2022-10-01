@@ -87,7 +87,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
     const members: MemberPoints[] = poolId && poolsMembers ? poolsMembers[poolId]?.map((m) => ({ accountId: m.accountId, points: String(m.member.points) })) : [];
 
     if (String(pool?.bondedPool?.state) === 'Blocked') {
-      return members.filter((m) => m.accountId !== staker.address || !new BN(m.points).isZero());
+      return members.filter((m) => m.accountId !== staker.address && !new BN(m.points).isZero());
     }
 
     return members;
