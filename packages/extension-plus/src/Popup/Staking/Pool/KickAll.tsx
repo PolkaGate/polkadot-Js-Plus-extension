@@ -223,7 +223,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
           <Typography sx={{ py: '20px' }} variant='body1'>
             {t('You are going to kicking all members out, which needs two actions.')}
           </Typography>
-          <Typography sx={{ p: '20px 10px 20px' }} variant='body2'>
+          <Typography sx={{ p: '20px 10px 20px' }} variant='subtitle2'>
             {t('1. Unbound all members')}:
           </Typography>
           <Grid container justifyContent='center'>
@@ -239,14 +239,14 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
           </Grid>
           <Grid item xs={12}>
             <Typography sx={{ p: '50px 10px 20px' }} variant='body2'>
-              {t('2. Wait for unlocking period to pass')}:
+              {t('Wait for unlocking period to pass')}:
             </Typography>
           </Grid>
           <Grid container justifyContent='center'>
             {needsUnboundAll ? '...' : remainingTimeCountDown(remainingSecondsToKickAll)}
           </Grid>
-          <Typography sx={{ p: '50px 10px 20px' }} variant='body2'>
-            {t('3. Kick all members out')}:
+          <Typography sx={{ p: '50px 10px 20px' }} variant='subtitle2'>
+            {t('2. Kick all members out')}:
           </Typography>
           <Grid container justifyContent='center'>
             <Button
