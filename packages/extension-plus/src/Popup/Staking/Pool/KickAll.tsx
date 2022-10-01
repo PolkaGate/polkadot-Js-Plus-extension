@@ -141,6 +141,8 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
     }).catch(console.error);
   }, [api]);
 
+  console.log('sessionInfo:', sessionInfo);
+  
   useEffect(() => {
     if (!sessionInfo || !kickEraIndex) {
       return;
@@ -170,7 +172,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
     handleConfirmStakingModalOpen();
   }, [handleConfirmStakingModalOpen, setKickAllModalOpen, setState]);
 
-  const remainitngTime = useMemo(() => remainingTimeCountDown(remainingSecondsToKickAll), [remainingSecondsToKickAll]);
+  const remainingTime = useMemo(() => remainingTimeCountDown(remainingSecondsToKickAll), [remainingSecondsToKickAll]);
 
   return (
     <>
@@ -205,7 +207,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
             </Button>
           </Grid>
           <Typography sx={{ p: '80px 10px 20px' }} variant='subtitle2'>
-            {t('2. Kick all members out{{after}}', { replace: { after: !needsUnboundAll && remainitngTime !== 'finished' ? ` (after ${remainingTimeCountDown(remainingSecondsToKickAll)})` : '' } })}:
+            {t('2. Kick all members out{{after}}', { replace: { after: !needsUnboundAll && remainingTime !== 'finished' ? ` (after ${remainingTimeCountDown(remainingSecondsToKickAll)})` : '' } })}:
           </Typography>
           <Grid container justifyContent='center'>
             <Button
