@@ -47,7 +47,7 @@ export default function Pool({ api, chain, handleSelectPool, index, pool, poolsM
   const [staked, setStaked] = useState<Balance | undefined>();
   const [expanded, setExpanded] = useState<string>('roles');
 
-  const poolId = pool?.poolId || pool?.member?.poolId as BN;
+  const poolId = pool?.poolId;
 
   useEffect(() => {
     if (!(api && pool)) { return; }
@@ -108,7 +108,7 @@ export default function Pool({ api, chain, handleSelectPool, index, pool, poolsM
                 </Grid>
               </Paper>
             }
-            <Paper elevation={2} sx={{ backgroundColor: selectedPool?.poolId?.eq(poolId) ? SELECTED_COLOR : index && index % 2 === 1 ? 'white' : grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
+            <Paper elevation={2} sx={{ backgroundColor: selectedPool?.poolId === poolId ? SELECTED_COLOR : index && index % 2 === 1 ? 'white' : grey[100], mt: '4px', p: '1px 0px 2px 5px', width: '100%' }}>
               <Grid alignItems='center' container sx={{ fontSize: 11 }}>
                 {showMore &&
                   <Grid alignItems='center' item sx={{ textAlign: 'center' }} xs={1}>
@@ -116,7 +116,7 @@ export default function Pool({ api, chain, handleSelectPool, index, pool, poolsM
                   </Grid>
                 }
                 <Grid item sx={{ textAlign: 'center' }} xs={1}>
-                  {String(poolId)}
+                  {poolId}
                 </Grid>
                 <Tooltip title={pool?.metadata ?? t('no name')}>
                   <Grid item sx={{ overflow: 'hidden', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} xs={4}>
@@ -134,10 +134,10 @@ export default function Pool({ api, chain, handleSelectPool, index, pool, poolsM
                 <Grid item sx={{ textAlign: 'center' }} xs={2}>
                   {pool?.bondedPool?.memberCounter}
                 </Grid>
-                {showCheck &&
+                {showCheck && handleSelectPool &&
                   <Grid item xs={1} container justifyContent='center'>
                     <Radio
-                      checked={selectedPool && selectedPool.poolId.eq(poolId)}
+                      checked={selectedPool && selectedPool.poolId === poolId}
                       color='warning' onChange={() => handleSelectPool(pool)}
                       sx={{ height: '15px', width: '15px' }}
                     />
@@ -223,7 +223,7 @@ export default function Pool({ api, chain, handleSelectPool, index, pool, poolsM
         : <Progress title={t('Loading pool ....')} />
       }
       {
-        showPoolInfo && api && pool?.rewardPool &&
+        showPoolInfo && api && pool?.rewardPool && poolId &&
         <PoolMoreInfo
           api={api}
           chain={chain}

@@ -159,7 +159,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
         state: 'Creating'
       },
       metadata: poolName ?? null,
-      poolId: nextPoolId,
+      poolId: nextPoolId.toNumber(),
       rewardPool: null
     });
   }, [nominatorId, poolName, rootId, setNewPool, staker.address, stateTogglerId, realStakingAmount, nextPoolId]);
@@ -185,7 +185,7 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
     }
 
     if (Number(value) > maxStakeable && Number(value) < Number(availableBalanceInHuman)) {
-      setAlert(t('Your account might be reaped!'));
+      setAlert(t('Your account may be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));

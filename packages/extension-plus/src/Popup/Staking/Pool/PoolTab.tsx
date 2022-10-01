@@ -12,13 +12,16 @@ import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '../../../../../extension-chains/src/types';
 import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
-import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, PlayCircleOutlined as PlayCircleOutlinedIcon, Output as OutputIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
-import { Button, Divider, Grid, Typography } from '@mui/material';
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, Output as OutputIcon, PlayCircleOutlined as PlayCircleOutlinedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
+import { Button, Divider, Grid } from '@mui/material';
+import React, { useCallback, useMemo, useState } from 'react';
+
+import { BN } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { Progress } from '../../../components';
+import { Hint, Progress } from '../../../components';
 import EditPool from './EditPool';
+import KickAll from './KickAll';
 import Pool from './Pool';
 
 interface Props {
@@ -35,45 +38,50 @@ interface Props {
 
 function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poolsMembers, setNewPool, setState, staker }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const [canChangePoolState, setCanChangePoolState] = useState<boolean | undefined>();
-  const [canEditPool, setCanEditPool] = useState<boolean | undefined>();
+
   const [showEditPoolModal, setEditPoolModalOpen] = useState<boolean>(false);
-  const canCickAll = useMemo(() => pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address), [staker?.address, pool]);
+  const [showKickAllModal, setKickAllModalOpen] = useState<boolean>(false);
+
+  const canChangeState = useMemo(() => pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address), [pool, staker]);
+  const canEdit = useMemo(() => pool?.bondedPool && staker?.address && String(pool.bondedPool.roles.root) === staker.address, [pool, staker]);
+
+  const canKickAll = useMemo(() => {
+    if (!pool?.bondedPool || !staker || !poolsMembers || poolsMembers[pool.poolId]?.length === 1 ||
+      ![String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address) ||
+      !['Blocked', 'Destroying'].includes(String(pool.bondedPool?.state))) {
+      return false;
+    }
+
+    return true;
+  }, [pool, staker, poolsMembers]);
 
   const handleStateChange = useCallback((state: string) => {
-    if (!api) { return; }
+    if (!api) {
+      return;
+    }
 
     setState(state);
     handleConfirmStakingModalOpen();
   }, [api, handleConfirmStakingModalOpen, setState]);
-
-  const handleKickAll = useCallback(() => {
-    handleStateChange('kickAll');
-  }, [handleStateChange]);
 
   const handleEditPool = useCallback(() => {
     setState('editPool');
     setEditPoolModalOpen(true);
   }, [setState]);
 
-  useEffect(() => {
-    if (!pool) { return; }
-
-    const canChangeState = pool?.bondedPool && staker?.address && [String(pool.bondedPool.roles.root), String(pool.bondedPool.roles.stateToggler)].includes(staker.address);
-    const canEdit = pool?.bondedPool && staker?.address && String(pool.bondedPool.roles.root) === staker.address;
-
-    setCanChangePoolState(!!canChangeState);
-    setCanEditPool(!!canEdit);
-  }, [api, pool, staker.address]);
+  const handleKickAll = useCallback(() => {
+    setState('kickAll');
+    setKickAllModalOpen(true);
+  }, [setState]);
 
   return (
     <Grid container px='5px'>
       {api && pool !== undefined
         ? pool
           ? <>
-            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!canChangePoolState && !canEditPool} showRoles />
+            <Pool api={api} chain={chain} pool={pool} poolsMembers={poolsMembers} showIds={!canChangeState && !canEdit} showRoles />
             <Grid container item justifyContent='space-between' sx={{ p: '15px 1px' }} xs={12}>
-              {canChangePoolState &&
+              {canChangeState &&
                 <Grid container item xs={8}>
                   <Grid item>
                     <Button
@@ -114,26 +122,28 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                   </Grid>
                 </Grid>
               }
-              {canCickAll &&
+              {canChangeState &&
                 <>
                   <Grid item>
                     <Divider orientation='vertical' />
                   </Grid>
                   <Grid item>
-                    <Button
-                      color='warning'
-                      disabled={['open'].includes(String(pool?.bondedPool?.state).toLowerCase())}
-                      onClick={handleKickAll}
-                      size='medium'
-                      startIcon={<OutputIcon />}
-                      sx={{ textTransform: 'none' }}
-                      variant='text'
-                    >
-                      {t('Kick all')}
-                    </Button>
+                    <Hint id='kickAll' place='top' tip='kick all members when pool is in Blocked or Destroying state, and not already kicked'>
+                      <Button
+                        color='warning'
+                        disabled={!canKickAll}
+                        onClick={handleKickAll}
+                        size='medium'
+                        startIcon={<OutputIcon />}
+                        sx={{ textTransform: 'none' }}
+                        variant='text'
+                      >
+                        {t('Kick all')}
+                      </Button>
+                    </Hint>
                   </Grid>
                 </>}
-              {canEditPool &&
+              {canEdit &&
                 <>
                   <Grid item>
                     <Divider orientation='vertical' />
@@ -151,7 +161,8 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
                       {t('Edit')}
                     </Button>
                   </Grid>
-                </>}
+                </>
+              }
             </Grid>
           </>
           : <Grid item sx={{ fontSize: 12, pt: 7, textAlign: 'center' }} xs={12}>
@@ -170,6 +181,19 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
           setNewPool={setNewPool}
           setState={setState}
           showEditPoolModal={showEditPoolModal}
+        />
+      }
+      {showKickAllModal && pool &&
+        <KickAll
+          api={api}
+          chain={chain}
+          handleConfirmStakingModalOpen={handleConfirmStakingModalOpen}
+          pool={pool}
+          poolsMembers={poolsMembers}
+          setKickAllModalOpen={setKickAllModalOpen}
+          setState={setState}
+          showKickAllModal={showKickAllModal}
+          staker={staker}
         />
       }
     </Grid>

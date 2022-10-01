@@ -32,9 +32,9 @@ import { ChooseProxy } from '../../../partials';
 import { broadcast, createPool, editPool, signAndSend } from '../../../util/api';
 import { PASS_MAP, STATES_NEEDS_MESSAGE } from '../../../util/constants';
 import { amountToHuman, getSubstrateAddress, getTransactionHistoryFromLocalStorage, isEqual, prepareMetaData } from '../../../util/plusUtils';
+import { toAddress } from '../../../util/toAddress';
 import ValidatorsList from '../common/ValidatorsList';
 import Pool from './Pool';
-import { toAddress } from '../../../util/toAddress';
 
 interface Props {
   amount: BN;
@@ -75,14 +75,23 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const [availableBalance, setAvailableBalance] = useState<BN>(BN_ZERO);
   const [proxy, setProxy] = useState<Proxy | undefined>();
   const [selectProxyModalOpen, setSelectProxyModalOpen] = useState<boolean>(false);
-  const poolMembers = useMemo((): string[] => pool?.poolId && poolsMembers ? poolsMembers[pool.poolId]?.map((m) => toAddress(m.accountId)) : [], [pool?.poolId, poolsMembers]);
-
-  console.log('poolsMembers', poolMembers);
 
   const decimals = api.registry.chainDecimals[0];
   const token = api.registry.chainTokens[0];
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
-  const poolId = pool?.poolId ?? pool?.member?.poolId; // it is a new selectedPool ( pool?.poolId) or an already joined pool (pool?.member?.poolId)
+  const poolId = pool?.poolId;
+
+  // console.log('poolsMembers:', poolsMembers);
+
+  const membersToKick = useMemo((): { accountId: string, points: number }[] => {
+    const members = poolId && poolsMembers ? poolsMembers[poolId]?.map((m) => ({ accountId: m.accountId, points: String(m.member.points) })) : [];
+
+    if (String(pool?.bondedPool?.state) === 'Blocked') {
+      return members.filter((m) => m.accountId !== staker.address);
+    }
+
+    return members;
+  }, [pool, poolId, poolsMembers, staker?.address]);
 
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
@@ -104,6 +113,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const poolWithdrawUnbonded = api.tx.nominationPools.poolWithdrawUnbonded;
   const claim = api.tx.nominationPools.claimPayout;
   const updateRoles = api.tx.nominationPools.updateRoles;//(poolId, root, nominator, stateToggler)
+  const batchAll = api.tx.utility.batchAll;
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
     if (!history.length) {
@@ -163,7 +173,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   }, [basePool, pool]);
 
   const setFee = useCallback(() => {
-    let params;
+    let params, calls;
 
     if (estimatedFee?.gtn(0)) {
       return;
@@ -192,7 +202,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           const createFee = i?.partialFee;
 
           // eslint-disable-next-line no-void
-          void setMetadata(pool.poolId, pool.metadata).paymentInfo(staker.address).then((i) =>
+          void setMetadata(poolId, pool.metadata).paymentInfo(staker.address).then((i) =>
             setEstimatedFee(api.createType('Balance', createFee.add(i?.partialFee))));
         });
 
@@ -200,14 +210,14 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       case ('editPool'):
         if (!pool?.bondedPool || !pool?.member || !basePool?.bondedPool) { return; }
 
-        params = [pool.member.poolId, pool.metadata];
+        params = [poolId, pool.metadata];
         // eslint-disable-next-line no-void
         basePool && basePool.metadata !== pool.metadata && void setMetadata(...params).paymentInfo(staker.address).then((i) => {
           console.log('setmetadata fee set')
           setEstimatedFee((prevEstimatedFee) => api.createType('Balance', (prevEstimatedFee ?? BN_ZERO).add(i?.partialFee)));
         });
 
-        params = [pool.member.poolId, getRole('root'), getRole('nominator'), getRole('stateToggler')];
+        params = [poolId, getRole('root'), getRole('nominator'), getRole('stateToggler')];
 
         // eslint-disable-next-line no-void
         basePool && JSON.stringify(basePool.bondedPool.roles) !== JSON.stringify(pool.bondedPool.roles) &&
@@ -218,12 +228,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
         break;
       case ('unstake'):
-      case ('kickAll'):
-        // eslint-disable-next-line no-case-declarations
-        const memberAccount = state === 'unstake' ? staker?.address : api.createType('MultiAddress', ...poolMembers);
-
-        params = [memberAccount, surAmount];
-        console.log('...params', ...params);
+        params = [staker?.address, surAmount];
 
         // eslint-disable-next-line no-void
         void unbonded(...params).paymentInfo(staker.address).then((i) => {
@@ -237,6 +242,35 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
             // eslint-disable-next-line no-void
             void poolWithdrawUnbonded(...dummyParams).paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
           }
+        });
+
+        break;
+      case ('unboundAll'):
+        calls = membersToKick.map((m) => unbonded(m.accountId, m.points));
+
+        // eslint-disable-next-line no-void
+        void batchAll(calls).paymentInfo(staker.address).then((i) => {
+          const fee = i?.partialFee;
+
+          if (unlockingLen < maxUnlockingChunks) {
+            setEstimatedFee(fee);
+          } else {
+            const dummyParams = [1, 1];
+
+            // eslint-disable-next-line no-void
+            void poolWithdrawUnbonded(...dummyParams).paymentInfo(staker.address).then((j) => setEstimatedFee(api.createType('Balance', fee.add(j?.partialFee))));
+          }
+        });
+
+        break;
+      case ('kickAll'):
+        calls = membersToKick.map((m) => redeem(m.accountId, m.points));
+
+        // eslint-disable-next-line no-void
+        void batchAll(calls).paymentInfo(staker.address).then((i) => {
+          const fee = i?.partialFee;
+
+          setEstimatedFee(fee);
         });
 
         break;
@@ -265,7 +299,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       case ('blocked'):
       case ('open'):
       case ('destroying'):
-        params = [pool.poolId, state];
+        params = [poolId, state];
 
         // eslint-disable-next-line no-void
         void poolSetState(...params).paymentInfo(staker.address).then((i) => setEstimatedFee(i?.partialFee));
@@ -273,7 +307,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       default:
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [api, basePool, bondExtra, claim, create, getRole, joined, maxUnlockingChunks, nominated, pool?.bondedPool?.roles, pool?.member?.poolId, pool.metadata, pool.poolId, poolId, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen, updateRoles]);
+  }, [api, basePool, bondExtra, claim, create, getRole, joined, maxUnlockingChunks, nominated, pool?.bondedPool?.roles, poolId, pool.metadata, poolSetState, poolWithdrawUnbonded, redeem, selectedValidatorsAccountId, setMetadata, staker.address, state, surAmount, unbonded, unlockingLen, updateRoles]);
 
   const setTotalStakedInHumanBasedOnStates = useCallback(() => {
     const lastStaked = currentlyStaked ?? BN_ZERO;
@@ -371,6 +405,10 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         return 'NOMINATING';
       case ('unstake'):
         return 'UNSTAKING';
+      case ('unboundAll'):
+        return 'UNBOUND All';
+      case ('kickAll'):
+        return 'KICK All';
       case ('withdrawUnbound'):
         return 'REDEEM';
       case ('withdrawClaimable'):
@@ -506,6 +544,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       }
 
       if (localState === 'unstake' && surAmount.gt(BN_ZERO)) {
+
         const params = [staker?.address, surAmount];
 
         if (unlockingLen < maxUnlockingChunks) {
@@ -528,12 +567,12 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
           const optSpans = await api.query.staking.slashingSpans(staker.address);
           const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
 
-          const batch = api.tx.utility.batchAll([
+          const calls = batchAll([
             poolWithdrawUnbonded(poolId, spanCount),
             unbonded(...params)
           ]);
 
-          const tx = proxy ? api.tx.proxy.proxy(staker.address, proxy.proxyType, batch) : batch;
+          const tx = proxy ? api.tx.proxy.proxy(staker.address, proxy.proxyType, calls) : calls;
           const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, staker.address);
 
           history.push({
@@ -550,6 +589,75 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
           setConfirmingState(status);
         }
+      }
+
+      if (localState === 'unboundAll') {
+        const batchedCalls = batchAll(membersToKick.map((m) => unbonded(m.accountId, m.points)));
+
+        if (unlockingLen < maxUnlockingChunks) {
+          const tx = proxy ? api.tx.proxy.proxy(staker.address, proxy.proxyType, batchedCalls) : batchedCalls;
+          const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, staker.address);
+
+          history.push({
+            action: 'pool_unbond_all',
+            amount: amountToHuman(String(surAmount), decimals),
+            block,
+            date: Date.now(),
+            fee: fee || String(estimatedFee) || '',
+            from: staker.address,
+            hash: txHash || '',
+            status: failureText || status,
+            to: ''
+          });
+
+          setConfirmingState(status);
+        } else { // hence a poolWithdrawUnbonded is needed
+          const optSpans = await api.query.staking.slashingSpans(staker.address);
+          const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;
+
+          const calls = batchAll([
+            poolWithdrawUnbonded(poolId, spanCount),
+            batchedCalls
+          ]);
+
+          const tx = proxy ? api.tx.proxy.proxy(staker.address, proxy.proxyType, calls) : calls;
+          const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, staker.address);
+
+          history.push({
+            action: 'pool_unbond2_all',
+            amount: amountToHuman(String(surAmount), decimals),
+            block,
+            date: Date.now(),
+            fee: fee || String(estimatedFee) || '',
+            from: staker.address,
+            hash: txHash || '',
+            status: failureText || status,
+            to: ''
+          });
+
+          setConfirmingState(status);
+        }
+      }
+
+      if (localState === 'kickAll') {
+        const batchedCalls = batchAll(membersToKick.map((m) => redeem(m.accountId, m.points)));
+
+        const tx = proxy ? api.tx.proxy.proxy(staker.address, proxy.proxyType, batchedCalls) : batchedCalls;
+        const { block, failureText, fee, status, txHash } = await signAndSend(api, tx, signer, staker.address);
+
+        history.push({
+          action: 'kick_all',
+          amount: amountToHuman(String(surAmount), decimals),
+          block,
+          date: Date.now(),
+          fee: fee || String(estimatedFee) || '',
+          from: staker.address,
+          hash: txHash || '',
+          status: failureText || status,
+          to: ''
+        });
+
+        setConfirmingState(status);
       }
 
       if (localState === 'withdrawUnbound' && surAmount.gt(BN_ZERO)) {
@@ -692,6 +800,14 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       case ('bondExtra'):
         return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
           {t('Note: Your rewards wil be automatically claimed as you change your stake')}
+        </Typography>;
+      case ('unboundAll'):
+        return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
+          {t('Unbounding all members of the pool{{except}} forcibly.', { replace: { except: String(pool?.bondedPool?.state) === 'Blocked' ? ', except yourself' : '' } })}
+        </Typography>;
+      case ('kickAll'):
+        return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
+          {t('Kicking out all members of the pool{{except}} forcibly.', { replace: { except: String(pool?.bondedPool?.state) === 'Blocked' ? ', except yourself' : '' } })}
         </Typography>;
       default:
         return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>

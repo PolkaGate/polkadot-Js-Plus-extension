@@ -253,7 +253,7 @@ export async function createPool(
   depositor: string | null,
   signer: KeyringPair,
   value: BN,
-  poolId: BN,
+  poolId: number,
   roles: any,
   poolName: string,
   proxy?: Proxy

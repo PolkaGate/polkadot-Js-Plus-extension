@@ -49,7 +49,7 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
     return null; // user does not joined a pool yet. or pool id does not exist
   }
 
-  const poolId = member?.poolId ?? id;
+  const poolId = member?.poolId?.toNumber() ?? id;
   const accounts = getPoolAccounts(api, poolId);
 
   if (!accounts) {
@@ -90,7 +90,7 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
       : null,
     myClaimable: Number(myClaimable),
     // nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
-    poolId: poolId.toNumber(),
+    poolId,
     redeemable: Number(stashIdAccount?.redeemable),
     rewardClaimable: Number(poolRewardClaimable),
     rewardIdBalance: rewardIdBalance.data,

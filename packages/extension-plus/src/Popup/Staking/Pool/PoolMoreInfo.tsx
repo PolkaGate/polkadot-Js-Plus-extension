@@ -33,14 +33,14 @@ interface Props {
   showPoolInfo: boolean;
   handleMorePoolInfoClose: () => void;
   pool: MyPoolInfo | undefined;
-  poolId: BN;
+  poolId: number;
   poolsMembers: MembersMapEntry[] | undefined
 }
 
 export default function PoolMoreInfo({ api, chain, handleMorePoolInfoClose, pool, poolId, poolsMembers, showPoolInfo }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
-  const myPoolMembers = poolsMembers && pool ? poolsMembers[Number(poolId)] as unknown as MembersMapEntry : undefined;
+  const myPoolMembers = poolsMembers && pool ? poolsMembers[poolId] as unknown as MembersMapEntry : undefined;
   const roleIds = useMemo(() => pool?.bondedPool ? Object.values(pool.bondedPool.roles) as unknown as AccountId32[] : [], [pool]);
 
   return (
@@ -56,7 +56,7 @@ export default function PoolMoreInfo({ api, chain, handleMorePoolInfoClose, pool
             const points = api.createType('Balance', member?.points ?? BN_ZERO); // FIXME: it is points not balance!!
 
             return (
-              <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(accountId) ? SELECTED_COLOR : '', my: 1, p: '1px' }}>
+              <Paper elevation={2} key={index} sx={{ bgcolor: roleIds.includes(accountId) ? SELECTED_COLOR : '', my: 1, p: '1px 10px 1px' }}>
                 <Grid alignItems='center' container item justifyContent='space-between' sx={{ fontSize: 12 }}>
                   <Grid item xs={1}>
                     <Identicon
