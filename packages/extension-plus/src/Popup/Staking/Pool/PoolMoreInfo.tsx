@@ -51,7 +51,7 @@ export default function PoolMoreInfo({ api, chain, handleMorePoolInfoClose, pool
         <Grid item sx={{ color: grey[600], fontSize: 15, p: '10px 0px 1px', textAlign: 'center' }} xs={12}>
           {t('Members')} ({myPoolMembers?.length ?? 0})
         </Grid>
-        <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', p: '10px 15px' }} xs={12}>
+        <Grid item sx={{ bgcolor: 'background.paper', height: '200px', overflowY: 'auto', scrollbarWidth: 'none', width: '100%', pt: '10px' }} xs={12}>
           {myPoolMembers?.map(({ accountId, member }, index: number) => {
             const points = api.createType('Balance', member?.points ?? BN_ZERO); // FIXME: it is points not balance!!
 

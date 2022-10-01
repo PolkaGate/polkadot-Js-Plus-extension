@@ -9,7 +9,7 @@
 
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { Balance } from '@polkadot/types/interfaces';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo, Proxy, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MemberPoints, MembersMapEntry, MyPoolInfo, Proxy, StakingConsts, TransactionDetail } from '../../../util/plusTypes';
 
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -83,11 +83,11 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
   // console.log('poolsMembers:', poolsMembers);
 
-  const membersToKick = useMemo((): { accountId: string, points: number }[] => {
-    const members = poolId && poolsMembers ? poolsMembers[poolId]?.map((m) => ({ accountId: m.accountId, points: String(m.member.points) })) : [];
+  const membersToKick = useMemo((): MemberPoints[] => {
+    const members: MemberPoints[] = poolId && poolsMembers ? poolsMembers[poolId]?.map((m) => ({ accountId: m.accountId, points: String(m.member.points) })) : [];
 
     if (String(pool?.bondedPool?.state) === 'Blocked') {
-      return members.filter((m) => m.accountId !== staker.address);
+      return members.filter((m) => m.accountId !== staker.address || !new BN(m.points).isZero());
     }
 
     return members;

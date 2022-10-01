@@ -11,7 +11,7 @@
 import type { ApiPromise } from '@polkadot/api';
 import type { Chain } from '@polkadot/extension-chains/types';
 import type { ThemeProps } from '../../../../../extension-ui/src/types';
-import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
+import type { AccountsBalanceType, MemberPoints, MembersMapEntry, MyPoolInfo } from '../../../util/plusTypes';
 
 import { Output as OutputIcon } from '@mui/icons-material';
 import { Button, Grid, Step, StepLabel, Stepper, Typography } from '@mui/material';
@@ -22,7 +22,7 @@ import styled from 'styled-components';
 import { BN, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
-import { PlusHeader, Popup, ShowValue } from '../../../components';
+import { PlusHeader, Popup } from '../../../components';
 import { remainingTimeCountDown } from '../../../util/plusUtils';
 
 interface Props extends ThemeProps {
@@ -42,11 +42,6 @@ interface SessionIfo {
   eraLength: number;
   eraProgress: number;
   currentEra: number;
-}
-
-interface MemberPoint {
-  accountId: string;
-  points: BN;
 }
 
 const steps = ['Unbound All', 'Wait', 'Kick All'];
@@ -73,7 +68,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
       return false;
     }
 
-    return poolsMembers[pool.poolId]?.map((m) => ({ accountId: m.accountId, points: m.member.points }));
+    return poolsMembers[pool.poolId]?.map((m) => ({ accountId: m.accountId, points: m.member.points })) as MemberPoints[];
   }, [pool, poolsMembers]);
 
   const needsUnboundAll = useMemo(() => {
@@ -83,9 +78,6 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
 
     const allMembersPoints = members.reduce((sum: BN, { points }) => sum.add(points), BN_ZERO);
     const myPoint = members.find((m) => m.accountId === staker.address)?.points ?? BN_ZERO;
-
-    console.log('members', members)
-    console.log('allMembersPoints.sub(myPoint)', allMembersPoints.sub(myPoint).toString())
 
     return !allMembersPoints.sub(myPoint).isZero();
   }, [members, staker?.address]);
@@ -109,6 +101,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
         }
       }
 
+      console.log('kickEraIndex', latestEra);
       setKickEraIndex(latestEra);
     });
   }, [api, members, staker]);
@@ -137,35 +130,6 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
       });
     }
   }, [completed, kickEraIndex, needsUnboundAll, sessionInfo, sessionInfo?.currentEra]);
-
-  useEffect(() => {
-    api && api.rpc.chain.getFinalizedHead().then((at) => {
-      api.at(at).then(async (apiAt) => {
-        const sessionsPerEra = apiAt.consts.staking.sessionsPerEra.toNumber();
-        const sessionDuration = apiAt.consts.babe.epochDuration.toNumber();
-        const expectedBlockTime = api.consts.babe.expectedBlockTime.toNumber();
-        const sessionDurationInSeconds = sessionDuration * expectedBlockTime / 1000;
-        const currentSessionIndex = await api.query.session.currentIndex();
-        console.log('sessionsPerEra:', Number(sessionsPerEra));
-        console.log('currentSessionIndex:', Number(currentSessionIndex));
-
-        const sessionInfo = await api.derive.session?.progress();
-        const activeEraStart = sessionInfo?.activeEraStart.unwrapOr(null);
-
-        console.log('sessionInfo:', JSON.parse(JSON.stringify(sessionInfo)));
-        console.log('activeEraStart:', activeEraStart);
-        console.log('sessionInfo.sessionLength:', Number(sessionInfo.sessionLength));
-        console.log('sessionInfo.activeEra:', Number(sessionInfo.activeEra));
-        console.log('sessionInfo.eraLength:', Number(sessionInfo.eraLength));
-        console.log('sessionInfo.sessionProgress:', Number(sessionInfo.sessionProgress));
-        console.log('sessionInfo.sessionsPerEra:', Number(sessionInfo.sessionsPerEra));
-        console.log('sessionInfo.eraProgress:', Number(sessionInfo.eraProgress));
-        console.log('sessionInfo.activeEraStart:', Number(sessionInfo.activeEraStart));
-        console.log('sessionInfo.currentEra:', Number(sessionInfo.currentEra));
-        console.log('sessionInfo.currentIndex:', Number(sessionInfo.currentIndex));
-      }).catch(console.error);
-    }).catch(console.error);
-  }, [api]);
 
   useEffect(() => {
     api && api.derive.session?.progress().then((sessionInfo) => {
@@ -200,11 +164,13 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
     setState('');
   }, [setKickAllModalOpen, setState]);
 
-  const handleKickAll = useCallback((state: string) => {
+  const handleKickAll = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     setKickAllModalOpen(false);
-    setState(state);
+    setState(event.target.id);
     handleConfirmStakingModalOpen();
   }, [handleConfirmStakingModalOpen, setKickAllModalOpen, setState]);
+
+  const remainitngTime = useMemo(() => remainingTimeCountDown(remainingSecondsToKickAll), [remainingSecondsToKickAll]);
 
   return (
     <>
@@ -220,39 +186,33 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
           </Stepper>
         </Grid>
         <Grid container sx={{ p: '20px 30px' }}>
-          <Typography sx={{ py: '20px' }} variant='body1'>
+          <Typography sx={{ py: '30px' }} variant='body1'>
             {t('You are going to kicking all members out, which needs two actions.')}
           </Typography>
-          <Typography sx={{ p: '20px 10px 20px' }} variant='subtitle2'>
+          <Typography sx={{ p: '40px 10px 20px' }} variant='subtitle2'>
             {t('1. Unbound all members')}:
           </Typography>
           <Grid container justifyContent='center'>
             <Button
               color='warning'
               disabled={!needsUnboundAll}
-              onClick={() => handleKickAll('unboundAll')}
+              id='unboundAll'
+              onClick={handleKickAll}
               sx={{ textTransform: 'none', width: '50%' }}
               variant='contained'
             >
               {needsUnboundAll ? t('Unbound All') : t('Already unbounded')}
             </Button>
           </Grid>
-          <Grid item xs={12}>
-            <Typography sx={{ p: '50px 10px 20px' }} variant='body2'>
-              {t('Wait for unlocking period to pass')}:
-            </Typography>
-          </Grid>
-          <Grid container justifyContent='center'>
-            {needsUnboundAll ? '...' : remainingTimeCountDown(remainingSecondsToKickAll)}
-          </Grid>
-          <Typography sx={{ p: '50px 10px 20px' }} variant='subtitle2'>
-            {t('2. Kick all members out')}:
+          <Typography sx={{ p: '80px 10px 20px' }} variant='subtitle2'>
+            {t('2. Kick all members out{{after}}', { replace: { after: !needsUnboundAll && remainitngTime !== 'finished' ? ` (after ${remainingTimeCountDown(remainingSecondsToKickAll)})` : '' } })}:
           </Typography>
           <Grid container justifyContent='center'>
             <Button
               color='warning'
-              disabled={needsUnboundAll || (sessionInfo && sessionInfo.currentEra < kickEraIndex)}
-              onClick={() => handleKickAll('kickAll')}
+              disabled={needsUnboundAll || (!!sessionInfo && !!kickEraIndex && sessionInfo.currentEra < kickEraIndex)}
+              id='kickAll'
+              onClick={handleKickAll}
               sx={{ textTransform: 'none', width: '50%' }}
               variant='contained'
             >
