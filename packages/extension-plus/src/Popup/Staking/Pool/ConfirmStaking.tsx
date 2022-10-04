@@ -91,12 +91,8 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
     const nonZeroPointMembers = members.filter((m) => !new BN(m.points).isZero());
 
-    if (String(pool?.bondedPool?.state) === 'Blocked') {
-      return nonZeroPointMembers.filter((m) => m.accountId !== staker.address);
-    }
-
-    return nonZeroPointMembers;
-  }, [members, pool, staker.address]);
+    return nonZeroPointMembers.filter((m) => m.accountId !== staker.address);
+  }, [members, staker.address]);
 
   const membersToKick = useMemo((): MemberPoints[] | undefined => {
     return members?.filter((m) => m.accountId !== staker.address);
@@ -279,6 +275,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         if (!membersToKick) {
           break;
         }
+
         // eslint-disable-next-line no-void
         void api.query.staking.slashingSpans(staker.address).then((optSpans) => {
           const spanCount = optSpans.isNone ? 0 : optSpans.unwrap().prior.length + 1;

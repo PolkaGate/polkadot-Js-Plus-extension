@@ -58,9 +58,6 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
   const [sessionInfo, setSessionInfo] = useState<SessionIfo>();
   const [kickEraIndex, setKickEraIndex] = useState<number>();
 
-  console.log('kickEraIndex', kickEraIndex);
-  console.log('sessionInfo:', sessionInfo);
-
   const resetPage = useCallback(() => {
     setActiveStep(STEP_MAP.UNBOUND);
     setCompleted({});
@@ -68,7 +65,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
 
   const members = useMemo(() => {
     if (!poolsMembers) {
-      return false;
+      return;
     }
 
     return poolsMembers[pool.poolId]?.map((m) => ({ accountId: m.accountId, points: m.member.points })) as MemberPoints[];
@@ -188,11 +185,11 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
           </Stepper>
         </Grid>
         <Grid container sx={{ p: '20px 30px' }}>
-          <Typography sx={{ py: '30px' }} variant='body1'>
-            {t('You are going to kicking all members out, which needs two actions.')}
+          <Typography sx={{ py: '30px' }} variant='subtitle1'>
+            {t('To kick all members out, their tokens must first be unbounded, then they can be kicked out after unlocking period is over.')}
           </Typography>
           <Typography sx={{ p: '40px 10px 20px' }} variant='subtitle2'>
-            {t('1. Unbound all members')}:
+            {t('◾️ Unbound {{member}} member{{s}}', { replace: { member: members?.length ? members.length - 1 : 0, s: members?.length && members.length === 2 ? '' : 's'} })}:
           </Typography>
           <Grid container justifyContent='center'>
             <Button
@@ -203,13 +200,13 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
               sx={{ textTransform: 'none', width: '50%' }}
               variant='contained'
             >
-              {needsUnboundAll ? t('Unbound All') : t('Already unbounded')}
+              {needsUnboundAll ? t('Unbound') : t('Already unbounded')}
             </Button>
           </Grid>
           <Typography sx={{ p: '80px 10px 20px' }} variant='subtitle2'>
-            {t('2. Kick all members out')}:
+            {t('◾️ Kick all members out')}:
           </Typography>
-          <Typography sx={{ p: '80px 2px 20px' }} variant='subtitle2' fontWeight='bold'>
+          <Typography color='info' fontWeight='bold' sx={{ p: '80px 2px 20px' }} variant='subtitle2'>
             {t(!needsUnboundAll && remainingTime !== 'finished' ? `(after ${remainingTimeCountDown(remainingSecondsToKickAll)})` : '')}
           </Typography>
           <Grid container justifyContent='center'>
