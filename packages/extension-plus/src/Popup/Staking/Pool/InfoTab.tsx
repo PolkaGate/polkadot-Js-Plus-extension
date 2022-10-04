@@ -30,7 +30,7 @@ function InfoTab({ api, currentlyExistingPoolsCount, info }: Props): React.React
   const token = api && api.registry.chainTokens[0];
 
   return (
-    <Grid container data-testid='info' sx={{ paddingTop: '15px', textAlign: 'center' }}>
+    <Grid container data-testid='info' sx={{ pt: '5px', textAlign: 'center' }}>
       <Grid sx={{ color: grey[600], fontSize: 15, fontWeight: '600' }} xs={12}>
         {t('Welcome to pool Staking')}
       </Grid>
