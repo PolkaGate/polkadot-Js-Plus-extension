@@ -13,9 +13,11 @@ Currently, the following features are available:
   - View transaction history
   - View an address as QR code
   - Easy staking (Solo and Pool Staking)
-  - Crowdloans (View Auctions and contribute to Crowdloans)
+  - Crowdloans (View Auctions and contribute to crowdloans)
   - Governance (vote referendums, second proposals, vote/unvote councils, propose treasury proposals and tips, etc.)
-  
+  - Social recovery
+  - supporting proxy accounts (for transferring, staking, and contribution to crowdloans)  
+
 
 # ![polkadot{.js} plus extension intro](packages/extension-plus/docs/intro.png)
 
@@ -86,7 +88,7 @@ Once added, you can create an account (via a generated seed) or import via an ex
 
 ## More information 
 
-for more information about the extension and how it worsk, please go to the project [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki) 
+for more information about the extension and how it works, please go to the project [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki) 
 
 <!-- ## To support 
 
