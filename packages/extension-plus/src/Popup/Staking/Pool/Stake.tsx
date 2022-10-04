@@ -110,7 +110,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
     const valueAsBN = new BN(String(amountToMachine(value, decimals)));
 
     if (new BN(staker.balanceInfo.total.toString()).sub(valueAsBN).sub(estimatedMaxFee ?? BN_ZERO).lt(existentialDeposit)) {
-      setAlert(t('Your account might be reaped!'));
+      setAlert(t('Your account may be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));
@@ -317,7 +317,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
                 </Grid>
                 : <Grid item sx={{ color: grey[500], fontSize: 12, textAlign: 'center' }} xs={12}>
                   {t('"{{poolName}}" pool is in {{state}} state, hence can not stake anymore.',
-                    { replace: { poolId: myPool.member.poolId, poolName: myPool.metadata ?? 'no name', state: myPool?.bondedPool?.state } })}
+                    { replace: { poolId: myPool?.member?.poolId, poolName: myPool?.metadata ?? 'no name', state: myPool?.bondedPool?.state } })}
                 </Grid>
               }
             </Grid>

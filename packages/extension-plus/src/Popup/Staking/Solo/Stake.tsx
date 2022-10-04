@@ -69,7 +69,7 @@ export default function Stake({ api, handleConfirmStakingModalOpen, handleSelect
     }
 
     if (Number(value) > maxStake && Number(value) < Number(availableBalanceInHuman)) {
-      setAlert(t('Your account might be reaped!'));
+      setAlert(t('Your account may be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));

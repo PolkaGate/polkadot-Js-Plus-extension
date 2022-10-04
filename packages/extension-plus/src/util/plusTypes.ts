@@ -340,7 +340,7 @@ export interface PoolStakingConsts {
 }
 
 export interface PoolInfo {
-  poolId: BN;
+  poolId: number;
   bondedPool: PalletNominationPoolsBondedPoolInner | null;
   metadata: string | null;
   rewardPool: PalletNominationPoolsRewardPool | null
@@ -363,7 +363,13 @@ export interface PoolAccounts {
   stashId: string;
 }
 
+export interface MemberPoints {
+  accountId: string;
+  points: BN;
+}
+
 export interface MembersMapEntry {
+  map(arg0: (m: any) => MemberPoint): MemberPoint[];
   accountId: string;
   member: PalletNominationPoolsPoolMember;
 }

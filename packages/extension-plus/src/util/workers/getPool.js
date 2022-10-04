@@ -49,7 +49,7 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
     return null; // user does not joined a pool yet. or pool id does not exist
   }
 
-  const poolId = member?.poolId ?? id;
+  const poolId = member?.poolId?.toNumber() ?? id;
   const accounts = getPoolAccounts(api, poolId);
 
   if (!accounts) {
@@ -65,6 +65,8 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
     api.query.system.account(accounts.rewardId),
     api.derive.staking.account(accounts.stashId)
   ]);
+
+  console.log('stashIdAccount:',stashIdAccount);
 
   const unwrappedRewardPools = rewardPools.isSome ? rewardPools.unwrap() : null;
   const unwrappedBondedPool = bondedPools.isSome ? bondedPools.unwrap() : null;
@@ -90,7 +92,7 @@ async function getPool(endpoint, stakerAddress, id = undefined) {
       : null,
     myClaimable: Number(myClaimable),
     // nominators: nominators.unwrapOr({ targets: [] }).targets.map((n) => n.toString()),
-    poolId: id,
+    poolId,
     redeemable: Number(stashIdAccount?.redeemable),
     rewardClaimable: Number(poolRewardClaimable),
     rewardIdBalance: rewardIdBalance.data,

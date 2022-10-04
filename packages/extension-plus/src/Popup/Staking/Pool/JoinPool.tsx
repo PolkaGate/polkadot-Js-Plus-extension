@@ -97,11 +97,11 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   useEffect(() => {
     if (!realStakingAmount) { return; }
 
-    api && api.tx.nominationPools.join(String(realStakingAmount), selectedPool?.poolId ?? BN_ONE).paymentInfo(staker.address).then((i) => {
+    api && api.tx.nominationPools.join(String(realStakingAmount), selectedPool?.poolId ?? 1).paymentInfo(staker.address).then((i) => {
       setEstimatedFee(api.createType('Balance', i?.partialFee));
     });
 
-    api && api.tx.nominationPools.join(String(staker?.balanceInfo?.available ?? realStakingAmount), selectedPool?.poolId ?? BN_ONE).paymentInfo(staker.address).then((i) => {
+    api && api.tx.nominationPools.join(String(staker?.balanceInfo?.available ?? realStakingAmount), selectedPool?.poolId ?? 1).paymentInfo(staker.address).then((i) => {
       setEstimatedMaxFee(api.createType('Balance', i?.partialFee));
     });
   }, [api, staker.address, realStakingAmount, selectedPool, staker?.balanceInfo?.available]);
@@ -149,7 +149,7 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
     }
 
     if (Number(value) > maxStakeable && Number(value) < Number(availableBalanceInHuman)) {
-      setAlert(t('Your account might be reaped!'));
+      setAlert(t('Your account may be reaped!'));
     }
 
     setStakeAmountInHuman(fixFloatingPoint(value));

@@ -71,7 +71,7 @@ export const SUPPORTED_CHAINS = ['Polkadot', 'Kusama', 'Westend'];
 export const STAKING_ACTIONS = ['bond', 'unbond', 'bond_extra', 'nominate', 'redeem', 'stop_nominating', 'chill', 'tuneUp'];
 
 // used in solo staking confirm page
-export const STATES_NEEDS_MESSAGE = ['withdrawUnbound', 'unstake', 'stopNominating', 'tuneUp'];
+export const STATES_NEEDS_MESSAGE = ['withdrawUnbound', 'unstake', 'stopNominating', 'tuneUp', 'kickAll'];
 export const CONFIRMING_STATE = ['fail', 'success', 'confirming'];
 
 const PROXY_TYPE_POLKADOT = ['Any', 'NonTransfer', 'Staking', 'Governance', 'IdentityJudgement', 'CancelProxy', 'Auction'];
