@@ -44,7 +44,7 @@ interface SessionIfo {
   currentEra: number;
 }
 
-const steps = ['Unbound All', 'Wait', 'Kick All'];
+const steps = ['Unbound', 'Wait', 'Kick'];
 const STEP_MAP = { UNBOUND: 0, WAIT: 1, KICK: 2 };
 
 function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers, setKickAllModalOpen, setState, showKickAllModal, staker }: Props): React.ReactElement<Props> {
@@ -83,7 +83,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
     const myPoint = members.find((m) => m.accountId === staker.address)?.points ?? BN_ZERO;
 
     return !allMembersPoints.sub(myPoint).isZero();
-  }, [members, staker?.address]);
+  }, [members, staker.address]);
 
   useEffect(() => {
     if (!members) {
@@ -207,7 +207,10 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
             </Button>
           </Grid>
           <Typography sx={{ p: '80px 10px 20px' }} variant='subtitle2'>
-            {t('2. Kick all members out{{after}}', { replace: { after: !needsUnboundAll && remainingTime !== 'finished' ? ` (after ${remainingTimeCountDown(remainingSecondsToKickAll)})` : '' } })}:
+            {t('2. Kick all members out')}:
+          </Typography>
+          <Typography sx={{ p: '80px 2px 20px' }} variant='subtitle2' fontWeight='bold'>
+            {t(!needsUnboundAll && remainingTime !== 'finished' ? `(after ${remainingTimeCountDown(remainingSecondsToKickAll)})` : '')}
           </Typography>
           <Grid container justifyContent='center'>
             <Button
@@ -218,7 +221,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
               sx={{ textTransform: 'none', width: '50%' }}
               variant='contained'
             >
-              {t('Kick All')}
+              {t('Kick')}
             </Button>
           </Grid>
         </Grid>
