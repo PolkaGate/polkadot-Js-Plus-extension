@@ -189,7 +189,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
             {t('To kick all members out, their tokens must first be unbounded, then they can be kicked out after unlocking period is over.')}
           </Typography>
           <Typography sx={{ p: '40px 10px 20px' }} variant='subtitle2'>
-            {t('◾️ Unbound {{member}} member{{s}}', { replace: { member: members?.length ? members.length - 1 : 0, s: members?.length && members.length === 2 ? '' : 's'} })}:
+            {t('◾️ Unbound {{member}} member{{s}}', { replace: { member: members?.length ? members.length - 1 : 0, s: members?.length && members.length === 2 ? '' : 's' } })}:
           </Typography>
           <Grid container justifyContent='center'>
             <Button
@@ -204,7 +204,7 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
             </Button>
           </Grid>
           <Typography sx={{ p: '80px 10px 20px' }} variant='subtitle2'>
-            {t('◾️ Kick all members out')}:
+            {t('◾️ Kick {{member}} member{{s}} out', { replace: { member: members?.length ? members.length - 1 : 0, s: members?.length && members.length === 2 ? '' : 's' } })}:
           </Typography>
           <Typography color='info' fontWeight='bold' sx={{ p: '80px 2px 20px' }} variant='subtitle2'>
             {t(!needsUnboundAll && remainingTime !== 'finished' ? `(after ${remainingTimeCountDown(remainingSecondsToKickAll)})` : '')}
