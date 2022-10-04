@@ -1,5 +1,7 @@
 
 # ![polkadot{.js} plus extension](https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/main/Title.png)
+![license](https://img.shields.io/badge/License-Apache%202.0-blue?logo=apache&style=flat-square)
+![supported by](https://img.shields.io/badge/Supported%20by-Kusama%20Treasury-%20black?logo=polkadot&style=flat-square)
 
 A user-friendly wallet to interact with the Polkadot/Substrate based blockchains through a browser. It allows users to access their Polkadot/Kusama ecosystem account(s), which can also be used to interact with decentralized apps. It is based on polkadot js extension, which injects a [@polkadot/api](https://github.com/polkadot-js/api) signer into a page, along with any associated accounts.
 
