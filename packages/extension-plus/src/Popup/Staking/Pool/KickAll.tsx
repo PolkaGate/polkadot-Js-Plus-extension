@@ -58,6 +58,9 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
   const [sessionInfo, setSessionInfo] = useState<SessionIfo>();
   const [kickEraIndex, setKickEraIndex] = useState<number>();
 
+  console.log('kickEraIndex', kickEraIndex);
+  console.log('sessionInfo:', sessionInfo);
+
   const resetPage = useCallback(() => {
     setActiveStep(STEP_MAP.UNBOUND);
     setCompleted({});
@@ -101,7 +104,6 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
         }
       }
 
-      console.log('kickEraIndex', latestEra);
       setKickEraIndex(latestEra);
     });
   }, [api, members, staker]);
@@ -141,8 +143,6 @@ function KickAll({ api, chain, handleConfirmStakingModalOpen, pool, poolsMembers
     }).catch(console.error);
   }, [api]);
 
-  console.log('sessionInfo:', sessionInfo);
-  
   useEffect(() => {
     if (!sessionInfo || !kickEraIndex) {
       return;

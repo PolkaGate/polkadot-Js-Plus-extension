@@ -81,17 +81,28 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const existentialDeposit = useMemo(() => new BN(String(api.consts.balances.existentialDeposit)), [api]);
   const poolId = pool?.poolId;
 
-  // console.log('poolsMembers:', poolsMembers);
+  const members: MemberPoints[] = useMemo(() =>
+    poolId && poolsMembers ? poolsMembers[poolId]?.map((m) => ({ accountId: m.accountId, points: String(m.member.points) })) : []
+    , [poolId, poolsMembers]
+  );
 
-  const membersToKick = useMemo((): MemberPoints[] => {
-    const members: MemberPoints[] = poolId && poolsMembers ? poolsMembers[poolId]?.map((m) => ({ accountId: m.accountId, points: String(m.member.points) })) : [];
+  const membersToUnboundAll = useMemo((): MemberPoints[] => {
+    const nonZeroPointMembers = members.filter((m) => !new BN(m.points).isZero());
 
     if (String(pool?.bondedPool?.state) === 'Blocked') {
-      return members.filter((m) => m.accountId !== staker.address && !new BN(m.points).isZero());
+      return nonZeroPointMembers.filter((m) => m.accountId !== staker.address);
+    }
+
+    return nonZeroPointMembers;
+  }, [members, pool, staker.address]);
+
+  const membersToKick = useMemo((): MemberPoints[] => {
+    if (String(pool?.bondedPool?.state) === 'Blocked') {
+      return members.filter((m) => m.accountId !== staker.address);
     }
 
     return members;
-  }, [pool, poolId, poolsMembers, staker?.address]);
+  }, [members, pool, staker.address]);
 
   const nominatedValidatorsId = useMemo(() => nominatedValidators ? nominatedValidators.map((v) => String(v.accountId)) : [], [nominatedValidators]);
   const selectedValidatorsAccountId = useMemo(() => selectedValidators ? selectedValidators.map((v) => String(v.accountId)) : [], [selectedValidators]);
@@ -100,7 +111,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const unlockingLen = pool?.ledger?.unlocking?.length ?? 0;
   const maxUnlockingChunks = api.consts.staking.maxUnlockingChunks?.toNumber() as unknown as number;
 
-  /** list of available trasactions */
+  /** list of available transactions */
   const chilled = api.tx.nominationPools.chill;
   const poolSetState = api.tx.nominationPools.setState; // (poolId, state)
   const create = api.tx.nominationPools.create;
@@ -112,7 +123,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
   const redeem = api.tx.nominationPools.withdrawUnbonded;
   const poolWithdrawUnbonded = api.tx.nominationPools.poolWithdrawUnbonded;
   const claim = api.tx.nominationPools.claimPayout;
-  const updateRoles = api.tx.nominationPools.updateRoles;//(poolId, root, nominator, stateToggler)
+  const updateRoles = api.tx.nominationPools.updateRoles;// (poolId, root, nominator, stateToggler)
   const batchAll = api.tx.utility.batchAll;
 
   async function saveHistory(chain: Chain, hierarchy: AccountWithChildren[], address: string, history: TransactionDetail[]): Promise<boolean> {
@@ -213,7 +224,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         params = [poolId, pool.metadata];
         // eslint-disable-next-line no-void
         basePool && basePool.metadata !== pool.metadata && void setMetadata(...params).paymentInfo(staker.address).then((i) => {
-          console.log('setmetadata fee set')
           setEstimatedFee((prevEstimatedFee) => api.createType('Balance', (prevEstimatedFee ?? BN_ZERO).add(i?.partialFee)));
         });
 
@@ -246,7 +256,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
 
         break;
       case ('unboundAll'):
-        calls = membersToKick.map((m) => unbonded(m.accountId, m.points));
+        calls = membersToUnboundAll.map((m) => unbonded(m.accountId, m.points));
 
         // eslint-disable-next-line no-void
         void batchAll(calls).paymentInfo(staker.address).then((i) => {
@@ -544,7 +554,6 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       }
 
       if (localState === 'unstake' && surAmount.gt(BN_ZERO)) {
-
         const params = [staker?.address, surAmount];
 
         if (unlockingLen < maxUnlockingChunks) {
@@ -592,7 +601,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       }
 
       if (localState === 'unboundAll') {
-        const batchedCalls = batchAll(membersToKick.map((m) => unbonded(m.accountId, m.points)));
+        const batchedCalls = batchAll(membersToUnboundAll.map((m) => unbonded(m.accountId, m.points)));
 
         if (unlockingLen < maxUnlockingChunks) {
           const tx = proxy ? api.tx.proxy.proxy(staker.address, proxy.proxyType, batchedCalls) : batchedCalls;
@@ -744,7 +753,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
       setState(localState);
       setConfirmingState('');
     }
-  }, [api, basePool, bondExtra, chain, chilled, claim, decimals, estimatedFee, hierarchy, joined, maxUnlockingChunks, nominated, nominatedValidatorsId, password, pool, poolId, poolSetState, poolWithdrawUnbonded, proxy, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
+  }, [api, basePool, batchAll, bondExtra, chain, chilled, claim, decimals, estimatedFee, hierarchy, joined, maxUnlockingChunks, membersToKick, membersToUnboundAll, nominated, nominatedValidatorsId, password, pool, poolId, poolSetState, poolWithdrawUnbonded, proxy, redeem, selectedValidatorsAccountId, setState, staker.address, state, surAmount, unbonded, unlockingLen]);
 
   const handleReject = useCallback((): void => {
     setState('');
@@ -761,7 +770,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
     }
   }, [handleCloseModal, handlePoolStakingModalClose, setSelectValidatorsModalOpen, setState]);
 
-  const writeAppropiateMessage = useCallback((state: string, note?: string): React.ReactNode => {
+  const writeAppropriateMessage = useCallback((state: string, note?: string): React.ReactNode => {
     switch (state) {
       case ('unstake'):
         return <Typography sx={{ mt: '50px' }} variant='h6'>
@@ -905,7 +914,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
                     showMore={!!(pool?.bondedPool && String(pool.bondedPool.state) !== 'Creating')}
                   />
                   <Grid item sx={{ m: '30px 30px', textAlign: 'center' }} xs={12}>
-                    {writeAppropiateMessage(state)}
+                    {writeAppropriateMessage(state)}
                   </Grid>
                 </Grid>
               </>
@@ -927,7 +936,7 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
             }
           </>
           : <Grid item sx={{ height: '115px', m: '50px 30px 50px', textAlign: 'center' }} xs={12}>
-            {writeAppropiateMessage(state, note)}
+            {writeAppropriateMessage(state, note)}
           </Grid>
         }
       </Grid>
