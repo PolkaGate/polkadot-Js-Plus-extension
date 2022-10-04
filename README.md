@@ -18,7 +18,7 @@ Currently, the following features are available:
   - Crowdloans (View Auctions and contribute to crowdloans)
   - Governance (vote referendums, second proposals, vote/unvote councils, propose treasury proposals and tips, etc.)
   - Social recovery
-  - supporting proxy accounts (for transferring, staking, and contribution to crowdloans)  
+  - Supporting proxy accounts (for transferring, staking, and contribution to crowdloans)  
 
 
 # ![polkadot{.js} plus extension intro](packages/extension-plus/docs/intro.png)
