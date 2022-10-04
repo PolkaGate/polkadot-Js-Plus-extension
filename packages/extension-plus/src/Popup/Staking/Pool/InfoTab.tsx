@@ -5,17 +5,16 @@
 
 /**
  * @description
- *  this component shows some general staking informathion including minNominatorBond, maxNominatorRewardedPerValidator, etc.
+ *  this component shows some general staking information including minNominatorBond, maxNominatorRewardedPerValidator, etc.
  * */
 
 import type { PoolStakingConsts } from '../../../util/plusTypes';
 
 import { Divider, Grid } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { ApiPromise } from '@polkadot/api';
-import { BN, BN_ZERO } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { ShowBalance2, ShowValue } from '../../../components';
@@ -41,13 +40,13 @@ function InfoTab({ api, currentlyExistingPoolsCount, info }: Props): React.React
       </Grid>
       <Grid container item sx={{ p: '15px 5px' }} xs={12}>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <ShowBalance2 api={api} balance={info?.minJoinBond} direction='row' title={`${t('Minimum {{token}}s needed to join a pool', { replace: { token: token } })}:`} />
+          <ShowBalance2 api={api} balance={info?.minJoinBond} direction='row' title={`${t('Minimum {{token}}s needed to join a pool', { replace: { token } })}:`} />
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <ShowBalance2 api={api} balance={info?.minCreationBond} direction='row' title={`${t('Minimum {{token}}s needed to create a pool', { replace: { token: token } })}:`} />
+          <ShowBalance2 api={api} balance={info?.minCreationBond} direction='row' title={`${t('Minimum {{token}}s needed to create a pool', { replace: { token } })}:`} />
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <ShowValue title={`${t('The number of currenttly existing pools')}:`} value={currentlyExistingPoolsCount} />
+          <ShowValue title={`${t('The number of currently existing pools')}:`} value={currentlyExistingPoolsCount} />
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <ShowValue title={`${t('Maximum possible pools')}:`} value={info?.maxPools === -1 ? t('unlimited') : info?.maxPools} />
@@ -63,6 +62,22 @@ function InfoTab({ api, currentlyExistingPoolsCount, info }: Props): React.React
         {/* <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200],fontSize: 12, paddingBottom: '5px' }} xs={12}>
             <ShowBalance2 api={api} balance={info?.minNominatorBond} title={`${t('Minimum nominator bond')}:`}/>
         </Grid> */}
+        <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('To leave a pool as a member')}:
+          </Grid>
+          <Grid item>
+            {t('unstake, wait for unstaking, then redeem')}
+          </Grid>
+        </Grid>
+        <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
+          <Grid item>
+            {t('To leave a pool as an owner')}:
+          </Grid>
+          <Grid item>
+            {t('destroy pool, kick all, then leave like a member')}
+          </Grid>
+        </Grid>
       </Grid>
     </Grid>
   );
