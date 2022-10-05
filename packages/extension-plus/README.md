@@ -1,5 +1,7 @@
 
 # ![polkadot{.js} plus extension](https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/main/Title.png)
+![license](https://img.shields.io/badge/License-Apache%202.0-blue?logo=apache&style=flat-square)
+![supported by](https://img.shields.io/badge/Supported%20by-Kusama%20Treasury-%20black?logo=polkadot&style=flat-square)
 
 A user-friendly wallet to interact with the Polkadot/Substrate based blockchains through a browser. It allows users to access their Polkadot/Kusama ecosystem account(s), which can also be used to interact with decentralized apps. It is based on polkadot js extension, which injects a [@polkadot/api](https://github.com/polkadot-js/api) signer into a page, along with any associated accounts.
 
@@ -13,11 +15,13 @@ Currently, the following features are available:
   - View transaction history
   - View an address as QR code
   - Easy staking (Solo and Pool Staking)
-  - Crowdloans (View Auctions and contribute to Crowdloans)
+  - Crowdloans (View Auctions and contribute to crowdloans)
   - Governance (vote referendums, second proposals, vote/unvote councils, propose treasury proposals and tips, etc.)
-  
+  - Social recovery
+  - Supporting proxy accounts (for transferring, staking, and contribution to crowdloans)  
 
-# ![polkadot{.js} plus extension intro](packages/extension-plus/docs/intro.png)
+
+# ![polkadot{.js} plus extension intro](https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/main/intro.png)
 
 ### More photos [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki/How-To's)
 
@@ -86,11 +90,11 @@ Once added, you can create an account (via a generated seed) or import via an ex
 
 ## More information 
 
-for more information about the extension and how it worsk, please go to the project [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki) 
+for more information about the extension and how it works, please go to the project [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki) 
 
 <!-- ## To support 
 
 
-<img src="./packages/extension-plus/docs/logos/dot.svg" width="20" />  17VdcY2F3WvhSLFHBGZreubzQNQ3NZzLbQsugGzHmzzprSG
+<img src="https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/976f95bc5027f2ce304408fe2c4e24c82b89f306/Logo/dot.svg" width="20" />  17VdcY2F3WvhSLFHBGZreubzQNQ3NZzLbQsugGzHmzzprSG
 
-<img src="./packages/extension-plus/docs/logos/ksm.svg" width="20" />  Cgp9bcq1dGP1Z9B6F2ccTSTHNez9jq2iUX993ZbDVByPSU2 -->
+<img src="https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/976f95bc5027f2ce304408fe2c4e24c82b89f306/Logo/ksm.svg" width="20" />  Cgp9bcq1dGP1Z9B6F2ccTSTHNez9jq2iUX993ZbDVByPSU2  -->
