@@ -836,11 +836,11 @@ export default function ConfirmStaking({ amount, api, basePool, chain, handlePoo
         </Typography>;
       case ('unboundAll'):
         return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
-          {t('Unbounding all members of the pool{{except}} forcibly.', { replace: { except: String(pool?.bondedPool?.state) === 'Blocked' ? ', except yourself' : '' } })}
+          {t('Unbounding all members of the pool except yourself forcibly.')}
         </Typography>;
       case ('kickAll'):
         return <Typography sx={{ color: grey[700], mt: '30px' }} variant='body1'>
-          {t('Kicking out all members of the pool{{except}} forcibly.', { replace: { except: String(pool?.bondedPool?.state) === 'Blocked' ? ', except yourself' : '' } })}
+          {t('Kicking out all members of the pool except yourself forcibly.')}
         </Typography>;
       default:
         return <Typography sx={{ m: '30px 0px 30px' }} variant='h6'>
