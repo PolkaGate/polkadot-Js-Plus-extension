@@ -21,7 +21,7 @@ Currently, the following features are available:
   - Supporting proxy accounts (for transferring, staking, and contribution to crowdloans)  
 
 
-# ![polkadot{.js} plus extension intro](packages/extension-plus/docs/intro.png)
+# ![polkadot{.js} plus extension intro](https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/main/intro.png)
 
 ### More photos [wiki](https://github.com/Nick-1979/polkadot-Js-Plus-extension/wiki/How-To's)
 
@@ -95,6 +95,6 @@ for more information about the extension and how it works, please go to the proj
 <!-- ## To support 
 
 
-<img src="./packages/extension-plus/docs/logos/dot.svg" width="20" />  17VdcY2F3WvhSLFHBGZreubzQNQ3NZzLbQsugGzHmzzprSG
+<img src="https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/976f95bc5027f2ce304408fe2c4e24c82b89f306/Logo/dot.svg" width="20" />  17VdcY2F3WvhSLFHBGZreubzQNQ3NZzLbQsugGzHmzzprSG
 
-<img src="./packages/extension-plus/docs/logos/ksm.svg" width="20" />  Cgp9bcq1dGP1Z9B6F2ccTSTHNez9jq2iUX993ZbDVByPSU2 -->
+<img src="https://raw.githubusercontent.com/Nick-1979/PolkadotJsPlusPictures/976f95bc5027f2ce304408fe2c4e24c82b89f306/Logo/ksm.svg" width="20" />  Cgp9bcq1dGP1Z9B6F2ccTSTHNez9jq2iUX993ZbDVByPSU2  -->
