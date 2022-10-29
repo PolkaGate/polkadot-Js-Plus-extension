@@ -34,7 +34,7 @@ FireFox: The extension for firefox can be downloaded from Firefox add-ons page [
 
 Chrome: 
    1. download the [zip file](https://github.com/Nick-1979/plus/archive/refs/heads/main.zip)
-   2. go to `chrome://extensions/`
+   2. go to [`chrome://extensions/`](chrome://extensions/)
    3. switch on the "Developer mode" on top right
    4. click on "Load unpacked" button and point to the unzipped downloaded folder
    
