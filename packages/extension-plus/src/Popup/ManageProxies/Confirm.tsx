@@ -95,7 +95,7 @@ export default function Confirm({ account, api, chain, className, deposit, forma
 
   const tx = calls.length > 1 ? batchAll(calls) : calls[0];
 
-  console.log('api.tx.proxy.addProxy.meta.args.length:', api.tx.proxy.addProxy.meta.args.length);
+  // console.log('api.tx.proxy.addProxy.meta.args.length:', api.tx.proxy.addProxy.meta.args.length);
 
   useEffect(() => {
     // eslint-disable-next-line no-void
@@ -166,8 +166,6 @@ export default function Confirm({ account, api, chain, className, deposit, forma
 
   const HeaderIcon = <ConfirmationNumberOutlinedIcon fontSize='small' />
 
-  console.log('account?.isExternal',account?.isExternal);
-  
   return (
     <Popup handleClose={handleCloseModal} showModal={showConfirmModal}>
       <PlusHeader action={handleReject} chain={chain} closeText={'Reject'} icon={HeaderIcon} title={t('Confirm')} />
