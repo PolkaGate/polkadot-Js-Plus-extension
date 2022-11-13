@@ -23,7 +23,7 @@ import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import keyring from '@polkadot/ui-keyring';
-import { BN } from '@polkadot/util';
+import { BN, BN_ONE } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -98,9 +98,13 @@ export default function Confirm({ account, api, chain, className, deposit, forma
   // console.log('api.tx.proxy.addProxy.meta.args.length:', api.tx.proxy.addProxy.meta.args.length);
 
   useEffect(() => {
+    if (!api?.call?.transactionPaymentApi) {
+      return setEstimatedFee(api.createType('Balance', BN_ONE));
+    }
+
     // eslint-disable-next-line no-void
     void tx.paymentInfo(formatted).then((i) => setEstimatedFee(i?.partialFee));
-  }, [formatted, tx]);
+  }, [api, api?.call?.transactionPaymentApi, formatted, tx]);
 
   const handleCloseModal = useCallback((): void => {
     setConfirmModalOpen(false);

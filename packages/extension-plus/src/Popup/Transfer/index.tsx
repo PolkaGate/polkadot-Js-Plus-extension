@@ -23,6 +23,7 @@ import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, us
 
 import { ApiPromise } from '@polkadot/api';
 import Identicon from '@polkadot/react-identicon';
+import { BN_ONE } from '@polkadot/util';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { Chain } from '../../../../extension-chains/src/types';
@@ -31,7 +32,6 @@ import { AccountContext, SettingsContext } from '../../../../extension-ui/src/co
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
 import { DEFAULT_TYPE } from '../../../../extension-ui/src/util/defaultType';
 import { PlusHeader, Popup } from '../../components';
-import SelectProxy from '../../partials/SelectProxy';
 import getLogo from '../../util/getLogo';
 import { AccountsBalanceType, Recoded } from '../../util/plusTypes';
 import { amountToHuman, amountToMachine, balanceToHuman, fixFloatingPoint } from '../../util/plusUtils';
@@ -81,13 +81,17 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   useEffect(() => {
     if (!api || !transfer) { return; }
 
+    if (!api?.call?.transactionPaymentApi) {
+      return api && setEstimatedFee(api.createType('Balance', BN_ONE));
+    }
+
     // eslint-disable-next-line no-void
     void transfer(sender.address, transferAmount).paymentInfo(sender.address)
       .then((i) => setEstimatedFee(i?.partialFee)).catch(console.error);
   }, [api, sender.address, transfer, transferAmount]);
 
   useEffect(() => {
-    if (recepientAddressIsValid) { setSenderAddressOpacity(0.7); } else setSenderAddressOpacity(0.2);
+    if (recepientAddressIsValid) { setSenderAddressOpacity(0.7); } else { setSenderAddressOpacity(0.2); }
   }, [recepientAddressIsValid]);
 
   useEffect((): void => {
@@ -239,7 +243,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
 
     let fee = estimatedFee;
 
-    if (!fee && transfer) {
+    if (!fee && transfer && api?.call?.transactionPaymentApi) {
       const { partialFee } = await transfer(sender.address, sender.balanceInfo.available).paymentInfo(sender.address);
 
       fee = partialFee;
@@ -262,7 +266,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
     setTransferAmount(amount);
     setAllAmountLoading(false);
     setMaxAmountLoading(false);
-  }, [ED, decimals, estimatedFee, recepient, sender, transfer]);
+  }, [ED, api?.call?.transactionPaymentApi, decimals, estimatedFee, recepient, sender, transfer]);
 
   const allAddresesOnSameChain = useMemo(() => {
     const all = accounts.map((acc): { account: AccountJson, formattedAddress: string } => {
@@ -332,7 +336,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
   function handleConfirmModaOpen(): void {
     setConfirmModalOpen(true);
   }
-  
+
   const SendHeaderIcon = <SendOutlinedIcon fontSize='small' sx={{ transform: 'rotate(-45deg)' }} />;
 
   return (

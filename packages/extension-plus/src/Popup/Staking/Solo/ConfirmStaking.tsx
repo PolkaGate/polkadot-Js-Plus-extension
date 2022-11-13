@@ -23,6 +23,7 @@ import { Chain } from '@polkadot/extension-chains/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import { Balance } from '@polkadot/types/interfaces';
 import keyring from '@polkadot/ui-keyring';
+import { BN_ONE } from '@polkadot/util';
 
 import { AccountContext } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
@@ -143,6 +144,10 @@ export default function ConfirmStaking({ amount, api, chain, handleSoloStakingMo
 
   const setFee = useCallback(() => {
     let params;
+
+    if (!api?.call?.transactionPaymentApi) {
+      return api && setEstimatedFee(api.createType('Balance', BN_ONE));
+    }
 
     switch (state) {
       case ('stakeAuto'):

@@ -9,10 +9,8 @@
  * */
 
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
-import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { AccountJson, AccountWithChildren } from '../../../extension-base/src/background/types';
 
-import { SendOutlined as SendOutlinedIcon } from '@mui/icons-material';
 import { Container, FormControlLabel, Grid, Radio, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -25,7 +23,7 @@ import { Chain } from '../../../extension-chains/src/types';
 import { AccountContext, SettingsContext } from '../../../extension-ui/src/components/contexts';
 import useTranslation from '../../../extension-ui/src/hooks/useTranslation';
 import { DEFAULT_TYPE } from '../../../extension-ui/src/util/defaultType';
-import { PlusHeader, Popup, Progress, Identity2, Hint } from '../components';
+import { Hint, Identity2, PlusHeader, Popup, Progress } from '../components';
 import { NameAddress, Proxy, ProxyTypes, Recoded } from '../util/plusTypes';
 
 interface Props {
@@ -177,7 +175,8 @@ export default function SelectProxy({ acceptableTypes, allAddresesOnSameChain, a
                                   size='small'
                                   value={index} />
                               }
-                              label='' value={index}
+                              label=''
+                              value={index}
                             />
                           </Hint>
                         </Grid>

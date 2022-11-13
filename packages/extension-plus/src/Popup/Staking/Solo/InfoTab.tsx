@@ -5,7 +5,7 @@
 
 /** 
  * @description
- *  this component shows some general staking informathion including minNominatorBond, maxNominatorRewardedPerValidator, etc.
+ *  this component shows some general staking information including minNominatorBond, maxNominatorRewardedPerValidator, etc.
  * */
 
 import { Divider, Grid } from '@mui/material';
@@ -47,7 +47,7 @@ function InfoTab({ api, currentEraIndex, minNominated, stakingConsts }: Props): 
           <ShowBalance2 api={api} balance={stakingConsts?.minNominatorBond} direction='row' title={t('Minimum {{symbol}}s to be a staker (threshold): ', { replace: { symbol: token } })} />
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ fontSize: 12, paddingBottom: '5px' }} xs={12}>
-          <ShowBalance2 api={api} balance={minNominated} direction='row' title={t('Minimum {{symbol}}s to recieve rewards today (era: {{eraIndex}}):', { replace: { symbol: token, eraIndex: currentEraIndex } })} />
+          <ShowBalance2 api={api} balance={minNominated} direction='row' title={t('Minimum {{symbol}}s to receive rewards today (era: {{eraIndex}}):', { replace: { symbol: token, eraIndex: currentEraIndex } })} />
         </Grid>
         <Grid container item justifyContent='space-between' sx={{ bgcolor: grey[200], fontSize: 12, paddingBottom: '5px' }} xs={12}>
           <ShowValue title={t('Maximum nominators of a validator, who may receive rewards: ')} value={stakingConsts?.maxNominatorRewardedPerValidator} />

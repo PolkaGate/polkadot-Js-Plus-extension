@@ -91,6 +91,10 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
   const existentialDeposit = useMemo(() => api ? new BN(api.consts.balances.existentialDeposit.toString()) : BN_ZERO, [api]);
 
   useEffect(() => {
+    if (!api?.call?.transactionPaymentApi) {
+      return api && setEstimatedMaxFee(api.createType('Balance', BN_ZERO));
+    }
+
     api && staker?.balanceInfo?.available &&
       api.tx.nominationPools.bondExtra({ FreeBalance: staker.balanceInfo.available }).paymentInfo(staker.address).then((i) => {
         setEstimatedMaxFee(api.createType('Balance', i?.partialFee));

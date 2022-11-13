@@ -20,7 +20,7 @@ import { grey } from '@mui/material/colors';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
-import { BN, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import { BackButton, NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
@@ -103,6 +103,10 @@ function CreatePool({ api, chain, nextPoolId, className, setStakeAmount, poolSta
   useEffect(() => {
     if (!realStakingAmount) {
       return;
+    }
+
+    if (!api?.call?.transactionPaymentApi) {
+      return api && setEstimatedFee(api.createType('Balance', BN_ONE));
     }
 
     api && api.tx.nominationPools.create(String(realStakingAmount), rootId, nominatorId, stateTogglerId).paymentInfo(staker.address).then((i) => {

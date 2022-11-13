@@ -97,6 +97,10 @@ function JoinPool({ api, chain, poolsInfo, poolsMembers, className, setStakeAmou
   useEffect(() => {
     if (!realStakingAmount) { return; }
 
+    if (!api?.call?.transactionPaymentApi) {
+      return api && setEstimatedFee(api.createType('Balance', BN_ONE));
+    }
+
     api && api.tx.nominationPools.join(String(realStakingAmount), selectedPool?.poolId ?? 1).paymentInfo(staker.address).then((i) => {
       setEstimatedFee(api.createType('Balance', i?.partialFee));
     });

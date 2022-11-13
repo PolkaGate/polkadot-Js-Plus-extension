@@ -11,7 +11,7 @@
 import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { Alert, Button as MuiButton, Grid, InputAdornment, TextField } from '@mui/material';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 
@@ -29,9 +29,11 @@ interface Props {
   nextToUnStakeButtonBusy: boolean;
   availableBalance: bigint;
   handleNextToUnstake: () => void;
+  handleNextToFastUnstake: () => void;
+  isEligibleForFastUnstak: boolean | undefined
 }
 
-export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleNextToUnstake, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
+export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleNextToFastUnstake, handleNextToUnstake, isEligibleForFastUnstak, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
@@ -41,6 +43,29 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
 
   const decimals = api?.registry?.chainDecimals[0];
   const token = api?.registry?.chainTokens[0];
+
+  useEffect(() => {
+    if (!api?.query?.fastUnstake) {
+      return;
+    }
+
+    api.query.fastUnstake.erasToCheckPerBlock().then((result) => {
+      console.log('fastUnstake.erasToCheckPerBlock', result ? result.toNumber() : 0);
+    }).catch(console.error);
+
+    api.query.fastUnstake.head().then((result) => {
+      console.log('fastUnstake.head', result.isSome ? result.unwrap().toString() : 'None');
+    }).catch(console.error);
+
+    api.query.fastUnstake.counterForQueue().then((result) => {
+      console.log('fastUnstake.counterForQueue', result?.toString());
+    }).catch(console.error);
+
+    api.query.fastUnstake.queue('5DRbuYvzokyX7X4QDxrk1BNRxYS6NP4V9CHiciPXdTe2vT4Z').then((result) => {
+      console.log('fastUnstake.queue', result.isSome ? result.unwrap().toString() : 'None');
+    }).catch(console.error);
+  }, [api]);
+
 
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
     if (!decimals) { return; }
@@ -151,14 +176,25 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
               }
             </Grid>
           </Grid>
-          <Grid container item sx={{ fontSize: 13, fontWeight: '600', padding: '15px 30px 5px', textAlign: 'center' }} xs={12}>
+          <Grid container justifyContent='center' item sx={{ fontSize: 13, fontWeight: '600', padding: '0px 30px 5px' }} xs={12}>
             {alert &&
-              <Grid item xs={12}>
+              <Grid item>
                 <Alert severity='error' sx={{ fontSize: 12 }}>
                   {alert}
                 </Alert>
               </Grid>
             }
+            {/* {isEligibleForFastUnstak && !!ledger?.active && availableBalance > (stakingConsts?.existentialDeposit ?? Infinity) &&
+              <Grid container item justifyContent='space-between' lineHeight='20px'>
+                {t('You are eligible for fastUnstake')}
+                <MuiButton
+                  onClick={handleNextToFastUnstake}
+                  variant='outlined'
+                >
+                  {t('Unstake Fast')}
+                </MuiButton>
+              </Grid>
+            } */}
           </Grid>
         </Grid>
       </Grid>

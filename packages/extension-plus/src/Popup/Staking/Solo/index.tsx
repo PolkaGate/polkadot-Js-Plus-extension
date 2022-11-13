@@ -39,6 +39,8 @@ import SelectValidators from './SelectValidators';
 import Stake from './Stake';
 import TabPanel from './TabPanel';
 import Unstake from './Unstake';
+import broadcast from '../../../util/api/broadcast';
+import keyring from '@polkadot/ui-keyring';
 
 interface Props {
   account: AccountJson,
@@ -86,6 +88,7 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
   const [activeValidators, setActiveValidators] = useState<DeriveStakingQuery[]>();
   const [rewardsInfo, setRewardsInfo] = useState<RewardInfo[]>([]);
   const [rebagInfo, setRebagInfo] = useState<RebagInfo | undefined>();
+  const [isEligibleForFastUnstak, setIsEligibleForFastUnstak] = useState<boolean | undefined>();
   const [putInFrontInfo, setPutInFrontOfInfo] = useState<PutInFrontInfo | undefined>();
   const [redeemable, setRedeemable] = useState<bigint | null>(null);
 
@@ -121,6 +124,42 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
       needsRebag.terminate();
     };
   };
+
+  const checkFastUnstakeEligibility = (endpoint: string, stakerAddress: string) => {
+    const isEligible: Worker = new Worker(new URL('../../../util/workers/isEligibleToFastUnstake.js', import.meta.url));
+
+    workers.push(isEligible);
+
+    isEligible.postMessage({ endpoint, stakerAddress });
+
+    isEligible.onerror = (err) => {
+      console.log(err);
+    };
+
+    isEligible.onmessage = (e: MessageEvent<any>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const eligibility: boolean | undefined = e.data;
+
+      // setRebagInfo(info);
+      console.log(`fastUnstake eligibility for ${stakerAddress} is ${eligibility}`);
+      setIsEligibleForFastUnstak(eligibility);
+
+      isEligible.terminate();
+    };
+  };
+
+  const handleNextToFastUnstake = useCallback(() => {
+    if (!api) { return; }
+
+    const registerFastUnstake = api.tx.fastUnstake.registerFastUnstake;
+    const signer = keyring.getPair(staker.address);
+
+    signer.unlock('Kami,12*');
+
+    broadcast(api, registerFastUnstake, [], signer, staker.address).then((res) => {
+      console.log('Fast unstake registration response: ', res);
+    }).catch(console.error);
+  }, [api, staker.address]);
 
   const checkNeedsPutInFrontOf = (endpoint: string, stakerAddress: string) => {
     const needsPutInFrontOf: Worker = new Worker(new URL('../../../util/workers/needsPutInFrontOf.js', import.meta.url));
@@ -252,6 +291,11 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
     /** to check if rebag and putInFrontOf is needed */
     endpoint && checkNeedsTuneUp(endpoint, staker.address);
   }, [checkNeedsTuneUp, endpoint, staker.address]);
+
+  useEffect(() => {
+    api && api.query?.fastUnstake && endpoint && checkFastUnstakeEligibility(endpoint, staker.address);
+  }, [api, endpoint, staker.address]);
+
 
   useEffect(() => {
     if (!api || !decimals) {
@@ -520,6 +564,8 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
               availableBalance={staker?.balanceInfo?.available ?? 0n}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
+              handleNextToFastUnstake={handleNextToFastUnstake}
+              isEligibleForFastUnstak={isEligibleForFastUnstak}
               ledger={ledger}
               nextToUnStakeButtonBusy={state === 'unstake'}
               setUnstakeAmount={setUnstakeAmount}

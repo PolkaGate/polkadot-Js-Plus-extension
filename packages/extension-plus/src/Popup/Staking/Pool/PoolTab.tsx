@@ -14,7 +14,7 @@ import type { AccountsBalanceType, MembersMapEntry, MyPoolInfo } from '../../../
 
 import { AutoDeleteRounded as AutoDeleteRoundedIcon, BlockRounded as BlockRoundedIcon, Output as OutputIcon, PlayCircleOutlined as PlayCircleOutlinedIcon, SettingsApplicationsOutlined as SettingsApplicationsOutlinedIcon } from '@mui/icons-material';
 import { Button, Divider, Grid } from '@mui/material';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 
 import { BN } from '@polkadot/util';
 
@@ -54,6 +54,10 @@ function PoolTab({ api, chain, handleConfirmStakingModalOpen, newPool, pool, poo
 
     return true;
   }, [pool, staker, poolsMembers]);
+
+  useEffect(() => {
+    api && console.log('api.consts.utility.batchedCallsLimit:', String(api.consts.utility.batchedCallsLimit));
+  }, [api]);
 
   const handleStateChange = useCallback((state: string) => {
     if (!api) {

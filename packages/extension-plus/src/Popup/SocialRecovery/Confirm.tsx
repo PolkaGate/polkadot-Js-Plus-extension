@@ -21,7 +21,7 @@ import { DeriveAccountInfo } from '@polkadot/api-derive/types';
 import { AccountWithChildren } from '@polkadot/extension-base/background/types';
 import { updateMeta } from '@polkadot/extension-ui/messaging';
 import keyring from '@polkadot/ui-keyring';
-import { BN, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import { AccountContext, ActionContext } from '../../../../extension-ui/src/components';
 import useTranslation from '../../../../extension-ui/src/hooks/useTranslation';
@@ -154,6 +154,10 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
     let params;
     const recoveryDelayInBlocks = recoveryDelay ? Math.floor(recoveryDelay * 24 * 60 * 10) : undefined;
 
+    if (!api?.call?.transactionPaymentApi) {
+      return setEstimatedFee(api.createType('Balance', BN_ONE));
+    }
+
     switch (state) {
       case ('makeRecoverable'):
         params = [friendIds, recoveryThreshold, recoveryDelayInBlocks];
@@ -200,7 +204,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         break;
       default:
     }
-  }, [batchAll, account?.accountId, batchWithdraw, claimRecovery, closeRecovery, asRecovered, createRecovery, friendIds, initiateRecovery, lostAccount?.accountId, recoveryDelay, recoveryThreshold, removeRecovery, rescuer?.accountId, state, vouchRecovery]);
+  }, [recoveryDelay, api, state, friendIds, recoveryThreshold, account.accountId, createRecovery, removeRecovery, lostAccount.accountId, initiateRecovery, rescuer.accountId, closeRecovery, vouchRecovery, batchWithdraw, batchAll, claimRecovery, asRecovered]);
 
   useEffect(() => {
     if (!api) {
