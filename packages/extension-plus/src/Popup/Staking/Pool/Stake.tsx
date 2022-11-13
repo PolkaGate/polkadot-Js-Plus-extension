@@ -18,7 +18,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { Chain } from '@polkadot/extension-chains/types';
-import { BN, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
 
 import { NextStepButton } from '../../../../../extension-ui/src/components';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
@@ -92,7 +92,7 @@ export default function Stake({ api, chain, currentlyStaked, handleConfirmStakin
 
   useEffect(() => {
     if (!api?.call?.transactionPaymentApi) {
-      return api && setEstimatedMaxFee(api.createType('Balance', BN_ZERO));
+      return api && setEstimatedMaxFee(api.createType('Balance', BN_ONE));
     }
 
     api && staker?.balanceInfo?.available &&
