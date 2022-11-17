@@ -260,10 +260,23 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
   }, [stakingConsts, validatorsInfo]);
 
   useEffect(() => {
-    const oversubscribed = nominatedValidators?.filter((v) => stakingConsts?.maxNominatorRewardedPerValidator && v.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator);
+    const threshold = stakingConsts?.maxNominatorRewardedPerValidator;
+
+    if (!myPool?.ledger || !threshold) {
+      return;
+    }
+
+    const possibleOversubscribed = nominatedValidators?.filter((v) => v.exposure.others.length > threshold);
+
+    const oversubscribed = possibleOversubscribed?.filter((v) => {
+      const sortedNominators = v.exposure.others.sort((a, b) => b.value - a.value);
+      const maybeMyIndex = sortedNominators.findIndex((n) => n.value < myPool.ledger.active);
+
+      return v.exposure.others.length > threshold && (maybeMyIndex > threshold || maybeMyIndex === -1);
+    });
 
     setOversubscribedCount(oversubscribed?.length);
-  }, [nominatedValidators, stakingConsts]);
+  }, [myPool?.ledger, nominatedValidators, stakingConsts]);
 
   function selectBestValidators(validatorsInfo: Validators, stakingConsts: StakingConsts): DeriveStakingQuery[] {
     const allValidators = validatorsInfo.current.concat(validatorsInfo.waiting);

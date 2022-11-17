@@ -6,6 +6,8 @@
 /** 
  * @description render a table which is used to show validators info 
  * */
+import type { StakingLedger } from '@polkadot/types/interfaces';
+
 import { Box, Grid, Paper } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import React, { useCallback } from 'react';
@@ -22,6 +24,7 @@ interface Props {
   api: ApiPromise;
   activeValidators?: DeriveStakingQuery[];
   chain: Chain;
+  ledger?: StakingLedger | null;
   validators: DeriveStakingQuery[];
   stakingConsts: StakingConsts | undefined;
   validatorsIdentities: DeriveAccountInfo[] | undefined;
@@ -30,7 +33,7 @@ interface Props {
   height?: number;
 }
 
-export default function VTable({ activeValidators, api, chain, height = 180, setInfo, setShowValidatorInfoModal, stakingConsts, validators, validatorsIdentities }: Props) {
+export default function VTable({ activeValidators, api, chain, height = 180, ledger, setInfo, setShowValidatorInfoModal, stakingConsts, validators, validatorsIdentities }: Props) {
   const { t } = useTranslation();
 
   const handleMoreInfo = useCallback((info: DeriveStakingQuery) => {
@@ -69,6 +72,7 @@ export default function VTable({ activeValidators, api, chain, height = 180, set
               handleMoreInfo={handleMoreInfo}
               key={index}
               showSocial={false}
+              ledger={ledger}
               stakingConsts={stakingConsts}
               t={t}
               validator={v}

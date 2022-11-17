@@ -209,10 +209,6 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
     /** must be set to prevent call TransferAll!!! */
     setTransferAllType(undefined);
 
-    if (Number(value) < 0) {
-      value = String(-Number(value));
-    }
-
     const cutDecimals = fixFloatingPoint(value);
 
     setTransferAmountInHuman(cutDecimals);
@@ -384,7 +380,7 @@ export default function TransferFunds({ api, chain, givenType, sender, setTransf
               style: { fontSize: 14 }
             }}
             fullWidth
-            helperText={t('Reciever and sender must be on the same network')}
+            helperText={t('Receiver and sender must be on the same network')}
             label={t('Recipient')}
             onChange={handleRecepientAddressChange}
             placeholder={t('Search, Public address')}

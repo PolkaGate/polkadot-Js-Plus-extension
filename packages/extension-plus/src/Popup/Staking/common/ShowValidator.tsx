@@ -7,11 +7,11 @@
  * @description this component shows an individual validators info in a row in a table shape 
  * */
 
-import type { AccountId } from '@polkadot/types/interfaces';
+import type { StakingLedger } from '@polkadot/types/interfaces';
 
 import { DirectionsRun as DirectionsRunIcon, MoreVert as MoreVertIcon, ReportProblemOutlined as ReportProblemOutlinedIcon } from '@mui/icons-material';
 import { Grid, Paper, Switch, Tooltip } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
@@ -36,16 +36,30 @@ interface Props {
   activeValidators?: DeriveStakingQuery[];
   showSocial?: boolean;
   t: TFunction;
+  ledger?: StakingLedger | null;
+
 }
 
-function ShowValidator({ activeValidators, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, showSocial = true, showSwitch = false, stakingConsts, t, validator, validatorsIdentities }: Props) {
+function ShowValidator({ activeValidators, api, chain, handleMoreInfo, handleSwitched, isInNominatedValidators, isSelected, ledger, showSocial = true, showSwitch = false, staker, stakingConsts, t, validator, validatorsIdentities }: Props) {
   const [accountInfo, setAccountInfo] = useState<DeriveAccountInfo | undefined>();
   const isItemSelected = isSelected && isSelected(validator);
   const rowBackground = isInNominatedValidators && (isInNominatedValidators(validator) ? SELECTED_COLOR : '');
   const nominatorCount = validator.exposure.others.length;
   const isActive = activeValidators?.find((activeValidator) => validator.accountId === activeValidator?.accountId);
-  const isOverSubscribed = stakingConsts && validator.exposure.others.length > stakingConsts?.maxNominatorRewardedPerValidator;
   const total = String(validator.exposure.total).indexOf('.') === -1 && api.createType('Balance', validator.exposure.total);
+
+  const isOverSubscribed = useMemo(() => {
+    if (!stakingConsts) {
+      return;
+    }
+
+    const threshold = stakingConsts.maxNominatorRewardedPerValidator;
+
+    const sortedNominators = validator.exposure.others.sort((a, b) => b.value - a.value);
+    const maybeMyIndex = ledger ? sortedNominators.findIndex((n) => n.value < ledger.active) : -1;
+
+    return validator.exposure.others.length > threshold && (maybeMyIndex > threshold || maybeMyIndex === -1);
+  }, [ledger, stakingConsts, validator.exposure.others]);
 
   useEffect(() => {
     const info = validatorsIdentities?.find((v) => v?.accountId === validator?.accountId);

@@ -20,8 +20,8 @@ import { Chain } from '@polkadot/extension-chains/types';
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { Progress } from '../../../components';
 import { AccountsBalanceType, StakingConsts } from '../../../util/plusTypes';
-import VTable from './VTable';
 import ValidatorInfo from './ValidatorInfo';
+import VTable from './VTable';
 
 interface Props {
   activeValidators?: DeriveStakingQuery[];
@@ -61,6 +61,7 @@ export default function ValidatorsList({ activeValidators, api, chain, height, l
             api={api}
             chain={chain}
             height={height}
+            ledger={ledger}
             setInfo={setInfo}
             setShowValidatorInfoModal={setShowValidatorInfoModal}
             stakingConsts={stakingConsts}
