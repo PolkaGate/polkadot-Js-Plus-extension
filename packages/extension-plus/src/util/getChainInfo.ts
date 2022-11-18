@@ -22,14 +22,14 @@ async function getChainInfo(searchKeyWord: Chain | string | null | undefined): P
 
   const endpoints = allEndpoints.filter((e) => condition(e));
 
-  const endpoint = endpoints[0];
+  const endpoint = endpoints[endpoints.length > 2 ? 1 : 0];
 
   const wsProvider = new WsProvider(endpoint?.value);
 
   const api = await ApiPromise.create({ provider: wsProvider });
 
   return {
-    api: api,
+    api,
     chainName: String(endpoint?.text),
     coin: api.registry.chainTokens[0],
     decimals: api.registry.chainDecimals[0],
