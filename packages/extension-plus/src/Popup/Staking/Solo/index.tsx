@@ -148,18 +148,18 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
     };
   };
 
-  const handleNextToFastUnstake = useCallback(() => {
-    if (!api) { return; }
+  // const handleNextToFastUnstake = useCallback(() => {
+  //   if (!api) { return; }
 
-    const registerFastUnstake = api.tx.fastUnstake.registerFastUnstake;
-    const signer = keyring.getPair(staker.address);
+  //   const registerFastUnstake = api.tx.fastUnstake.registerFastUnstake;
+  //   const signer = keyring.getPair(staker.address);
 
-    signer.unlock('Kami,12*');
+  //   signer.unlock('xyz');
 
-    broadcast(api, registerFastUnstake, [], signer, staker.address).then((res) => {
-      console.log('Fast unstake registration response: ', res);
-    }).catch(console.error);
-  }, [api, staker.address]);
+  //   broadcast(api, registerFastUnstake, [], signer, staker.address).then((res) => {
+  //     console.log('Fast unstake registration response: ', res);
+  //   }).catch(console.error);
+  // }, [api, staker.address]);
 
   const checkNeedsPutInFrontOf = (endpoint: string, stakerAddress: string) => {
     const needsPutInFrontOf: Worker = new Worker(new URL('../../../util/workers/needsPutInFrontOf.js', import.meta.url));
@@ -564,7 +564,7 @@ export default function SoloStaking({ account, api, chain, currentEraIndex, endp
               availableBalance={staker?.balanceInfo?.available ?? 0n}
               currentlyStakedInHuman={currentlyStakedInHuman}
               handleNextToUnstake={handleNextToUnstake}
-              handleNextToFastUnstake={handleNextToFastUnstake}
+              // handleNextToFastUnstake={handleNextToFastUnstake}
               isEligibleForFastUnstak={isEligibleForFastUnstak}
               ledger={ledger}
               nextToUnStakeButtonBusy={state === 'unstake'}

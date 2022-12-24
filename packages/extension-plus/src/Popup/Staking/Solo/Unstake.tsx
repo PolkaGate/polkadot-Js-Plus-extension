@@ -29,11 +29,11 @@ interface Props {
   nextToUnStakeButtonBusy: boolean;
   availableBalance: bigint;
   handleNextToUnstake: () => void;
-  handleNextToFastUnstake: () => void;
+  // handleNextToFastUnstake: () => void;
   isEligibleForFastUnstak: boolean | undefined
 }
 
-export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleNextToFastUnstake, handleNextToUnstake, isEligibleForFastUnstak, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
+export default function Unstake({ api, availableBalance, currentlyStakedInHuman, handleNextToUnstake, isEligibleForFastUnstak, ledger, nextToUnStakeButtonBusy, setUnstakeAmount, stakingConsts }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [unstakeAmountInHuman, setUnstakeAmountInHuman] = useState<string | null>(null);
   const [nextToUnStakeButtonDisabled, setNextToUnStakeButtonDisabled] = useState(true);
