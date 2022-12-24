@@ -66,7 +66,6 @@ export default function Unstake({ api, availableBalance, currentlyStakedInHuman,
     }).catch(console.error);
   }, [api]);
 
-
   const handleUnstakeAmountChanged = useCallback((value: string): void => {
     if (!decimals) { return; }
 
