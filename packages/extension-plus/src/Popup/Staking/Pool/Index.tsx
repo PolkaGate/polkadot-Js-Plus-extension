@@ -23,7 +23,7 @@ import { ApiPromise } from '@polkadot/api';
 import { DeriveAccountInfo, DeriveStakingQuery } from '@polkadot/api-derive/types';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import { Chain } from '@polkadot/extension-chains/types';
-import { BN, BN_ZERO } from '@polkadot/util';
+import { BN, BN_ZERO, hexToBn, isHex } from '@polkadot/util';
 
 import useTranslation from '../../../../../extension-ui/src/hooks/useTranslation';
 import { updateMeta } from '../../../../../extension-ui/src/messaging';
@@ -138,6 +138,13 @@ export default function Index({ account, api, chain, currentEraIndex, endpoint, 
       const parsedInfo = JSON.parse(info) as MyPoolInfo;
 
       setNoNominatedValidators(!parsedInfo?.stashIdAccount?.nominators?.length);
+
+
+      /** convert hex strings to BN strings*/
+      parsedInfo.member.points = (isHex(parsedInfo.member.points) ? hexToBn(parsedInfo.member.points) : new BN(parsedInfo.member.points)).toString();
+      parsedInfo.bondedPool.points = (isHex(parsedInfo.bondedPool.points) ? hexToBn(parsedInfo.bondedPool.points) : new BN(parsedInfo.bondedPool.points)).toString();
+      parsedInfo.stashIdAccount.stakingLedger.active = (isHex(parsedInfo.stashIdAccount.stakingLedger.active) ? hexToBn(parsedInfo.stashIdAccount.stakingLedger.active) : new BN(parsedInfo.stashIdAccount.stakingLedger.active)).toString();
+      parsedInfo.stashIdAccount.stakingLedger.total = (isHex(parsedInfo.stashIdAccount.stakingLedger.total) ? hexToBn(parsedInfo.stashIdAccount.stakingLedger.total) : new BN(parsedInfo.stashIdAccount.stakingLedger.total)).toString();
 
       console.log('*** My pool info returned from worker is:', parsedInfo);
 
