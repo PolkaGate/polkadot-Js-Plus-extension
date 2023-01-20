@@ -90,7 +90,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
   const chill = api.tx.staking.chill;
   const batchAll = api.tx.utility.batchAll;
 
-  const withdrawCalls = []; // put all withdraws as recoverd from the lost account inside
+  const withdrawCalls = []; // put all withdraws as recovered from the lost account inside
 
   if (['withdrawAsRecovered', 'withdrawWithClaim'].includes(state)) {
     rescuer?.accountId && rescuer?.option?.deposit && withdrawCalls.push(closeRecovery(rescuer.accountId));
@@ -204,7 +204,7 @@ export default function Confirm({ account, api, chain, friends, lostAccount, oth
         break;
       default:
     }
-  }, [recoveryDelay, api, state, friendIds, recoveryThreshold, account.accountId, createRecovery, removeRecovery, lostAccount.accountId, initiateRecovery, rescuer.accountId, closeRecovery, vouchRecovery, batchWithdraw, batchAll, claimRecovery, asRecovered]);
+  }, [recoveryDelay, api, state, friendIds, recoveryThreshold, account.accountId, createRecovery, removeRecovery, lostAccount?.accountId, initiateRecovery, rescuer?.accountId, closeRecovery, vouchRecovery, batchWithdraw, batchAll, claimRecovery, asRecovered]);
 
   useEffect(() => {
     if (!api) {
