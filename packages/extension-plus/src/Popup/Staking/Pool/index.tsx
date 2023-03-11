@@ -31,15 +31,15 @@ import { PlusHeader, Popup } from '../../../components';
 import { useMapEntries } from '../../../hooks';
 import { MAX_ACCEPTED_COMMISSION } from '../../../util/constants';
 import { prepareMetaData } from '../../../util/plusUtils';
-import Nominations from '../Pool/Nominations';
-import Unstake from '../pool/Unstake';
 import TabPanel from '../Solo/TabPanel';
 import ConfirmStaking from './ConfirmStaking';
 import InfoTab from './InfoTab';
+import Nominations from './Nominations';
 import Overview from './Overview';
 import PoolTab from './PoolTab';
 import SelectValidators from './SelectValidators';
 import Stake from './Stake';
+import Unstake from './Unstake';
 
 interface Props {
   account: AccountJson,

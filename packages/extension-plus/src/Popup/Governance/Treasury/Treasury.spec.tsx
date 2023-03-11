@@ -22,7 +22,7 @@ import getChainInfo from '../../../util/getChainInfo';
 import { ChainInfo, Tip } from '../../../util/plusTypes';
 import { toHuman } from '../../../util/plusUtils';
 import { accounts, chain, createAcc, createExtension, firstSuri } from '../../../util/test/testHelper';
-import ProposalsOverview from './proposals/overview';
+import ProposalsOverview from './proposals/Overview';
 import SubmitProposal from './proposals/SubmitProposal';
 import TipsOverview from './tips/Overview';
 import ProposeTip from './tips/ProposeTip';
