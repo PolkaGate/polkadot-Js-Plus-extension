@@ -45,25 +45,9 @@ Steps to build the extension and view your changes in a browser:
 
 1. download the files via `git clone https://github.com/Nick-1979/polkadot-Js-Plus-extension.git`
 2. got to downloaded folder via `cd polkadot-Js-Plus-extension`
-3. install dependencies via `yarn` (yarn v3.2.0 is needed)
-4. Append the following Westend network info to the end of './node_modules/@substrate/ss58-registry/esm/index.js' (inside the array):
-
-     `{
-		"prefix": 42,
-		"network": "westend",
-		"displayName": "Westend",
-		"symbols": [
-			"WND"
-		],
-		"decimals": [
-			12
-		],
-		"standardAccount": "*25519",
-		"website": "https://polkadot.network"
-	}`
-
-5. Build via `yarn build`
-6. Install the extension
+3. install dependencies via `yarn`
+4. Build via `yarn build` or `yarn watch`
+5. Install the extension
   - Chrome:
     - go to `chrome://extensions/`
     - ensure you have the Development flag set
